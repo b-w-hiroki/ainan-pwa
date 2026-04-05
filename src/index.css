@@ -1,0 +1,235 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #f0f7f5;
+  --color-primary: #0d6b5c;
+  --color-text: #1a1a1a;
+}
+
+html, body, #root {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--color-primary);
+}
+
+.tagline {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.main {
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.main p {
+  margin: 0.5rem 0;
+}
+
+.hint {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.cast-area {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gauge {
+  width: min(320px, 90vw);
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(13, 107, 92, 0.12);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(13, 107, 92, 0.18);
+}
+
+.gauge-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4fd1c5, #0d6b5c);
+  transition: width 120ms ease-out;
+}
+
+.gauge-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.cast-button {
+  min-width: 160px;
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  border: none;
+  background: #0d6b5c;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(0);
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out, background 120ms ease-out;
+}
+
+.cast-button:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: #0a5549;
+}
+
+.cast-button:focus-visible {
+  outline: 2px solid #4fd1c5;
+  outline-offset: 3px;
+}
+
+.distance {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.progress-card {
+  width: min(360px, 100vw - 2rem);
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(13, 107, 92, 0.2);
+  text-align: left;
+}
+
+.progress-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.progress-rate {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.progress-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.progress-list .done {
+  color: #0d6b5c;
+}
+
+.progress-list .todo {
+  color: #444;
+}
+
+.scene {
+  width: min(360px, 100vw - 2rem);
+  height: 220px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(to bottom, #bfe3ff 0%, #e6f7ff 40%, #9ad1f5 40%, #1a8fb5 100%);
+}
+
+.scene-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.sea {
+  position: absolute;
+  inset: 40% 0 0 0;
+}
+
+.sea-wave {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.7) 0, transparent 55%),
+    radial-gradient(circle at 60% 10%, rgba(255, 255, 255, 0.4) 0, transparent 60%),
+    radial-gradient(circle at 90% 0%, rgba(255, 255, 255, 0.5) 0, transparent 50%);
+  opacity: 0.7;
+  animation: wave-shift 5s ease-in-out infinite alternate;
+}
+
+.float {
+  position: absolute;
+  top: 20%;
+  transform: translateX(-50%);
+  animation: bob 2s ease-in-out infinite;
+}
+
+.float-top {
+  width: 18px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ff6b6b;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+.float-body {
+  width: 12px;
+  height: 18px;
+  margin: -4px auto 0;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes bob {
+  0% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 4px);
+  }
+  100% {
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes wave-shift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-10px);
+  }
+}
