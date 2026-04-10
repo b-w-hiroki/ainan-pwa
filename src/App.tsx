@@ -106,6 +106,11 @@ if (!safeFirstItem) {
 
 function App() {
   type Phase = 'idle' | 'charging' | 'casted' | 'bite' | 'fight' | 'landing' | 'result'
+  type Page = 'home' | 'fishing' | 'exchange' | 'orders'
+  type TownBuilding = 'port' | 'market' | 'office'
+  const [activePage, setActivePage] = useState<Page>('home')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [townModal, setTownModal] = useState<TownBuilding | null>(null)
   const [power, setPower] = useState(0)
   const [lastDistance, setLastDistance] = useState<number | null>(null)
   const [status, setStatus] = useState<Phase>('idle')
@@ -181,6 +186,7 @@ function App() {
   const [direction, setDirection] = useState<'left' | 'right'>('left')
   const [landHits, setLandHits] = useState(0)
   const [resultMessage, setResultMessage] = useState('まだ釣果はありません。')
+  const [rippleOn, setRippleOn] = useState(false)
   const aimTrackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -213,6 +219,8 @@ function App() {
     const timer = window.setTimeout(() => {
       const now = performance.now()
       setBiteWindow({ start: now, end: now + biteLen })
+      setRippleOn(true)
+      window.setTimeout(() => setRippleOn(false), 700)
       setStatus('bite')
     }, waitMs)
     return () => window.clearTimeout(timer)
@@ -448,18 +456,130 @@ function App() {
   const fishHpPct = Math.max(0, Math.min(100, Math.round((fishHp / Math.max(1, targetFish.baseHp)) * 100)))
   const fightSec = (fightTime * 0.22).toFixed(1)
   const { deliveredCount, usedPointTotal, todayOrderCount, cancelRate } = dashboard
+  const fishShadowLeft = 50 + Math.sin(fightTime / 9) * 28
+  const townInfo = {
+    port: { title: 'Lv.5 港', desc: '釣りでポイントを獲得', to: 'fishing' as Page },
+    market: { title: 'Lv.3 特産市場', desc: 'ポイント交換を実行', to: 'exchange' as Page },
+    office: { title: 'Lv.2 配送所', desc: '注文管理と進捗確認', to: 'orders' as Page },
+  }
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>AINAN</h1>
-        <p className="tagline">釣り×街おこし</p>
+    <div className="sg-app">
+      <header className="sg-header">
+        <button
+          type="button"
+          className="menu-button"
+          aria-label="メニュー"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <span className="menu-lines" aria-hidden="true" />
+        </button>
+        <div className="header-title">
+          <p className="header-game">AINAN</p>
+          <p className="header-sub">釣り×街おこし</p>
+        </div>
+        <div className="header-stats" aria-label="所持ポイント">
+          <span className="stat-chip">{totalPoint}P</span>
+        </div>
       </header>
-      <main className="main">
+
+      {menuOpen && (
+        <div className="menu-overlay" role="dialog" aria-modal="true" onClick={() => setMenuOpen(false)}>
+          <div className="menu-drawer" onClick={(e) => e.stopPropagation()}>
+            <p className="menu-title">メニュー</p>
+            <button type="button" className="menu-item" onClick={() => (setActivePage('home'), setMenuOpen(false))}>
+              ホーム
+            </button>
+            <button type="button" className="menu-item" onClick={() => (setActivePage('fishing'), setMenuOpen(false))}>
+              釣り
+            </button>
+            <button type="button" className="menu-item" onClick={() => (setActivePage('exchange'), setMenuOpen(false))}>
+              交換
+            </button>
+            <button type="button" className="menu-item" onClick={() => (setActivePage('orders'), setMenuOpen(false))}>
+              注文
+            </button>
+            <div className="menu-sep" />
+            <button type="button" className="menu-item danger" onClick={() => (resetAllDemoData(), setMenuOpen(false))}>
+              デモデータ初期化
+            </button>
+          </div>
+        </div>
+      )}
+
+      <main className="sg-main">
+        {activePage === 'home' && (
+          <section className="home">
+            <div className="rank-banner">
+              <p className="rank-main">ランク: 人気急上昇中！</p>
+              <p className="rank-sub">登録者: 12,500人</p>
+              <div className="stamina-bar" aria-label="スタミナ">
+                <div className="stamina-fill" style={{ width: '72%' }} />
+              </div>
+            </div>
+
+            <div className="town-map" role="application" aria-label="街づくりマップ">
+              <div className="town-sky" aria-hidden="true" />
+              <div className="town-sea" aria-hidden="true" />
+              <div className="town-land" aria-hidden="true" />
+              <div className="town-road" aria-hidden="true" />
+              <div className="town-grid" aria-hidden="true" />
+
+              <button type="button" className="bldg bldg--port" onClick={() => setTownModal('port')}>
+                <span className="bldg-emoji" aria-hidden="true">
+                  🎣
+                </span>
+                <span className="bldg-name">港</span>
+                <span className="bldg-desc">Lv.5</span>
+              </button>
+
+              <button type="button" className="bldg bldg--market" onClick={() => setTownModal('market')}>
+                <span className="bldg-emoji" aria-hidden="true">
+                  🏪
+                </span>
+                <span className="bldg-name">市場</span>
+                <span className="bldg-desc">Lv.3</span>
+              </button>
+
+              <button type="button" className="bldg bldg--office" onClick={() => setTownModal('office')}>
+                <span className="bldg-emoji" aria-hidden="true">
+                  📦
+                </span>
+                <span className="bldg-name">配送所</span>
+                <span className="bldg-desc">Lv.2</span>
+              </button>
+
+              <div className="town-coins" aria-hidden="true">
+                <span className="coin c1" />
+                <span className="coin c2" />
+                <span className="coin c3" />
+              </div>
+            </div>
+
+            <div className="town-hud" aria-label="ホーム情報">
+              <div className="hud-row">
+                <span className="hud-label">所持P</span>
+                <span className="hud-value">{totalPoint}P</span>
+              </div>
+              <div className="hud-row">
+                <span className="hud-label">本日残り</span>
+                <span className="hud-value">{dailyRemain}P</span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activePage === 'fishing' && (
+          <>
         <div className={`scene ${castFx ? 'scene--pulse' : ''}`}>
           <div className="scene-inner">
             <div className="sea">
               <div className="sea-wave" />
+              {(status === 'fight' || status === 'bite') && (
+                <div className="fish-shadow" style={{ left: `${fishShadowLeft}%` }} aria-hidden="true" />
+              )}
+              {rippleOn && <div className="bite-ripple" aria-hidden="true" />}
               {castFx && (
                 <div
                   className="cast-line-wrap"
@@ -603,6 +723,7 @@ function App() {
 
             <p className="fight-meta">経過 {fightSec}s / 目標方向: {direction === 'left' ? '左' : '右'}</p>
             <p className="fight-meta">Hook判定: {hookResult === 'none' ? '-' : hookResult}</p>
+            {hookResult === 'perfect' && <p className="hit-perfect">PERFECT HIT!</p>}
             <p className="fight-meta">
               対象魚: {targetFish.name}（{targetFish.rank}） / サイズ係数 {sizeMultiplier}
             </p>
@@ -735,7 +856,94 @@ function App() {
             </div>
           </section>
         </div>
+        </>
+        )}
 
+        {activePage === 'exchange' && (
+          <section className="progress-card" aria-label="交換センター">
+            <p className="progress-title">交換センター</p>
+            <p className="progress-rate">所持 {totalPoint}P / 本日残り {dailyRemain}P</p>
+            <section className="fight-card" aria-label="交換操作">
+              <p className="fight-meta">{exchangeMessage}</p>
+              <div className="exchange-panel">
+                <label htmlFor="exchange-category">カテゴリ</label>
+                <div className="category-tabs" id="exchange-category">
+                  {exchangeCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={categoryFilter === cat ? 'active' : ''}
+                      onClick={() => setCategoryFilter(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <label htmlFor="exchange-item">交換商品</label>
+                <select id="exchange-item" value={selectedItemId} onChange={(e) => setSelectedItemId(e.target.value)}>
+                  {filteredExchangeItems.map((item) => {
+                    const stock = itemStockMap[item.id] ?? 0
+                    return (
+                      <option key={item.id} value={item.id}>
+                        [{item.category}] {item.name} / {item.needPoint}P / 在庫{stock}
+                      </option>
+                    )
+                  })}
+                </select>
+                <p className="fight-meta">
+                  選択中: [{selectedItem.category}] {selectedItem.name} / 必要 {selectedItem.needPoint}P / 在庫 {selectedStock}
+                </p>
+                {selectedItem.supportsProcessing && (
+                  <>
+                    <label htmlFor="processing-type">加工指定</label>
+                    <select
+                      id="processing-type"
+                      value={selectedProcessing}
+                      onChange={(e) => setSelectedProcessing(e.target.value as ProcessingType)}
+                    >
+                      <option value="whole">丸</option>
+                      <option value="saku">サク</option>
+                      <option value="fillet">切り身</option>
+                    </select>
+                  </>
+                )}
+                <label htmlFor="shipping-prefecture">配送先（国内）</label>
+                <select
+                  id="shipping-prefecture"
+                  value={shippingPrefecture}
+                  onChange={(e) => setShippingPrefecture(e.target.value as (typeof prefectures)[number])}
+                >
+                  {prefectures.map((pref) => (
+                    <option key={pref} value={pref}>
+                      {pref}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="郵便番号（7桁）"
+                  value={shippingPostalCode}
+                  onChange={(e) => setShippingPostalCode(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="市区町村・番地"
+                  value={shippingCity}
+                  onChange={(e) => setShippingCity(e.target.value)}
+                />
+              </div>
+              <div className="fight-actions">
+                <button type="button" className="subtle" onClick={handleOpenConfirm}>
+                  商品を交換（-{selectedItem.needPoint}P）
+                </button>
+              </div>
+            </section>
+          </section>
+        )}
+
+        {activePage === 'orders' && (
+          <>
         <section className="progress-card" aria-label="実装進捗">
           <p className="progress-title">今の出来具合</p>
           <p className="progress-rate">
@@ -829,7 +1037,24 @@ function App() {
             </ul>
           )}
         </section>
+        </>
+        )}
       </main>
+
+      <footer className="sg-footer" aria-label="フッターメニュー">
+        <button type="button" className={activePage === 'home' ? 'active' : ''} onClick={() => setActivePage('home')}>
+          ホーム
+        </button>
+        <button type="button" className={activePage === 'fishing' ? 'active' : ''} onClick={() => setActivePage('fishing')}>
+          釣り
+        </button>
+        <button type="button" className={activePage === 'exchange' ? 'active' : ''} onClick={() => setActivePage('exchange')}>
+          交換
+        </button>
+        <button type="button" className={activePage === 'orders' ? 'active' : ''} onClick={() => setActivePage('orders')}>
+          注文
+        </button>
+      </footer>
       {confirmOpen && (
         <div className="confirm-overlay" role="dialog" aria-modal="true">
           <div className="confirm-card">
@@ -843,6 +1068,29 @@ function App() {
               </button>
               <button type="button" className="subtle" onClick={closeConfirm}>
                 戻る
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {townModal && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true">
+          <div className="confirm-card town-card">
+            <p className="progress-title">{townInfo[townModal].title}</p>
+            <p className="fight-meta">{townInfo[townModal].desc}</p>
+            <p className="fight-meta">収益: +50 / 費用: 5,000（デモ表現）</p>
+            <div className="confirm-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setActivePage(townInfo[townModal].to)
+                  setTownModal(null)
+                }}
+              >
+                移動する
+              </button>
+              <button type="button" className="subtle" onClick={() => setTownModal(null)}>
+                閉じる
               </button>
             </div>
           </div>
