@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { DEFAULT_ROD, DEFAULT_BAIT } from '../game/params.js'
 import { selectFish } from '../game/fish.js'
+import { DEFAULT_ENV } from '../config/defaults.js'
 import { computeCastAngle, oscillatePower, buildTrajectory, clampLanding } from '../game/cast.js'
 import {
   BATTLE_TICK_MS,
@@ -40,13 +41,8 @@ export default class GameScene extends Phaser.Scene {
   create(data = {}) {
     const { width: W, height: H } = this.scale
 
-    // 環境パラメータ（Phase2 でマップ選択・時刻・天候を渡す想定）
-    this.env = {
-      point:     data.point     ?? 'pointA',
-      season:    data.season    ?? 'summer',
-      weather:   data.weather   ?? 'sunny',
-      timeOfDay: data.timeOfDay ?? 'morning',
-    }
+    // 環境パラメータ（Phase2 で MapScene からのデータで上書き）
+    this.env = { ...DEFAULT_ENV, ...data }
 
     this.fish = selectFish(this.env)
     this.rod = DEFAULT_ROD
@@ -103,6 +99,9 @@ export default class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5).setDepth(50).setVisible(false)
 
+    // hitHint の基準Y座標を保持（Tween 再生成時のドリフト防止）
+    this._hitHintBaseY = this.hitHint.y
+
     // Tween は各フェーズ開始時に生成し、終了時に破棄する（常時動作させない）
     /** @type {Phaser.Tweens.Tween | null} */
     this.hitHintTween = null
@@ -133,26 +132,34 @@ export default class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5).setDepth(37).setVisible(false)
 
-    // ─── ナビボタン ──────────────────────────────────────────────
-    this.add
-      .text(10, 8, '◀ マップ', {
-        fontFamily: FONT, fontSize: '12px', fontStyle: '800',
-        color: '#1a3a5a', backgroundColor: '#ffffff',
-        padding: { x: 8, y: 4 },
+    // ─── ナビボタン（左下配置） ───────────────────────────────────
+    const backBtn = this.add
+      .text(16, H - 16, '← マップへ', {
+        fontFamily: FONT, fontSize: '14px', fontStyle: '800',
+        color: '#1a2a3a', backgroundColor: '#ffffff',
+        padding: { x: 10, y: 6 },
       })
+      .setOrigin(0, 1)
       .setDepth(200)
+      .setStroke('#1a2a3a', 3)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', (p) => {
         p.event.stopPropagation()
         this._cleanup()
         this.scene.start('MapScene')
       })
+      .on('pointerover', () => backBtn.setStyle({ backgroundColor: '#d0f0ff' }))
+      .on('pointerout',  () => backBtn.setStyle({ backgroundColor: '#ffffff' }))
 
     // ─── 入力 ────────────────────────────────────────────────────
     this.input.on('pointerdown', this._onDown, this)
     this.input.on('pointermove', this._onMove, this)
     this.input.on('pointerup',   this._onUp,   this)
     this.events.once('shutdown', this._cleanup, this)
+
+    // ブラウザ終了時にスコアを保存（クラッシュ対策）
+    this._beforeUnloadHandler = () => this._saveProgress()
+    window.addEventListener('beforeunload', this._beforeUnloadHandler)
 
     this._enterCast()
   }
@@ -294,14 +301,14 @@ export default class GameScene extends Phaser.Scene {
       this._fishGfx.push(gfx)
     })
 
-    this._startFishTweens(W, H)
+    this._startFishTweens()
   }
 
   /**
    * 全魚を開始座標へリセットし Tween を再生成する。
    * キャストフェーズ開始ごとに呼び出すことで毎回同じ位置から泳ぎ始める。
    */
-  _startFishTweens(W, H) {
+  _startFishTweens() {
     const { width: w, height: h } = this.scale
 
     // 既存 Tween を破棄
@@ -642,9 +649,10 @@ export default class GameScene extends Phaser.Scene {
     this.hitHint.setVisible(true)
     this.hintText.setText('今！タップでヒット')
 
+    this.hitHint.setY(this._hitHintBaseY)  // ドリフト防止：毎回基準点に戻す
     this.hitHintTween?.destroy()
     this.hitHintTween = this.tweens.add({
-      targets: this.hitHint, y: this.hitHint.y - 8,
+      targets: this.hitHint, y: this._hitHintBaseY - 8,
       duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
@@ -727,9 +735,7 @@ export default class GameScene extends Phaser.Scene {
       this.scoreValText?.setText(String(this.totalScore))
       this.catchValText?.setText(`${this.catches.length}/20`)
 
-      // localStorage に暫定保存（Phase 2 でサーバー連携）
-      localStorage.setItem('ainan_score', String(this.totalScore))
-      localStorage.setItem('ainan_catches', JSON.stringify(this.catches))
+      this._saveProgress()
 
       this.resLabel.setText('✦ CATCH ✦')
       this.resEmoji.setText(this.fish.emoji).setAngle(0)
@@ -1031,6 +1037,11 @@ export default class GameScene extends Phaser.Scene {
     this._wt1 = this._wt2 = this._nibbleTween = this._biteTween = undefined
   }
 
+  _saveProgress() {
+    localStorage.setItem('ainan_score',   String(this.totalScore))
+    localStorage.setItem('ainan_catches', JSON.stringify(this.catches))
+  }
+
   _cleanup() {
     this._cleanupBattle()
     this._killWaitTimers()
@@ -1038,5 +1049,9 @@ export default class GameScene extends Phaser.Scene {
     this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
     this._fishTweens?.forEach(tw => { tw.stop(); tw.destroy() })
     this._fishTweens = []
+    if (this._beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this._beforeUnloadHandler)
+      this._beforeUnloadHandler = null
+    }
   }
 }

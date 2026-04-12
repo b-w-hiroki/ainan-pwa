@@ -2,7 +2,7 @@
 export const BATTLE_TICK_MS     = 200   // ms tick間隔（350→200 レスポンス向上）
 const SWIPE_REEL_AMOUNT         = 5     // おとなしい時のスワイプ巻き上げ量（9→5 バトル長く）
 const SWIPE_PENALTY             = 20    // 暴れ中スワイプの逃走ゲージ加算
-const ESCAPE_DECAY              = 0.8   // おとなしい時の逃走ゲージ自然減衰（0.4→0.8 緩急UP）
+const ESCAPE_DECAY              = 0.5   // おとなしい時の逃走ゲージ自然減衰（2.5pt/秒、追い詰められ感を緩和）
 const RAGE_DURATION_MIN         = 2000  // 暴れ最小時間 ms（1400→2000）
 const RAGE_DURATION_MAX         = 4000  // 暴れ最大時間 ms（2800→4000）
 // ───────────────────────────────────────────────────────────────

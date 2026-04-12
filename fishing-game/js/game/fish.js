@@ -19,7 +19,7 @@ export const FISH_LIST = [
     resistanceStrength: 0.6,
     escapeSpeed: 0.7,
     rageInterval: [3000, 6000],
-    rageDuration: [800, 1400],
+    rageDuration: [800, 1400],     // 将来: 魚種ごとの暴れ時間(ms)管理予定（現在は battle.js の定数で上書き）
     scoreBase: 80,
     // ── Phase2 拡張フィールド ──
     habitat:      ['pointA', 'pointB'],
@@ -36,7 +36,7 @@ export const FISH_LIST = [
     resistanceStrength: 1.0,
     escapeSpeed: 1.0,
     rageInterval: [2500, 5000],
-    rageDuration: [1000, 1800],
+    rageDuration: [1000, 1800],    // 将来: 魚種ごとの暴れ時間(ms)管理予定（現在は battle.js の定数で上書き）
     scoreBase: 250,
     // ── Phase2 拡張フィールド ──
     habitat:      ['pointA', 'pointC'],
@@ -53,7 +53,7 @@ export const FISH_LIST = [
     resistanceStrength: 1.1,
     escapeSpeed: 1.2,
     rageInterval: [2000, 5000],
-    rageDuration: [1200, 2200],
+    rageDuration: [1200, 2200],    // 将来: 魚種ごとの暴れ時間(ms)管理予定（現在は battle.js の定数で上書き）
     scoreBase: 400,
     // ── Phase2 拡張フィールド ──
     habitat:      ['pointB'],
@@ -70,7 +70,7 @@ export const FISH_LIST = [
     resistanceStrength: 1.3,
     escapeSpeed: 1.1,
     rageInterval: [1800, 4000],
-    rageDuration: [1400, 2400],
+    rageDuration: [1400, 2400],    // 将来: 魚種ごとの暴れ時間(ms)管理予定（現在は battle.js の定数で上書き）
     scoreBase: 350,
     // ── Phase2 拡張フィールド ──
     habitat:      ['pointA', 'pointC'],
@@ -87,7 +87,7 @@ export const FISH_LIST = [
     resistanceStrength: 1.8,
     escapeSpeed: 1.5,
     rageInterval: [1200, 3000],
-    rageDuration: [1800, 3200],
+    rageDuration: [1800, 3200],    // 将来: 魚種ごとの暴れ時間(ms)管理予定（現在は battle.js の定数で上書き）
     scoreBase: 1200,
     // ── Phase2 拡張フィールド ──
     habitat:      ['pointC'],
@@ -110,5 +110,12 @@ export const SAMPLE_FISH = FISH_LIST
  */
 export function selectFish(env) {
   const candidates = FISH_LIST.filter(f => f.habitat.includes(env.point))
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? FISH_LIST[0]
+
+  if (candidates.length === 0) {
+    console.warn(`[selectFish] habitat:'${env.point}' に対応する魚がいません。FISH_LIST[0] を使用します。`)
+    return FISH_LIST[0]
+  }
+
+  // Phase2: ここに seasonBonus × timeBonus × weatherBonus の重み付け抽選を追加予定
+  return candidates[Math.floor(Math.random() * candidates.length)]
 }
