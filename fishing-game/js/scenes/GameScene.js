@@ -625,19 +625,70 @@ export default class GameScene extends Phaser.Scene {
     this.waitTapActive = false
     this._killWaitTimers()
     this.bobber.setPosition(landX, landY).setVisible(true)
+    this._bobberBaseY = landY    // 浮きの基準Y（ドリフト防止・_onMiss でのリセット用）
     this.hitHint.setVisible(false)
     this.hintText.setText('食いつき待ち…（ちょんちょん中はタップ無効）')
 
-    this._nibbleTween = this.tweens.add({
-      targets: this.bobber, y: landY - 6,
-      duration: 200, yoyo: true, repeat: 7, ease: 'Sine.inOut',
-    })
-
-    this._wt1 = this.time.delayedCall(2000, () => {
+    // 少し落ち着いてから「ちょんちょんぐんっ！」シーケンス開始
+    this._wt1 = this.time.delayedCall(600, () => {
       if (this.phase !== 'wait') return
-      this._nibbleTween?.stop()
-      this.bobber.setY(landY)
-      this._openHitWindow()
+      this._startBobberBiteSequence()
+    })
+  }
+
+  // ─── ちょん → ちょん → ぐんっ！ の3段階バイトシーケンス ──────
+  _startBobberBiteSequence() {
+    if (this.phase !== 'wait') return
+    const baseY = this._bobberBaseY
+
+    // ちょん①（小さく沈む）
+    this._chonTween = this.tweens.add({
+      targets: this.bobber, y: baseY + 8,
+      duration: 200, ease: 'Sine.easeOut', yoyo: true,
+      onComplete: () => {
+        if (this.phase !== 'wait') return
+        this.bobber.setY(baseY)
+        const wait1 = Phaser.Math.Between(800, 1200)
+        this._biteSeqTimer1 = this.time.delayedCall(wait1, () => {
+          if (this.phase !== 'wait') return
+
+          // ちょん②（少し深く沈む）
+          this._chonTween = this.tweens.add({
+            targets: this.bobber, y: baseY + 12,
+            duration: 200, ease: 'Sine.easeOut', yoyo: true,
+            onComplete: () => {
+              if (this.phase !== 'wait') return
+              this.bobber.setY(baseY)
+              const wait2 = Phaser.Math.Between(600, 1000)
+              this._biteSeqTimer2 = this.time.delayedCall(wait2, () => {
+                if (this.phase !== 'wait') return
+
+                // ぐんっ！（完全食いつき ＝ ヒット受付開始）
+                this._chonTween = this.tweens.add({
+                  targets: this.bobber, y: baseY + 30,
+                  duration: 150, ease: 'Quad.easeIn',
+                  onComplete: () => {
+                    if (this.phase !== 'wait') return
+                    this._showSplashEffect(this.bobber.x, this.bobber.y)
+                    if (navigator.vibrate) navigator.vibrate(80)
+                    this._openHitWindow()
+                  },
+                })
+              })
+            },
+          })
+        })
+      },
+    })
+  }
+
+  // 水しぶきエフェクト（円を広げてフェードアウト）
+  _showSplashEffect(x, y) {
+    const splash = this.add.circle(x, y, 4, 0xffffff, 0.8).setDepth(45)
+    this.tweens.add({
+      targets: splash, scaleX: 5, scaleY: 2.5, alpha: 0,
+      duration: 300, ease: 'Sine.easeOut',
+      onComplete: () => splash.destroy(),
     })
   }
 
@@ -653,24 +704,29 @@ export default class GameScene extends Phaser.Scene {
     this.hitHintTween?.destroy()
     this.hitHintTween = this.tweens.add({
       targets: this.hitHint, y: this._hitHintBaseY - 8,
-      duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+      duration: 400, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
-    this._biteTween = this.tweens.add({
-      targets: this.bobber, y: this.bobber.y + 14,
-      duration: 140, yoyo: true, repeat: -1, ease: 'Bounce.easeOut',
-    })
-
-    this._wt2 = this.time.delayedCall(1600, () => {
+    // 1200ms 以内にタップなし → 逃げた
+    this._wt2 = this.time.delayedCall(1200, () => {
       if (this.phase !== 'wait' || !this.waitTapActive) return
-      this._biteTween?.stop()
       this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
       this.waitTapActive = false
       this.hitHint.setVisible(false)
-      this._toast('タイミングを逃した…')
-      this.time.delayedCall(800, () => {
-        if (this.phase === 'wait') this._enterWait(this.bobber.x, this.bobber.y)
-      })
+      this._onMiss()
+    })
+  }
+
+  // タイムアウト・空振り共通の「逃げた」処理
+  _onMiss() {
+    this._toast('タイミングを逃した…')
+    // 浮きを基準位置に戻す（Bounce でぷかぷか感を出す）
+    this.tweens.add({
+      targets: this.bobber, y: this._bobberBaseY,
+      duration: 400, ease: 'Bounce.easeOut',
+    })
+    this.time.delayedCall(600, () => {
+      if (this.phase === 'wait') this._enterCast()
     })
   }
 
@@ -958,14 +1014,13 @@ export default class GameScene extends Phaser.Scene {
     if (this.phase === 'wait' && this.waitTapActive) {
       const prob = Math.min(1, this.fish.biteRate + this.bait.biteRateBonus)
       if (Math.random() > prob) {
+        // ヒット判定は通ったがbiteRateで空振り
         this.waitTapActive = false
         this.hitHint.setVisible(false)
-        this._biteTween?.stop()
+        this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
         this._wt2?.remove(false); this._wt2 = undefined
         this._toast('空振り！')
-        this.time.delayedCall(800, () => {
-          if (this.phase === 'wait') this._enterWait(this.bobber.x, this.bobber.y)
-        })
+        this._onMiss()
         return
       }
       this._killWaitTimers()
@@ -1032,9 +1087,12 @@ export default class GameScene extends Phaser.Scene {
   _killWaitTimers() {
     this._wt1?.remove(false)
     this._wt2?.remove(false)
-    this._nibbleTween?.stop()
-    this._biteTween?.stop()
-    this._wt1 = this._wt2 = this._nibbleTween = this._biteTween = undefined
+    this._biteSeqTimer1?.remove(false)
+    this._biteSeqTimer2?.remove(false)
+    this._chonTween?.stop(); this._chonTween?.destroy()
+    this.waitTapActive = false
+    this._wt1 = this._wt2 = this._biteSeqTimer1 = this._biteSeqTimer2 = undefined
+    this._chonTween = undefined
   }
 
   _saveProgress() {
