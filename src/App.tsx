@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type ExchangeItem, type OrderStatus, type ProcessingType } from './lib/demoApi'
 import { useDemoCommerceState } from './hooks/useDemoCommerceState'
+import { FishingGameCanvas } from './components/FishingGameCanvas'
 
 const implementationStatus = [
   { label: 'PWA土台（Vite + React）', done: true },
@@ -106,11 +107,33 @@ if (!safeFirstItem) {
 
 function App() {
   type Phase = 'idle' | 'charging' | 'casted' | 'bite' | 'fight' | 'landing' | 'result'
-  type Page = 'home' | 'fishing' | 'exchange' | 'orders'
+  type Page = 'home' | 'fishing' | 'enhance' | 'exchange' | 'orders'
   type TownBuilding = 'port' | 'market' | 'office'
+  type GachaRarity = 'N' | 'R' | 'SR' | 'SSR'
   const [activePage, setActivePage] = useState<Page>('home')
   const [menuOpen, setMenuOpen] = useState(false)
   const [townModal, setTownModal] = useState<TownBuilding | null>(null)
+  const [audioOn, setAudioOn] = useState(true)
+  const [combo, setCombo] = useState(0)
+  const [flashOn, setFlashOn] = useState(false)
+  const [dailyMissionClaimed, setDailyMissionClaimed] = useState(false)
+  const [gachaOpen, setGachaOpen] = useState(false)
+  const [gachaRolling, setGachaRolling] = useState(false)
+  const [freeGachaUsedDate, setFreeGachaUsedDate] = useState<string | null>(null)
+  const [gachaResult, setGachaResult] = useState<{ rarity: GachaRarity; name: string; bonusPoint: number } | null>(null)
+  const [timeOfDay] = useState<'morning' | 'noon' | 'evening' | 'night'>(() => {
+    const h = new Date().getHours()
+    if (h < 10) return 'morning'
+    if (h < 16) return 'noon'
+    if (h < 19) return 'evening'
+    return 'night'
+  })
+  const [weather] = useState<'sunny' | 'cloudy' | 'rainy'>(() => {
+    const r = Math.random()
+    if (r < 0.2) return 'rainy'
+    if (r < 0.5) return 'cloudy'
+    return 'sunny'
+  })
   const [power, setPower] = useState(0)
   const [lastDistance, setLastDistance] = useState<number | null>(null)
   const [status, setStatus] = useState<Phase>('idle')
@@ -188,6 +211,37 @@ function App() {
   const [resultMessage, setResultMessage] = useState('まだ釣果はありません。')
   const [rippleOn, setRippleOn] = useState(false)
   const aimTrackRef = useRef<HTMLDivElement>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+
+  const ensureAudioContext = useCallback(() => {
+    if (!audioCtxRef.current) audioCtxRef.current = new window.AudioContext()
+    if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume()
+    return audioCtxRef.current
+  }, [])
+
+  const playTone = useCallback(
+    (frequency: number, duration = 0.09, type: OscillatorType = 'sine', gainValue = 0.04) => {
+      if (!audioOn) return
+      const ctx = ensureAudioContext()
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = type
+      osc.frequency.value = frequency
+      gain.gain.value = 0.0001
+      gain.gain.exponentialRampToValueAtTime(gainValue, ctx.currentTime + 0.01)
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      osc.stop(ctx.currentTime + duration + 0.01)
+    },
+    [audioOn, ensureAudioContext],
+  )
+
+  const vibrate = useCallback((pattern: number | number[]) => {
+    if (!('vibrate' in navigator)) return
+    navigator.vibrate(pattern)
+  }, [])
 
   useEffect(() => {
     if (castBurst === 0) return
@@ -201,6 +255,7 @@ function App() {
     if (todayKey !== dailyUseDateKey) {
       setDailyUseDateKey(todayKey)
       setDailyUsedPoint(0)
+      setDailyMissionClaimed(false)
       setExchangeMessage('日付が変わったため、利用上限をリセットしました。')
     }
   }, [status, dailyUseDateKey])
@@ -322,6 +377,8 @@ function App() {
     setLandHits(0)
     setEarnedPoint(0)
     setResultMessage('まだ釣果はありません。')
+    playTone(380, 0.12, 'triangle', 0.06)
+    vibrate(12)
   }
 
   const handleHook = () => {
@@ -333,16 +390,27 @@ function App() {
       setHookResult('miss')
       setStatus('result')
       setResultMessage('フッキング失敗…タイミングが合いませんでした。')
+      playTone(180, 0.18, 'sawtooth', 0.05)
+      vibrate([10, 24, 10])
       return
     }
     if (delta <= 80) {
       setHookResult('perfect')
       setFishHp(120)
       setTension(28)
+      setCombo((c) => c + 1)
+      setFlashOn(true)
+      window.setTimeout(() => setFlashOn(false), 160)
+      playTone(660, 0.08, 'square', 0.05)
+      window.setTimeout(() => playTone(880, 0.1, 'square', 0.05), 60)
+      vibrate(20)
     } else {
       setHookResult('good')
       setFishHp(140)
       setTension(35)
+      setCombo((c) => c + 1)
+      playTone(540, 0.1, 'triangle', 0.045)
+      vibrate(14)
     }
     setStatus('fight')
   }
@@ -390,6 +458,7 @@ function App() {
       dailyLimit: config.dailyPointUseLimit,
       domesticOnlyConfig: config.domesticOnly,
     })
+    playTone(520, 0.08, 'triangle', 0.05)
   }
 
   const handleAdvanceOrderStatus = (id: string) => {
@@ -415,6 +484,54 @@ function App() {
 
   const handleOpenConfirm = () => {
     openConfirm()
+  }
+
+  const handleClaimDailyMission = () => {
+    if (dailyMissionClaimed) return
+    if (todayOrderCount < 1 || combo < 2) return
+    const reward = 50
+    setTotalPoint((p) => p + reward)
+    setDailyMissionClaimed(true)
+    setExchangeMessage(`デイリーミッション達成！ +${reward}P`)
+    playTone(700, 0.1, 'triangle', 0.06)
+    window.setTimeout(() => playTone(980, 0.14, 'triangle', 0.06), 90)
+    vibrate([18, 24, 18])
+  }
+
+  const todayKey = new Date().toDateString()
+  const canFreeGacha = freeGachaUsedDate !== todayKey
+
+  const handleRollGacha = () => {
+    if (!canFreeGacha || gachaRolling) return
+    setGachaRolling(true)
+    setGachaResult(null)
+    playTone(420, 0.09, 'triangle', 0.05)
+    window.setTimeout(() => playTone(520, 0.09, 'triangle', 0.05), 100)
+    window.setTimeout(() => playTone(640, 0.1, 'triangle', 0.06), 210)
+    window.setTimeout(() => {
+      const r = Math.random()
+      const result =
+        r < 0.6
+          ? { rarity: 'N' as GachaRarity, name: '小型ルアー', bonusPoint: 15 }
+          : r < 0.88
+          ? { rarity: 'R' as GachaRarity, name: '強化リール', bonusPoint: 35 }
+          : r < 0.98
+          ? { rarity: 'SR' as GachaRarity, name: '希少エサセット', bonusPoint: 70 }
+          : { rarity: 'SSR' as GachaRarity, name: '伝説の釣り竿', bonusPoint: 120 }
+      setGachaResult(result)
+      setTotalPoint((p) => p + result.bonusPoint)
+      setFreeGachaUsedDate(todayKey)
+      setGachaRolling(false)
+      setExchangeMessage(`ガチャ獲得: ${result.name}（+${result.bonusPoint}P）`)
+      if (result.rarity === 'SSR') {
+        setFlashOn(true)
+        window.setTimeout(() => setFlashOn(false), 260)
+        vibrate([16, 24, 16, 32, 18])
+      } else {
+        vibrate(18)
+      }
+      playTone(result.rarity === 'SSR' ? 980 : result.rarity === 'SR' ? 840 : 700, 0.14, 'square', 0.06)
+    }, 880)
   }
 
   const getStatusLabel = (status: OrderStatus) => {
@@ -464,7 +581,7 @@ function App() {
   }
 
   return (
-    <div className="sg-app">
+    <div className={`sg-app ${flashOn ? 'sg-app--flash' : ''}`}>
       <header className="sg-header">
         <button
           type="button"
@@ -494,6 +611,9 @@ function App() {
             <button type="button" className="menu-item" onClick={() => (setActivePage('fishing'), setMenuOpen(false))}>
               釣り
             </button>
+            <button type="button" className="menu-item" onClick={() => (setActivePage('enhance'), setMenuOpen(false))}>
+              強化
+            </button>
             <button type="button" className="menu-item" onClick={() => (setActivePage('exchange'), setMenuOpen(false))}>
               交換
             </button>
@@ -504,6 +624,9 @@ function App() {
             <button type="button" className="menu-item danger" onClick={() => (resetAllDemoData(), setMenuOpen(false))}>
               デモデータ初期化
             </button>
+              <button type="button" className="menu-item" onClick={() => setAudioOn((v) => !v)}>
+                音声: {audioOn ? 'ON' : 'OFF'}
+              </button>
           </div>
         </div>
       )}
@@ -566,47 +689,59 @@ function App() {
                 <span className="hud-label">本日残り</span>
                 <span className="hud-value">{dailyRemain}P</span>
               </div>
+              <div className="hud-row">
+                <span className="hud-label">コンボ</span>
+                <span className="hud-value">{combo} COMBO</span>
+              </div>
+            </div>
+            <section className="progress-card" aria-label="デイリーミッション">
+              <p className="progress-title">デイリーミッション</p>
+              <p className="fight-meta">条件: 注文1件以上 + コンボ2以上</p>
+              <p className="fight-meta">報酬: +50P</p>
+              <button
+                type="button"
+                className="order-action"
+                disabled={dailyMissionClaimed || todayOrderCount < 1 || combo < 2}
+                onClick={handleClaimDailyMission}
+              >
+                {dailyMissionClaimed ? '受取済み' : '報酬を受け取る'}
+              </button>
+            </section>
+            <div className="home-shortcuts">
+              <button type="button" className="order-action" onClick={() => setActivePage('fishing')}>
+                出撃する
+              </button>
+              <button type="button" className="order-action" onClick={() => setActivePage('enhance')}>
+                強化する
+              </button>
+              <button type="button" className="order-action" onClick={() => setGachaOpen(true)}>
+                ガチャ
+              </button>
             </div>
           </section>
         )}
 
         {activePage === 'fishing' && (
           <>
-        <div className={`scene ${castFx ? 'scene--pulse' : ''}`}>
+            <section className="progress-card" aria-label="出撃情報">
+              <p className="progress-title">出撃</p>
+              <p className="fight-meta">目的: 釣ってポイントを稼ぐ</p>
+              <p className="fight-meta">副目的: コンボを繋いで効率アップ</p>
+            </section>
+            <div className={`scene ${castFx ? 'scene--pulse' : ''}`}>
           <div className="scene-inner">
-            <div className="sea">
-              <div className="sea-wave" />
-              {(status === 'fight' || status === 'bite') && (
-                <div className="fish-shadow" style={{ left: `${fishShadowLeft}%` }} aria-hidden="true" />
-              )}
-              {rippleOn && <div className="bite-ripple" aria-hidden="true" />}
-              {castFx && (
-                <div
-                  className="cast-line-wrap"
-                  key={castBurst}
-                  style={
-                    {
-                      '--cast-angle': `${castLineAngle}deg`,
-                      '--cast-reach': `${castLineReach}%`,
-                    } as React.CSSProperties
-                  }
-                >
-                  <div className="cast-line-core" />
-                </div>
-              )}
-              <div
-                className={`float ${lastDistance != null ? 'float--placed' : 'float--preview'}`}
-                aria-hidden="true"
-                style={{ left: `${floatLeft}%`, top: `${floatTop}%` }}
-              >
-                <div className="float-top" />
-                <div className="float-body" />
-              </div>
-            </div>
-            <div className="rod" aria-hidden="true">
-              <div className="rod-handle" />
-              <div className="rod-body" />
-            </div>
+                <FishingGameCanvas
+                  aim={aim}
+                  floatRatio={floatRatio}
+                  status={status}
+                  castFx={castFx}
+                  rippleOn={rippleOn}
+                  fishShadowLeft={fishShadowLeft}
+                  power={power}
+                  tension={tension}
+                  timeOfDay={timeOfDay}
+                  weather={weather}
+                />
             <section className="aim-panel aim-panel--overlay" aria-label="キャストの方向と距離">
               <p className="aim-panel-title">狙いを決める</p>
               <div className="aim-row">
@@ -723,6 +858,10 @@ function App() {
 
             <p className="fight-meta">経過 {fightSec}s / 目標方向: {direction === 'left' ? '左' : '右'}</p>
             <p className="fight-meta">Hook判定: {hookResult === 'none' ? '-' : hookResult}</p>
+            <p className="fight-meta">
+              環境: {timeOfDay} / {weather}
+            </p>
+            {combo > 1 && <p className="combo-text">{combo} COMBO!</p>}
             {hookResult === 'perfect' && <p className="hit-perfect">PERFECT HIT!</p>}
             <p className="fight-meta">
               対象魚: {targetFish.name}（{targetFish.rank}） / サイズ係数 {sizeMultiplier}
@@ -859,10 +998,44 @@ function App() {
         </>
         )}
 
+        {activePage === 'enhance' && (
+          <section className="progress-card" aria-label="装備強化">
+            <p className="progress-title">装備強化</p>
+            <p className="fight-meta">釣具を育成して、釣り効率を高めよう。</p>
+            <div className="enhance-grid">
+              <article className="enhance-card">
+                <p className="enhance-name">メインロッド</p>
+                <p className="enhance-meta">Lv.5 to Lv.6</p>
+                <p className="enhance-cost">費用: 150P</p>
+                <button type="button" className="order-action" disabled={totalPoint < 150}>
+                  強化する
+                </button>
+              </article>
+              <article className="enhance-card">
+                <p className="enhance-name">リール</p>
+                <p className="enhance-meta">Lv.3 to Lv.4</p>
+                <p className="enhance-cost">費用: 90P</p>
+                <button type="button" className="order-action" disabled={totalPoint < 90}>
+                  強化する
+                </button>
+              </article>
+              <article className="enhance-card">
+                <p className="enhance-name">ライン</p>
+                <p className="enhance-meta">Lv.2 to Lv.3</p>
+                <p className="enhance-cost">費用: 70P</p>
+                <button type="button" className="order-action" disabled={totalPoint < 70}>
+                  強化する
+                </button>
+              </article>
+            </div>
+          </section>
+        )}
+
         {activePage === 'exchange' && (
           <section className="progress-card" aria-label="交換センター">
             <p className="progress-title">交換センター</p>
-            <p className="progress-rate">所持 {totalPoint}P / 本日残り {dailyRemain}P</p>
+            <p className="progress-rate">主目的: 商品交換を完了する</p>
+            <p className="fight-meta">所持 {totalPoint}P / 本日残り {dailyRemain}P</p>
             <section className="fight-card" aria-label="交換操作">
               <p className="fight-meta">{exchangeMessage}</p>
               <div className="exchange-panel">
@@ -1046,13 +1219,16 @@ function App() {
           ホーム
         </button>
         <button type="button" className={activePage === 'fishing' ? 'active' : ''} onClick={() => setActivePage('fishing')}>
-          釣り
+          出撃
+        </button>
+        <button type="button" className={activePage === 'enhance' ? 'active' : ''} onClick={() => setActivePage('enhance')}>
+          強化
         </button>
         <button type="button" className={activePage === 'exchange' ? 'active' : ''} onClick={() => setActivePage('exchange')}>
-          交換
+          ガチャ/交換
         </button>
         <button type="button" className={activePage === 'orders' ? 'active' : ''} onClick={() => setActivePage('orders')}>
-          注文
+          メニュー
         </button>
       </footer>
       {confirmOpen && (
@@ -1090,6 +1266,30 @@ function App() {
                 移動する
               </button>
               <button type="button" className="subtle" onClick={() => setTownModal(null)}>
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {gachaOpen && (
+        <div className="confirm-overlay" role="dialog" aria-modal="true">
+          <div className="confirm-card gacha-card">
+            <p className="progress-title">AINAN ガチャ</p>
+            <p className="fight-meta">無料枠: {canFreeGacha ? '利用可能' : '本日利用済み'}</p>
+            <div className="gacha-machine" aria-hidden="true">
+              <div className={`gacha-core ${gachaRolling ? 'rolling' : ''}`} />
+            </div>
+            {gachaResult && (
+              <p className={`gacha-result rarity-${gachaResult.rarity.toLowerCase()}`}>
+                {gachaResult.rarity} / {gachaResult.name} / +{gachaResult.bonusPoint}P
+              </p>
+            )}
+            <div className="confirm-actions">
+              <button type="button" onClick={handleRollGacha} disabled={!canFreeGacha || gachaRolling}>
+                {gachaRolling ? '抽選中…' : 'ガチャを引く'}
+              </button>
+              <button type="button" className="subtle" onClick={() => setGachaOpen(false)}>
                 閉じる
               </button>
             </div>
