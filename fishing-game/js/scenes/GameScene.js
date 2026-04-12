@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { DEFAULT_ROD, DEFAULT_BAIT } from '../game/params.js'
-import { SAMPLE_FISH } from '../game/fish.js'
-import { computeCastAngle, oscillatePower, buildTrajectory } from '../game/cast.js'
+import { selectFish } from '../game/fish.js'
+import { computeCastAngle, oscillatePower, buildTrajectory, clampLanding } from '../game/cast.js'
 import {
   BATTLE_TICK_MS,
   createBattleState,
@@ -37,12 +37,25 @@ const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
 
-  create() {
+  create(data = {}) {
     const { width: W, height: H } = this.scale
 
-    this.fish = SAMPLE_FISH[0]
+    // 環境パラメータ（Phase2 でマップ選択・時刻・天候を渡す想定）
+    this.env = {
+      point:     data.point     ?? 'pointA',
+      season:    data.season    ?? 'summer',
+      weather:   data.weather   ?? 'sunny',
+      timeOfDay: data.timeOfDay ?? 'morning',
+    }
+
+    this.fish = selectFish(this.env)
     this.rod = DEFAULT_ROD
     this.bait = DEFAULT_BAIT
+
+    // スコア・釣果（localStorage から復元、シーン再起動時は引き継ぐ）
+    this.totalScore = parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
+    /** @type {Array<{fishId: string, score: number, timestamp: number}>} */
+    this.catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
 
     /** @type {'cast'|'wait'|'battle'|'result'} */
     this.phase = 'cast'
@@ -90,10 +103,11 @@ export default class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5).setDepth(50).setVisible(false)
 
-    this.tweens.add({
-      targets: this.hitHint, y: H * 0.36 - 8,
-      duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
-    })
+    // Tween は各フェーズ開始時に生成し、終了時に破棄する（常時動作させない）
+    /** @type {Phaser.Tweens.Tween | null} */
+    this.hitHintTween = null
+    /** @type {Phaser.Tweens.Tween | null} */
+    this.resultEmojiTween = null
 
     // ─── ヒントテキスト ──────────────────────────────────────────
     this.hintText = this.add
@@ -259,7 +273,8 @@ export default class GameScene extends Phaser.Scene {
   // FISH
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _spawnFish(W, H) {
-    const defs = [
+    /** @type {Array<{t:string, y:number, dur:number, delay:number, sc:number, rtl:boolean}>} */
+    this._fishDefs = [
       { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
       { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
       { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
@@ -267,15 +282,44 @@ export default class GameScene extends Phaser.Scene {
       { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
       { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
     ]
+    /** @type {Phaser.GameObjects.Graphics[]} */
+    this._fishGfx = []
+    /** @type {Phaser.Tweens.Tween[]} */
+    this._fishTweens = []
 
-    defs.forEach(fd => {
+    this._fishDefs.forEach(fd => {
       const gfx = this.add.graphics().setDepth(22)
       this._drawFish(gfx, fd.t, fd.sc)
-      const sx = fd.rtl ? W + 80 : -80
-      const ex = fd.rtl ? -80 : W + 80
-      gfx.setPosition(sx, H * fd.y)
       if (fd.rtl) gfx.setScale(-1, 1)
-      this.tweens.add({ targets: gfx, x: ex, duration: fd.dur, delay: fd.delay, repeat: -1 })
+      this._fishGfx.push(gfx)
+    })
+
+    this._startFishTweens(W, H)
+  }
+
+  /**
+   * 全魚を開始座標へリセットし Tween を再生成する。
+   * キャストフェーズ開始ごとに呼び出すことで毎回同じ位置から泳ぎ始める。
+   */
+  _startFishTweens(W, H) {
+    const { width: w, height: h } = this.scale
+
+    // 既存 Tween を破棄
+    this._fishTweens.forEach(tw => { tw.stop(); tw.destroy() })
+    this._fishTweens = []
+
+    this._fishDefs.forEach((fd, i) => {
+      const gfx = this._fishGfx[i]
+      const sx = fd.rtl ? w + 80 : -80
+      const ex = fd.rtl ? -80 : w + 80
+      gfx.setPosition(sx, h * fd.y)
+
+      const tw = this.tweens.add({
+        targets: gfx, x: ex,
+        duration: fd.dur, delay: fd.delay,
+        repeat: -1,
+      })
+      this._fishTweens.push(tw)
     })
   }
 
@@ -394,6 +438,7 @@ export default class GameScene extends Phaser.Scene {
   _buildScoreBar(W) {
     this.scoreBar = this.add.container(W / 2, 0).setDepth(70)
 
+    // 戻り値に値テキストの参照を含める
     const chip = (offsetX, icon, val, lbl) => {
       const bg = this.add.graphics()
       bg.fillStyle(0xffffff, 1)
@@ -407,14 +452,17 @@ export default class GameScene extends Phaser.Scene {
       const l = this.add.text(offsetX + 4, 30, lbl, {
         fontFamily: FONT, fontSize: '7px', fontStyle: '700', color: '#4a7090',
       }).setOrigin(0, 0.5)
-      return [bg, i, v, l]
+      return { els: [bg, i, v, l], valText: v }
     }
 
-    this.scoreBar.add([
-      ...chip(-100, '🏆', '0', 'SCORE'),
-      ...chip(0, '🐟', '0/20', 'CATCH'),
-      ...chip(100, '⏱', '00:00', 'TIME'),
-    ])
+    const sc = chip(-100, '🏆', String(this.totalScore), 'SCORE')
+    const ca = chip(0, '🐟', `${this.catches.length}/20`, 'CATCH')
+    const ti = chip(100, '⏱', '00:00', 'TIME')
+
+    this.scoreValText = sc.valText   // 累積スコア表示用
+    this.catchValText = ca.valText   // 釣果カウント表示用
+
+    this.scoreBar.add([...sc.els, ...ca.els, ...ti.els])
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -519,10 +567,6 @@ export default class GameScene extends Phaser.Scene {
     }).setOrigin(0.5)
 
     this.resEmoji = this.add.text(0, -28, '', { fontSize: '52px' }).setOrigin(0.5)
-    this.tweens.add({
-      targets: this.resEmoji, angle: 8,
-      duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
-    })
 
     this.resName = this.add.text(0, 30, '', {
       fontFamily: FONT, fontSize: '22px', fontStyle: '900', color: '#1a3a5a',
@@ -546,6 +590,10 @@ export default class GameScene extends Phaser.Scene {
     this._cleanupBattle()
     this.phase = 'cast'
     this.isCharging = false
+
+    this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
+    this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
+
     this.escapeBar.setVisible(false)
     this.battlePanel.setVisible(false)
     this.reelCTA.setVisible(false)
@@ -560,6 +608,9 @@ export default class GameScene extends Phaser.Scene {
     this.powerLabel.setVisible(false)
     this.scoreBar.setY(0)
     this.hintText.setText('画面を長押し → 方向を狙って離す')
+
+    // 魚を開始位置にリセットして Tween を再生成
+    if (this._fishDefs) this._startFishTweens()
   }
 
   _enterWait(landX, landY) {
@@ -585,9 +636,17 @@ export default class GameScene extends Phaser.Scene {
 
   _openHitWindow() {
     if (this.phase !== 'wait') return
+    // ヒット時に釣れる魚を env に基づいて決定する
+    this.fish = selectFish(this.env)
     this.waitTapActive = true
     this.hitHint.setVisible(true)
     this.hintText.setText('今！タップでヒット')
+
+    this.hitHintTween?.destroy()
+    this.hitHintTween = this.tweens.add({
+      targets: this.hitHint, y: this.hitHint.y - 8,
+      duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+    })
 
     this._biteTween = this.tweens.add({
       targets: this.bobber, y: this.bobber.y + 14,
@@ -597,6 +656,7 @@ export default class GameScene extends Phaser.Scene {
     this._wt2 = this.time.delayedCall(1600, () => {
       if (this.phase !== 'wait' || !this.waitTapActive) return
       this._biteTween?.stop()
+      this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
       this.waitTapActive = false
       this.hitHint.setVisible(false)
       this._toast('タイミングを逃した…')
@@ -608,6 +668,7 @@ export default class GameScene extends Phaser.Scene {
 
   _enterBattle() {
     this.phase = 'battle'
+    this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.hitHint.setVisible(false)
     this.hintText.setText('')
     this.castGfx.clear()
@@ -634,6 +695,16 @@ export default class GameScene extends Phaser.Scene {
     })
   }
 
+  /**
+   * スコア計算
+   * @param {typeof import('../game/fish.js').SAMPLE_FISH[0]} fish
+   * @param {number} sizeMultiplier
+   */
+  calcScore(fish, sizeMultiplier = 1.0) {
+    const RARITY_MULT = { common: 1.0, uncommon: 1.5, rare: 2.5, legendary: 5.0 }
+    return Math.round(fish.scoreBase * sizeMultiplier * (RARITY_MULT[fish.rarity] ?? 1.0))
+  }
+
   _finishBattle(outcome) {
     this._cleanupBattle()
     this.phase = 'result'
@@ -646,14 +717,34 @@ export default class GameScene extends Phaser.Scene {
     this.scoreBar.setY(0)
 
     if (outcome === 'caught') {
+      const score = this.calcScore(this.fish)
+
+      // 累積
+      this.totalScore += score
+      this.catches.push({ fishId: this.fish.id, score, timestamp: Date.now() })
+
+      // 表示更新
+      this.scoreValText?.setText(String(this.totalScore))
+      this.catchValText?.setText(`${this.catches.length}/20`)
+
+      // localStorage に暫定保存（Phase 2 でサーバー連携）
+      localStorage.setItem('ainan_score', String(this.totalScore))
+      localStorage.setItem('ainan_catches', JSON.stringify(this.catches))
+
       this.resLabel.setText('✦ CATCH ✦')
-      this.resEmoji.setText(this.fish.emoji)
+      this.resEmoji.setText(this.fish.emoji).setAngle(0)
       this.resName.setText(this.fish.name)
-      this.resPts.setText(`+${this.fish.scoreBase} pts 🎉`)
+      this.resPts.setText(`+${score} pts 🎉`)
       this.resHint.setText('タップで続ける')
+
+      this.resultEmojiTween?.destroy()
+      this.resultEmojiTween = this.tweens.add({
+        targets: this.resEmoji, angle: 8,
+        duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+      })
     } else {
       this.resLabel.setText('')
-      this.resEmoji.setText('💨')
+      this.resEmoji.setText('💨').setAngle(0)
       this.resName.setText('逃げられた…')
       this.resPts.setText('')
       this.resHint.setText('タップで再挑戦')
@@ -780,7 +871,20 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
 
+    const { width: W, height: H } = this.scale
+    const MARGIN = 40
+    // 海エリア：上端 22%、下端（砂浜上端）84%
+    const SEA_TOP    = H * 0.22
+    const SEA_BOTTOM = H * 0.84
+
     const pts = buildTrajectory(this.anchorX, this.anchorY, angleDeg, power01, this.castRangePx)
+    clampLanding(pts, {
+      minX: MARGIN,
+      maxX: W - MARGIN,
+      minY: SEA_TOP    + MARGIN,
+      maxY: SEA_BOTTOM - MARGIN,
+    })
+
     this.bobber.setPosition(this.anchorX, this.anchorY).setVisible(true)
 
     const path = { u: 0 }
@@ -930,5 +1034,9 @@ export default class GameScene extends Phaser.Scene {
   _cleanup() {
     this._cleanupBattle()
     this._killWaitTimers()
+    this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
+    this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
+    this._fishTweens?.forEach(tw => { tw.stop(); tw.destroy() })
+    this._fishTweens = []
   }
 }

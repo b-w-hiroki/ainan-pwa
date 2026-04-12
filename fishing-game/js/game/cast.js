@@ -3,6 +3,12 @@ const POWER_MAX = 0.95
 const OSC_PERIOD_MS = 2000
 
 /**
+ * キャスト最大飛距離の上限倍率（rangePx に対する比率）
+ * 1.0 = rangePx ちょうど（H * 0.65 相当）が上限
+ */
+export const MAX_CAST_DISTANCE = 1.0
+
+/**
  * 長押し中に往復するパワー値（0〜1）
  * @param {number} elapsedMs
  */
@@ -40,8 +46,8 @@ export function buildTrajectory(anchorX, anchorY, angleDeg, power01, rangePx) {
   const rad = (angleDeg * Math.PI) / 180
   const vx = Math.sin(rad)
   const vy = -Math.cos(rad)
-  // power01=0.95 のとき rangePx * 1.0 ≈ 画面高さの 65% 相当の速度
-  const speed = rangePx * (0.40 + power01 * 0.60)
+  // power01=0.95 のとき rangePx * 1.0 ≈ 画面高さの 65% 相当の速度（上限を MAX_CAST_DISTANCE で制限）
+  const speed = Math.min(rangePx * MAX_CAST_DISTANCE, rangePx * (0.40 + power01 * 0.60))
   const steps = 40
   /** @type {{ x: number; y: number }[]} */
   const pts = []
@@ -52,5 +58,17 @@ export function buildTrajectory(anchorX, anchorY, angleDeg, power01, rangePx) {
       y: anchorY + vy * speed * t + 0.5 * 900 * t * t * 0.28,
     })
   }
+  return pts
+}
+
+/**
+ * 着弾点（pts の末尾）を海エリア内にクランプする（純粋関数・Phaser 不要）
+ * @param {{ x: number; y: number }[]} pts
+ * @param {{ minX: number; maxX: number; minY: number; maxY: number }} bounds
+ */
+export function clampLanding(pts, { minX, maxX, minY, maxY }) {
+  const last = pts[pts.length - 1]
+  last.x = Math.max(minX, Math.min(maxX, last.x))
+  last.y = Math.max(minY, Math.min(maxY, last.y))
   return pts
 }

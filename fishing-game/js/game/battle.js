@@ -1,4 +1,11 @@
-export const BATTLE_TICK_MS = 350
+// ── バトルバランス定数 ──────────────────────────────────────────
+export const BATTLE_TICK_MS     = 200   // ms tick間隔（350→200 レスポンス向上）
+const SWIPE_REEL_AMOUNT         = 5     // おとなしい時のスワイプ巻き上げ量（9→5 バトル長く）
+const SWIPE_PENALTY             = 20    // 暴れ中スワイプの逃走ゲージ加算
+const ESCAPE_DECAY              = 0.8   // おとなしい時の逃走ゲージ自然減衰（0.4→0.8 緩急UP）
+const RAGE_DURATION_MIN         = 2000  // 暴れ最小時間 ms（1400→2000）
+const RAGE_DURATION_MAX         = 4000  // 暴れ最大時間 ms（2800→4000）
+// ───────────────────────────────────────────────────────────────
 
 function randRange(a, b) {
   return a + Math.random() * (b - a)
@@ -35,11 +42,14 @@ export function armFirstRage(state, fish, nowMs) {
  * @param {typeof import('./fish.js').SAMPLE_FISH[0]} fish
  */
 export function tickBattle(state, fish) {
+  const speed = fish.escapeSpeed ?? 1
   if (state.isRaging) {
-    state.escape = Math.min(100, state.escape + 2.5 + Math.random() * 3)
+    // 魚種ごとの escapeSpeed × resistanceStrength で個性を反映
+    const rise = speed * fish.resistanceStrength * (1.5 + Math.random() * 2)
+    state.escape = Math.min(100, state.escape + rise)
     state.reel = Math.max(0, state.reel - 0.5)
   } else {
-    state.escape = Math.max(0, state.escape - 0.4)
+    state.escape = Math.max(0, state.escape - ESCAPE_DECAY)
   }
 }
 
@@ -54,7 +64,7 @@ export function tryEnterRage(state, fish, nowMs) {
   if (state.isRaging) return false
   if (nowMs < state.nextRageAt) return false
   state.isRaging = true
-  state.rageEndAt = nowMs + randRange(fish.rageDuration[0], fish.rageDuration[1])
+  state.rageEndAt = nowMs + randRange(RAGE_DURATION_MIN, RAGE_DURATION_MAX)
   return true
 }
 
@@ -78,9 +88,9 @@ export function tryExitRage(state, fish, nowMs) {
  */
 export function applySwipe(state, isRaging) {
   if (isRaging) {
-    state.escape = Math.min(100, state.escape + 20)
+    state.escape = Math.min(100, state.escape + SWIPE_PENALTY)
   } else {
-    state.reel = Math.min(100, state.reel + 9)
+    state.reel = Math.min(100, state.reel + SWIPE_REEL_AMOUNT)
     state.escape = Math.max(0, state.escape - 1.5)
   }
 }
