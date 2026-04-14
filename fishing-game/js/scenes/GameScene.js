@@ -157,6 +157,9 @@ export default class GameScene extends Phaser.Scene {
     this.input.on('pointerup',   this._onUp,   this)
     this.events.once('shutdown', this._cleanup, this)
 
+    // 対処3: カメラのピクセルを整数に丸めてテキストのにじみを軽減
+    this.cameras.main.setRoundPixels(true)
+
     // ブラウザ終了時にスコアを保存（クラッシュ対策）
     this._beforeUnloadHandler = () => this._saveProgress()
     window.addEventListener('beforeunload', this._beforeUnloadHandler)
