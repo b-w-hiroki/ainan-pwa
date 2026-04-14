@@ -80,11 +80,11 @@ export class TackleUI {
     // 外側コンテナ（背景・タイトル・スクロール領域をまとめる）
     const container = this.scene.add.container(0, 0).setDepth(48)
 
-    // パネル背景
+    // パネル背景（ダーク）
     const bg = this.scene.add.graphics()
-    bg.fillStyle(0xffffff, 0.95)
+    bg.fillStyle(0x1a2a3a, 0.96)
     bg.fillRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
-    bg.lineStyle(2.5, 0x1a2a3a, 1)
+    bg.lineStyle(2, 0xffffff, 0.8)
     bg.strokeRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
     container.add(bg)
 
@@ -92,7 +92,7 @@ export class TackleUI {
     const label = type === 'rod' ? '🎣 竿を選ぶ' : '🪱 エサを選ぶ'
     const title = this.scene.add.text(PANEL_X, PANEL_Y - PANEL_H / 2 + 14, label, {
       fontFamily: FONT, fontSize: '13px', fontWeight: '800',
-      color: CS, resolution: TEXT_RES,
+      color: '#ffffff', resolution: TEXT_RES,
     }).setOrigin(0.5, 0)
     container.add(title)
 
@@ -189,18 +189,18 @@ export class TackleUI {
     const isSelected = item.id === selectedId
     const isOwned    = qty > 0
 
-    // カード背景
+    // カード背景（ダーク）
     const bg = this.scene.add.graphics()
     bg.fillStyle(
-      !isOwned   ? 0xeeeeee :
-      isSelected ? 0xd0f0ff : 0xfafafa,
-      isOwned ? 1 : 0.6,
+      !isOwned   ? 0x111111 :
+      isSelected ? 0x2a4a6a : 0x2c3e50,
+      isOwned ? 1 : 0.5,
     )
     bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 10)
     bg.lineStyle(
-      isSelected ? 2.5 : 1.5,
-      isSelected ? 0x00aadd : isOwned ? 0x1a2a3a : 0xaaaaaa,
-      1,
+      isSelected ? 2.5 : 1,
+      isSelected ? 0x55ccff : 0xffffff,
+      isSelected ? 1 : 0.4,
     )
     bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 10)
     container.add(bg)
@@ -228,13 +228,13 @@ export class TackleUI {
     // アイテム名
     const name = this.scene.add.text(x, y + 10, item.name, {
       fontFamily: FONT, fontSize: '11px', fontWeight: '700',
-      color: isOwned ? CS : '#aaaaaa', resolution: TEXT_RES,
+      color: isOwned ? '#ffffff' : '#666666', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(name)
 
     // 説明文
     const desc = this.scene.add.text(x, y + 26, item.description, {
-      fontFamily: FONT, fontSize: '9px', color: COLOR.TEXT2,
+      fontFamily: FONT, fontSize: '9px', color: '#aaccdd',
       wordWrap: { width: w - 8 }, align: 'center', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(desc)
