@@ -1,5 +1,4 @@
-const OUTLINE = '#1a2a3a'
-const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
+import { FONT, OUTLINE, TITLE_SHADOW } from '../config/fontStyles.js'
 
 export default class TitleScene extends Phaser.Scene {
   constructor() {
@@ -13,10 +12,9 @@ export default class TitleScene extends Phaser.Scene {
       .text(width / 2, height * 0.28, 'AINAN', {
         fontFamily: FONT,
         fontSize: '52px',
-        fontStyle: '900',
+        fontStyle: '700',
         color: '#ffffff',
-        stroke: OUTLINE,
-        strokeThickness: 6,
+        shadow: { offsetX: 2, offsetY: 2, color: 'rgba(0,0,0,0.4)', blur: 4, fill: true },
       })
       .setOrigin(0.5)
 
@@ -24,10 +22,10 @@ export default class TitleScene extends Phaser.Scene {
       .text(width / 2, height * 0.38, '釣りゲーム', {
         fontFamily: FONT,
         fontSize: '28px',
-        fontStyle: '800',
+        fontStyle: '700',
         color: '#1a3a5a',
         stroke: OUTLINE,
-        strokeThickness: 4,
+        strokeThickness: 2,
       })
       .setOrigin(0.5)
 
@@ -48,10 +46,8 @@ export default class TitleScene extends Phaser.Scene {
       .text(0, 0, 'タップでスタート', {
         fontFamily: FONT,
         fontSize: '18px',
-        fontStyle: '800',
+        fontStyle: '700',
         color: '#1a3a5a',
-        stroke: OUTLINE,
-        strokeThickness: 3,
       })
       .setOrigin(0.5)
 

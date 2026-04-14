@@ -1,7 +1,11 @@
 import Phaser from 'phaser'
-import { DEFAULT_ROD, DEFAULT_BAIT } from '../game/params.js'
+import { FONT } from '../config/fontStyles.js'
+import { CS } from '../config/palette.js'
+import { DEFAULT_ROD, DEFAULT_BAIT, ROD_STATS, BAIT_STATS } from '../game/params.js'
+import { TackleUI } from './components/TackleUI.js'
 import { selectFish } from '../game/fish.js'
-import { DEFAULT_ENV } from '../config/defaults.js'
+import { buildBiteConfig, randomWaitMs, calcAttractRadius, isInAttractRange } from '../game/bite.js'
+import { getDefaultEnv } from '../config/defaults.js'
 import { computeCastAngle, oscillatePower, buildTrajectory, clampLanding } from '../game/cast.js'
 import {
   BATTLE_TICK_MS,
@@ -13,27 +17,14 @@ import {
   applySwipe,
   battleOutcome,
   dangerBand,
+  getRageDuration,
 } from '../game/battle.js'
-
-// ─── パレット（HTML プロトタイプに合わせた色） ───────────────────
-const C = {
-  OUTLINE: 0x1a2a3a,
-  SKY_T: 0x87ceeb, SKY_B: 0xd8f4ff,
-  SEA_T: 0x5ad8ff, SEA_B: 0x082848,
-  GRASS_T: 0x78e040, GRASS_B: 0x50c030,
-  SAND_T: 0xf0d878, SAND_B: 0xc0a040,
-  ISLAND: 0x78d040,
-  SUN: 0xffe844,
-  ROCK: 0x585868,
-  PLAYER_HAT: 0xe84040,
-  PLAYER_SKIN: 0xffd0a0,
-  PLAYER_BODY: 0x4060e0,
-  FISH_C: 0x2288cc, FISH_CS: 0x1a5a8a,
-  FISH_U: 0x22aa66, FISH_US: 0x156644,
-  FISH_R: 0xcc44ff, FISH_RS: 0x8800cc,
-}
-const CS = '#1a2a3a'   // OUTLINE as string
-const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
+import { BackgroundManager } from './components/BackgroundManager.js'
+import { BobberManager } from './components/BobberManager.js'
+import { CastUI } from './components/CastUI.js'
+import { BattleUI } from './components/BattleUI.js'
+import { ResultUI } from './components/ResultUI.js'
+const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
@@ -42,10 +33,23 @@ export default class GameScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
 
     // 環境パラメータ（Phase2 で MapScene からのデータで上書き）
-    this.env = { ...DEFAULT_ENV, ...data }
+    this.env = {
+      ...getDefaultEnv(),
+      ...data,
+      player: {
+        rodType:    'carbon',
+        baitType:   'worm',
+        skillLevel: 1,
+        inventory: {
+          rods:  { basic: 1, carbon: 1, premium: 0 },
+          baits: { worm: 12, shrimp: 5, special: 2 },
+        },
+        ...data.player,
+      },
+    }
 
     this.fish = selectFish(this.env)
-    this.rod = DEFAULT_ROD
+    this.rod  = DEFAULT_ROD
     this.bait = DEFAULT_BAIT
 
     // スコア・釣果（localStorage から復元、シーン再起動時は引き継ぐ）
@@ -61,17 +65,24 @@ export default class GameScene extends Phaser.Scene {
     this._swipeBaseY = 0
 
     // ─── レイヤー描画 ────────────────────────────────────────────
-    this._buildBackground(W, H)
-    this._spawnFish(W, H)
-    this._buildPlayer(W, H)
+    this.bg = new BackgroundManager(this)
+    this.bg.buildBackground(W, H)
+    this.bg.spawnFish(W, H)
+    const anchor         = this.bg.buildPlayer(W, H)
+    this.anchorX         = anchor.anchorX
+    this.anchorY         = anchor.anchorY
+    this.castRangePx     = anchor.castRangePx
+    this.shaftDisplayPx  = anchor.shaftDisplayPx
 
     // ─── 動的 Graphics ───────────────────────────────────────────
     this.lineGfx   = this.add.graphics().setDepth(30)
     this.castGfx   = this.add.graphics().setDepth(35)
     this.powerGfx  = this.add.graphics().setDepth(36)
+    this.castUI    = new CastUI(this)
 
     // ─── 浮き ────────────────────────────────────────────────────
-    this.bobber = this._makeBobber(W, H)
+    this.bobberMgr = new BobberManager(this)
+    this.bobber = this.bobberMgr.create(W, H)
 
     // ─── 危険フラッシュ ──────────────────────────────────────────
     this.dangerFx = this.add
@@ -79,77 +90,35 @@ export default class GameScene extends Phaser.Scene {
       .setDepth(92)
 
     // ─── バトル UI ───────────────────────────────────────────────
-    this._buildEscapeBar(W, H)
-    this._buildBattlePanel(W, H)
-    this._buildReelCTA(W, H)
+    this.battleUI = new BattleUI(this)
+    this.battleUI.buildEscapeBar(W)
+    this.battleUI.buildBattlePanel(W, H)
+    this.battleUI.buildReelCTA(W, H)
 
-    this.rageTag = this.add
-      .text(W / 2, 50, '⚡ 暴れてる！', {
-        fontFamily: FONT, fontSize: '11px', fontStyle: '900',
-        color: CS, backgroundColor: '#ffee00',
-        padding: { x: 8, y: 4 },
-      })
-      .setOrigin(0.5).setDepth(68).setVisible(false)
+    // ─── ヒット表示・暴れタグ ────────────────────────────────────
+    this.battleUI.buildHitHUD(W, H)
 
-    // ─── ヒット表示 ──────────────────────────────────────────────
-    this.hitHint = this.add
-      .text(W / 2, H * 0.36, '🎣 タップ！', {
-        fontFamily: FONT, fontSize: '30px', fontStyle: '900',
-        color: '#ff6600', stroke: CS, strokeThickness: 5,
-      })
-      .setOrigin(0.5).setDepth(50).setVisible(false)
-
-    // hitHint の基準Y座標を保持（Tween 再生成時のドリフト防止）
-    this._hitHintBaseY = this.hitHint.y
-
-    // Tween は各フェーズ開始時に生成し、終了時に破棄する（常時動作させない）
     /** @type {Phaser.Tweens.Tween | null} */
     this.hitHintTween = null
     /** @type {Phaser.Tweens.Tween | null} */
     this.resultEmojiTween = null
 
-    // ─── ヒントテキスト ──────────────────────────────────────────
-    this.hintText = this.add
-      .text(W / 2, H * 0.19, '', {
-        fontFamily: FONT, fontSize: '13px', fontStyle: '800',
-        color: '#082848', backgroundColor: 'rgba(255,255,255,0.80)',
-        padding: { x: 10, y: 5 },
-      })
-      .setOrigin(0.5).setDepth(55)
+    // ─── キャストHUD（hintText・powerLabel）────────────────────────
+    this.castUI.buildHUD(W, H)
 
     // ─── スコアバー ──────────────────────────────────────────────
-    this._buildScoreBar(W)
+    this.battleUI.buildScoreBar(this.totalScore)
 
     // ─── 結果オーバーレイ ────────────────────────────────────────
-    this._buildResultOverlay(W, H)
+    this.resultUI = new ResultUI(this)
+    this.resultUI.buildResultOverlay(W, H)
 
-    // ─── パワーラベル ────────────────────────────────────────────
-    this.powerLabel = this.add
-      .text(W / 2, H * 0.74, 'CAST POWER', {
-        fontFamily: FONT, fontSize: '11px', fontStyle: '900',
-        color: CS, stroke: '#ffffff', strokeThickness: 3,
-        letterSpacing: 2,
-      })
-      .setOrigin(0.5).setDepth(37).setVisible(false)
+    // ─── ナビボタン ──────────────────────────────────────────────
+    this.resultUI.buildBackBtn(W, H)
 
-    // ─── ナビボタン（左下配置） ───────────────────────────────────
-    const backBtn = this.add
-      .text(16, H - 16, '← マップへ', {
-        fontFamily: FONT, fontSize: '14px', fontStyle: '800',
-        color: '#1a2a3a', backgroundColor: '#ffffff',
-        padding: { x: 10, y: 6 },
-      })
-      .setOrigin(0, 1)
-      .setDepth(200)
-      .setStroke('#1a2a3a', 3)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', (p) => {
-        p.event.stopPropagation()
-        this._cleanup()
-        this.scene.start('MapScene')
-      })
-      .on('pointerover', () => backBtn.setStyle({ backgroundColor: '#d0f0ff' }))
-      .on('pointerout',  () => backBtn.setStyle({ backgroundColor: '#ffffff' }))
+    // ─── 竿・エサ切り替えUI ─────────────────────────────────────
+    this.tackleUI = new TackleUI(this)
+    this.tackleUI.build(W, H)
 
     // ─── 入力 ────────────────────────────────────────────────────
     this.input.on('pointerdown', this._onDown, this)
@@ -167,431 +136,9 @@ export default class GameScene extends Phaser.Scene {
     this._enterCast()
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // BACKGROUND
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildBackground(W, H) {
-    const g = this.add.graphics().setDepth(0)
 
-    // 空 (0 〜 15%)
-    g.fillGradientStyle(C.SKY_T, C.SKY_T, C.SKY_B, C.SKY_B, 1)
-    g.fillRect(0, 0, W, H * 0.15)
 
-    // 太陽
-    g.fillStyle(C.SUN, 1)
-    g.fillCircle(W * 0.86, H * 0.04, 18)
-    g.fillStyle(0xfffbe0, 0.3)
-    g.fillCircle(W * 0.86, H * 0.04, 26)
 
-    // 雲
-    this._cloud(g, W * 0.08, H * 0.04, 1.0)
-    this._cloud(g, W * 0.50, H * 0.07, 0.75)
-    this._cloud(g, W * 0.76, H * 0.03, 0.60)
-
-    // 島背景レイヤー (13〜22%)
-    g.fillGradientStyle(0xc8eeff, 0xc8eeff, 0xa8ddf0, 0xa8ddf0, 1)
-    g.fillRect(0, H * 0.13, W, H * 0.09)
-
-    // 島シルエット
-    g.fillStyle(C.ISLAND, 1)
-    g.lineStyle(2.5, C.OUTLINE, 1)
-    g.fillEllipse(W * 0.12, H * 0.213, W * 0.19, H * 0.066)
-    g.strokeEllipse(W * 0.12, H * 0.213, W * 0.19, H * 0.066)
-    g.fillEllipse(W * 0.88, H * 0.213, W * 0.12, H * 0.044)
-    g.strokeEllipse(W * 0.88, H * 0.213, W * 0.12, H * 0.044)
-    g.fillStyle(0x66cc44, 0.75)
-    g.fillEllipse(W * 0.57, H * 0.218, W * 0.09, H * 0.032)
-
-    // ホリゾンライン
-    g.fillStyle(0xffffff, 0.65)
-    g.fillRect(0, H * 0.209, W, 3)
-
-    // 海 (22〜84%)
-    g.fillGradientStyle(C.SEA_T, C.SEA_T, C.SEA_B, C.SEA_B, 1)
-    g.fillRect(0, H * 0.22, W, H * 0.62)
-
-    // 海上部の丸みウェーブ
-    g.fillStyle(C.SEA_T, 1)
-    g.fillEllipse(W * 0.5, H * 0.213, W * 1.12, H * 0.024)
-
-    // セルシェーディングストライプ
-    ;[0.12, 0.28, 0.50, 0.72].forEach((frac, i) => {
-      g.fillStyle(0xffffff, 0.12 - i * 0.02)
-      g.fillRect(0, H * 0.22 + H * 0.62 * frac, W, 3)
-    })
-
-    // 岸 (84〜100%)
-    // 草
-    g.fillGradientStyle(C.GRASS_T, C.GRASS_T, C.GRASS_B, C.GRASS_B, 1)
-    g.fillRect(0, H * 0.84, W, H * 0.048)
-    g.lineStyle(3, 0x3aaa20, 1)
-    g.strokeRect(0, H * 0.84, W, H * 0.048)
-
-    // 草の葉
-    ;[0.14, 0.24, 0.40, 0.60, 0.72, 0.85].forEach(fx => {
-      const tx = W * fx, ty = H * 0.84 + H * 0.048
-      g.fillStyle(C.GRASS_B, 1)
-      g.fillTriangle(tx, ty, tx - 5, ty + 10, tx + 5, ty + 10)
-    })
-
-    // 岸水際ライン
-    g.fillStyle(0xffffff, 0.7)
-    g.fillRect(0, H * 0.84 + H * 0.046, W, 5)
-
-    // 砂
-    g.fillGradientStyle(C.SAND_T, C.SAND_T, C.SAND_B, C.SAND_B, 1)
-    g.fillRect(0, H * 0.888, W, H * 0.112)
-    g.lineStyle(3, 0xe8c060, 1)
-    g.strokeRect(0, H * 0.888, W, H * 0.112)
-
-    // 砂利
-    ;[
-      { x: 0.22, y: 0.925, w: 8, h: 5 },
-      { x: 0.38, y: 0.945, w: 5, h: 4 },
-      { x: 0.72, y: 0.932, w: 10, h: 6 },
-      { x: 0.84, y: 0.952, w: 6, h: 4 },
-    ].forEach(p => {
-      g.fillStyle(0xc09828, 1)
-      g.fillEllipse(W * p.x, H * p.y, p.w, p.h)
-    })
-
-    // 岩
-    ;[
-      { x: 0.22, y: 0.936, w: 28, h: 16 },
-      { x: 0.295, y: 0.930, w: 16, h: 10 },
-      { x: 0.80, y: 0.934, w: 22, h: 13 },
-    ].forEach(r => {
-      g.fillStyle(C.ROCK, 1)
-      g.lineStyle(2.5, C.OUTLINE, 1)
-      g.fillEllipse(W * r.x, H * r.y, r.w, r.h)
-      g.strokeEllipse(W * r.x, H * r.y, r.w, r.h)
-    })
-  }
-
-  _cloud(g, cx, cy, sc) {
-    const w = 80 * sc, h = 18 * sc
-    g.fillStyle(0xffffff, 1)
-    g.lineStyle(2.5, 0xc8e8f8, 1)
-    g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, h / 2)
-    g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, h / 2)
-    g.fillCircle(cx - w * 0.2, cy - h * 0.75, h * 0.95)
-    g.fillCircle(cx + w * 0.08, cy - h * 0.55, h * 0.75)
-    g.fillCircle(cx + w * 0.34, cy - h * 0.38, h * 0.55)
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // FISH
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _spawnFish(W, H) {
-    /** @type {Array<{t:string, y:number, dur:number, delay:number, sc:number, rtl:boolean}>} */
-    this._fishDefs = [
-      { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
-      { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
-      { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
-      { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
-      { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
-      { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
-    ]
-    /** @type {Phaser.GameObjects.Graphics[]} */
-    this._fishGfx = []
-    /** @type {Phaser.Tweens.Tween[]} */
-    this._fishTweens = []
-
-    this._fishDefs.forEach(fd => {
-      const gfx = this.add.graphics().setDepth(22)
-      this._drawFish(gfx, fd.t, fd.sc)
-      if (fd.rtl) gfx.setScale(-1, 1)
-      this._fishGfx.push(gfx)
-    })
-
-    this._startFishTweens()
-  }
-
-  /**
-   * 全魚を開始座標へリセットし Tween を再生成する。
-   * キャストフェーズ開始ごとに呼び出すことで毎回同じ位置から泳ぎ始める。
-   */
-  _startFishTweens() {
-    const { width: w, height: h } = this.scale
-
-    // 既存 Tween を破棄
-    this._fishTweens.forEach(tw => { tw.stop(); tw.destroy() })
-    this._fishTweens = []
-
-    this._fishDefs.forEach((fd, i) => {
-      const gfx = this._fishGfx[i]
-      const sx = fd.rtl ? w + 80 : -80
-      const ex = fd.rtl ? -80 : w + 80
-      gfx.setPosition(sx, h * fd.y)
-
-      const tw = this.tweens.add({
-        targets: gfx, x: ex,
-        duration: fd.dur, delay: fd.delay,
-        repeat: -1,
-      })
-      this._fishTweens.push(tw)
-    })
-  }
-
-  _drawFish(g, type, sc) {
-    // 全魚種シルエット（水中の影）
-    // rare だけ少し明るいグロー付き
-    const alpha = type === 'rare' ? 0.70 : type === 'uncommon' ? 0.55 : 0.45
-    const shadowCol = 0x082030
-
-    g.clear()
-
-    if (type === 'rare') {
-      // 淡い光彩
-      g.fillStyle(0x6688aa, 0.18)
-      g.fillEllipse(0, 0, 40 * sc, 22 * sc)
-    }
-
-    g.fillStyle(shadowCol, alpha)
-    g.fillEllipse(0, 0, 24 * sc, 12 * sc)
-    g.fillTriangle(12 * sc, 0, 17 * sc, -7 * sc, 17 * sc, 7 * sc)
-
-    // 背びれ（シルエットのアクセント）
-    g.fillStyle(shadowCol, alpha * 0.8)
-    g.fillTriangle(-2 * sc, -6 * sc, 4 * sc, -6 * sc, 1 * sc, -11 * sc)
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // PLAYER（HTML プロトの CSS スプライトを Graphics で再現）
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildPlayer(W, H) {
-    const g = this.add.graphics().setDepth(40)
-    const cx = W * 0.50
-    const by = H * 0.84
-
-    // 影
-    g.fillStyle(0x000000, 0.10)
-    g.fillEllipse(cx, by + 2, 38, 10)
-
-    // 胴体
-    g.fillStyle(C.PLAYER_BODY, 1)
-    g.lineStyle(2.5, C.OUTLINE, 1)
-    g.fillRoundedRect(cx - 16, by - 22, 32, 22, 4)
-    g.strokeRoundedRect(cx - 16, by - 22, 32, 22, 4)
-    g.fillStyle(0xffffff, 0.22)
-    g.fillRoundedRect(cx - 12, by - 19, 24, 3, 2)
-
-    // 頭
-    g.fillStyle(C.PLAYER_SKIN, 1)
-    g.lineStyle(2.5, C.OUTLINE, 1)
-    g.fillEllipse(cx, by - 34, 28, 24)
-    g.strokeEllipse(cx, by - 34, 28, 24)
-
-    // 帽子 (つば)
-    g.fillStyle(C.PLAYER_HAT, 1)
-    g.lineStyle(2.5, C.OUTLINE, 1)
-    g.fillRoundedRect(cx - 19, by - 44, 38, 12, 4)
-    g.strokeRoundedRect(cx - 19, by - 44, 38, 12, 4)
-    // 帽子 (天)
-    g.fillRoundedRect(cx - 13, by - 54, 26, 12, 5)
-    g.strokeRoundedRect(cx - 13, by - 54, 26, 12, 5)
-    g.fillStyle(0xffffff, 0.45)
-    g.fillRoundedRect(cx - 10, by - 52, 8, 4, 2)
-
-    // 目
-    g.fillStyle(0x1a2a3a, 1)
-    g.fillCircle(cx - 6, by - 35, 3)
-    g.fillCircle(cx + 6, by - 35, 3)
-    g.fillStyle(0xffffff, 1)
-    g.fillCircle(cx - 5, by - 36, 1)
-    g.fillCircle(cx + 7, by - 36, 1)
-
-    // 赤み
-    g.fillStyle(0xff9090, 0.7)
-    g.fillEllipse(cx - 9, by - 32, 7, 4)
-    g.fillEllipse(cx + 9, by - 32, 7, 4)
-
-    // 竿（腕から先端）
-    const rodBase = { x: cx + 12, y: by - 12 }
-    const rodTip  = { x: cx + 30, y: by - 54 }
-    g.lineStyle(4, 0xe8c040, 1)
-    g.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
-    g.lineStyle(1.5, 0x5a4000, 1)
-    g.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
-
-    // 糸の始点 = ロッド先端 ＝ アンカー
-    this.anchorX = rodTip.x
-    this.anchorY = rodTip.y
-    // 飛距離スケール（画面高さ × 0.65）& 矢印シャフト表示用の短い長さ
-    this.castRangePx = H * 0.65
-    this.shaftDisplayPx = Math.min(H * 0.17, 120)
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // BOBBER
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _makeBobber(W, H) {
-    const g = this.add.graphics().setDepth(30).setVisible(false)
-    // 白い上半分
-    g.fillStyle(0xffffff, 1)
-    g.fillCircle(0, -3, 9)
-    // 赤い下半分
-    g.fillStyle(0xff2222, 1)
-    g.fillCircle(0, 3, 9)
-    // 縁
-    g.lineStyle(2.5, C.OUTLINE, 1)
-    g.strokeCircle(0, 0, 9)
-    // 上の軸
-    g.lineStyle(2, 0xffffff, 0.8)
-    g.lineBetween(0, -9, 0, -18)
-    return g
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // SCORE BAR
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildScoreBar(W) {
-    this.scoreBar = this.add.container(W / 2, 0).setDepth(70)
-
-    // 戻り値に値テキストの参照を含める
-    const chip = (offsetX, icon, val, lbl) => {
-      const bg = this.add.graphics()
-      bg.fillStyle(0xffffff, 1)
-      bg.lineStyle(2.5, C.OUTLINE, 1)
-      bg.fillRoundedRect(offsetX - 44, 6, 88, 28, 14)
-      bg.strokeRoundedRect(offsetX - 44, 6, 88, 28, 14)
-      const i = this.add.text(offsetX - 16, 20, icon, { fontSize: '12px' }).setOrigin(0.5)
-      const v = this.add.text(offsetX + 4, 20, val, {
-        fontFamily: FONT, fontSize: '12px', fontStyle: '900', color: '#e07800',
-      }).setOrigin(0, 0.5)
-      const l = this.add.text(offsetX + 4, 30, lbl, {
-        fontFamily: FONT, fontSize: '7px', fontStyle: '700', color: '#4a7090',
-      }).setOrigin(0, 0.5)
-      return { els: [bg, i, v, l], valText: v }
-    }
-
-    const sc = chip(-100, '🏆', String(this.totalScore), 'SCORE')
-    const ca = chip(0, '🐟', `${this.catches.length}/20`, 'CATCH')
-    const ti = chip(100, '⏱', '00:00', 'TIME')
-
-    this.scoreValText = sc.valText   // 累積スコア表示用
-    this.catchValText = ca.valText   // 釣果カウント表示用
-
-    this.scoreBar.add([...sc.els, ...ca.els, ...ti.els])
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ESCAPE BAR（バトル中 画面最上部）
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildEscapeBar(W) {
-    this.escapeBar = this.add.container(0, 0).setDepth(65).setVisible(false)
-
-    const bg = this.add.graphics()
-    bg.fillGradientStyle(0xff283c, 0xff283c, 0xc81428, 0xc81428, 0.95)
-    bg.fillRect(0, 0, W, 72)
-    bg.lineStyle(4, C.OUTLINE, 1)
-    bg.strokeRect(2, 2, W - 4, 68)
-
-    const title = this.add.text(14, 18, '逃走ゲージ', {
-      fontFamily: FONT, fontSize: '13px', fontStyle: '900',
-      color: '#ffffff', stroke: CS, strokeThickness: 3,
-    }).setOrigin(0, 0.5)
-
-    this.ebarFill = this.add.graphics()
-    this.ebarNum  = this.add.text(W - 12, 18, '0', {
-      fontFamily: FONT, fontSize: '22px', fontStyle: '900',
-      color: '#ffffff', stroke: CS, strokeThickness: 3,
-    }).setOrigin(1, 0.5)
-
-    this.escapeBar.add([bg, title, this.ebarFill, this.ebarNum])
-    this._ebarW = W - 28  // track幅
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // BATTLE PANEL（巻き取りゲージ、画面下部）
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildBattlePanel(W, H) {
-    this.battlePanel = this.add.container(0, 0).setDepth(60).setVisible(false)
-
-    const panW = Math.min(340, W * 0.9)
-    const px   = (W - panW) / 2
-    const py   = H * 0.79
-
-    const bg = this.add.graphics()
-    bg.fillStyle(0xffffff, 0.92)
-    bg.lineStyle(3, C.OUTLINE, 1)
-    bg.fillRoundedRect(px, py, panW, 60, 16)
-    bg.strokeRoundedRect(px, py, panW, 60, 16)
-
-    const lbl = this.add.text(px + 14, py + 14, '🌀 巻き取り', {
-      fontFamily: FONT, fontSize: '11px', fontStyle: '800', color: '#4a7090',
-    })
-
-    this.reelFill    = this.add.graphics()
-    this.reelValText = this.add.text(px + panW - 12, py + 30, '0', {
-      fontFamily: FONT, fontSize: '11px', fontStyle: '800', color: '#1a3a5a',
-    }).setOrigin(1, 0.5)
-
-    this.battlePanel.add([bg, lbl, this.reelFill, this.reelValText])
-
-    this._reel = { x: px + 76, y: py + 22, w: panW - 96, h: 18 }
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // REEL CTA（「釣り上げろ！」）
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildReelCTA(W, H) {
-    this.reelCTA = this.add.container(W / 2, H * 0.69).setDepth(67).setVisible(false)
-
-    const t1 = this.add.text(0, -28, '釣り上げろ！', {
-      fontFamily: FONT, fontSize: '28px', fontStyle: '900',
-      color: '#ff6600', stroke: CS, strokeThickness: 5,
-    }).setOrigin(0.5)
-
-    const t2 = this.add.text(0, 10, '👇', { fontSize: '26px' }).setOrigin(0.5)
-
-    const t3 = this.add.text(0, 40, '下にスワイプ！', {
-      fontFamily: FONT, fontSize: '12px', fontStyle: '800',
-      color: CS, backgroundColor: '#ffee00',
-      padding: { x: 10, y: 3 },
-    }).setOrigin(0.5)
-
-    this.reelCTA.add([t1, t2, t3])
-
-    this.tweens.add({ targets: t1, y: '-=6', duration: 600, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
-    this.tweens.add({ targets: t2, y: '+=8', duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // RESULT OVERLAY（キャッチ／逃げた）
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _buildResultOverlay(W, H) {
-    this.resultOverlay = this.add
-      .container(W / 2, H * 0.42)
-      .setDepth(120)
-      .setVisible(false)
-
-    const card = this.add.graphics()
-    card.fillStyle(0xffffff, 1)
-    card.lineStyle(4, C.OUTLINE, 1)
-    card.fillRoundedRect(-150, -100, 300, 200, 18)
-    card.strokeRoundedRect(-150, -100, 300, 200, 18)
-
-    this.resLabel = this.add.text(0, -72, '', {
-      fontFamily: FONT, fontSize: '13px', fontStyle: '900', color: '#ff6600',
-    }).setOrigin(0.5)
-
-    this.resEmoji = this.add.text(0, -28, '', { fontSize: '52px' }).setOrigin(0.5)
-
-    this.resName = this.add.text(0, 30, '', {
-      fontFamily: FONT, fontSize: '22px', fontStyle: '900', color: '#1a3a5a',
-    }).setOrigin(0.5)
-
-    this.resPts = this.add.text(0, 62, '', {
-      fontFamily: FONT, fontSize: '14px', fontStyle: '800', color: '#00aa44',
-    }).setOrigin(0.5)
-
-    this.resHint = this.add.text(0, 84, 'タップで続ける', {
-      fontFamily: FONT, fontSize: '11px', fontStyle: '700', color: '#4a7090',
-    }).setOrigin(0.5)
-
-    this.resultOverlay.add([card, this.resLabel, this.resEmoji, this.resName, this.resPts, this.resHint])
-  }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // PHASES
@@ -600,6 +147,8 @@ export default class GameScene extends Phaser.Scene {
     this._cleanupBattle()
     this.phase = 'cast'
     this.isCharging = false
+    this._syncTackle()
+    this.tackleUI?.enable()
 
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
@@ -616,89 +165,174 @@ export default class GameScene extends Phaser.Scene {
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
-    this.scoreBar.setY(0)
+    this.scoreBar.setY(16)
     this.hintText.setText('画面を長押し → 方向を狙って離す')
 
     // 魚を開始位置にリセットして Tween を再生成
-    if (this._fishDefs) this._startFishTweens()
+    this._targetFishIndex = null
+    this._targetFishGfx   = null
+    this.bg?.startFishTweens()
   }
 
   _enterWait(landX, landY) {
     this.phase = 'wait'
     this.waitTapActive = false
+    this.tackleUI?.disable()
     this._killWaitTimers()
     this.bobber.setPosition(landX, landY).setVisible(true)
     this._bobberBaseY = landY    // 浮きの基準Y（ドリフト防止・_onMiss でのリセット用）
     this.hitHint.setVisible(false)
-    this.hintText.setText('食いつき待ち…（ちょんちょん中はタップ無効）')
+    this.hintText.setText('食いつき待ち…')
 
-    // 少し落ち着いてから「ちょんちょんぐんっ！」シーケンス開始
-    this._wt1 = this.time.delayedCall(600, () => {
+    // 魚種をここで決定（魚影の種類と無関係に env 基準で選ぶ）
+    this.fish = selectFish(this.env)
+
+    // 着水後少し間を置いてから魚影が近づいてくる
+    this._wt1 = this.time.delayedCall(400, () => {
       if (this.phase !== 'wait') return
-      this._startBobberBiteSequence()
+      this._startFishApproach(landX, landY)
     })
   }
 
-  // ─── ちょん → ちょん → ぐんっ！ の3段階バイトシーケンス ──────
-  _startBobberBiteSequence() {
-    if (this.phase !== 'wait') return
-    const baseY = this._bobberBaseY
+  // ─── 魚影を浮きへ近づかせる ────────────────────────────────────
+  _startFishApproach(bobberX, bobberY) {
+    if (!this.bg._fishGfx?.length) {
+      this._scheduleNoFishMessage()
+      return
+    }
 
-    // ちょん①（小さく沈む）
-    this._chonTween = this.tweens.add({
-      targets: this.bobber, y: baseY + 8,
-      duration: 200, ease: 'Sine.easeOut', yoyo: true,
+    // 誘引範囲内の魚影だけを候補に絞る
+    const radius = calcAttractRadius({
+      baitType:   this.bait.id,
+      rodType:    this.rod.id,
+      skillLevel: 1,
+    })
+    const candidates = this.bg._fishGfx
+      .map((gfx, i) => ({ gfx, i }))
+      .filter(({ gfx }) => isInAttractRange(gfx, { x: bobberX, y: bobberY }, radius))
+
+    if (candidates.length === 0) {
+      this._scheduleNoFishMessage()
+      return
+    }
+
+    const chosen = Phaser.Utils.Array.GetRandom(candidates)
+    this._targetFishIndex = chosen.i
+    const gfx = chosen.gfx
+    this._targetFishGfx = gfx
+
+    // 通常泳ぎTweenを止める
+    this.bg._fishTweens[this._targetFishIndex]?.stop()
+
+    // 浮きの方向に向きを合わせる（rtl魚はもともと左向き描画なので逆転）
+    const fd = this.bg._fishDefs[this._targetFishIndex]
+    const goingRight = bobberX > gfx.x
+    gfx.setScale(fd.rtl ? (goingRight ? -1 : 1) : (goingRight ? 1 : -1), 1)
+
+    const dist = Phaser.Math.Distance.Between(gfx.x, gfx.y, bobberX, bobberY)
+    const duration = Phaser.Math.Clamp(dist / 80 * 1000, 2000, 4000)
+
+    this._approachTween = this.tweens.add({
+      targets: gfx,
+      x: bobberX,
+      y: bobberY + 20,
+      duration,
+      ease: 'Sine.easeInOut',
       onComplete: () => {
         if (this.phase !== 'wait') return
-        this.bobber.setY(baseY)
-        const wait1 = Phaser.Math.Between(800, 1200)
-        this._biteSeqTimer1 = this.time.delayedCall(wait1, () => {
-          if (this.phase !== 'wait') return
-
-          // ちょん②（少し深く沈む）
-          this._chonTween = this.tweens.add({
-            targets: this.bobber, y: baseY + 12,
-            duration: 200, ease: 'Sine.easeOut', yoyo: true,
-            onComplete: () => {
-              if (this.phase !== 'wait') return
-              this.bobber.setY(baseY)
-              const wait2 = Phaser.Math.Between(600, 1000)
-              this._biteSeqTimer2 = this.time.delayedCall(wait2, () => {
-                if (this.phase !== 'wait') return
-
-                // ぐんっ！（完全食いつき ＝ ヒット受付開始）
-                this._chonTween = this.tweens.add({
-                  targets: this.bobber, y: baseY + 30,
-                  duration: 150, ease: 'Quad.easeIn',
-                  onComplete: () => {
-                    if (this.phase !== 'wait') return
-                    this._showSplashEffect(this.bobber.x, this.bobber.y)
-                    if (navigator.vibrate) navigator.vibrate(80)
-                    this._openHitWindow()
-                  },
-                })
-              })
-            },
-          })
-        })
+        this._startBobberBiteSequence()
       },
     })
   }
 
-  // 水しぶきエフェクト（円を広げてフェードアウト）
-  _showSplashEffect(x, y) {
-    const splash = this.add.circle(x, y, 4, 0xffffff, 0.8).setDepth(45)
-    this.tweens.add({
-      targets: splash, scaleX: 5, scaleY: 2.5, alpha: 0,
-      duration: 300, ease: 'Sine.easeOut',
-      onComplete: () => splash.destroy(),
+  // ─── 魚影を通常の泳ぎ位置にリセット ──────────────────────────
+  _resetFishToStart(index) {
+    this.bg?.resetFishToStart(index)
+  }
+
+  // ─── 誘引範囲内に魚がいない時のメッセージ ────────────────────
+  _scheduleNoFishMessage() {
+    const t = this.time.delayedCall(2000, () => {
+      if (this.phase !== 'wait') return
+      const { width: W, height: H } = this.scale
+      const msg = this.add.text(W / 2, H * 0.45, '魚がいない…　タップで引き上げ', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+        color: '#4a7090', backgroundColor: 'rgba(255,255,255,0.85)',
+        padding: { x: 12, y: 6 },
+      }).setOrigin(0.5).setDepth(60).setAlpha(0)
+      this.tweens.add({ targets: msg, alpha: 1, duration: 400 })
+      this.time.delayedCall(2000, () => {
+        this.tweens.add({ targets: msg, alpha: 0, duration: 400, onComplete: () => msg.destroy() })
+      })
+    })
+    this._biteTimers.push(t)
+  }
+
+  // ─── ちょん×N → ぐんっ！ の動的バイトシーケンス ───────────────
+  _startBobberBiteSequence() {
+    if (this.phase !== 'wait') return
+    this._biteConfig = buildBiteConfig(this.fish)
+    this._biteTimers = []
+    this._startChonSequence(0)
+  }
+
+  // ちょんを index 番目から再帰的に実行
+  _startChonSequence(index) {
+    if (this.phase !== 'wait') return
+    const cfg = this._biteConfig
+
+    // 全ちょんが終わったら → ぐんっ！へ
+    if (index >= cfg.chonCount) {
+      const t = this.time.delayedCall(randomWaitMs(cfg), () => {
+        if (this.phase !== 'wait') return
+        this._startGoon()
+      })
+      this._biteTimers.push(t)
+      return
+    }
+
+    // このちょんの沈み量（回数を重ねるごとに深くなる）
+    const depth = Math.round(cfg.chonDepthPx * Math.pow(cfg.chonDepthGrow, index))
+
+    this._chonTween = this.tweens.add({
+      targets: this.bobber,
+      y: this._bobberBaseY + depth,
+      duration: cfg.chonDurationMs,
+      ease: 'Sine.easeOut',
+      yoyo: true,
+      onComplete: () => {
+        if (this.phase !== 'wait') return
+        this.bobber.setY(this._bobberBaseY)
+        const t = this.time.delayedCall(randomWaitMs(cfg), () => {
+          this._startChonSequence(index + 1)
+        })
+        this._biteTimers.push(t)
+      },
     })
   }
 
-  _openHitWindow() {
+  // ぐんっ！（完全食いつき）
+  _startGoon() {
     if (this.phase !== 'wait') return
-    // ヒット時に釣れる魚を env に基づいて決定する
-    this.fish = selectFish(this.env)
+    const cfg = this._biteConfig
+
+    this._chonTween = this.tweens.add({
+      targets: this.bobber,
+      y: this._bobberBaseY + cfg.goonDepthPx,
+      duration: cfg.goonDurationMs,
+      ease: 'Quad.easeIn',
+      onComplete: () => {
+        if (this.phase !== 'wait') return
+        this.bobberMgr.showSplash(this.bobber.x, this.bobber.y)
+        if (navigator.vibrate) navigator.vibrate(80)
+        this._openHitWindow(cfg.hitWindowMs)
+      },
+    })
+  }
+
+  _openHitWindow(hitWindowMs = 1200) {
+    if (this.phase !== 'wait') return
+    // this.fish は _enterWait で決定済み
     this.waitTapActive = true
     this.hitHint.setVisible(true)
     this.hintText.setText('今！タップでヒット')
@@ -710,8 +344,8 @@ export default class GameScene extends Phaser.Scene {
       duration: 400, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
-    // 1200ms 以内にタップなし → 逃げた
-    this._wt2 = this.time.delayedCall(1200, () => {
+    // hitWindowMs 以内にタップなし → 逃げた
+    this._wt2 = this.time.delayedCall(hitWindowMs, () => {
       if (this.phase !== 'wait' || !this.waitTapActive) return
       this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
       this.waitTapActive = false
@@ -720,14 +354,46 @@ export default class GameScene extends Phaser.Scene {
     })
   }
 
+  // ─── 任意タップによる引き上げ ────────────────────────────────
+  _reelUp() {
+    this._killWaitTimers()
+    this.resultUI.toast('引き上げた')
+    this.tweens.add({
+      targets: this.bobber,
+      x: this.anchorX,
+      y: this.anchorY,
+      duration: 600,
+      ease: 'Sine.easeIn',
+      onUpdate: () => {
+        this.lineGfx.clear()
+        this.lineGfx.lineStyle(2, 0xffffff, 0.75)
+        this.lineGfx.lineBetween(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
+      },
+      onComplete: () => {
+        this.bobber.setVisible(false)
+        this.lineGfx.clear()
+        if (this._targetFishIndex != null) {
+          this._resetFishToStart(this._targetFishIndex)
+          this._targetFishIndex = null
+          this._targetFishGfx   = null
+        }
+        this._enterCast()
+      },
+    })
+  }
+
   // タイムアウト・空振り共通の「逃げた」処理
   _onMiss() {
-    this._toast('タイミングを逃した…')
+    this.resultUI.toast('タイミングを逃した…')
     // 浮きを基準位置に戻す（Bounce でぷかぷか感を出す）
     this.tweens.add({
       targets: this.bobber, y: this._bobberBaseY,
       duration: 400, ease: 'Bounce.easeOut',
     })
+    // 接近していた魚影を通常の泳ぎに戻す
+    this._resetFishToStart(this._targetFishIndex)
+    this._targetFishIndex = null
+    this._targetFishGfx   = null
     this.time.delayedCall(600, () => {
       if (this.phase === 'wait') this._enterCast()
     })
@@ -735,13 +401,14 @@ export default class GameScene extends Phaser.Scene {
 
   _enterBattle() {
     this.phase = 'battle'
+    this.tackleUI?.disable()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.hitHint.setVisible(false)
     this.hintText.setText('')
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
-    this.scoreBar.setY(72)
+    this.scoreBar.setY(88)
 
     this.battleState = createBattleState(this.fish, this.rod)
     armFirstRage(this.battleState, this.fish, this.time.now)
@@ -774,6 +441,10 @@ export default class GameScene extends Phaser.Scene {
 
   _finishBattle(outcome) {
     this._cleanupBattle()
+    // バトル終了後、接近していた魚影を通常の泳ぎに戻す
+    this._resetFishToStart(this._targetFishIndex)
+    this._targetFishIndex = null
+    this._targetFishGfx   = null
     this.phase = 'result'
     this.escapeBar.setVisible(false)
     this.battlePanel.setVisible(false)
@@ -781,7 +452,7 @@ export default class GameScene extends Phaser.Scene {
     this.rageTag.setVisible(false)
     this.dangerFx.setFillStyle(0xff0000, 0)
     this.hintText.setText('')
-    this.scoreBar.setY(0)
+    this.scoreBar.setY(16)
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
@@ -792,7 +463,6 @@ export default class GameScene extends Phaser.Scene {
 
       // 表示更新
       this.scoreValText?.setText(String(this.totalScore))
-      this.catchValText?.setText(`${this.catches.length}/20`)
 
       this._saveProgress()
 
@@ -818,114 +488,8 @@ export default class GameScene extends Phaser.Scene {
     this.resultOverlay.setVisible(true)
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // BATTLE UI SYNC
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _syncBattleUI() {
-    const st = this.battleState
-    if (!st) return
-    const { width: W } = this.scale
-    const tw = this._ebarW
-
-    // 逃走バー
-    this.ebarFill.clear()
-    this.ebarFill.fillGradientStyle(0x88ff44, 0x88ff44, 0xff0000, 0xff0000, 1)
-    this.ebarFill.fillRoundedRect(14, 38, tw * (st.escape / 100), 22, 10)
-    // 70% 危険マーク
-    this.ebarFill.fillStyle(0xffffff, 0.45)
-    this.ebarFill.fillRect(14 + tw * 0.70, 36, 3, 26)
-    this.ebarNum.setText(String(Math.round(st.escape)))
-
-    // 巻き取りバー
-    const rw = Math.max(4, this._reel.w * (st.reel / 100))
-    this.reelFill.clear()
-    this.reelFill.fillStyle(0x0088dd, 1)
-    this.reelFill.lineStyle(2.5, C.OUTLINE, 1)
-    this.reelFill.fillRoundedRect(this._reel.x, this._reel.y, rw, this._reel.h, 8)
-    this.reelFill.strokeRoundedRect(this._reel.x, this._reel.y, this._reel.w, this._reel.h, 8)
-    // 光沢
-    this.reelFill.fillStyle(0xffffff, 0.3)
-    this.reelFill.fillRoundedRect(this._reel.x + 4, this._reel.y + 2, Math.max(0, rw - 8), 4, 3)
-    this.reelValText.setText(String(Math.round(st.reel)))
-
-    this.rageTag.setVisible(st.isRaging)
-    this.reelCTA.setVisible(!st.isRaging)
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // CAST DRAWING
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _drawCastPreview(angleDeg, power01) {
-    const pts = buildTrajectory(this.anchorX, this.anchorY, angleDeg, power01, this.castRangePx)
-    const rad  = (angleDeg * Math.PI) / 180
-    // シャフト表示は近距離（pts[0]→pts[7] の方向に shaftDisplayPx だけ伸ばす）
-    const tip  = {
-      x: this.anchorX + Math.sin(rad) * this.shaftDisplayPx,
-      y: this.anchorY - Math.cos(rad) * this.shaftDisplayPx,
-    }
-
-    this.castGfx.clear()
-
-    // 矢印シャフト（太い黄金色）
-    this.castGfx.lineStyle(20, 0xff5500, 1)
-    this.castGfx.lineBetween(this.anchorX, this.anchorY, tip.x, tip.y)
-    this.castGfx.lineStyle(3, C.OUTLINE, 1)
-    this.castGfx.lineBetween(this.anchorX, this.anchorY, tip.x, tip.y)
-
-    // 矢尻（シャフト先端から少し先）
-    const headTip = {
-      x: this.anchorX + Math.sin(rad) * (this.shaftDisplayPx + 14),
-      y: this.anchorY - Math.cos(rad) * (this.shaftDisplayPx + 14),
-    }
-    const perpX   = -Math.sin(rad) * 12
-    const perpY   =  Math.cos(rad) * 12
-    this.castGfx.fillStyle(0xffcc00, 1)
-    this.castGfx.lineStyle(3, C.OUTLINE, 1)
-    this.castGfx.fillTriangle(
-      headTip.x + Math.sin(rad) * 16, headTip.y - Math.cos(rad) * 16,
-      headTip.x + perpX, headTip.y + perpY,
-      headTip.x - perpX, headTip.y - perpY,
-    )
-
-    // 軌跡ドット
-    for (let i = 14; i < pts.length; i += 5) {
-      const p = pts[i]
-      const r = Math.max(2, 6 - Math.floor((i - 14) / 7))
-      this.castGfx.fillStyle(0xffee00, 1)
-      this.castGfx.lineStyle(2, 0xcc8800, 1)
-      this.castGfx.fillCircle(p.x, p.y, r)
-      this.castGfx.strokeCircle(p.x, p.y, r)
-    }
-  }
-
-  _drawPowerBar(power01) {
-    const { width: W, height: H } = this.scale
-    const bx = W / 2 - 95
-    const by = H * 0.77
-
-    this.powerGfx.clear()
-    // トラック
-    this.powerGfx.fillStyle(0xffffff, 0.45)
-    this.powerGfx.lineStyle(3, C.OUTLINE, 1)
-    this.powerGfx.fillRoundedRect(bx, by, 190, 24, 12)
-    this.powerGfx.strokeRoundedRect(bx, by, 190, 24, 12)
-    // 塗り（緑→黄→赤のグラデーション）
-    const fw = 184 * power01
-    const g1 = fw * 0.55, g2 = fw * 0.80
-    if (fw > 0) {
-      this.powerGfx.fillStyle(0x44ff66, 1)
-      this.powerGfx.fillRoundedRect(bx + 3, by + 3, g1, 18, 9)
-    }
-    if (fw > g1) {
-      this.powerGfx.fillStyle(0xffee00, 1)
-      this.powerGfx.fillRect(bx + 3 + g1, by + 3, g2 - g1, 18)
-    }
-    if (fw > g2) {
-      this.powerGfx.fillStyle(0xff3300, 1)
-      this.powerGfx.fillRoundedRect(bx + 3 + g2, by + 3, fw - g2, 18, 0)
-    }
-
-    this.powerLabel.setVisible(true)
+    this.battleUI.sync(this.battleState, this._reel, this._ebarW)
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -980,8 +544,8 @@ export default class GameScene extends Phaser.Scene {
   update() {
     if (this.phase === 'cast' && this.isCharging) {
       const p = oscillatePower(this.time.now - this.chargeStartedAt)
-      this._drawCastPreview(this._castAngle, p)
-      this._drawPowerBar(p)
+      this.castUI.drawPreview(this._castAngle, p)
+      this.castUI.drawPowerBar(p)
     }
 
     if (this.phase === 'battle' && this.battleState) {
@@ -1015,19 +579,25 @@ export default class GameScene extends Phaser.Scene {
     }
 
     if (this.phase === 'wait' && this.waitTapActive) {
+      // ぐんっ！中 → HIT判定
       const prob = Math.min(1, this.fish.biteRate + this.bait.biteRateBonus)
       if (Math.random() > prob) {
-        // ヒット判定は通ったがbiteRateで空振り
         this.waitTapActive = false
         this.hitHint.setVisible(false)
         this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
         this._wt2?.remove(false); this._wt2 = undefined
-        this._toast('空振り！')
+        this.resultUI.toast('空振り！')
         this._onMiss()
         return
       }
       this._killWaitTimers()
       this._enterBattle()
+      return
+    }
+
+    // 待機中・ちょんちょん中（ぐんっ！前）→ 引き上げ
+    if (this.phase === 'wait' && !this.waitTapActive) {
+      this._reelUp()
       return
     }
 
@@ -1070,18 +640,6 @@ export default class GameScene extends Phaser.Scene {
     this._fireCast(this._castAngle, power)
   }
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // HELPERS
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  _toast(msg) {
-    const { width: W, height: H } = this.scale
-    const t = this.add.text(W / 2, H * 0.38, msg, {
-      fontFamily: FONT, fontSize: '20px', fontStyle: '900',
-      color: '#ffffff', stroke: CS, strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(100)
-    this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 700, onComplete: () => t.destroy() })
-  }
-
   _cleanupBattle() {
     this._battleTimer?.remove(false)
     this._battleTimer = undefined
@@ -1090,12 +648,24 @@ export default class GameScene extends Phaser.Scene {
   _killWaitTimers() {
     this._wt1?.remove(false)
     this._wt2?.remove(false)
-    this._biteSeqTimer1?.remove(false)
-    this._biteSeqTimer2?.remove(false)
+    this._biteTimers?.forEach(t => t.remove(false))
+    this._biteTimers = []
     this._chonTween?.stop(); this._chonTween?.destroy()
+    this._approachTween?.stop(); this._approachTween?.destroy()
     this.waitTapActive = false
-    this._wt1 = this._wt2 = this._biteSeqTimer1 = this._biteSeqTimer2 = undefined
+    this._wt1 = this._wt2 = undefined
     this._chonTween = undefined
+    this._approachTween = null
+  }
+
+  // env.player の選択を this.rod / this.bait に反映
+  _syncTackle() {
+    const rodId  = this.env?.player?.rodType  ?? 'carbon'
+    const baitId = this.env?.player?.baitType ?? 'worm'
+    const rs = ROD_STATS[rodId]   ?? ROD_STATS.carbon
+    const bs = BAIT_STATS[baitId] ?? BAIT_STATS.worm
+    this.rod  = { id: rodId,  pullPower: rs.pullPower,  castRange: rs.castRange,  attractRadius: rs.attractRadius }
+    this.bait = { id: baitId, biteRateBonus: bs.biteRateBonus, rareFishBonus: bs.rareFishBonus, attractRadius: bs.attractRadius }
   }
 
   _saveProgress() {
@@ -1104,12 +674,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _cleanup() {
+    this.tackleUI?.destroy()
     this._cleanupBattle()
     this._killWaitTimers()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
-    this._fishTweens?.forEach(tw => { tw.stop(); tw.destroy() })
-    this._fishTweens = []
+    this.bg?.destroy()
     if (this._beforeUnloadHandler) {
       window.removeEventListener('beforeunload', this._beforeUnloadHandler)
       this._beforeUnloadHandler = null

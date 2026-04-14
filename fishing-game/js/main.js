@@ -14,9 +14,8 @@ const config = {
     pixelArt: false,
     antialias: true,
     roundPixels: true,
+    resolution: window.devicePixelRatio ?? 1,
   },
-  // 対処2: 高DPIディスプレイでキャンバス解像度を上げる
-  resolution: window.devicePixelRatio || 1,
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
