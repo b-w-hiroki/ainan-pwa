@@ -1,5 +1,5 @@
 import { FONT } from '../../config/fontStyles.js'
-import { CS } from '../../config/palette.js'
+import { CS, COLOR } from '../../config/palette.js'
 import { ROD_LIST, BAIT_LIST } from '../../game/params.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -43,7 +43,7 @@ export class TackleUI {
 
     const lbl = this.scene.add.text(x, y + 14, label, {
       fontFamily: FONT, fontSize: '10px', fontWeight: '700',
-      color: CS.TEXT, resolution: TEXT_RES,
+      color: CS, resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(46)
 
     const hit = this.scene.add.rectangle(x, y, 58, 58)
@@ -92,7 +92,7 @@ export class TackleUI {
     const label = type === 'rod' ? '🎣 竿を選ぶ' : '🪱 エサを選ぶ'
     const title = this.scene.add.text(PANEL_X, PANEL_Y - PANEL_H / 2 + 14, label, {
       fontFamily: FONT, fontSize: '13px', fontWeight: '800',
-      color: CS.TEXT, resolution: TEXT_RES,
+      color: CS, resolution: TEXT_RES,
     }).setOrigin(0.5, 0)
     container.add(title)
 
@@ -228,13 +228,13 @@ export class TackleUI {
     // アイテム名
     const name = this.scene.add.text(x, y + 10, item.name, {
       fontFamily: FONT, fontSize: '11px', fontWeight: '700',
-      color: isOwned ? CS.TEXT : '#aaaaaa', resolution: TEXT_RES,
+      color: isOwned ? CS : '#aaaaaa', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(name)
 
     // 説明文
     const desc = this.scene.add.text(x, y + 26, item.description, {
-      fontFamily: FONT, fontSize: '9px', color: CS.TEXT2,
+      fontFamily: FONT, fontSize: '9px', color: COLOR.TEXT2,
       wordWrap: { width: w - 8 }, align: 'center', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(desc)
