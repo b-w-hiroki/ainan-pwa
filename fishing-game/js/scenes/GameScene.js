@@ -24,6 +24,8 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
+import { PhaseIndicator } from '../ui/PhaseIndicator.js'
+import { EnvBadge } from '../ui/EnvBadge.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class GameScene extends Phaser.Scene {
@@ -109,6 +111,16 @@ export default class GameScene extends Phaser.Scene {
     // ─── スコアバー ──────────────────────────────────────────────
     this.battleUI.buildScoreBar(this.totalScore)
 
+    // ─── 環境バッジ（scoreBar の下、横並び3チップ）───────────
+    this.envBadge = new EnvBadge(this, {
+      x: W / 2, y: 78, env: this.env, depth: 70,
+    })
+
+    // ─── フェーズインジケータ ───────────────────────────────────
+    this.phaseIndicator = new PhaseIndicator(this, {
+      x: W / 2, y: 108, depth: 70,
+    })
+
     // ─── 結果オーバーレイ ────────────────────────────────────────
     this.resultUI = new ResultUI(this)
     this.resultUI.buildResultOverlay(W, H)
@@ -146,6 +158,7 @@ export default class GameScene extends Phaser.Scene {
   _enterCast() {
     this._cleanupBattle()
     this.phase = 'cast'
+    this.phaseIndicator?.setPhase('cast').setVisible(true)
     this.isCharging = false
     this._syncTackle()
     this.tackleUI?.enable()
@@ -165,8 +178,9 @@ export default class GameScene extends Phaser.Scene {
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
+    this.powerZoneText?.setVisible(false)
     this.scoreBar.setY(16)
-    this.hintText.setText('画面を長押し → 方向を狙って離す')
+    this.setHint('キャスト準備', '画面を長押し → 方向を狙って離す')
 
     // 魚を開始位置にリセットして Tween を再生成
     this._targetFishIndex = null
@@ -176,13 +190,15 @@ export default class GameScene extends Phaser.Scene {
 
   _enterWait(landX, landY) {
     this.phase = 'wait'
+    this.phaseIndicator?.setPhase('wait')
     this.waitTapActive = false
     this.tackleUI?.disable()
     this._killWaitTimers()
     this.bobber.setPosition(landX, landY).setVisible(true)
     this._bobberBaseY = landY    // 浮きの基準Y（ドリフト防止・_onMiss でのリセット用）
+    this.bobberMgr.startIdleBob(landY)
     this.hitHint.setVisible(false)
-    this.hintText.setText('食いつき待ち…')
+    this.setHint('食いつき待ち…', '魚影が浮きに近づいてくる')
 
     // 魚種をここで決定（魚影の種類と無関係に env 基準で選ぶ）
     this.fish = selectFish(this.env)
@@ -195,21 +211,24 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // ─── 魚影を浮きへ近づかせる ────────────────────────────────────
-  _startFishApproach(bobberX, bobberY) {
+  // precomputedCandidates: 既に検索済みの候補を渡せる（_scheduleNoFishMessage の再試行用）
+  _startFishApproach(bobberX, bobberY, precomputedCandidates = null) {
     if (!this.bg._fishGfx?.length) {
       this._scheduleNoFishMessage()
       return
     }
 
-    // 誘引範囲内の魚影だけを候補に絞る
-    const radius = calcAttractRadius({
-      baitType:   this.bait.id,
-      rodType:    this.rod.id,
-      skillLevel: 1,
-    })
-    const candidates = this.bg._fishGfx
-      .map((gfx, i) => ({ gfx, i }))
-      .filter(({ gfx }) => isInAttractRange(gfx, { x: bobberX, y: bobberY }, radius))
+    let candidates = precomputedCandidates
+    if (!candidates) {
+      const radius = calcAttractRadius({
+        baitType:   this.bait.id,
+        rodType:    this.rod.id,
+        skillLevel: 1,
+      })
+      candidates = this.bg._fishGfx
+        .map((gfx, i) => ({ gfx, i }))
+        .filter(({ gfx }) => isInAttractRange(gfx, { x: bobberX, y: bobberY }, radius))
+    }
 
     if (candidates.length === 0) {
       this._scheduleNoFishMessage()
@@ -250,27 +269,61 @@ export default class GameScene extends Phaser.Scene {
     this.bg?.resetFishToStart(index)
   }
 
-  // ─── 誘引範囲内に魚がいない時のメッセージ ────────────────────
+  // ─── 誘引範囲内に魚がいない時の処理 ──────────────────────────
+  // 1. 1.5秒後に再検索 → 範囲に魚が来ていたらアプローチ開始
+  // 2. それでもいなければさらに1.5秒後に自動で引き上げ（止まり感を消す）
   _scheduleNoFishMessage() {
-    const t = this.time.delayedCall(2000, () => {
+    if (this.phase !== 'wait') return
+    const { width: W, height: H } = this.scale
+
+    this.setHint('魚を待ってる…', 'もう少しで現れるかも')
+
+    // 1.5秒後に再検索
+    this._noFishRetry = this.time.delayedCall(1500, () => {
       if (this.phase !== 'wait') return
-      const { width: W, height: H } = this.scale
-      const msg = this.add.text(W / 2, H * 0.45, '魚がいない…　タップで引き上げ', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
-        color: '#4a7090', backgroundColor: 'rgba(255,255,255,0.85)',
-        padding: { x: 12, y: 6 },
+
+      // 浮きの現在位置で再検索
+      const bx = this.bobber.x
+      const by = this.bobber.y
+      const radius = calcAttractRadius({
+        baitType:   this.bait.id,
+        rodType:    this.rod.id,
+        skillLevel: 1,
+      })
+      const candidates = (this.bg._fishGfx || [])
+        .map((gfx, i) => ({ gfx, i }))
+        .filter(({ gfx }) => isInAttractRange(gfx, { x: bx, y: by }, radius))
+
+      if (candidates.length > 0) {
+        // 魚が来た！通常フローに合流
+        this.setHint('食いつき待ち…', '魚影が近づいてきた')
+        this._startFishApproach(bx, by, candidates)
+        return
+      }
+
+      // それでもいない → 失敗メッセージ＋自動リール
+      this.setHint('魚がいない…', '自動で引き上げます')
+      const msg = this.add.text(W / 2, H * 0.45, '🐟  魚がいない', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontStyle: '700',
+        color: '#1a3a5a', backgroundColor: 'rgba(255,255,255,0.92)',
+        padding: { x: 14, y: 8 },
+        shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.18)', blur: 2, fill: true },
       }).setOrigin(0.5).setDepth(60).setAlpha(0)
-      this.tweens.add({ targets: msg, alpha: 1, duration: 400 })
-      this.time.delayedCall(2000, () => {
-        this.tweens.add({ targets: msg, alpha: 0, duration: 400, onComplete: () => msg.destroy() })
+      this.tweens.add({ targets: msg, alpha: 1, duration: 220 })
+      this._noFishMsg = msg
+
+      this._noFishAutoReel = this.time.delayedCall(1200, () => {
+        if (this.phase !== 'wait') return
+        this.tweens.add({ targets: msg, alpha: 0, duration: 300, onComplete: () => msg.destroy() })
+        this._reelUp()
       })
     })
-    this._biteTimers.push(t)
   }
 
   // ─── ちょん×N → ぐんっ！ の動的バイトシーケンス ───────────────
   _startBobberBiteSequence() {
     if (this.phase !== 'wait') return
+    this.bobberMgr.stopIdleBob()    // ぷかぷかを止めてからちょんを始める
     this._biteConfig = buildBiteConfig(this.fish)
     this._biteTimers = []
     this._startChonSequence(0)
@@ -324,7 +377,6 @@ export default class GameScene extends Phaser.Scene {
       onComplete: () => {
         if (this.phase !== 'wait') return
         this.bobberMgr.showSplash(this.bobber.x, this.bobber.y)
-        if (navigator.vibrate) navigator.vibrate(80)
         this._openHitWindow(cfg.hitWindowMs)
       },
     })
@@ -335,7 +387,10 @@ export default class GameScene extends Phaser.Scene {
     // this.fish は _enterWait で決定済み
     this.waitTapActive = true
     this.hitHint.setVisible(true)
-    this.hintText.setText('今！タップでヒット')
+    this.setHint('今だ！タップ！', 'ヒットさせよう', true)
+
+    // 浮き周りに残り時間リングを表示
+    this.bobberMgr.startHitCountdown(hitWindowMs)
 
     this.hitHint.setY(this._hitHintBaseY)  // ドリフト防止：毎回基準点に戻す
     this.hitHintTween?.destroy()
@@ -348,6 +403,7 @@ export default class GameScene extends Phaser.Scene {
     this._wt2 = this.time.delayedCall(hitWindowMs, () => {
       if (this.phase !== 'wait' || !this.waitTapActive) return
       this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
+      this.bobberMgr.stopHitCountdown()
       this.waitTapActive = false
       this.hitHint.setVisible(false)
       this._onMiss()
@@ -401,13 +457,15 @@ export default class GameScene extends Phaser.Scene {
 
   _enterBattle() {
     this.phase = 'battle'
+    this.phaseIndicator?.setPhase('battle').setVisible(false)  // バトル中は逃走ゲージが主役
     this.tackleUI?.disable()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.hitHint.setVisible(false)
-    this.hintText.setText('')
+    this.setHint('', '')
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
+    this.powerZoneText?.setVisible(false)
     this.scoreBar.setY(88)
 
     this.battleState = createBattleState(this.fish, this.rod)
@@ -446,12 +504,13 @@ export default class GameScene extends Phaser.Scene {
     this._targetFishIndex = null
     this._targetFishGfx   = null
     this.phase = 'result'
+    this.phaseIndicator?.setPhase('result').setVisible(true)
     this.escapeBar.setVisible(false)
     this.battlePanel.setVisible(false)
     this.reelCTA.setVisible(false)
     this.rageTag.setVisible(false)
     this.dangerFx.setFillStyle(0xff0000, 0)
-    this.hintText.setText('')
+    this.setHint('', '')
     this.scoreBar.setY(16)
 
     if (outcome === 'caught') {
@@ -499,6 +558,7 @@ export default class GameScene extends Phaser.Scene {
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
+    this.powerZoneText?.setVisible(false)
 
     const { width: W, height: H } = this.scale
     const MARGIN = 40
@@ -602,6 +662,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     if (this.phase === 'cast') {
+      // タックルUI操作中（パネル開放中 or ピルボタンエリアのタップ）はキャスト干渉を防ぐ
+      if (this.tackleUI?.isBlockingPointer(pointer)) return
       if (!this.isCharging) {
         this.isCharging = true
         this.chargeStartedAt = this.time.now
@@ -652,6 +714,11 @@ export default class GameScene extends Phaser.Scene {
     this._biteTimers = []
     this._chonTween?.stop(); this._chonTween?.destroy()
     this._approachTween?.stop(); this._approachTween?.destroy()
+    this._noFishMsg?.destroy(); this._noFishMsg = null
+    this._noFishRetry?.remove(false); this._noFishRetry = undefined
+    this._noFishAutoReel?.remove(false); this._noFishAutoReel = undefined
+    this.bobberMgr?.stopIdleBob()
+    this.bobberMgr?.stopHitCountdown()
     this.waitTapActive = false
     this._wt1 = this._wt2 = undefined
     this._chonTween = undefined
@@ -675,6 +742,9 @@ export default class GameScene extends Phaser.Scene {
 
   _cleanup() {
     this.tackleUI?.destroy()
+    this.battleUI?.destroy()
+    this.phaseIndicator?.destroy()
+    this.envBadge?.destroy()
     this._cleanupBattle()
     this._killWaitTimers()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null

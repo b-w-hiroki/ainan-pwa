@@ -742,54 +742,55 @@ function App() {
                   timeOfDay={timeOfDay}
                   weather={weather}
                 />
-            <section className="aim-panel aim-panel--overlay" aria-label="キャストの方向と距離">
-              <p className="aim-panel-title">狙いを決める</p>
-              <div className="aim-row">
-                <span className="aim-label">方向</span>
-                <div
-                  ref={aimTrackRef}
-                  className={`aim-track ${controlsLocked ? 'aim-track--locked' : ''}`}
-                  onPointerDown={onAimPointerDown}
-                  onPointerMove={onAimPointerMove}
-                  onPointerUp={onAimPointerUp}
-                  onPointerCancel={onAimPointerUp}
-                >
-                  <div className="aim-track-inner">
-                    <div className="aim-ticks" aria-hidden="true" />
-                    <div
-                      className="aim-knob"
-                      style={{ left: `${50 + aim * 50}%` }}
-                    />
-                  </div>
-                </div>
-                <p className="aim-readout aim-readout--compact">
-                  {aimLabel}（{aimDeg >= 0 ? '+' : ''}
-                  {aimDeg}°）
-                </p>
-              </div>
-              <div className="aim-row aim-row--distance">
-                <span className="aim-label">距離</span>
-                <div className="distance-slider-wrap">
-                  <input
-                    id="distance-cap"
-                    type="range"
-                    min={5}
-                    max={50}
-                    step={1}
-                    value={distanceCap}
-                    disabled={controlsLocked}
-                    onChange={(e) => setDistanceCap(Number(e.target.value))}
-                  />
-                  <div className="distance-slider-hint">
-                    <span>近い</span>
-                    <span>遠い</span>
-                  </div>
-                </div>
-                <p className="aim-readout aim-readout--compact">上限 {distanceCap}m</p>
-              </div>
-            </section>
           </div>
         </div>
+
+        <section className="aim-panel" aria-label="キャストの方向と距離">
+          <p className="aim-panel-title">狙いを決める</p>
+          <div className="aim-row">
+            <span className="aim-label">方向</span>
+            <div
+              ref={aimTrackRef}
+              className={`aim-track ${controlsLocked ? 'aim-track--locked' : ''}`}
+              onPointerDown={onAimPointerDown}
+              onPointerMove={onAimPointerMove}
+              onPointerUp={onAimPointerUp}
+              onPointerCancel={onAimPointerUp}
+            >
+              <div className="aim-track-inner">
+                <div className="aim-ticks" aria-hidden="true" />
+                <div
+                  className="aim-knob"
+                  style={{ left: `${50 + aim * 50}%` }}
+                />
+              </div>
+            </div>
+            <p className="aim-readout aim-readout--compact">
+              {aimLabel}（{aimDeg >= 0 ? '+' : ''}
+              {aimDeg}°）
+            </p>
+          </div>
+          <div className="aim-row aim-row--distance">
+            <span className="aim-label">距離</span>
+            <div className="distance-slider-wrap">
+              <input
+                id="distance-cap"
+                type="range"
+                min={5}
+                max={50}
+                step={1}
+                value={distanceCap}
+                disabled={controlsLocked}
+                onChange={(e) => setDistanceCap(Number(e.target.value))}
+              />
+              <div className="distance-slider-hint">
+                <span>近い</span>
+                <span>遠い</span>
+              </div>
+            </div>
+            <p className="aim-readout aim-readout--compact">上限 {distanceCap}m</p>
+          </div>
+        </section>
 
         <div className="cast-area">
           <div className="gauge">
@@ -800,16 +801,17 @@ function App() {
           <button
             className="cast-button"
             type="button"
-            onMouseDown={handlePressStart}
-            onMouseUp={handlePressEnd}
+            disabled={status !== 'idle' && status !== 'charging'}
+            onMouseDown={() => { if (status === 'idle') handlePressStart() }}
+            onMouseUp={() => { if (status === 'charging') handlePressEnd() }}
             onMouseLeave={status === 'charging' ? handlePressEnd : undefined}
             onTouchStart={(e) => {
               e.preventDefault()
-              handlePressStart()
+              if (status === 'idle') handlePressStart()
             }}
             onTouchEnd={(e) => {
               e.preventDefault()
-              handlePressEnd()
+              if (status === 'charging') handlePressEnd()
             }}
           >
             キャスト
