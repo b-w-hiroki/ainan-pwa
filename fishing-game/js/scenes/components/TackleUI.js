@@ -1,5 +1,6 @@
 import { FONT } from '../../config/fontStyles.js'
 import { CS, COLOR } from '../../config/palette.js'
+import { ICONS } from '../../config/icons.js'
 import { ROD_LIST, BAIT_LIST } from '../../game/params.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -11,9 +12,9 @@ export class TackleUI {
   constructor(scene) {
     this.scene      = scene
     this._enabled   = true
-    this._openPanel = null  // 'rod' | 'bait' | null
+    this._openPanel = null
     this._objects   = []
-    this._scrollFns = []    // input listener cleanup functions
+    this._scrollFns = []
   }
 
   build(W, H) {
@@ -22,8 +23,8 @@ export class TackleUI {
     const BTN_H  = 58
     const BTN_Y  = H - MARGIN - BTN_H / 2
 
-    this._rodBtn  = this._buildBtn(W - MARGIN - BTN_W * 1.5 - 8, BTN_Y, '🎣', '竿',  () => this._toggle('rod'))
-    this._baitBtn = this._buildBtn(W - MARGIN - BTN_W / 2,        BTN_Y, '🪱', 'エサ', () => this._toggle('bait'))
+    this._rodBtn  = this._buildBtn(W - MARGIN - BTN_W * 1.5 - 8, BTN_Y, ICONS.ROD,  '竿',   () => this._toggle('rod'))
+    this._baitBtn = this._buildBtn(W - MARGIN - BTN_W / 2,        BTN_Y, ICONS.BAIT, 'エサ', () => this._toggle('bait'))
 
     this._rodPanel  = this._buildScrollPanel(W, H, 'rod',  ROD_LIST)
     this._baitPanel = this._buildScrollPanel(W, H, 'bait', BAIT_LIST)
@@ -32,7 +33,6 @@ export class TackleUI {
     this._baitPanel.setVisible(false)
   }
 
-  // ===== ボタン =====
   _buildBtn(x, y, icon, label, onTap) {
     const g = this.scene.add.graphics().setDepth(45)
     this._drawBtnBg(g, x, y, 58, 58, false)
@@ -42,7 +42,7 @@ export class TackleUI {
     }).setOrigin(0.5).setDepth(46)
 
     const lbl = this.scene.add.text(x, y + 14, label, {
-      fontFamily: FONT, fontSize: '10px', fontWeight: '700',
+      fontFamily: FONT, fontSize: '12px', fontWeight: '700',
       color: CS, resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(46)
 
@@ -65,7 +65,6 @@ export class TackleUI {
     g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12)
   }
 
-  // ===== スクロールパネル =====
   _buildScrollPanel(W, H, type, items) {
     const PANEL_W   = W * 0.85
     const PANEL_H   = 145
@@ -77,10 +76,8 @@ export class TackleUI {
     const VISIBLE   = Math.floor(PANEL_W / (ITEM_W + GAP))
     const SCROLL_LEFT = PANEL_X - PANEL_W / 2 + GAP
 
-    // 外側コンテナ（背景・タイトル・スクロール領域をまとめる）
     const container = this.scene.add.container(0, 0).setDepth(48)
 
-    // パネル背景（ダーク）
     const bg = this.scene.add.graphics()
     bg.fillStyle(0x1a2a3a, 0.96)
     bg.fillRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
@@ -88,15 +85,13 @@ export class TackleUI {
     bg.strokeRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
     container.add(bg)
 
-    // タイトル
-    const label = type === 'rod' ? '🎣 竿を選ぶ' : '🪱 エサを選ぶ'
+    const label = type === 'rod' ? `${ICONS.ROD} 竿を選ぶ` : `${ICONS.BAIT} エサを選ぶ`
     const title = this.scene.add.text(PANEL_X, PANEL_Y - PANEL_H / 2 + 14, label, {
-      fontFamily: FONT, fontSize: '13px', fontWeight: '800',
+      fontFamily: FONT, fontSize: '14px', fontWeight: '800',
       color: '#ffffff', resolution: TEXT_RES,
     }).setOrigin(0.5, 0)
     container.add(title)
 
-    // スクロールコンテナ（アイテムを横並び）
     const scrollContainer = this.scene.add.container(SCROLL_LEFT, 0).setDepth(49)
 
     const selectedId = type === 'rod'
@@ -104,14 +99,13 @@ export class TackleUI {
       : this.scene.env?.player?.baitType
 
     items.forEach((item, i) => {
-      const itemX = ITEM_W / 2 + i * (ITEM_W + GAP)  // scrollContainer相対
+      const itemX = ITEM_W / 2 + i * (ITEM_W + GAP)
       const itemY = PANEL_Y + 10
       this._buildScrollItem(scrollContainer, itemX, itemY, ITEM_W, ITEM_H, item, type, selectedId)
     })
 
     container.add(scrollContainer)
 
-    // マスク（パネル内だけ表示）
     const maskShape = this.scene.make.graphics()
     maskShape.fillStyle(0xffffff)
     maskShape.fillRect(
@@ -122,12 +116,10 @@ export class TackleUI {
     )
     scrollContainer.setMask(maskShape.createGeometryMask())
 
-    // ドットインジケーター（アイテムが多い時だけ）
     if (items.length > VISIBLE) {
       this._buildScrollIndicator(container, PANEL_X, PANEL_Y + PANEL_H / 2 - 10, items.length, VISIBLE)
     }
 
-    // スワイプ処理
     const cleanup = this._setupScroll(scrollContainer, type, items.length, ITEM_W, GAP, SCROLL_LEFT, PANEL_W)
     this._scrollFns.push(cleanup)
 
@@ -135,7 +127,6 @@ export class TackleUI {
     return container
   }
 
-  // ===== スワイプスクロール =====
   _setupScroll(scrollContainer, type, itemCount, itemW, gap, baseX, panelW) {
     let startX        = 0
     let currentOffset = 0
@@ -155,8 +146,6 @@ export class TackleUI {
     const onUp = (p) => {
       if (this._openPanel !== type) return
       currentOffset = clamp(currentOffset - (p.x - startX), 0, maxOffset)
-
-      // 最も近いアイテムにスナップ
       const snapIndex  = Math.round(currentOffset / (itemW + gap))
       const snapOffset = clamp(snapIndex * (itemW + gap), 0, maxOffset)
       this.scene.tweens.add({
@@ -179,17 +168,15 @@ export class TackleUI {
     }
   }
 
-  // ===== アイテムカード（個数表示付き）=====
   _buildScrollItem(container, x, y, w, h, item, type, selectedId) {
     const inventory = this.scene.env?.player?.inventory
     const qty = type === 'rod'
-      ? (inventory?.rods?.[item.id]  ?? 1)   // inventoryなし時は所持扱い
+      ? (inventory?.rods?.[item.id]  ?? 1)
       : (inventory?.baits?.[item.id] ?? 0)
 
     const isSelected = item.id === selectedId
     const isOwned    = qty > 0
 
-    // カード背景（ダーク）
     const bg = this.scene.add.graphics()
     bg.fillStyle(
       !isOwned   ? 0x111111 :
@@ -205,13 +192,12 @@ export class TackleUI {
     bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 10)
     container.add(bg)
 
-    // アイコン（未所持は🔒）
-    const iconTxt = this.scene.add.text(x, y - 18, isOwned ? item.icon : '🔒', {
+    const iconStr = isOwned ? item.icon : ICONS.LOCK
+    const iconTxt = this.scene.add.text(x, y - 18, iconStr, {
       fontSize: isOwned ? '28px' : '20px', resolution: TEXT_RES,
     }).setOrigin(0.5).setAlpha(isOwned ? 1 : 0.5)
     container.add(iconTxt)
 
-    // 個数バッジ（1個以上所持の時のみ）
     if (qty > 0) {
       const badge = this.scene.add.graphics()
       badge.fillStyle(0x1a2a3a, 0.85)
@@ -225,21 +211,18 @@ export class TackleUI {
       container.add(qtyText)
     }
 
-    // アイテム名
     const name = this.scene.add.text(x, y + 10, item.name, {
-      fontFamily: FONT, fontSize: '11px', fontWeight: '700',
+      fontFamily: FONT, fontSize: '13px', fontWeight: '700',
       color: isOwned ? '#ffffff' : '#666666', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(name)
 
-    // 説明文
-    const desc = this.scene.add.text(x, y + 26, item.description, {
-      fontFamily: FONT, fontSize: '9px', color: '#aaccdd',
+    const desc = this.scene.add.text(x, y + 28, item.description, {
+      fontFamily: FONT, fontSize: '10px', color: '#aaccdd',
       wordWrap: { width: w - 8 }, align: 'center', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(desc)
 
-    // タップ（所持アイテムのみ選択可能）
     if (isOwned) {
       const hit = this.scene.add.rectangle(x, y, w, h)
         .setInteractive({ useHandCursor: true })
@@ -253,7 +236,6 @@ export class TackleUI {
     }
   }
 
-  // ===== ドットインジケーター =====
   _buildScrollIndicator(container, cx, y, total, visible) {
     const dotCount = Math.ceil(total / visible)
     const DOT_R = 3
@@ -267,18 +249,21 @@ export class TackleUI {
     }
   }
 
-  // ===== パネル開閉 =====
   _toggle(type) {
     if (this._openPanel === type) { this._closePanel(); return }
     this._closePanel()
     this._openPanel = type
-    if (type === 'rod')  this._rodPanel.setVisible(true)
-    if (type === 'bait') this._baitPanel.setVisible(true)
+    const panel = type === 'rod' ? this._rodPanel : this._baitPanel
+    panel.setVisible(true).setAlpha(0).setY(30)
+    this.scene.tweens.add({
+      targets: panel, alpha: 1, y: 0,
+      duration: 220, ease: 'Sine.easeOut',
+    })
   }
 
   _closePanel() {
-    this._rodPanel?.setVisible(false)
-    this._baitPanel?.setVisible(false)
+    this._rodPanel?.setVisible(false).setY(0)
+    this._baitPanel?.setVisible(false).setY(0)
     this._openPanel = null
   }
 
@@ -287,7 +272,6 @@ export class TackleUI {
     if (type === 'bait') this._baitBtn?.iconTxt.setText(icon)
   }
 
-  // ===== フェーズ制御 =====
   enable() {
     this._enabled = true
     this._rodBtn?.hit.setAlpha(1)
@@ -301,7 +285,6 @@ export class TackleUI {
     this._baitBtn?.hit.setAlpha(0.4)
   }
 
-  // ===== 破棄 =====
   destroy() {
     this._scrollFns.forEach(fn => fn())
     this._scrollFns = []

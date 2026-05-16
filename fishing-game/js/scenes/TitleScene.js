@@ -1,4 +1,8 @@
-import { FONT, OUTLINE, TITLE_SHADOW } from '../config/fontStyles.js'
+import { FONT, SHADOW } from '../config/fontStyles.js'
+import { ICONS } from '../config/icons.js'
+import { Button } from '../ui/Button.js'
+
+const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class TitleScene extends Phaser.Scene {
   constructor() {
@@ -6,64 +10,139 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale
+    const { width: W, height: H } = this.scale
 
-    this.add
-      .text(width / 2, height * 0.28, 'AINAN', {
-        fontFamily: FONT,
-        fontSize: '52px',
-        fontStyle: '700',
-        color: '#ffffff',
-        shadow: { offsetX: 2, offsetY: 2, color: 'rgba(0,0,0,0.4)', blur: 4, fill: true },
-      })
-      .setOrigin(0.5)
+    // ─── 背景：朝焼け→海のグラデ + 太陽 ───────────────
+    const bg = this.add.graphics().setDepth(0)
+    bg.fillGradientStyle(0xffe8b8, 0xffe8b8, 0xa0d6ee, 0xa0d6ee, 1)
+    bg.fillRect(0, 0, W, H * 0.55)
+    bg.fillGradientStyle(0x5db3df, 0x5db3df, 0x1f6996, 0x1f6996, 1)
+    bg.fillRect(0, H * 0.55, W, H * 0.45)
 
-    this.add
-      .text(width / 2, height * 0.38, '釣りゲーム', {
-        fontFamily: FONT,
-        fontSize: '28px',
-        fontStyle: '700',
-        color: '#1a3a5a',
-        stroke: OUTLINE,
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
+    // 太陽
+    bg.fillStyle(0xffe066, 1)
+    bg.fillCircle(W * 0.5, H * 0.42, 56)
+    bg.fillStyle(0xfff3b0, 0.5)
+    bg.fillCircle(W * 0.5, H * 0.42, 86)
+    bg.fillStyle(0xffe9a0, 0.25)
+    bg.fillCircle(W * 0.5, H * 0.42, 118)
 
-    const btn = this.add
-      .container(width / 2, height * 0.62)
-      .setSize(240, 56)
-      .setInteractive({ useHandCursor: true })
-
-    const g = this.add.graphics()
-    g.fillStyle(0xffffff, 1)
-    g.lineStyle(3, 0x1a2a3a, 1)
-    g.fillRoundedRect(-120, -28, 240, 56, 18)
-    g.strokeRoundedRect(-120, -28, 240, 56, 18)
-    g.fillStyle(0x000000, 0.12)
-    g.fillRoundedRect(-117, -25, 237, 53, 16)
-
-    const label = this.add
-      .text(0, 0, 'タップでスタート', {
-        fontFamily: FONT,
-        fontSize: '18px',
-        fontStyle: '700',
-        color: '#1a3a5a',
-      })
-      .setOrigin(0.5)
-
-    btn.add([g, label])
-
-    btn.on('pointerdown', () => {
-      this.scene.start('HomeScene')
+    // 太陽の海面反射
+    bg.fillStyle(0xffd86b, 0.32)
+    bg.fillRect(W * 0.40, H * 0.555, W * 0.20, 4)
+    ;[0.58, 0.62, 0.68, 0.76, 0.84].forEach((f, i) => {
+      bg.fillStyle(0xffd86b, 0.18 - i * 0.025)
+      const w = W * (0.20 + i * 0.05)
+      bg.fillRect((W - w) / 2, H * f, w, 2.5)
     })
 
-    this.add
-      .text(width / 2, height * 0.92, 'Phase 1 — Phaser 3', {
-        fontFamily: FONT,
-        fontSize: '12px',
-        fontStyle: '700',
-        color: '#4a7090',
-      })
-      .setOrigin(0.5)
+    // 水面のセルシェードストライプ（白）
+    bg.fillStyle(0xffffff, 0.16)
+    bg.fillRect(0, H * 0.66, W, 2)
+    bg.fillStyle(0xffffff, 0.10)
+    bg.fillRect(0, H * 0.74, W, 2)
+    bg.fillStyle(0xffffff, 0.06)
+    bg.fillRect(0, H * 0.84, W, 2)
+
+    // 雲（背景）
+    this._drawCloud(bg, W * 0.15, H * 0.18, 0.9)
+    this._drawCloud(bg, W * 0.82, H * 0.12, 0.65)
+
+    // 鳥のシルエット
+    this._drawBird(bg, W * 0.20, H * 0.30)
+    this._drawBird(bg, W * 0.74, H * 0.34, 0.7)
+
+    // ─── ロゴ ──────────────────────────────────────
+    const logoGroup = this.add.container(W / 2, H * 0.21).setDepth(5)
+
+    const logo = this.add.text(0, 0, '釣りゲーム', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '62px', fontStyle: '900',
+      color: '#ffffff',
+      shadow: SHADOW.strong,
+    }).setOrigin(0.5)
+
+    // （仮）バッジ
+    const kariW = 58, kariH = 26
+    const kariBg = this.add.graphics()
+    kariBg.fillStyle(0xff6a3d, 1)
+    kariBg.fillRoundedRect(-kariW / 2, -kariH / 2, kariW, kariH, 8)
+    kariBg.y = -44
+    const kariTxt = this.add.text(0, -44, '（仮）', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '14px', fontStyle: '900', color: '#ffffff',
+    }).setOrigin(0.5)
+
+    logoGroup.add([logo, kariBg, kariTxt])
+
+    this.tweens.add({
+      targets: logoGroup, y: H * 0.21 - 6,
+      duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+    })
+
+    // サブタイトル（ロゴの下）
+    this.add.text(W / 2, H * 0.29, '— 釣り × 町おこし —', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '17px', fontStyle: '800',
+      color: '#ffffff',
+      shadow: SHADOW.medium,
+    }).setOrigin(0.5).setDepth(5)
+
+    // ─── キャッチコピー ─────────────────────────────
+    this.add.text(W / 2, H * 0.625, '小さな港町で、大きな一匹を狙おう', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '16px', fontStyle: '700',
+      color: '#ffffff',
+      shadow: SHADOW.medium,
+    }).setOrigin(0.5).setDepth(5)
+
+    // ─── スタートボタン ──────────────────────────────
+    const btn = new Button(this, {
+      x: W / 2, y: H * 0.73,
+      w: 270, h: 68,
+      label: 'タップでスタート',
+      icon:  ICONS.PLAY,
+      variant: 'primary',
+      fontSize: 22,
+      depth: 10,
+      onClick: () => this.scene.start('HomeScene'),
+    })
+
+    // ボタン誘導パルス
+    this.tweens.add({
+      targets: btn.container,
+      scaleX: 1.04, scaleY: 1.04,
+      duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+    })
+
+    // ─── フッター ─────────────────────────────────
+    this.add.text(W / 2, H * 0.95, '釣り × 町おこしゲーム（プロトタイプ）', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontStyle: '700',
+      color: '#1a3a5a',
+    }).setOrigin(0.5).setDepth(5).setAlpha(0.75)
+  }
+
+  _drawCloud(g, cx, cy, sc) {
+    const w = 90 * sc, h = 22 * sc
+    g.fillStyle(0xffffff, 0.92)
+    g.lineStyle(2, 0xc8e8f8, 0.85)
+    g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, h / 2)
+    g.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, h / 2)
+    g.fillCircle(cx - w * 0.2, cy - h * 0.7, h * 0.95)
+    g.fillCircle(cx + w * 0.08, cy - h * 0.55, h * 0.75)
+    g.fillCircle(cx + w * 0.34, cy - h * 0.38, h * 0.55)
+  }
+
+  _drawBird(g, cx, cy, sc = 1) {
+    const s = 10 * sc
+    g.lineStyle(2.2 * sc, 0x1a3a5a, 0.55)
+    g.beginPath()
+    g.moveTo(cx - s, cy)
+    g.lineTo(cx - s * 0.5, cy - s * 0.5)
+    g.lineTo(cx, cy)
+    g.lineTo(cx + s * 0.5, cy - s * 0.5)
+    g.lineTo(cx + s, cy)
+    g.strokePath()
   }
 }

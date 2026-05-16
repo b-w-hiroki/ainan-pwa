@@ -466,6 +466,7 @@ export default class GameScene extends Phaser.Scene {
 
       this._saveProgress()
 
+      this.resultUI.drawResultStripe('caught')
       this.resLabel.setText('✦ CATCH ✦')
       this.resEmoji.setText(this.fish.emoji).setAngle(0)
       this.resName.setText(this.fish.name)
@@ -478,7 +479,8 @@ export default class GameScene extends Phaser.Scene {
         duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
       })
     } else {
-      this.resLabel.setText('')
+      this.resultUI.drawResultStripe('escaped')
+      this.resLabel.setText('✕ ESCAPED ✕')
       this.resEmoji.setText('💨').setAngle(0)
       this.resName.setText('逃げられた…')
       this.resPts.setText('')
@@ -571,6 +573,7 @@ export default class GameScene extends Phaser.Scene {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _onDown(pointer) {
     if (pointer.y < 50 && pointer.x < 130) return   // ナビ領域を除外
+    if (this.tackleUI?._openPanel !== null) return   // タックルパネル開時はゲーム入力をブロック
 
     if (this.phase === 'result') {
       this.resultOverlay.setVisible(false)
@@ -602,6 +605,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     if (this.phase === 'cast') {
+      if (pointer.y > this.scale.height - 80) return  // タックルボタン領域を除外
       if (!this.isCharging) {
         this.isCharging = true
         this.chargeStartedAt = this.time.now
@@ -634,6 +638,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _onUp() {
+    if (this.tackleUI?._openPanel !== null) return   // タックルパネル開時はキャストをブロック
     if (this.phase !== 'cast' || !this.isCharging) return
     this.isCharging = false
     const power = oscillatePower(this.time.now - this.chargeStartedAt)
@@ -675,6 +680,7 @@ export default class GameScene extends Phaser.Scene {
 
   _cleanup() {
     this.tackleUI?.destroy()
+    this.battleUI?.destroy()
     this._cleanupBattle()
     this._killWaitTimers()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
