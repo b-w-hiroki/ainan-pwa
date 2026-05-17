@@ -1,4 +1,4 @@
-import Phaser from 'phaser'
+﻿import Phaser from 'phaser'
 import { FONT } from '../config/fontStyles.js'
 import { CS } from '../config/palette.js'
 import { DEFAULT_ROD, DEFAULT_BAIT, ROD_STATS, BAIT_STATS } from '../game/params.js'
@@ -256,7 +256,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.phase !== 'wait') return
       const { width: W, height: H } = this.scale
       const msg = this.add.text(W / 2, H * 0.45, '魚がいない…　タップで引き上げ', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
         color: '#4a7090', backgroundColor: 'rgba(255,255,255,0.85)',
         padding: { x: 12, y: 6 },
       }).setOrigin(0.5).setDepth(60).setAlpha(0)

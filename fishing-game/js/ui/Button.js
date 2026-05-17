@@ -1,4 +1,4 @@
-import { FONT } from '../config/fontStyles.js'
+﻿import { FONT } from '../config/fontStyles.js'
 import { C } from '../config/palette.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -28,7 +28,7 @@ export class Button {
 
     const txt = scene.add.text(0, 0, icon ? `${icon}  ${label}` : label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: `${fontSize}px`, fontStyle: '900',
+      fontSize: `${fontSize}px`, fontWeight: '900',
       color: v.text,
     }).setOrigin(0.5)
 

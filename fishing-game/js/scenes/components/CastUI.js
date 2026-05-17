@@ -1,4 +1,4 @@
-import { FONT, SHADOW } from '../../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../../config/fontStyles.js'
 import { C, CS, COLOR } from '../../config/palette.js'
 import { buildTrajectory } from '../../game/cast.js'
 
@@ -83,13 +83,13 @@ export class CastUI {
     const scene = this.scene
 
     scene.hintText = scene.add.text(W / 2, H * 0.19, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
       color: COLOR.TEXT1, backgroundColor: 'rgba(255,255,255,0.85)',
       padding: { x: 12, y: 6 },
     }).setOrigin(0.5).setDepth(55)
 
     scene.powerLabel = scene.add.text(W / 2, H * 0.74, 'CAST POWER', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700',
       color: CS, stroke: COLOR.WHITE, strokeThickness: 1,
       letterSpacing: 2,
     }).setOrigin(0.5).setDepth(37).setVisible(false)

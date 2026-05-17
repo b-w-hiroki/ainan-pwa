@@ -1,4 +1,4 @@
-import { FONT, SHADOW } from '../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { Button } from '../ui/Button.js'
 
@@ -57,7 +57,7 @@ export default class TitleScene extends Phaser.Scene {
 
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '62px', fontStyle: '900',
+      fontSize: '62px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.strong,
     }).setOrigin(0.5)
@@ -70,7 +70,7 @@ export default class TitleScene extends Phaser.Scene {
     kariBg.y = -44
     const kariTxt = this.add.text(0, -44, '（仮）', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontStyle: '900', color: '#ffffff',
+      fontSize: '14px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5)
 
     logoGroup.add([logo, kariBg, kariTxt])
@@ -83,7 +83,7 @@ export default class TitleScene extends Phaser.Scene {
     // サブタイトル（ロゴの下）
     this.add.text(W / 2, H * 0.29, '— 釣り × 町おこし —', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '17px', fontStyle: '800',
+      fontSize: '17px', fontWeight: '800',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
@@ -91,7 +91,7 @@ export default class TitleScene extends Phaser.Scene {
     // ─── キャッチコピー ─────────────────────────────
     this.add.text(W / 2, H * 0.625, '小さな港町で、大きな一匹を狙おう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '16px', fontStyle: '700',
+      fontSize: '16px', fontWeight: '700',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
@@ -118,7 +118,7 @@ export default class TitleScene extends Phaser.Scene {
     // ─── フッター ─────────────────────────────────
     this.add.text(W / 2, H * 0.95, '釣り × 町おこしゲーム（プロトタイプ）', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontStyle: '700',
+      fontSize: '12px', fontWeight: '700',
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5).setAlpha(0.75)
   }

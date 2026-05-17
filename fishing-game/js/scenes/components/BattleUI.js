@@ -1,4 +1,4 @@
-import { FONT, SHADOW } from '../../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../../config/fontStyles.js'
 import { C, CS, COLOR } from '../../config/palette.js'
 import { ICONS } from '../../config/icons.js'
 
@@ -21,14 +21,14 @@ export class BattleUI {
     bg.strokeRect(2, 2, W - 4, 68)
 
     const title = scene.add.text(14, 18, '逃走ゲージ', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '700',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0, 0.5)
 
     scene.ebarFill = scene.add.graphics()
     scene.ebarNum  = scene.add.text(W - 12, 18, '0', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontWeight: '700',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(1, 0.5)
@@ -52,12 +52,12 @@ export class BattleUI {
     bg.strokeRoundedRect(px, py, panW, 62, 16)
 
     const lbl = scene.add.text(px + 14, py + 14, `${ICONS.REEL} 巻き取り`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontStyle: '700', color: '#4a7090',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#4a7090',
     })
 
     scene.reelFill    = scene.add.graphics()
     scene.reelValText = scene.add.text(px + panW - 12, py + 31, '0', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontStyle: '700', color: '#1a3a5a',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#1a3a5a',
     }).setOrigin(1, 0.5)
 
     scene.battlePanel.add([bg, lbl, scene.reelFill, scene.reelValText])
@@ -69,7 +69,7 @@ export class BattleUI {
     scene.reelCTA = scene.add.container(W / 2, H * 0.69).setDepth(67).setVisible(false)
 
     const t1 = scene.add.text(0, -28, '釣り上げろ！', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '36px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '36px', fontWeight: '700',
       color: '#ff6600',
       shadow: SHADOW.medium,
     }).setOrigin(0.5)
@@ -77,7 +77,7 @@ export class BattleUI {
     const t2 = scene.add.text(0, 10, ICONS.SWIPE_DN, { fontSize: '28px' }).setOrigin(0.5)
 
     const t3 = scene.add.text(0, 44, '下にスワイプ！', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
       color: CS, backgroundColor: '#ffee00',
       padding: { x: 12, y: 4 },
     }).setOrigin(0.5)
@@ -145,12 +145,12 @@ export class BattleUI {
 
       const v = scene.add.text(x + 34, CHIP_CY - 6, val, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '18px', fontStyle: '700', color: valColor,
+        fontSize: '18px', fontWeight: '700', color: valColor,
       }).setOrigin(0, 0.5)
 
       const l = scene.add.text(x + 34, CHIP_CY + 10, lbl, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '11px', fontStyle: '700', color: COLOR.TEXT2,
+        fontSize: '11px', fontWeight: '700', color: COLOR.TEXT2,
       }).setOrigin(0, 0.5)
 
       return { els: [shadow, bg, ic, v, l], valText: v }
@@ -179,7 +179,7 @@ export class BattleUI {
     const scene = this.scene
 
     scene.hitHint = scene.add.text(W / 2, H * 0.36, `${ICONS.ROD} タップ！`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '32px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '32px', fontWeight: '700',
       color: COLOR.WARN,
       shadow: SHADOW.strong,
     }).setOrigin(0.5).setDepth(50).setVisible(false)
@@ -187,7 +187,7 @@ export class BattleUI {
     scene._hitHintBaseY = scene.hitHint.y
 
     scene.rageTag = scene.add.text(W / 2, 50, `${ICONS.RAGE} 暴れてる！`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '700',
       color: CS, backgroundColor: COLOR.ACCENT,
       padding: { x: 10, y: 5 },
     }).setOrigin(0.5).setDepth(68).setVisible(false)

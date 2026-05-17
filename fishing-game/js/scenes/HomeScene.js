@@ -1,4 +1,4 @@
-import { FONT, SHADOW } from '../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { Button } from '../ui/Button.js'
 
@@ -89,7 +89,7 @@ export default class HomeScene extends Phaser.Scene {
 
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '44px', fontStyle: '900',
+      fontSize: '44px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.strong,
     }).setOrigin(0.5)
@@ -101,14 +101,14 @@ export default class HomeScene extends Phaser.Scene {
     kariBg.y = -36
     const kariTxt = this.add.text(0, -36, '（仮）', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontStyle: '900', color: '#ffffff',
+      fontSize: '12px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5)
 
     logoGroup.add([logo, kariBg, kariTxt])
 
     this.add.text(W / 2, H * 0.185, '港町の海で釣りを楽しもう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontStyle: '700',
+      fontSize: '15px', fontWeight: '700',
       color: '#1a3a5a',
       shadow: SHADOW.soft,
     }).setOrigin(0.5).setDepth(5)
@@ -143,7 +143,7 @@ export default class HomeScene extends Phaser.Scene {
     g.fillRoundedRect(cardX - cardW / 2 + 12, cardY - cardH / 2 + 10, 64, 20, 6)
     this.add.text(cardX - cardW / 2 + 44, cardY - cardH / 2 + 20, 'MY釣果', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontStyle: '800', color: '#1a2a3a',
+      fontSize: '11px', fontWeight: '800', color: '#1a2a3a',
     }).setOrigin(0.5).setDepth(4)
 
     // 3カラム：スコア / 釣果数 / 図鑑進捗
@@ -158,11 +158,11 @@ export default class HomeScene extends Phaser.Scene {
         .setOrigin(0.5).setDepth(4)
       this.add.text(c.x, colY + 10, c.val, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '22px', fontStyle: '800', color: c.color,
+        fontSize: '22px', fontWeight: '800', color: c.color,
       }).setOrigin(0.5).setDepth(4)
       this.add.text(c.x, colY + 30, c.label, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontStyle: '700', color: '#4a7090',
+        fontSize: '13px', fontWeight: '700', color: '#4a7090',
       }).setOrigin(0.5).setDepth(4)
     })
   }
@@ -181,7 +181,7 @@ export default class HomeScene extends Phaser.Scene {
     })
     this.add.text(W / 2, H * 0.54 + 52, 'ポイントを選んで出発しよう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontStyle: '700', color: '#1a3a5a',
+      fontSize: '14px', fontWeight: '700', color: '#1a3a5a',
       shadow: SHADOW.soft,
     }).setOrigin(0.5).setAlpha(0.85).setDepth(10)
   }
@@ -190,7 +190,7 @@ export default class HomeScene extends Phaser.Scene {
   _buildSubMenu(W, H) {
     this.add.text(W / 2, H * 0.67, '今後追加される機能', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontStyle: '800', color: '#1a3a5a',
+      fontSize: '14px', fontWeight: '800', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(4).setAlpha(0.85)
 
     const sep = this.add.graphics().setDepth(3)
@@ -227,12 +227,12 @@ export default class HomeScene extends Phaser.Scene {
 
       this.add.text(cx, cy + 4, it.label, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '14px', fontStyle: '800', color: '#1a3a5a',
+        fontSize: '14px', fontWeight: '800', color: '#1a3a5a',
       }).setOrigin(0.5).setDepth(4)
 
       this.add.text(cx, cy + 21, it.caption, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '11px', fontStyle: '700', color: '#5a7090',
+        fontSize: '11px', fontWeight: '700', color: '#5a7090',
       }).setOrigin(0.5).setDepth(4)
 
       // 「実装予定」バッジ
@@ -241,7 +241,7 @@ export default class HomeScene extends Phaser.Scene {
       bg.fillRoundedRect(cx - ITEM_W / 2 + 6, cy + ITEM_H / 2 - 22, ITEM_W - 12, 16, 4)
       this.add.text(cx, cy + ITEM_H / 2 - 14, `${ICONS.COMING} 実装予定`, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '10px', fontStyle: '900', color: '#ffffff',
+        fontSize: '10px', fontWeight: '900', color: '#ffffff',
       }).setOrigin(0.5).setDepth(6)
     })
   }

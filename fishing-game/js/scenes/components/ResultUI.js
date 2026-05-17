@@ -1,4 +1,4 @@
-import { FONT, SHADOW } from '../../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../../config/fontStyles.js'
 import { C, CS, COLOR } from '../../config/palette.js'
 import { ICONS } from '../../config/icons.js'
 
@@ -28,22 +28,22 @@ export class ResultUI {
     scene.resStripe = scene.add.graphics()
 
     scene.resLabel = scene.add.text(0, -78, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '900', color: '#ffffff',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5)
 
     scene.resEmoji = scene.add.text(0, -24, '', { fontSize: '52px' }).setOrigin(0.5)
 
     scene.resName = scene.add.text(0, 34, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontStyle: '700', color: '#1a3a5a',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontWeight: '700', color: '#1a3a5a',
     }).setOrigin(0.5)
 
     scene.resPts = scene.add.text(0, 64, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontStyle: '700', color: '#00aa44',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '700', color: '#00aa44',
     }).setOrigin(0.5)
 
     scene.resHint = scene.add.text(0, 86, 'タップで続ける', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontStyle: '700', color: '#4a7090',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#4a7090',
     }).setOrigin(0.5)
 
     scene.resultOverlay.add([card, scene.resStripe, scene.resLabel, scene.resEmoji, scene.resName, scene.resPts, scene.resHint])
@@ -62,7 +62,7 @@ export class ResultUI {
   toast(msg) {
     const { width: W, height: H } = this.scene.scale
     const t = this.scene.add.text(W / 2, H * 0.38, msg, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontWeight: '700',
       color: '#ffffff',
       shadow: SHADOW.strong,
     }).setOrigin(0.5).setDepth(100)
@@ -74,7 +74,7 @@ export class ResultUI {
   buildBackBtn(W, H) {
     const scene = this.scene
     const btn = scene.add.text(16, H - 16, `${ICONS.BACK} マップへ`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
       color: CS, backgroundColor: COLOR.WHITE,
       padding: { x: 14, y: 9 },
       shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.3)', blur: 2, fill: true },

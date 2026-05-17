@@ -1,4 +1,4 @@
-import Phaser from 'phaser'
+﻿import Phaser from 'phaser'
 import { FONT, SHADOW } from '../config/fontStyles.js'
 import { COLOR } from '../config/palette.js'
 import { ICONS, POINT_ICON } from '../config/icons.js'
@@ -51,14 +51,14 @@ export default class MapScene extends Phaser.Scene {
     // ─── タイトル ──────────────────────────────
     this.add.text(W / 2, 58, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '30px', fontStyle: '900',
+      fontSize: '30px', fontWeight: '900',
       color: '#1a3a5a',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(2)
 
     this.add.text(W / 2, 94, '釣り場によって出る魚が変わるよ', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontStyle: '700',
+      fontSize: '14px', fontWeight: '700',
       color: '#4a7090',
       shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(2)
@@ -112,7 +112,7 @@ export default class MapScene extends Phaser.Scene {
     // ポイント名
     this.add.text(cardX + 82, cardY + 18, point.name, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '22px', fontStyle: '900', color: '#1a3a5a',
+      fontSize: '22px', fontWeight: '900', color: '#1a3a5a',
       shadow: SHADOW.subtle,
     }).setOrigin(0, 0).setDepth(4)
 
@@ -122,7 +122,7 @@ export default class MapScene extends Phaser.Scene {
     // 説明文
     this.add.text(cardX + 82, cardY + 50, point.description, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontStyle: '700', color: '#4a7090',
+      fontSize: '14px', fontWeight: '700', color: '#4a7090',
       wordWrap: { width: cardW - 108 },
     }).setOrigin(0, 0).setDepth(4)
 
@@ -134,7 +134,7 @@ export default class MapScene extends Phaser.Scene {
       const chipBg = this.add.graphics().setDepth(3)
       const txt = this.add.text(chipX + padX, chipY + 12, name, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontStyle: '800', color: '#1a3a5a',
+        fontSize: '13px', fontWeight: '800', color: '#1a3a5a',
       }).setOrigin(0, 0.5).setDepth(4)
       const w = txt.width + padX * 2
       chipBg.fillStyle(point.accent, 0.18)
@@ -154,7 +154,7 @@ export default class MapScene extends Phaser.Scene {
     chevBg.strokeCircle(chevX, chevY, 18)
     this.add.text(chevX, chevY, ICONS.CHEVRON, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '30px', fontStyle: '900', color: '#1a2a3a',
+      fontSize: '30px', fontWeight: '900', color: '#1a2a3a',
     }).setOrigin(0.5, 0.5).setDepth(4)
 
     // 透明ヒットエリア（カード全体）
@@ -180,13 +180,13 @@ export default class MapScene extends Phaser.Scene {
       const ty = topY + STAR_W / 2
       this.add.text(tx, ty, ICONS.STAR, {
         fontSize: '17px', resolution: TEXT_RES,
-        color: filled ? '#e6a800' : '#b9c5d1', fontStyle: '900',
+        color: filled ? '#e6a800' : '#b9c5d1', fontWeight: '900',
       }).setOrigin(0.5).setDepth(4)
     }
     const label = ['かんたん', 'ふつう', 'むずかしい'][level - 1] ?? ''
     this.add.text(rightX, topY + 20, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontStyle: '800',
+      fontSize: '12px', fontWeight: '800',
       color: level === 3 ? '#cc4422' : (level === 2 ? '#cc7700' : '#0077cc'),
     }).setOrigin(1, 0).setDepth(4)
   }
@@ -194,7 +194,7 @@ export default class MapScene extends Phaser.Scene {
   _buildBackBtn(W, H) {
     const btn = this.add.text(16, 16, `${ICONS.BACK} ホーム`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontStyle: '700', color: COLOR.TEXT1,
+      fontSize: '15px', fontWeight: '700', color: COLOR.TEXT1,
       backgroundColor: '#ffffff',
       padding: { x: 14, y: 9 },
       shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.25)', blur: 2, fill: true },
