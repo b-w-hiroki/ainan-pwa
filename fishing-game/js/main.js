@@ -14,7 +14,6 @@ const config = {
     pixelArt: false,
     antialias: true,
     roundPixels: true,
-    resolution: window.devicePixelRatio ?? 1,
   },
   scale: {
     mode: Phaser.Scale.FIT,

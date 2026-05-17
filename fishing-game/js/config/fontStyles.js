@@ -2,10 +2,10 @@ export const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
 export const OUTLINE = '#1a2a3a'
 
 export const SHADOW = {
-  strong: { offsetX: 2, offsetY: 3, color: 'rgba(0,0,0,0.55)', blur: 6,  fill: true },
-  medium: { offsetX: 1, offsetY: 2, color: 'rgba(0,0,0,0.35)', blur: 4,  fill: true },
-  soft:   { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.22)', blur: 3,  fill: true },
-  subtle: { offsetX: 0, offsetY: 1, color: 'rgba(0,0,0,0.12)', blur: 2,  fill: true },
+  strong: { offsetX: 2, offsetY: 2, color: 'rgba(0,0,0,0.50)', blur: 0,  fill: true },
+  medium: { offsetX: 1, offsetY: 2, color: 'rgba(0,0,0,0.35)', blur: 0,  fill: true },
+  soft:   { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.22)', blur: 0,  fill: true },
+  subtle: { offsetX: 0, offsetY: 1, color: 'rgba(0,0,0,0.12)', blur: 0,  fill: true },
 }
 
 export const TITLE_SHADOW = SHADOW.medium
