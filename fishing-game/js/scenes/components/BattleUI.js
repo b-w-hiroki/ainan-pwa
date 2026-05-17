@@ -163,11 +163,11 @@ export class BattleUI {
     scene.timeValText  = ti.valText
     scene.scoreBar.add([...sc.els, ...ti.els])
 
-    scene._sessionStartedAt = scene.time.now
+    scene._sessionStartedAt = Date.now()
     scene._timeChipEvent = scene.time.addEvent({
       delay: 1000, loop: true,
       callback: () => {
-        const elapsed = Math.floor((scene.time.now - scene._sessionStartedAt) / 1000)
+        const elapsed = Math.floor((Date.now() - scene._sessionStartedAt) / 1000)
         const mm = String(Math.floor(elapsed / 60)).padStart(2, '0')
         const ss = String(elapsed % 60).padStart(2, '0')
         scene.timeValText?.setText(`${mm}:${ss}`)
