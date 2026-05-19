@@ -58,49 +58,49 @@ export default class HomeScene extends Phaser.Scene {
     const bar = this.add.graphics().setDepth(20)
     bar.fillStyle(0xffffff, 0.78)
     bar.lineStyle(2, 0xffffff, 0.65)
-    bar.fillRoundedRect(10, 10, W - 20, 58, 18)
-    bar.strokeRoundedRect(10, 10, W - 20, 58, 18)
+    bar.fillRoundedRect(10, 10, W - 20, 56, 18)
+    bar.strokeRoundedRect(10, 10, W - 20, 56, 18)
 
     const profile = this.add.graphics().setDepth(21)
     profile.fillStyle(0xffffff, 0.95)
     profile.lineStyle(2.5, 0x1a2a3a, 1)
-    profile.fillRoundedRect(18, 16, 150, 46, 16)
-    profile.strokeRoundedRect(18, 16, 150, 46, 16)
+    profile.fillRoundedRect(18, 16, 148, 44, 16)
+    profile.strokeRoundedRect(18, 16, 148, 44, 16)
     profile.fillStyle(0xffd900, 1)
-    profile.fillCircle(42, 39, 16)
+    profile.fillCircle(42, 38, 15)
 
-    this.add.text(42, 39, ICONS.ROD, { fontSize: '19px', resolution: TEXT_RES })
+    this.add.text(42, 38, ICONS.ROD, { fontSize: '18px', resolution: TEXT_RES })
       .setOrigin(0.5)
       .setDepth(22)
-    this.add.text(64, 32, '港の釣り人', {
+    this.add.text(64, 31, '港の釣り人', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0, 0.5).setDepth(22)
-    this.add.text(64, 47, 'RANK 01', {
+    this.add.text(64, 46, 'RANK 01', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '10px', fontWeight: '900', color: '#e07800',
     }).setOrigin(0, 0.5).setDepth(22)
 
-    this._buildResourceChip(W - 116, 20, ICONS.SCORE, this._shortNum(totalScore))
-    this._buildResourceChip(W - 62, 20, ICONS.FISH, this._shortNum(catches.length))
+    this._buildResourceChip(W - 116, 19, ICONS.SCORE, this._shortNum(totalScore))
+    this._buildResourceChip(W - 62, 19, ICONS.FISH, this._shortNum(catches.length))
   }
 
   _buildResourceChip(x, y, icon, value) {
     const g = this.add.graphics().setDepth(21)
     g.fillStyle(0xffffff, 0.95)
     g.lineStyle(2, 0x1a2a3a, 0.9)
-    g.fillRoundedRect(x, y, 48, 38, 13)
-    g.strokeRoundedRect(x, y, 48, 38, 13)
-    this.add.text(x + 15, y + 19, icon, { fontSize: '14px', resolution: TEXT_RES })
+    g.fillRoundedRect(x, y, 48, 36, 13)
+    g.strokeRoundedRect(x, y, 48, 36, 13)
+    this.add.text(x + 15, y + 18, icon, { fontSize: '14px', resolution: TEXT_RES })
       .setOrigin(0.5).setDepth(22)
-    this.add.text(x + 32, y + 19, value, {
+    this.add.text(x + 32, y + 18, value, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(22)
   }
 
   _buildTitle(W, H) {
-    const logoGroup = this.add.container(W / 2, H * 0.14).setDepth(10)
+    const logoGroup = this.add.container(W / 2, H * 0.145).setDepth(10)
 
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
@@ -121,8 +121,8 @@ export default class HomeScene extends Phaser.Scene {
 
     const tagBg = this.add.graphics().setDepth(9)
     tagBg.fillStyle(0x123a54, 0.32)
-    tagBg.fillRoundedRect(W / 2 - 118, H * 0.20 - 15, 236, 30, 15)
-    this.add.text(W / 2, H * 0.20, '釣って、集めて、港をにぎやかに', {
+    tagBg.fillRoundedRect(W / 2 - 118, H * 0.202 - 15, 236, 30, 15)
+    this.add.text(W / 2, H * 0.202, '釣って、集めて、港をにぎやかに', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900',
       color: '#ffffff', shadow: SHADOW.medium,
@@ -136,7 +136,7 @@ export default class HomeScene extends Phaser.Scene {
     const uniqueFish = new Set(catches.map(c => c.fishId)).size
 
     const x = W * 0.08
-    const y = H * 0.255
+    const y = H * 0.258
     const w = W * 0.84
     const h = 108
 
@@ -167,7 +167,7 @@ export default class HomeScene extends Phaser.Scene {
     const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
     const progress = Math.min(catches.length, 1)
     const x = W * 0.08
-    const y = H * 0.395
+    const y = H * 0.397
     const w = W * 0.84
     const h = 68
 
@@ -191,7 +191,7 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildMainCTA(W, H) {
     new Button(this, {
-      x: W / 2, y: H * 0.54,
+      x: W / 2, y: H * 0.542,
       w: 306, h: 66,
       label: '釣りに行く',
       icon: ICONS.ROD,
@@ -204,9 +204,9 @@ export default class HomeScene extends Phaser.Scene {
     const hintBg = this.add.graphics().setDepth(9)
     hintBg.fillStyle(0xffffff, 0.88)
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
-    hintBg.fillRoundedRect(W / 2 - 120, H * 0.54 + 38, 240, 27, 14)
-    hintBg.strokeRoundedRect(W / 2 - 120, H * 0.54 + 38, 240, 27, 14)
-    this.add.text(W / 2, H * 0.54 + 52, '釣り場を選んで出発', {
+    hintBg.fillRoundedRect(W / 2 - 120, H * 0.542 + 38, 240, 27, 14)
+    hintBg.strokeRoundedRect(W / 2 - 120, H * 0.542 + 38, 240, 27, 14)
+    this.add.text(W / 2, H * 0.542 + 52, '釣り場を選んで出発', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(10)
@@ -214,9 +214,9 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildSubMenu(W, H) {
     const panelX = W * 0.055
-    const panelY = H * 0.635
+    const panelY = H * 0.632
     const panelW = W * 0.89
-    const panelH = H * 0.215
+    const panelH = H * 0.208
 
     const panel = this.add.graphics().setDepth(2)
     panel.fillStyle(0xffffff, 0.74)
@@ -224,7 +224,7 @@ export default class HomeScene extends Phaser.Scene {
     panel.fillRoundedRect(panelX, panelY, panelW, panelH, 18)
     panel.strokeRoundedRect(panelX, panelY, panelW, panelH, 18)
 
-    this.add.text(W / 2, H * 0.665, '港のメニュー', {
+    this.add.text(W / 2, H * 0.662, '港のメニュー', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '15px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(4)
@@ -235,10 +235,10 @@ export default class HomeScene extends Phaser.Scene {
       { icon: ICONS.GIFT, label: '交換所', caption: 'ポイント交換', color: 0xff9b5e },
     ]
     const itemW = 94
-    const itemH = 94
+    const itemH = 90
     const gap = 9
     const startX = W / 2 - (items.length * itemW + (items.length - 1) * gap) / 2 + itemW / 2
-    const cy = H * 0.765
+    const cy = H * 0.756
 
     items.forEach((it, i) => {
       const cx = startX + i * (itemW + gap)
@@ -276,12 +276,12 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildFooter(W, H) {
-    const y = H - 64
+    const y = H - 60
     const bar = this.add.graphics().setDepth(30)
     bar.fillStyle(0xffffff, 0.96)
     bar.lineStyle(2.5, 0x1a2a3a, 1)
-    bar.fillRoundedRect(12, y, W - 24, 54, 18)
-    bar.strokeRoundedRect(12, y, W - 24, 54, 18)
+    bar.fillRoundedRect(12, y, W - 24, 50, 18)
+    bar.strokeRoundedRect(12, y, W - 24, 50, 18)
 
     const tabs = [
       { x: W * 0.16, icon: '⌂', label: 'ホーム', active: true, onTap: null },
@@ -291,7 +291,7 @@ export default class HomeScene extends Phaser.Scene {
       { x: W * 0.84, icon: ICONS.GIFT, label: '交換', active: false, onTap: null },
     ]
 
-    tabs.forEach(tab => this._footerTab(tab.x, y + 27, tab))
+    tabs.forEach(tab => this._footerTab(tab.x, y + 25, tab))
   }
 
   _footerTab(x, y, tab) {
@@ -305,6 +305,11 @@ export default class HomeScene extends Phaser.Scene {
         .setDepth(34)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', tab.onTap)
+    } else {
+      this.add.rectangle(x, y, 52, 44, 0x000000, 0)
+        .setDepth(34)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this._toast(`${tab.label}は今後追加予定です`))
     }
 
     const iconY = tab.primary ? y - 16 : y - 9
@@ -348,5 +353,31 @@ export default class HomeScene extends Phaser.Scene {
     if (value >= 10000) return `${Math.floor(value / 1000) / 10}万`
     if (value >= 1000) return `${Math.floor(value / 100) / 10}k`
     return `${value}`
+  }
+
+  _toast(message) {
+    const { width: W, height: H } = this.scale
+    const y = H - 142
+    const bg = this.add.graphics().setDepth(80)
+    bg.fillStyle(0x1a2a3a, 0.88)
+    bg.fillRoundedRect(W / 2 - 126, y, 252, 38, 16)
+
+    const txt = this.add.text(W / 2, y + 19, message, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900',
+      color: '#ffffff',
+    }).setOrigin(0.5).setDepth(81)
+
+    this.tweens.add({
+      targets: [bg, txt],
+      alpha: 0,
+      y: '-=16',
+      duration: 900,
+      ease: 'Sine.easeIn',
+      onComplete: () => {
+        bg.destroy()
+        txt.destroy()
+      },
+    })
   }
 }
