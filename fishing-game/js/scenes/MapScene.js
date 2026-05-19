@@ -2,6 +2,8 @@
 import { FONT, SHADOW } from '../config/fontStyles.js'
 import { COLOR } from '../config/palette.js'
 import { ICONS, POINT_ICON } from '../config/icons.js'
+import { ASSETS } from '../config/assetManifest.js'
+import { addCoverImage } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -37,6 +39,11 @@ export default class MapScene extends Phaser.Scene {
     super({ key: 'MapScene' })
   }
 
+  preload() {
+    const bg = ASSETS.backgrounds.mapTown
+    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+  }
+
   create() {
     const { width: W, height: H } = this.scale
 
@@ -46,14 +53,14 @@ export default class MapScene extends Phaser.Scene {
     this._buildBackBtn(W, H)
 
     // ─── タイトル ──────────────────────────────
-    this.add.text(W / 2, 58, '釣り場を選ぼう', {
+    this.add.text(W / 2, 66, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '30px', fontWeight: '900',
       color: '#1a3a5a',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(2)
 
-    this.add.text(W / 2, 94, '釣り場によって出る魚が変わるよ', {
+    this.add.text(W / 2, 102, '釣り場によって出る魚が変わるよ', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '700',
       color: '#4a7090',
@@ -62,11 +69,23 @@ export default class MapScene extends Phaser.Scene {
 
     // ─── 釣り場カード ──────────────────────────
     FISHING_POINTS.forEach((point, i) => {
-      this._buildPointCard(point, W, 184 + i * 170)
+      this._buildPointCard(point, W, 194 + i * 168)
     })
   }
 
   _buildMapBackground(W, H) {
+    const artBg = addCoverImage(this, ASSETS.backgrounds.mapTown.key, W, H, 0)
+    if (artBg) {
+      const veil = this.add.graphics().setDepth(1)
+      veil.fillStyle(0xffffff, 0.18)
+      veil.fillRect(0, 0, W, H)
+      veil.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.30, 0.30, 0.08, 0.08)
+      veil.fillRect(0, 0, W, H * 0.24)
+      veil.fillGradientStyle(0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0.22, 0.22, 0.34, 0.34)
+      veil.fillRect(W * 0.04, H * 0.12, W * 0.92, H * 0.82)
+      return
+    }
+
     const bg = this.add.graphics().setDepth(0)
     bg.fillGradientStyle(0xfff2cf, 0xfff2cf, 0xa8ddf0, 0xa8ddf0, 1)
     bg.fillRect(0, 0, W, H)

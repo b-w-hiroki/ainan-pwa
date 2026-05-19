@@ -13,7 +13,7 @@ export const ASSETS = {
     mapTown: {
       key: 'bg_map_town',
       path: 'assets/backgrounds/bg_map_town.png',
-      status: 'planned',
+      status: 'ready',
     },
     fishingHarbor: {
       key: 'bg_fishing_harbor',
