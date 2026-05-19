@@ -84,10 +84,14 @@ export default class MapScene extends Phaser.Scene {
 
     this._buildRouteLine(W, H)
 
+    this._detailPanel = null
+
     // ─── 釣り場スポット ──────────────────────────
     FISHING_POINTS.forEach((point, i) => {
-      this._buildPointCard(point, W, H, i)
+      this._buildPointMarker(point, W, H, i)
     })
+
+    this._showMapHint(W, H)
   }
 
   _buildMapBackground(W, H) {
@@ -219,116 +223,175 @@ export default class MapScene extends Phaser.Scene {
     }
   }
 
-  _buildPointCard(point, W, H, index) {
-    const anchorY = H * point.pos.y
-    const cardW = W * 0.82
-    const cardH = 116
-    const cardX = index === 1 ? W * 0.12 : W * 0.08
-    const cardY = anchorY - 34
-    const cy = cardY + cardH / 2
+  _showMapHint(W, H) {
+    const g = this.add.graphics().setDepth(4)
+    g.fillStyle(0xffffff, 0.82)
+    g.lineStyle(2, 0xffffff, 0.45)
+    g.fillRoundedRect(W / 2 - 118, H - 112, 236, 34, 16)
+    g.strokeRoundedRect(W / 2 - 118, H - 112, 236, 34, 16)
+    this.add.text(W / 2, H - 95, 'マップのポイントをタップ', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5).setDepth(5)
+  }
 
-    // 影
-    const sh = this.add.graphics().setDepth(3)
-    sh.fillStyle(0x000000, 0.18)
-    sh.fillRoundedRect(cardX + 3, cardY + 4, cardW, cardH, 18)
+  _buildPointMarker(point, W, H, index) {
+    const x = W * point.pos.x
+    const y = H * point.pos.y
+    const marker = this.add.container(x, y).setDepth(6)
 
-    // 本体
-    const card = this.add.graphics().setDepth(4)
-    const drawCard = (fillColor) => {
-      card.clear()
-      card.fillStyle(fillColor, 0.96)
-      card.lineStyle(2.5, 0x1a2a3a, 1)
-      card.fillRoundedRect(cardX, cardY, cardW, cardH, 18)
-      card.strokeRoundedRect(cardX, cardY, cardW, cardH, 18)
-    }
-    drawCard(0xffffff)
+    const pulse = this.add.graphics()
+    pulse.fillStyle(point.accent, 0.18)
+    pulse.fillCircle(0, 0, 31)
 
-    // 左の色アクセントバー
-    const accent = this.add.graphics().setDepth(5)
-    accent.fillStyle(point.accent, 1)
-    accent.fillRoundedRect(cardX, cardY, 10, cardH, { tl: 18, bl: 18, tr: 0, br: 0 })
+    const g = this.add.graphics()
+    g.fillStyle(0xffffff, 0.95)
+    g.lineStyle(4, point.accent, 1)
+    g.fillCircle(0, 0, 25)
+    g.strokeCircle(0, 0, 25)
+    g.fillStyle(point.accent, 1)
+    g.fillCircle(0, 0, 15)
 
-    // 左上アイコン円
-    const iconR = 24
-    const iconX = cardX + 38
-    const iconY = cardY + 34
-    const iconBg = this.add.graphics().setDepth(5)
-    iconBg.fillStyle(point.accent, 0.18)
-    iconBg.fillCircle(iconX, iconY, iconR)
+    const label = this.add.text(0, 0, `${index + 1}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '16px', fontWeight: '900', color: '#ffffff',
+    }).setOrigin(0.5)
+
+    const nameBg = this.add.graphics()
+    nameBg.fillStyle(0xffffff, 0.92)
+    nameBg.lineStyle(1.5, point.accent, 0.86)
+    nameBg.fillRoundedRect(-42, 30, 84, 25, 10)
+    nameBg.strokeRoundedRect(-42, 30, 84, 25, 10)
+    const name = this.add.text(0, 42, point.name, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5)
+
+    const hit = this.add.circle(0, 0, 38, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this._showPointDetail(point, index))
+      .on('pointerover', () => marker.setScale(1.06))
+      .on('pointerout', () => marker.setScale(1))
+
+    marker.add([pulse, g, label, nameBg, name, hit])
+    this.tweens.add({
+      targets: pulse,
+      scaleX: 1.18,
+      scaleY: 1.18,
+      alpha: 0.35,
+      duration: 900 + index * 120,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
+    })
+  }
+
+  _showPointDetail(point, index) {
+    const { width: W, height: H } = this.scale
+    this._detailPanel?.destroy(true)
+
+    const x = W * 0.06
+    const y = H - 235
+    const w = W * 0.88
+    const h = 150
+    const items = []
+
+    const sh = this.add.graphics()
+    sh.fillStyle(0x000000, 0.20)
+    sh.fillRoundedRect(x + 3, y + 5, w, h, 20)
+
+    const bg = this.add.graphics()
+    bg.fillStyle(0xffffff, 0.97)
+    bg.lineStyle(3, 0x1a2a3a, 1)
+    bg.fillRoundedRect(x, y, w, h, 20)
+    bg.strokeRoundedRect(x, y, w, h, 20)
+    bg.fillStyle(point.accent, 1)
+    bg.fillRoundedRect(x, y, 12, h, { tl: 20, bl: 20, tr: 0, br: 0 })
+
+    items.push(sh, bg)
+
+    const iconBg = this.add.graphics()
+    iconBg.fillStyle(point.accent, 0.16)
     iconBg.lineStyle(2, point.accent, 1)
-    iconBg.strokeCircle(iconX, iconY, iconR)
-    this.add.text(iconX, iconY, POINT_ICON[point.id] ?? ICONS.FISH, {
+    iconBg.fillCircle(x + 42, y + 42, 27)
+    iconBg.strokeCircle(x + 42, y + 42, 27)
+    items.push(iconBg)
+
+    items.push(this.add.text(x + 42, y + 42, POINT_ICON[point.id] ?? ICONS.FISH, {
       fontSize: '28px', resolution: TEXT_RES,
-    }).setOrigin(0.5).setDepth(6)
+    }).setOrigin(0.5))
 
-    const numBg = this.add.graphics().setDepth(6)
-    numBg.fillStyle(point.accent, 1)
-    numBg.lineStyle(2, 0xffffff, 1)
-    numBg.fillCircle(cardX + 15, cardY + 18, 13)
-    numBg.strokeCircle(cardX + 15, cardY + 18, 13)
-    this.add.text(cardX + 15, cardY + 18, `${index + 1}`, {
+    items.push(this.add.text(x + 76, y + 24, point.name, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900', color: '#ffffff',
-    }).setOrigin(0.5).setDepth(7)
+      fontSize: '23px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0, 0))
 
-    // ポイント名
-    this.add.text(cardX + 74, cardY + 17, point.name, {
+    items.push(this.add.text(x + 76, y + 58, point.description, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '21px', fontWeight: '900', color: '#1a3a5a',
-      shadow: SHADOW.subtle,
-    }).setOrigin(0, 0).setDepth(6)
+      fontSize: '13px', fontWeight: '800', color: '#4a7090',
+      wordWrap: { width: w - 108 },
+    }).setOrigin(0, 0))
 
-    // 難易度バッジ（右上）
-    this._buildDifficultyBadge(cardX + cardW - 14, cardY + 14, point.difficulty, 6)
+    this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty)
 
-    // 説明文
-    this.add.text(cardX + 74, cardY + 49, point.summary, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#4a7090',
-      wordWrap: { width: cardW - 160 },
-    }).setOrigin(0, 0).setDepth(6)
-
-    // 魚種チップ
-    const chipY = cardY + cardH - 34
-    let chipX = cardX + 20
+    let chipX = x + 22
     point.fish.forEach(name => {
-      const padX = 9
-      const chipBg = this.add.graphics().setDepth(5)
-      const txt = this.add.text(chipX + padX, chipY + 12, name, {
+      const chipBg = this.add.graphics()
+      const txt = this.add.text(chipX + 9, y + 104, name, {
         fontFamily: FONT, resolution: TEXT_RES,
         fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
-      }).setOrigin(0, 0.5).setDepth(6)
-      const w = txt.width + padX * 2
-      chipBg.fillStyle(point.accent, 0.18)
-      chipBg.lineStyle(1.5, point.accent, 0.85)
-      chipBg.fillRoundedRect(chipX, chipY, w, 26, 8)
-      chipBg.strokeRoundedRect(chipX, chipY, w, 26, 8)
-      chipX += w + 6
+      }).setOrigin(0, 0.5)
+      const cw = txt.width + 18
+      chipBg.fillStyle(point.accent, 0.16)
+      chipBg.lineStyle(1.5, point.accent, 0.82)
+      chipBg.fillRoundedRect(chipX, y + 91, cw, 26, 8)
+      chipBg.strokeRoundedRect(chipX, y + 91, cw, 26, 8)
+      items.push(chipBg, txt)
+      chipX += cw + 7
     })
 
-    // 右端シェブロン（タップ誘導）
-    const chevY = cy
-    const chevX = cardX + cardW - 24
-    const chevBg = this.add.graphics().setDepth(5)
-    chevBg.fillStyle(point.accent, 0.18)
-    chevBg.lineStyle(2, point.accent, 0.85)
-    chevBg.fillCircle(chevX, chevY, 18)
-    chevBg.strokeCircle(chevX, chevY, 18)
-    this.add.text(chevX, chevY, ICONS.CHEVRON, {
+    const btn = this.add.graphics()
+    btn.fillStyle(0xffd900, 1)
+    btn.lineStyle(2.5, 0x1a2a3a, 1)
+    btn.fillRoundedRect(x + w - 118, y + 96, 96, 38, 13)
+    btn.strokeRoundedRect(x + w - 118, y + 96, 96, 38, 13)
+    const btnText = this.add.text(x + w - 70, y + 115, 'ここで釣る', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '30px', fontWeight: '900', color: '#1a2a3a',
-    }).setOrigin(0.5, 0.5).setDepth(6)
-
-    // 透明ヒットエリア（カード全体）
-    const hit = this.add.rectangle(cardX + cardW / 2, cy, cardW, cardH)
-      .setDepth(8)
+      fontSize: '14px', fontWeight: '900', color: '#1a2a3a',
+    }).setOrigin(0.5)
+    const hit = this.add.rectangle(x + w - 70, y + 115, 104, 46, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-    hit.on('pointerdown', () => {
-      this.tweens.add({ targets: card, scaleX: 0.98, scaleY: 0.98, duration: 80, yoyo: true })
-      this._goToFishing(point.id)
+      .on('pointerdown', () => this._goToFishing(point.id))
+    items.push(btn, btnText, hit)
+
+    this._detailPanel = this.add.container(0, 24, items).setDepth(20).setAlpha(0)
+    this.tweens.add({
+      targets: this._detailPanel,
+      y: 0,
+      alpha: 1,
+      duration: 180,
+      ease: 'Sine.easeOut',
     })
-    hit.on('pointerover', () => drawCard(0xeaf6ff))
-    hit.on('pointerout',  () => drawCard(0xffffff))
+  }
+
+  _addDifficultyTo(items, rightX, topY, level) {
+    const STAR_W = 15
+    const GAP = 2
+    const totalW = STAR_W * 3 + GAP * 2
+    const startX = rightX - totalW
+    for (let i = 0; i < 3; i++) {
+      const filled = i < level
+      items.push(this.add.text(startX + i * (STAR_W + GAP) + STAR_W / 2, topY + STAR_W / 2, ICONS.STAR, {
+        fontSize: '16px', resolution: TEXT_RES,
+        color: filled ? '#e6a800' : '#b9c5d1', fontWeight: '900',
+      }).setOrigin(0.5))
+    }
+    const label = ['かんたん', 'ふつう', 'むずかしい'][level - 1] ?? ''
+    items.push(this.add.text(rightX, topY + 20, label, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '11px', fontWeight: '900',
+      color: level === 3 ? '#cc4422' : (level === 2 ? '#cc7700' : '#0077cc'),
+    }).setOrigin(1, 0))
   }
 
   _buildDifficultyBadge(rightX, topY, level, depth = 4) {

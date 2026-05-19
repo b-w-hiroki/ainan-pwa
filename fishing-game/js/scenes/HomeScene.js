@@ -64,8 +64,6 @@ export default class HomeScene extends Phaser.Scene {
 
     this._drawTinySail(g, W * 0.78, H * 0.33, 0.78)
     this._drawTinySail(g, W * 0.26, H * 0.54, 0.60)
-    this._drawHomeBuoy(g, W * 0.67, H * 0.58, 0xffd43b)
-    this._drawHomeBuoy(g, W * 0.34, H * 0.64, 0xff6a3d)
   }
 
   _drawTinySail(g, x, y, sc = 1) {
@@ -76,15 +74,6 @@ export default class HomeScene extends Phaser.Scene {
     g.lineStyle(1.5 * sc, 0xffffff, 0.45)
     g.lineBetween(x - 26 * sc, y + 18 * sc, x - 43 * sc, y + 18 * sc)
     g.lineBetween(x + 20 * sc, y + 18 * sc, x + 34 * sc, y + 18 * sc)
-  }
-
-  _drawHomeBuoy(g, x, y, color) {
-    g.fillStyle(0xffffff, 0.80)
-    g.fillCircle(x, y, 6)
-    g.fillStyle(color, 0.88)
-    g.fillCircle(x, y, 3.5)
-    g.lineStyle(1.5, 0xffffff, 0.38)
-    g.strokeCircle(x, y, 9)
   }
 
   _buildHeader(W, H) {
