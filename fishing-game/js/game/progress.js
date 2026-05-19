@@ -1,27 +1,85 @@
 export const FISH_META = {
-  aji:  { name: 'アジ', rarity: 'common',     habitat: '港・入り江', score: 80 },
-  tai:  { name: 'マダイ', rarity: 'uncommon', habitat: '港・沖磯',   score: 250 },
-  bass: { name: 'ブラックバス', rarity: 'rare', habitat: '入り江',    score: 400 },
-  buri: { name: 'ブリ', rarity: 'uncommon',  habitat: '港・沖磯',   score: 350 },
-  kue:  { name: 'クエ', rarity: 'legendary', habitat: '沖磯',       score: 1200 },
+  aji: {
+    name: 'アジ',
+    icon: 'ア',
+    rarity: 'common',
+    habitat: '港・入り江',
+    hint: '朝や夕方、港の近くでよく見かける小型魚。',
+    encounter: '汐風港・蒼海湾で魚影が多い時に狙いやすい。',
+    score: 80,
+  },
+  tai: {
+    name: 'マダイ',
+    icon: '鯛',
+    rarity: 'uncommon',
+    habitat: '港・沖磯',
+    hint: '明るい時間帯の沖寄りで反応しやすい人気魚。',
+    encounter: '汐風港・黒潮崎で中型以上の魚影を狙う。',
+    score: 250,
+  },
+  bass: {
+    name: 'ブラックバス',
+    icon: 'バ',
+    rarity: 'rare',
+    habitat: '入り江',
+    hint: '静かな湾の障害物付近に潜みやすい。',
+    encounter: '蒼海湾で濃い魚影を狙うと出会いやすい。',
+    score: 400,
+  },
+  buri: {
+    name: 'ブリ',
+    icon: '鰤',
+    rarity: 'uncommon',
+    habitat: '港・沖磯',
+    hint: '回遊してくる魚群に混ざることがある力強い魚。',
+    encounter: '汐風港・黒潮崎で魚群チャンス中に狙う。',
+    score: 350,
+  },
+  kue: {
+    name: 'クエ',
+    icon: 'ク',
+    rarity: 'legendary',
+    habitat: '沖磯',
+    hint: '黒潮が当たる深場に潜む、めったに出ない大物。',
+    encounter: '黒潮崎の濃い魚影。強い竿と良いエサが欲しい。',
+    score: 1200,
+  },
 }
 
 export const ROD_META = {
-  basic:   { name: '初心者竿',   desc: '扱いやすい標準の竿',       cost: 0 },
+  basic:   { name: '初心者竿', desc: '扱いやすい標準の竿', cost: 0 },
   carbon:  { name: 'カーボン竿', desc: '飛距離と引きが安定する竿', cost: 0 },
-  premium: { name: '高級竿',     desc: '大物狙いの上位モデル',     cost: 800 },
+  premium: { name: '高級竿', desc: '大物狙いの上位モデル', cost: 800 },
 }
 
 export const BAIT_META = {
-  worm:    { name: 'ミミズ',     desc: '食いつき重視の基本エサ',   cost: 60,  amount: 5 },
-  shrimp:  { name: 'エビ',       desc: 'レア魚を少し狙いやすい',   cost: 180, amount: 5 },
-  special: { name: '特製まき餌', desc: '遠くの魚を引き寄せる',     cost: 360, amount: 3 },
+  worm:    { name: 'ミミズ', desc: '食いつき重視の基本エサ', cost: 60, amount: 5 },
+  shrimp:  { name: 'エビ', desc: 'レア魚を少し狙いやすいエサ', cost: 180, amount: 5 },
+  special: { name: '特製まき餌', desc: '遠くの魚を引き寄せるエサ', cost: 360, amount: 3 },
 }
 
 export const REWARD_META = [
   { id: 'sticker', name: '港町ステッカー', desc: 'コレクション用の記念品', cost: 250 },
-  { id: 'ticket',  name: '応援チケット',   desc: '町おこしポイントの引換券', cost: 500 },
-  { id: 'icebox',  name: '保冷ボックス',   desc: '釣果を持ち帰るための道具', cost: 700 },
+  { id: 'ticket',  name: '応援チケット', desc: '町おこしポイントの引換券', cost: 500 },
+  { id: 'icebox',  name: '保冷ボックス', desc: '釣果を持ち帰るための道具', cost: 700 },
+]
+
+export const MISSION_META = [
+  { id: 'catch_aji', title: 'アジを1匹釣る', desc: '港の定番魚を釣ってみよう', target: 1, reward: 80, type: 'catch', fishId: 'aji' },
+  { id: 'catch_any_3', title: '魚を3匹釣る', desc: '好きな釣り場で釣果を重ねよう', target: 3, reward: 160, type: 'catchAny' },
+  { id: 'open_book', title: '図鑑を確認する', desc: '釣った魚の情報を見てみよう', target: 1, reward: 60, type: 'manual' },
+]
+
+export const LICENSE_META = [
+  { id: 'go_fishing', title: '釣り場へ行く', desc: 'マップから釣り場を選ぶ', reward: 'ミミズ x5' },
+  { id: 'first_catch', title: 'はじめて釣る', desc: '魚を1匹釣り上げる', reward: '80pt' },
+  { id: 'check_book', title: '図鑑を見る', desc: '魚のヒントを確認する', reward: 'エビ x2' },
+  { id: 'equip_rod', title: '竿を確認', desc: '強化画面で装備を見る', reward: '60pt' },
+  { id: 'use_bait', title: 'エサを選ぶ', desc: '釣り画面でエサを確認する', reward: 'ミミズ x5' },
+  { id: 'catch_three', title: '3匹釣る', desc: '累計3匹釣る', reward: 'カーボン素材' },
+  { id: 'find_spot', title: '釣り場情報', desc: '未発見魚数を確認する', reward: '120pt' },
+  { id: 'upgrade_try', title: '強化に触れる', desc: '装備詳細を開く', reward: 'エビ x3' },
+  { id: 'license_done', title: '釣り免許卒業', desc: 'すべての課題を終える', reward: '高級竿' },
 ]
 
 const readJson = (key, fallback) => {
@@ -45,10 +103,10 @@ export function getCatches() {
 }
 
 export function getInventory() {
+  const saved = readJson('ainan_inventory', {})
   return {
-    rods:  { basic: 1, carbon: 1, premium: 0 },
-    baits: { worm: 12, shrimp: 5, special: 2 },
-    ...readJson('ainan_inventory', {}),
+    rods:  { basic: 1, carbon: 1, premium: 0, ...(saved.rods ?? {}) },
+    baits: { worm: 12, shrimp: 5, special: 2, ...(saved.baits ?? {}) },
   }
 }
 
@@ -81,4 +139,49 @@ export function spendScore(cost) {
   if (score < cost) return false
   setScore(score - cost)
   return true
+}
+
+export function getMissionProgress() {
+  const catches = getCatches()
+  const seenBook = localStorage.getItem('ainan_seen_book') === '1'
+  return {
+    catch_aji: catches.filter(c => c.fishId === 'aji').length,
+    catch_any_3: catches.length,
+    open_book: seenBook ? 1 : 0,
+  }
+}
+
+export function getClaimedMissions() {
+  return readJson('ainan_claimed_missions', {})
+}
+
+export function saveClaimedMissions(claimed) {
+  localStorage.setItem('ainan_claimed_missions', JSON.stringify(claimed))
+}
+
+export function markBookSeen() {
+  localStorage.setItem('ainan_seen_book', '1')
+}
+
+export function getLicenseProgress() {
+  const catches = getCatches()
+  const seenBook = localStorage.getItem('ainan_seen_book') === '1'
+  const seenUpgrade = localStorage.getItem('ainan_seen_upgrade') === '1'
+  const seenSpot = localStorage.getItem('ainan_seen_spot') === '1'
+  const touchedTackle = localStorage.getItem('ainan_touched_tackle') === '1'
+  return {
+    go_fishing: localStorage.getItem('ainan_went_fishing') === '1',
+    first_catch: catches.length >= 1,
+    check_book: seenBook,
+    equip_rod: seenUpgrade,
+    use_bait: touchedTackle,
+    catch_three: catches.length >= 3,
+    find_spot: seenSpot,
+    upgrade_try: seenUpgrade,
+    license_done: catches.length >= 3 && seenBook && seenUpgrade && seenSpot,
+  }
+}
+
+export function markLicenseFlag(key) {
+  localStorage.setItem(key, '1')
 }

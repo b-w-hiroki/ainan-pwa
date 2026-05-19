@@ -4,6 +4,7 @@ import { COLOR } from '../config/palette.js'
 import { ICONS, POINT_ICON } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
+import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -16,6 +17,9 @@ const FISHING_POINTS = [
     summary:     '港の定番スポット',
     difficulty:  1,
     fish:        ['アジ', 'マダイ', 'ブリ'],
+    fishIds:     ['aji', 'tai', 'buri'],
+    fishShadows: 12,
+    env:         '昼は見通し良好 / 魚影多め',
     accent:      0x6cc8ff,
     pos:         { x: 0.35, y: 0.32 },
   },
@@ -27,6 +31,9 @@ const FISHING_POINTS = [
     summary:     '静かな入り江',
     difficulty:  2,
     fish:        ['アジ', 'ブラックバス'],
+    fishIds:     ['aji', 'bass'],
+    fishShadows: 8,
+    env:         '入り江で静か / レア魚の気配',
     accent:      0xa088ff,
     pos:         { x: 0.62, y: 0.51 },
   },
@@ -38,6 +45,9 @@ const FISHING_POINTS = [
     summary:     '激流の難所',
     difficulty:  3,
     fish:        ['マダイ', 'ブリ', 'クエ'],
+    fishIds:     ['tai', 'buri', 'kue'],
+    fishShadows: 5,
+    env:         '流れが速い / 大物チャンス',
     accent:      0xff7d57,
     pos:         { x: 0.38, y: 0.70 },
   },
@@ -289,11 +299,14 @@ export default class MapScene extends Phaser.Scene {
   _showPointDetail(point, index) {
     const { width: W, height: H } = this.scale
     this._detailPanel?.destroy(true)
+    markLicenseFlag('ainan_seen_spot')
+    const caughtIds = new Set(getCatches().map(c => c.fishId))
+    const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
 
     const x = W * 0.06
-    const y = H - 235
+    const y = H - 250
     const w = W * 0.88
-    const h = 150
+    const h = 166
     const items = []
 
     const sh = this.add.graphics()
@@ -332,20 +345,32 @@ export default class MapScene extends Phaser.Scene {
       wordWrap: { width: w - 108 },
     }).setOrigin(0, 0))
 
+    items.push(this.add.text(x + 22, y + 88, `未発見 ${unknownCount}/${point.fishIds.length}  魚影 ${point.fishShadows}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900',
+      color: '#e07800',
+    }).setOrigin(0, 0.5))
+
+    items.push(this.add.text(x + 22, y + 110, point.env, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: '#4a7090',
+    }).setOrigin(0, 0.5))
+
     this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty)
 
     let chipX = x + 22
     point.fish.forEach(name => {
       const chipBg = this.add.graphics()
-      const txt = this.add.text(chipX + 9, y + 104, name, {
+      const txt = this.add.text(chipX + 9, y + 134, name, {
         fontFamily: FONT, resolution: TEXT_RES,
         fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
       }).setOrigin(0, 0.5)
       const cw = txt.width + 18
       chipBg.fillStyle(point.accent, 0.16)
       chipBg.lineStyle(1.5, point.accent, 0.82)
-      chipBg.fillRoundedRect(chipX, y + 91, cw, 26, 8)
-      chipBg.strokeRoundedRect(chipX, y + 91, cw, 26, 8)
+      chipBg.fillRoundedRect(chipX, y + 121, cw, 26, 8)
+      chipBg.strokeRoundedRect(chipX, y + 121, cw, 26, 8)
       items.push(chipBg, txt)
       chipX += cw + 7
     })
@@ -353,13 +378,14 @@ export default class MapScene extends Phaser.Scene {
     const btn = this.add.graphics()
     btn.fillStyle(0xffd900, 1)
     btn.lineStyle(2.5, 0x1a2a3a, 1)
-    btn.fillRoundedRect(x + w - 118, y + 96, 96, 38, 13)
-    btn.strokeRoundedRect(x + w - 118, y + 96, 96, 38, 13)
+    btn.fillRoundedRect(x + w - 118, y + 111, 96, 38, 13)
+    btn.strokeRoundedRect(x + w - 118, y + 111, 96, 38, 13)
     const btnText = this.add.text(x + w - 70, y + 115, 'ここで釣る', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900', color: '#1a2a3a',
     }).setOrigin(0.5)
-    const hit = this.add.rectangle(x + w - 70, y + 115, 104, 46, 0x000000, 0)
+    btnText.setY(y + 130)
+    const hit = this.add.rectangle(x + w - 70, y + 130, 104, 46, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this._goToFishing(point.id))
     items.push(btn, btnText, hit)
@@ -433,6 +459,7 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _goToFishing(pointId) {
+    markLicenseFlag('ainan_went_fishing')
     this.scene.start('GameScene', {
       point:     pointId,
       season:    this._getCurrentSeason(),

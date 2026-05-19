@@ -24,8 +24,15 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { getEquipment, getInventory } from '../game/progress.js'
+import { getEquipment, getInventory, markLicenseFlag } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
+
+const RARITY_SIZE = {
+  common: [18, 34],
+  uncommon: [35, 68],
+  rare: [45, 82],
+  legendary: [80, 135],
+}
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
@@ -65,6 +72,7 @@ export default class GameScene extends Phaser.Scene {
     this.bg = new BackgroundManager(this)
     this.bg.buildBackground(W, H, this.env.point)
     this.bg.spawnFish(W, H)
+    this._buildFishSchoolChance(W, H)
     const anchor         = this.bg.buildPlayer(W, H)
     this.anchorX         = anchor.anchorX
     this.anchorY         = anchor.anchorY
@@ -117,6 +125,7 @@ export default class GameScene extends Phaser.Scene {
     // ─── 竿・エサ切り替えUI ─────────────────────────────────────
     this.tackleUI = new TackleUI(this)
     this.tackleUI.build(W, H)
+    markLicenseFlag('ainan_touched_tackle')
 
     // ─── 入力 ────────────────────────────────────────────────────
     this.input.on('pointerdown', this._onDown, this)
@@ -132,6 +141,31 @@ export default class GameScene extends Phaser.Scene {
     window.addEventListener('beforeunload', this._beforeUnloadHandler)
 
     this._enterCast()
+  }
+
+  _buildFishSchoolChance(W, H) {
+    this.schoolFx = this.add.container(W - 76, H * 0.245).setDepth(48)
+    const g = this.add.graphics()
+    g.fillStyle(0xffffff, 0.88)
+    g.lineStyle(2, 0x1a2a3a, 0.35)
+    g.fillRoundedRect(-56, -18, 112, 36, 15)
+    g.strokeRoundedRect(-56, -18, 112, 36, 15)
+    const txt = this.add.text(0, 0, '魚群チャンス', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: '#e07800',
+    }).setOrigin(0.5)
+    this.schoolFx.add([g, txt])
+    this.schoolFx.setAlpha(0)
+    this.tweens.add({
+      targets: this.schoolFx,
+      alpha: 1,
+      y: H * 0.235,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
+    })
   }
 
   _buildLocationBadge(W) {
@@ -435,6 +469,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.escapeBar.setVisible(true)
     this.battlePanel.setVisible(true)
+    if (this.fish.rarity === 'rare' || this.fish.rarity === 'legendary') {
+      this._showBigHitCutin(this.fish.rarity)
+    }
     this._syncBattleUI()
 
     this._battleTimer = this.time.addEvent({
@@ -446,6 +483,33 @@ export default class GameScene extends Phaser.Scene {
         const out = battleOutcome(this.battleState)
         if (out) this._finishBattle(out)
       },
+    })
+  }
+
+  _showBigHitCutin(rarity) {
+    const { width: W, height: H } = this.scale
+    const danger = rarity === 'legendary'
+    const c = this.add.container(W / 2, H * 0.30).setDepth(130)
+    const bg = this.add.graphics()
+    bg.fillStyle(danger ? 0x1a1020 : 0x102b42, 0.88)
+    bg.lineStyle(3, danger ? 0xffd900 : 0x5ebcff, 1)
+    bg.fillRoundedRect(-142, -36, 284, 72, 18)
+    bg.strokeRoundedRect(-142, -36, 284, 72, 18)
+    const label = this.add.text(0, -9, danger ? 'DANGER' : 'BIG HIT!', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: danger ? '30px' : '28px',
+      fontWeight: '900',
+      color: danger ? '#ffd900' : '#ffffff',
+    }).setOrigin(0.5)
+    const sub = this.add.text(0, 20, danger ? '伝説級の気配！' : '大物の引き！', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900',
+      color: '#ffffff',
+    }).setOrigin(0.5)
+    c.add([bg, label, sub])
+    this.cameras.main.shake(220, danger ? 0.012 : 0.006)
+    this.time.delayedCall(650, () => {
+      this.tweens.add({ targets: c, alpha: 0, y: '-=18', duration: 240, onComplete: () => c.destroy(true) })
     })
   }
 
@@ -476,10 +540,11 @@ export default class GameScene extends Phaser.Scene {
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
+      const sizeCm = this._rollFishSize(this.fish)
 
       // 累積
       this.totalScore += score
-      this.catches.push({ fishId: this.fish.id, score, timestamp: Date.now() })
+      this.catches.push({ fishId: this.fish.id, score, sizeCm, timestamp: Date.now() })
 
       // 表示更新
       this.scoreValText?.setText(String(this.totalScore))
@@ -487,11 +552,11 @@ export default class GameScene extends Phaser.Scene {
       this._saveProgress()
 
       this.resultUI.drawResultStripe('caught')
-      this.resLabel.setText('✦ CATCH ✦')
+      this.resLabel.setText('✦ GET! ✦')
       this.resEmoji.setText(this.fish.emoji).setAngle(0)
       this.resName.setText(this.fish.name)
-      this.resPts.setText(`+${score} pts 🎉`)
-      this.resHint.setText('タップで続ける')
+      this.resPts.setText(`${sizeCm}cm  +${score}pt`)
+      this.resHint.setText('タップで続ける / 図鑑に記録')
 
       this.resultEmojiTween?.destroy()
       this.resultEmojiTween = this.tweens.add({
@@ -503,11 +568,16 @@ export default class GameScene extends Phaser.Scene {
       this.resLabel.setText('✕ ESCAPED ✕')
       this.resEmoji.setText('💨').setAngle(0)
       this.resName.setText('逃げられた…')
-      this.resPts.setText('')
+      this.resPts.setText('竿やエサを強化すると安定する')
       this.resHint.setText('タップで再挑戦')
       this.cameras.main.flash(400, 255, 0, 0)
     }
     this.resultOverlay.setVisible(true)
+  }
+
+  _rollFishSize(fish) {
+    const [min, max] = RARITY_SIZE[fish.rarity] ?? [20, 50]
+    return Math.round(Phaser.Math.FloatBetween(min, max) * 10) / 10
   }
 
   _syncBattleUI() {

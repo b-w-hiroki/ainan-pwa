@@ -4,7 +4,7 @@ import { ICONS } from '../config/icons.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const TABS = [
-  { key: 'home', icon: '⌂', label: 'ホーム', scene: 'HomeScene', x: 0.16 },
+  { key: 'home', icon: ICONS.HOME, label: 'ホーム', scene: 'HomeScene', x: 0.16 },
   { key: 'book', icon: ICONS.BOOK, label: '図鑑', scene: 'CollectionScene', x: 0.34 },
   { key: 'fish', icon: ICONS.ROD, label: '釣り', scene: 'MapScene', x: 0.50, primary: true },
   { key: 'upgrade', icon: ICONS.GEAR, label: '強化', scene: 'UpgradeScene', x: 0.66 },

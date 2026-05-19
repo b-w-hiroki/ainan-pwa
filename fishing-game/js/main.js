@@ -6,6 +6,9 @@ import GameScene from './scenes/GameScene.js'
 import CollectionScene from './scenes/CollectionScene.js'
 import UpgradeScene from './scenes/UpgradeScene.js'
 import ExchangeScene from './scenes/ExchangeScene.js'
+import MissionScene from './scenes/MissionScene.js'
+import LicenseScene from './scenes/LicenseScene.js'
+import RankScene from './scenes/RankScene.js'
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
@@ -16,6 +19,7 @@ const config = {
     pixelArt: false,
     antialias: true,
     roundPixels: true,
+    resolution: Math.min(window.devicePixelRatio ?? 1, 2),
   },
   scale: {
     mode: Phaser.Scale.FIT,
@@ -23,7 +27,7 @@ const config = {
     width: 390,
     height: 844,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene],
 }
 
 function startGame() {

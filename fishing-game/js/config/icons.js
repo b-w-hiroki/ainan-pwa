@@ -18,6 +18,10 @@ export const ICONS = {
   GEAR:     '⚙️',
   COMING:   '⏳',
   STAR:     '★',
+  HOME:     '🏠',
+  MISSION:  '✅',
+  LICENSE:  '📋',
+  RANK:     '⭐',
 }
 
 export const SEASON_ICON  = { spring: '🌸', summer: '☀️', autumn: '🍁', winter: '❄️' }
