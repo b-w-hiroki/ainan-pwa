@@ -24,6 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
+import { getEquipment, getInventory } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class GameScene extends Phaser.Scene {
@@ -37,13 +38,9 @@ export default class GameScene extends Phaser.Scene {
       ...getDefaultEnv(),
       ...data,
       player: {
-        rodType:    'carbon',
-        baitType:   'worm',
+        ...getEquipment(),
         skillLevel: 1,
-        inventory: {
-          rods:  { basic: 1, carbon: 1, premium: 0 },
-          baits: { worm: 12, shrimp: 5, special: 2 },
-        },
+        inventory: getInventory(),
         ...data.player,
       },
     }

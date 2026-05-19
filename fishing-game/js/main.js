@@ -3,6 +3,9 @@ import TitleScene from './scenes/TitleScene.js'
 import HomeScene from './scenes/HomeScene.js'
 import MapScene from './scenes/MapScene.js'
 import GameScene from './scenes/GameScene.js'
+import CollectionScene from './scenes/CollectionScene.js'
+import UpgradeScene from './scenes/UpgradeScene.js'
+import ExchangeScene from './scenes/ExchangeScene.js'
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
@@ -20,7 +23,7 @@ const config = {
     width: 390,
     height: 844,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene],
 }
 
 function startGame() {

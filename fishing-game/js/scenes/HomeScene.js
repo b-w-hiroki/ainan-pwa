@@ -3,6 +3,7 @@ import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -178,6 +179,8 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildFooter(W, H) {
+    buildFooterNav(this, W, H, 'home')
+    return
     const y = H - 60
     const bar = this.add.graphics().setDepth(30)
     bar.fillStyle(0xffffff, 0.96)
