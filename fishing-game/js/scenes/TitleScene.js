@@ -1,4 +1,5 @@
-﻿import { FONT, SHADOW } from '../config/fontStyles.js'
+﻿import Phaser from 'phaser'
+import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
