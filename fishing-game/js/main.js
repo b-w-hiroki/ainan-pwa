@@ -9,7 +9,6 @@ const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
   backgroundColor: '#ffe0a0',
-  // 対処1: roundPixels で文字のサブピクセルにじみを防ぐ
   render: {
     pixelArt: false,
     antialias: true,
@@ -25,18 +24,19 @@ const config = {
 }
 
 function startGame() {
-  new Phaser.Game(config)
+  const game = new Phaser.Game(config)
+  window.__game = game
 }
 
-// 対処4: WebFont が読み込まれる前に描画されるにじみを防ぐ
+// フォント読み込み完了後にゲームを起動し、初回描画のにじみを抑える。
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
-      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800'],
+      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800,900'],
     },
     active: startGame,
-    inactive: startGame,  // フォント失敗時もゲームを起動する
-    timeout: 2000,        // 2秒でタイムアウトして起動
+    inactive: startGame,
+    timeout: 2000,
   })
 } else {
   startGame()
