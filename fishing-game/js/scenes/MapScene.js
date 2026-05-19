@@ -95,6 +95,7 @@ export default class MapScene extends Phaser.Scene {
     this._buildRouteLine(W, H)
 
     this._detailPanel = null
+    this._dismissLayer = null
 
     // ─── 釣り場スポット ──────────────────────────
     FISHING_POINTS.forEach((point, i) => {
@@ -298,7 +299,7 @@ export default class MapScene extends Phaser.Scene {
 
   _showPointDetail(point, index) {
     const { width: W, height: H } = this.scale
-    this._detailPanel?.destroy(true)
+    this._closePointDetail()
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
@@ -308,6 +309,11 @@ export default class MapScene extends Phaser.Scene {
     const w = W * 0.88
     const h = 166
     const items = []
+
+    this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0)
+      .setDepth(19)
+      .setInteractive({ useHandCursor: false })
+      .on('pointerdown', () => this._closePointDetail())
 
     const sh = this.add.graphics()
     sh.fillStyle(0x000000, 0.20)
@@ -398,6 +404,13 @@ export default class MapScene extends Phaser.Scene {
       duration: 180,
       ease: 'Sine.easeOut',
     })
+  }
+
+  _closePointDetail() {
+    this._detailPanel?.destroy(true)
+    this._detailPanel = null
+    this._dismissLayer?.destroy()
+    this._dismissLayer = null
   }
 
   _addDifficultyTo(items, rightX, topY, level) {

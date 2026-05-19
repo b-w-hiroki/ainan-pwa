@@ -202,8 +202,17 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(x + 74, y + 45, desc, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '800', color: '#4a7090',
-      wordWrap: { width: w - 100 },
+      wordWrap: { width: w - 128 },
     }).setOrigin(0, 0.5).setDepth(13)
+    const chevronBg = this.add.graphics().setDepth(13)
+    chevronBg.fillStyle(0xffffff, 0.94)
+    chevronBg.lineStyle(2, accent, 0.8)
+    chevronBg.fillCircle(x + w - 28, y + h / 2, 16)
+    chevronBg.strokeCircle(x + w - 28, y + h / 2, 16)
+    this.add.text(x + w - 28, y + h / 2 - 1, ICONS.CHEVRON, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '22px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5).setDepth(13)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(14)
       .setInteractive({ useHandCursor: true })
