@@ -112,7 +112,6 @@ export function selectFish(env) {
   const candidates = FISH_LIST.filter(f => f.habitat.includes(env.point))
 
   if (candidates.length === 0) {
-    console.warn(`[selectFish] habitat:'${env.point}' に対応する魚がいません。FISH_LIST[0] を使用します。`)
     return FISH_LIST[0]
   }
 
