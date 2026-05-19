@@ -21,48 +21,48 @@ export default class TitleScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
 
     const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
-    if (artBg) addReadableOverlay(this, W, H, 1)
+    if (artBg) {
+      addReadableOverlay(this, W, H, 1)
+    } else {
+      const bg = this.add.graphics().setDepth(0)
+      bg.fillGradientStyle(0xffe8b8, 0xffe8b8, 0xa0d6ee, 0xa0d6ee, 1)
+      bg.fillRect(0, 0, W, H * 0.55)
+      bg.fillGradientStyle(0x5db3df, 0x5db3df, 0x1f6996, 0x1f6996, 1)
+      bg.fillRect(0, H * 0.55, W, H * 0.45)
 
-    // ─── 背景：画像がない時のフォールバック ───────────────
-    const bg = this.add.graphics().setDepth(0)
-    bg.setVisible(!artBg)
-    bg.fillGradientStyle(0xffe8b8, 0xffe8b8, 0xa0d6ee, 0xa0d6ee, 1)
-    bg.fillRect(0, 0, W, H * 0.55)
-    bg.fillGradientStyle(0x5db3df, 0x5db3df, 0x1f6996, 0x1f6996, 1)
-    bg.fillRect(0, H * 0.55, W, H * 0.45)
+      // 太陽
+      bg.fillStyle(0xffe066, 1)
+      bg.fillCircle(W * 0.5, H * 0.42, 56)
+      bg.fillStyle(0xfff3b0, 0.5)
+      bg.fillCircle(W * 0.5, H * 0.42, 86)
+      bg.fillStyle(0xffe9a0, 0.25)
+      bg.fillCircle(W * 0.5, H * 0.42, 118)
 
-    // 太陽
-    bg.fillStyle(0xffe066, 1)
-    bg.fillCircle(W * 0.5, H * 0.42, 56)
-    bg.fillStyle(0xfff3b0, 0.5)
-    bg.fillCircle(W * 0.5, H * 0.42, 86)
-    bg.fillStyle(0xffe9a0, 0.25)
-    bg.fillCircle(W * 0.5, H * 0.42, 118)
+      // 太陽の海面反射
+      bg.fillStyle(0xffd86b, 0.32)
+      bg.fillRect(W * 0.40, H * 0.555, W * 0.20, 4)
+      ;[0.58, 0.62, 0.68, 0.76, 0.84].forEach((f, i) => {
+        bg.fillStyle(0xffd86b, 0.18 - i * 0.025)
+        const w = W * (0.20 + i * 0.05)
+        bg.fillRect((W - w) / 2, H * f, w, 2.5)
+      })
 
-    // 太陽の海面反射
-    bg.fillStyle(0xffd86b, 0.32)
-    bg.fillRect(W * 0.40, H * 0.555, W * 0.20, 4)
-    ;[0.58, 0.62, 0.68, 0.76, 0.84].forEach((f, i) => {
-      bg.fillStyle(0xffd86b, 0.18 - i * 0.025)
-      const w = W * (0.20 + i * 0.05)
-      bg.fillRect((W - w) / 2, H * f, w, 2.5)
-    })
+      // 水面のセルシェードストライプ（白）
+      bg.fillStyle(0xffffff, 0.16)
+      bg.fillRect(0, H * 0.66, W, 2)
+      bg.fillStyle(0xffffff, 0.10)
+      bg.fillRect(0, H * 0.74, W, 2)
+      bg.fillStyle(0xffffff, 0.06)
+      bg.fillRect(0, H * 0.84, W, 2)
 
-    // 水面のセルシェードストライプ（白）
-    bg.fillStyle(0xffffff, 0.16)
-    bg.fillRect(0, H * 0.66, W, 2)
-    bg.fillStyle(0xffffff, 0.10)
-    bg.fillRect(0, H * 0.74, W, 2)
-    bg.fillStyle(0xffffff, 0.06)
-    bg.fillRect(0, H * 0.84, W, 2)
+      // 雲（背景）
+      this._drawCloud(bg, W * 0.15, H * 0.18, 0.9)
+      this._drawCloud(bg, W * 0.82, H * 0.12, 0.65)
 
-    // 雲（背景）
-    this._drawCloud(bg, W * 0.15, H * 0.18, 0.9)
-    this._drawCloud(bg, W * 0.82, H * 0.12, 0.65)
-
-    // 鳥のシルエット
-    this._drawBird(bg, W * 0.20, H * 0.30)
-    this._drawBird(bg, W * 0.74, H * 0.34, 0.7)
+      // 鳥のシルエット
+      this._drawBird(bg, W * 0.20, H * 0.30)
+      this._drawBird(bg, W * 0.74, H * 0.34, 0.7)
+    }
 
     // ─── ロゴ ──────────────────────────────────────
     const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(5)

@@ -14,15 +14,12 @@ export class BackgroundManager {
     this._fishGfx = []
     /** @type {Phaser.Tweens.Tween[]} */
     this._fishTweens = []
-    this._usesArtBackground = false
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // BACKGROUND
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   buildBackground(W, H, pointId = 'pointA') {
-    this._usesArtBackground = false
-
     const g = this.scene.add.graphics().setDepth(0)
     const theme = this._themeForPoint(pointId)
 
@@ -237,23 +234,14 @@ export class BackgroundManager {
   // FISH SHADOWS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   spawnFish(W, H) {
-    this._fishDefs = this._usesArtBackground
-      ? [
-          { t: 'common',   y: 0.48, dur: 8000,  delay: 0,    sc: 0.85, rtl: false },
-          { t: 'common',   y: 0.56, dur: 10000, delay: 1500, sc: 0.75, rtl: true },
-          { t: 'common',   y: 0.66, dur: 9000,  delay: 3000, sc: 0.65, rtl: false },
-          { t: 'uncommon', y: 0.52, dur: 7000,  delay: 2000, sc: 1.20, rtl: false },
-          { t: 'uncommon', y: 0.70, dur: 12000, delay: 4000, sc: 1.05, rtl: true },
-          { t: 'rare',     y: 0.61, dur: 14000, delay: 4000, sc: 1.55, rtl: false },
-        ]
-      : [
-          { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
-          { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
-          { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
-          { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
-          { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
-          { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
-        ]
+    this._fishDefs = [
+      { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
+      { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
+      { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
+      { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
+      { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
+      { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
+    ]
     this._fishGfx = []
     this._fishTweens = []
 
