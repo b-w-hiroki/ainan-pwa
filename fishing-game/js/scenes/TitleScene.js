@@ -23,6 +23,7 @@ export default class TitleScene extends Phaser.Scene {
     const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
     if (artBg) {
       addReadableOverlay(this, W, H, 1)
+      this._buildDaytimeAccents(W, H)
     } else {
       const bg = this.add.graphics().setDepth(0)
       bg.fillGradientStyle(0xffe8b8, 0xffe8b8, 0xa0d6ee, 0xa0d6ee, 1)
@@ -165,5 +166,34 @@ export default class TitleScene extends Phaser.Scene {
     g.lineTo(cx + s * 0.5, cy - s * 0.5)
     g.lineTo(cx + s, cy)
     g.strokePath()
+  }
+
+  _buildDaytimeAccents(W, H) {
+    const g = this.add.graphics().setDepth(2)
+
+    g.fillGradientStyle(0x42c8ff, 0x42c8ff, 0xffffff, 0xffffff, 0.18, 0.18, 0.02, 0.02)
+    g.fillRect(0, 0, W, H * 0.34)
+    g.fillStyle(0xffffff, 0.14)
+    g.fillCircle(W * 0.82, H * 0.34, 52)
+    g.fillCircle(W * 0.82, H * 0.34, 82)
+
+    this._drawWhiteCloud(g, W * 0.18, H * 0.13, 0.62)
+    this._drawWhiteCloud(g, W * 0.82, H * 0.18, 0.48)
+    this._drawBird(g, W * 0.62, H * 0.12, 0.85)
+    this._drawBird(g, W * 0.72, H * 0.16, 0.62)
+
+    g.lineStyle(2, 0xffffff, 0.36)
+    g.lineBetween(W * 0.12, H * 0.47, W * 0.38, H * 0.46)
+    g.lineBetween(W * 0.60, H * 0.50, W * 0.88, H * 0.49)
+  }
+
+  _drawWhiteCloud(g, cx, cy, sc) {
+    const w = 86 * sc
+    const h = 20 * sc
+    g.fillStyle(0xffffff, 0.72)
+    g.fillRoundedRect(cx - w / 2, cy - h / 2, w, h, h / 2)
+    g.fillCircle(cx - w * 0.22, cy - h * 0.55, h * 0.95)
+    g.fillCircle(cx + w * 0.08, cy - h * 0.64, h * 0.82)
+    g.fillCircle(cx + w * 0.34, cy - h * 0.36, h * 0.58)
   }
 }

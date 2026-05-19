@@ -12,25 +12,34 @@ const FISHING_POINTS = [
     id:          'pointA',
     name:        '汐風港',
     description: 'アジ・マダイが狙える港の定番ポイント',
+    trait:       '港',
+    summary:     '港の定番スポット',
     difficulty:  1,
     fish:        ['アジ', 'マダイ', 'ブリ'],
     accent:      0x6cc8ff,
+    pos:         { x: 0.35, y: 0.32 },
   },
   {
     id:          'pointB',
     name:        '蒼海湾',
     description: '穏やかな入り江に潜む穴場スポット',
+    trait:       '入り江',
+    summary:     '静かな入り江',
     difficulty:  2,
     fish:        ['アジ', 'ブラックバス'],
     accent:      0xa088ff,
+    pos:         { x: 0.62, y: 0.51 },
   },
   {
     id:          'pointC',
     name:        '黒潮崎',
     description: '伝説のクエが眠る激流の激難ポイント',
+    trait:       '沖磯',
+    summary:     '激流の難所',
     difficulty:  3,
     fish:        ['マダイ', 'ブリ', 'クエ'],
     accent:      0xff7d57,
+    pos:         { x: 0.38, y: 0.70 },
   },
 ]
 
@@ -53,23 +62,31 @@ export default class MapScene extends Phaser.Scene {
     this._buildBackBtn(W, H)
 
     // ─── タイトル ──────────────────────────────
-    this.add.text(W / 2, 66, '釣り場を選ぼう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '30px', fontWeight: '900',
-      color: '#1a3a5a',
-      shadow: SHADOW.medium,
-    }).setOrigin(0.5).setDepth(2)
+    const header = this.add.graphics().setDepth(4)
+    header.fillStyle(0xffffff, 0.78)
+    header.lineStyle(2, 0xffffff, 0.55)
+    header.fillRoundedRect(82, 54, W - 104, 58, 18)
+    header.strokeRoundedRect(82, 54, W - 104, 58, 18)
 
-    this.add.text(W / 2, 102, '釣り場によって出る魚が変わるよ', {
+    this.add.text(W / 2 + 22, 74, '釣り場を選ぼう', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '27px', fontWeight: '900',
+      color: '#1a3a5a',
+      shadow: SHADOW.subtle,
+    }).setOrigin(0.5).setDepth(5)
+
+    this.add.text(W / 2 + 22, 101, '釣り場によって出る魚が変わるよ', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '700',
       color: '#4a7090',
       shadow: SHADOW.subtle,
-    }).setOrigin(0.5).setDepth(2)
+    }).setOrigin(0.5).setDepth(5)
 
-    // ─── 釣り場カード ──────────────────────────
+    this._buildRouteLine(W, H)
+
+    // ─── 釣り場スポット ──────────────────────────
     FISHING_POINTS.forEach((point, i) => {
-      this._buildPointCard(point, W, 194 + i * 168)
+      this._buildPointCard(point, W, H, i)
     })
   }
 
@@ -81,8 +98,9 @@ export default class MapScene extends Phaser.Scene {
       veil.fillRect(0, 0, W, H)
       veil.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.30, 0.30, 0.08, 0.08)
       veil.fillRect(0, 0, W, H * 0.24)
-      veil.fillGradientStyle(0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0.22, 0.22, 0.34, 0.34)
-      veil.fillRect(W * 0.04, H * 0.12, W * 0.92, H * 0.82)
+      veil.fillGradientStyle(0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0xeaf8ff, 0.08, 0.08, 0.24, 0.24)
+      veil.fillRect(W * 0.04, H * 0.15, W * 0.92, H * 0.80)
+      this._buildSeaDecorations(W, H)
       return
     }
 
@@ -137,6 +155,58 @@ export default class MapScene extends Phaser.Scene {
     bg.strokeCircle(W * 0.84, H * 0.20, 34)
   }
 
+  _buildSeaDecorations(W, H) {
+    const g = this.add.graphics().setDepth(1.6)
+
+    g.fillStyle(0x6dc2e8, 0.34)
+    g.fillEllipse(W * 0.78, H * 0.20, 112, 22)
+    g.fillEllipse(W * 0.26, H * 0.83, 84, 18)
+
+    this._drawTinyBoat(g, W * 0.78, H * 0.27, 0.82)
+    this._drawTinyBoat(g, W * 0.58, H * 0.74, 0.68)
+    this._drawBuoy(g, W * 0.27, H * 0.45, 0xff4f4f)
+    this._drawBuoy(g, W * 0.72, H * 0.61, 0xffd43b)
+
+    g.lineStyle(2, 0xffffff, 0.34)
+    this._drawDashedLine(g, W * 0.22, H * 0.33, W * 0.74, H * 0.26, 7, 7)
+    this._drawDashedLine(g, W * 0.66, H * 0.56, W * 0.36, H * 0.75, 7, 7)
+  }
+
+  _drawTinyBoat(g, x, y, sc = 1) {
+    g.fillStyle(0xffffff, 0.88)
+    g.fillRoundedRect(x - 16 * sc, y - 4 * sc, 32 * sc, 9 * sc, 4 * sc)
+    g.fillStyle(0x2c78a8, 0.78)
+    g.fillTriangle(x - 4 * sc, y - 5 * sc, x + 9 * sc, y - 18 * sc, x + 9 * sc, y - 5 * sc)
+    g.lineStyle(1.5 * sc, 0xffffff, 0.56)
+    g.lineBetween(x - 24 * sc, y + 8 * sc, x - 44 * sc, y + 10 * sc)
+    g.lineBetween(x + 20 * sc, y + 8 * sc, x + 38 * sc, y + 9 * sc)
+  }
+
+  _drawBuoy(g, x, y, color) {
+    g.fillStyle(0xffffff, 0.92)
+    g.fillCircle(x, y, 7)
+    g.fillStyle(color, 0.92)
+    g.fillCircle(x, y, 4)
+    g.lineStyle(2, 0xffffff, 0.45)
+    g.strokeCircle(x, y, 10)
+  }
+
+  _buildRouteLine(W, H) {
+    const g = this.add.graphics().setDepth(2.4)
+    g.lineStyle(4, 0xffffff, 0.70)
+    for (let i = 0; i < FISHING_POINTS.length - 1; i++) {
+      const a = FISHING_POINTS[i]
+      const b = FISHING_POINTS[i + 1]
+      this._drawDashedLine(g, W * a.pos.x, H * a.pos.y, W * b.pos.x, H * b.pos.y, 10, 8)
+    }
+    g.lineStyle(2, 0x1a3a5a, 0.18)
+    for (let i = 0; i < FISHING_POINTS.length - 1; i++) {
+      const a = FISHING_POINTS[i]
+      const b = FISHING_POINTS[i + 1]
+      this._drawDashedLine(g, W * a.pos.x, H * a.pos.y, W * b.pos.x, H * b.pos.y, 10, 8)
+    }
+  }
+
   _drawDashedLine(g, x1, y1, x2, y2, dash, gap) {
     const dx = x2 - x1
     const dy = y2 - y1
@@ -149,22 +219,24 @@ export default class MapScene extends Phaser.Scene {
     }
   }
 
-  _buildPointCard(point, W, cy) {
-    const cardX = W * 0.06
-    const cardW = W * 0.88
-    const cardH = 148
-    const cardY = cy - cardH / 2
+  _buildPointCard(point, W, H, index) {
+    const anchorY = H * point.pos.y
+    const cardW = W * 0.82
+    const cardH = 116
+    const cardX = index === 1 ? W * 0.12 : W * 0.08
+    const cardY = anchorY - 34
+    const cy = cardY + cardH / 2
 
     // 影
-    const sh = this.add.graphics().setDepth(1)
+    const sh = this.add.graphics().setDepth(3)
     sh.fillStyle(0x000000, 0.18)
     sh.fillRoundedRect(cardX + 3, cardY + 4, cardW, cardH, 18)
 
     // 本体
-    const card = this.add.graphics().setDepth(2)
+    const card = this.add.graphics().setDepth(4)
     const drawCard = (fillColor) => {
       card.clear()
-      card.fillStyle(fillColor, 1)
+      card.fillStyle(fillColor, 0.96)
       card.lineStyle(2.5, 0x1a2a3a, 1)
       card.fillRoundedRect(cardX, cardY, cardW, cardH, 18)
       card.strokeRoundedRect(cardX, cardY, cardW, cardH, 18)
@@ -172,50 +244,60 @@ export default class MapScene extends Phaser.Scene {
     drawCard(0xffffff)
 
     // 左の色アクセントバー
-    const accent = this.add.graphics().setDepth(3)
+    const accent = this.add.graphics().setDepth(5)
     accent.fillStyle(point.accent, 1)
-    accent.fillRoundedRect(cardX, cardY, 8, cardH, { tl: 18, bl: 18, tr: 0, br: 0 })
+    accent.fillRoundedRect(cardX, cardY, 10, cardH, { tl: 18, bl: 18, tr: 0, br: 0 })
 
     // 左上アイコン円
-    const iconR = 28
+    const iconR = 24
     const iconX = cardX + 38
-    const iconY = cardY + 38
-    const iconBg = this.add.graphics().setDepth(3)
+    const iconY = cardY + 34
+    const iconBg = this.add.graphics().setDepth(5)
     iconBg.fillStyle(point.accent, 0.18)
     iconBg.fillCircle(iconX, iconY, iconR)
     iconBg.lineStyle(2, point.accent, 1)
     iconBg.strokeCircle(iconX, iconY, iconR)
     this.add.text(iconX, iconY, POINT_ICON[point.id] ?? ICONS.FISH, {
       fontSize: '28px', resolution: TEXT_RES,
-    }).setOrigin(0.5).setDepth(4)
+    }).setOrigin(0.5).setDepth(6)
+
+    const numBg = this.add.graphics().setDepth(6)
+    numBg.fillStyle(point.accent, 1)
+    numBg.lineStyle(2, 0xffffff, 1)
+    numBg.fillCircle(cardX + 15, cardY + 18, 13)
+    numBg.strokeCircle(cardX + 15, cardY + 18, 13)
+    this.add.text(cardX + 15, cardY + 18, `${index + 1}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '11px', fontWeight: '900', color: '#ffffff',
+    }).setOrigin(0.5).setDepth(7)
 
     // ポイント名
-    this.add.text(cardX + 82, cardY + 18, point.name, {
+    this.add.text(cardX + 74, cardY + 17, point.name, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '22px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '21px', fontWeight: '900', color: '#1a3a5a',
       shadow: SHADOW.subtle,
-    }).setOrigin(0, 0).setDepth(4)
+    }).setOrigin(0, 0).setDepth(6)
 
     // 難易度バッジ（右上）
-    this._buildDifficultyBadge(cardX + cardW - 16, cardY + 16, point.difficulty)
+    this._buildDifficultyBadge(cardX + cardW - 14, cardY + 14, point.difficulty, 6)
 
     // 説明文
-    this.add.text(cardX + 82, cardY + 50, point.description, {
+    this.add.text(cardX + 74, cardY + 49, point.summary, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '700', color: '#4a7090',
-      wordWrap: { width: cardW - 152 },
-    }).setOrigin(0, 0).setDepth(4)
+      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+      wordWrap: { width: cardW - 160 },
+    }).setOrigin(0, 0).setDepth(6)
 
     // 魚種チップ
-    const chipY = cardY + cardH - 42
-    let chipX = cardX + 18
+    const chipY = cardY + cardH - 34
+    let chipX = cardX + 20
     point.fish.forEach(name => {
       const padX = 9
-      const chipBg = this.add.graphics().setDepth(3)
+      const chipBg = this.add.graphics().setDepth(5)
       const txt = this.add.text(chipX + padX, chipY + 12, name, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontWeight: '800', color: '#1a3a5a',
-      }).setOrigin(0, 0.5).setDepth(4)
+        fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
+      }).setOrigin(0, 0.5).setDepth(6)
       const w = txt.width + padX * 2
       chipBg.fillStyle(point.accent, 0.18)
       chipBg.lineStyle(1.5, point.accent, 0.85)
@@ -226,8 +308,8 @@ export default class MapScene extends Phaser.Scene {
 
     // 右端シェブロン（タップ誘導）
     const chevY = cy
-    const chevX = cardX + cardW - 26
-    const chevBg = this.add.graphics().setDepth(3)
+    const chevX = cardX + cardW - 24
+    const chevBg = this.add.graphics().setDepth(5)
     chevBg.fillStyle(point.accent, 0.18)
     chevBg.lineStyle(2, point.accent, 0.85)
     chevBg.fillCircle(chevX, chevY, 18)
@@ -235,11 +317,11 @@ export default class MapScene extends Phaser.Scene {
     this.add.text(chevX, chevY, ICONS.CHEVRON, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '30px', fontWeight: '900', color: '#1a2a3a',
-    }).setOrigin(0.5, 0.5).setDepth(4)
+    }).setOrigin(0.5, 0.5).setDepth(6)
 
     // 透明ヒットエリア（カード全体）
-    const hit = this.add.rectangle(W / 2, cy, cardW, cardH)
-      .setDepth(5)
+    const hit = this.add.rectangle(cardX + cardW / 2, cy, cardW, cardH)
+      .setDepth(8)
       .setInteractive({ useHandCursor: true })
     hit.on('pointerdown', () => {
       this.tweens.add({ targets: card, scaleX: 0.98, scaleY: 0.98, duration: 80, yoyo: true })
@@ -249,8 +331,8 @@ export default class MapScene extends Phaser.Scene {
     hit.on('pointerout',  () => drawCard(0xffffff))
   }
 
-  _buildDifficultyBadge(rightX, topY, level) {
-    const STAR_W = 16
+  _buildDifficultyBadge(rightX, topY, level, depth = 4) {
+    const STAR_W = 15
     const GAP = 2
     const totalW = STAR_W * 3 + GAP * 2
     const startX = rightX - totalW
@@ -259,16 +341,16 @@ export default class MapScene extends Phaser.Scene {
       const tx = startX + i * (STAR_W + GAP) + STAR_W / 2
       const ty = topY + STAR_W / 2
       this.add.text(tx, ty, ICONS.STAR, {
-        fontSize: '17px', resolution: TEXT_RES,
+        fontSize: '16px', resolution: TEXT_RES,
         color: filled ? '#e6a800' : '#b9c5d1', fontWeight: '900',
-      }).setOrigin(0.5).setDepth(4)
+      }).setOrigin(0.5).setDepth(depth)
     }
     const label = ['かんたん', 'ふつう', 'むずかしい'][level - 1] ?? ''
     this.add.text(rightX, topY + 20, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '800',
+      fontSize: '11px', fontWeight: '900',
       color: level === 3 ? '#cc4422' : (level === 2 ? '#cc7700' : '#0077cc'),
-    }).setOrigin(1, 0).setDepth(4)
+    }).setOrigin(1, 0).setDepth(depth)
   }
 
   _buildBackBtn(W, H) {

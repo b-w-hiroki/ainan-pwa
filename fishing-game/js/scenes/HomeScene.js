@@ -47,6 +47,44 @@ export default class HomeScene extends Phaser.Scene {
     veil.fillRect(0, H * 0.22, W, H * 0.58)
     veil.fillGradientStyle(0x1a2a3a, 0x1a2a3a, 0x1a2a3a, 0x1a2a3a, 0.0, 0.0, 0.22, 0.22)
     veil.fillRect(0, H * 0.74, W, H * 0.26)
+
+    this._buildHarborAccents(W, H)
+  }
+
+  _buildHarborAccents(W, H) {
+    const g = this.add.graphics().setDepth(2)
+
+    g.fillGradientStyle(0x38c5ff, 0x38c5ff, 0xffffff, 0xffffff, 0.16, 0.16, 0.00, 0.00)
+    g.fillRect(0, 0, W, H * 0.26)
+
+    g.lineStyle(2, 0xffffff, 0.34)
+    g.lineBetween(W * 0.18, H * 0.48, W * 0.42, H * 0.47)
+    g.lineBetween(W * 0.58, H * 0.51, W * 0.84, H * 0.50)
+    g.lineBetween(W * 0.12, H * 0.62, W * 0.30, H * 0.61)
+
+    this._drawTinySail(g, W * 0.78, H * 0.33, 0.78)
+    this._drawTinySail(g, W * 0.26, H * 0.54, 0.60)
+    this._drawHomeBuoy(g, W * 0.67, H * 0.58, 0xffd43b)
+    this._drawHomeBuoy(g, W * 0.34, H * 0.64, 0xff6a3d)
+  }
+
+  _drawTinySail(g, x, y, sc = 1) {
+    g.fillStyle(0xffffff, 0.82)
+    g.fillRoundedRect(x - 15 * sc, y + 7 * sc, 30 * sc, 7 * sc, 4 * sc)
+    g.fillStyle(0x2a9bd6, 0.68)
+    g.fillTriangle(x - 3 * sc, y + 6 * sc, x + 9 * sc, y - 15 * sc, x + 9 * sc, y + 6 * sc)
+    g.lineStyle(1.5 * sc, 0xffffff, 0.45)
+    g.lineBetween(x - 26 * sc, y + 18 * sc, x - 43 * sc, y + 18 * sc)
+    g.lineBetween(x + 20 * sc, y + 18 * sc, x + 34 * sc, y + 18 * sc)
+  }
+
+  _drawHomeBuoy(g, x, y, color) {
+    g.fillStyle(0xffffff, 0.80)
+    g.fillCircle(x, y, 6)
+    g.fillStyle(color, 0.88)
+    g.fillCircle(x, y, 3.5)
+    g.lineStyle(1.5, 0xffffff, 0.38)
+    g.strokeCircle(x, y, 9)
   }
 
   _buildHeader(W, H) {
