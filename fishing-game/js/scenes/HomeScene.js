@@ -1,19 +1,12 @@
 ﻿import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
-import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
-import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class HomeScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HomeScene' })
-  }
-
-  preload() {
-    const bg = ASSETS.backgrounds.titleHarborMorning
-    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }
 
   create() {
@@ -29,39 +22,53 @@ export default class HomeScene extends Phaser.Scene {
 
   // ─── 背景：空→海のグラデ + 波のシルエット ─────────────────
   _buildBackground(W, H) {
-    const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
-    if (artBg) {
-      artBg.setAlpha(0.96)
-      addReadableOverlay(this, W, H, 1)
-    }
-
     const bg = this.add.graphics().setDepth(0)
-    bg.setVisible(!artBg)
-    bg.fillGradientStyle(0xfdf5d6, 0xfdf5d6, 0xcfe9fa, 0xcfe9fa, 1)
-    bg.fillRect(0, 0, W, H * 0.55)
-    bg.fillGradientStyle(0x7fc8e8, 0x7fc8e8, 0x4ba3cf, 0x4ba3cf, 1)
-    bg.fillRect(0, H * 0.55, W, H * 0.45)
+    bg.fillGradientStyle(0xfff0bf, 0xfff0bf, 0xbfe8f7, 0xbfe8f7, 1)
+    bg.fillRect(0, 0, W, H * 0.48)
+    bg.fillGradientStyle(0x8bd3e8, 0x8bd3e8, 0x4ba9cc, 0x4ba9cc, 1)
+    bg.fillRect(0, H * 0.48, W, H * 0.24)
+    bg.fillGradientStyle(0xe8c982, 0xe8c982, 0xbf8b45, 0xbf8b45, 1)
+    bg.fillRect(0, H * 0.72, W, H * 0.28)
 
     // 太陽
     bg.fillStyle(0xffe066, 1)
-    bg.fillCircle(W * 0.78, H * 0.18, 32)
+    bg.fillCircle(W * 0.80, H * 0.14, 28)
     bg.fillStyle(0xfff3b0, 0.45)
-    bg.fillCircle(W * 0.78, H * 0.18, 48)
+    bg.fillCircle(W * 0.80, H * 0.14, 44)
 
     // 雲（静的・装飾）
     this._drawCloud(bg, W * 0.18, H * 0.10, 0.9)
-    this._drawCloud(bg, W * 0.5, H * 0.06, 0.65)
+    this._drawCloud(bg, W * 0.55, H * 0.07, 0.65)
+
+    bg.fillStyle(0x7ebd72, 1)
+    bg.fillEllipse(W * 0.20, H * 0.35, W * 0.42, H * 0.12)
+    bg.fillEllipse(W * 0.76, H * 0.37, W * 0.34, H * 0.10)
+    bg.lineStyle(2, 0x9c7640, 0.45)
+    ;[
+      { x: 0.10, y: 0.36, w: 46, h: 34, roof: 0xe87842 },
+      { x: 0.23, y: 0.34, w: 42, h: 30, roof: 0x4aa3c7 },
+      { x: 0.80, y: 0.36, w: 48, h: 32, roof: 0xd39b38 },
+    ].forEach(b => {
+      const x = W * b.x, y = H * b.y
+      bg.fillStyle(b.roof, 1)
+      bg.fillTriangle(x - b.w / 2 - 4, y, x, y - 18, x + b.w / 2 + 4, y)
+      bg.fillStyle(0xfff2c8, 1)
+      bg.fillRoundedRect(x - b.w / 2, y, b.w, b.h, 4)
+      bg.strokeRoundedRect(x - b.w / 2, y, b.w, b.h, 4)
+    })
 
     // 海の上の波シルエット（白ライン）
     bg.fillStyle(0xffffff, 0.7)
-    bg.fillRect(0, H * 0.55, W, 3)
+    bg.fillRect(0, H * 0.48, W, 3)
     bg.fillStyle(0xffffff, 0.35)
-    ;[0.62, 0.70, 0.78, 0.86].forEach(f => {
+    ;[0.54, 0.61, 0.68].forEach(f => {
       bg.fillRect(0, H * f, W, 2)
     })
 
-    // 水面に泳ぐ魚影アニメ
-    this._spawnHomeFishShadows(W, H)
+    bg.fillStyle(0x9b6c36, 0.24)
+    ;[0.76, 0.82, 0.88, 0.94].forEach(f => bg.fillRect(0, H * f, W, 2))
+    bg.lineStyle(4, 0x8a602e, 0.38)
+    bg.lineBetween(W * 0.10, H * 0.73, W * 0.90, H * 0.73)
   }
 
   _drawCloud(g, cx, cy, sc) {

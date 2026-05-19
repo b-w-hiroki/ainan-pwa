@@ -1,5 +1,4 @@
 import { C } from '../../config/palette.js'
-import { addCoverImage } from '../../utils/imageLayout.js'
 
 /**
  * 背景・プレイヤー・魚影の描画とTween管理を担当するマネージャー。
@@ -21,28 +20,14 @@ export class BackgroundManager {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // BACKGROUND
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  buildBackground(W, H, backgroundKey = null) {
-    const artBg = backgroundKey ? addCoverImage(this.scene, backgroundKey, W, H, 0) : null
-    if (artBg) {
-      this._usesArtBackground = true
-      const overlay = this.scene.add.graphics().setDepth(1)
-      overlay.fillGradientStyle(0x0a3550, 0x0a3550, 0x0a3550, 0x0a3550, 0.00, 0.00, 0.36, 0.36)
-      overlay.fillRect(0, H * 0.18, W, H * 0.64)
-      overlay.fillStyle(0xffffff, 0.12)
-      overlay.fillRect(0, H * 0.31, W, 3)
-      overlay.fillStyle(0xffffff, 0.08)
-      overlay.fillRect(0, H * 0.44, W, 2)
-      overlay.fillStyle(0xffffff, 0.06)
-      overlay.fillRect(0, H * 0.58, W, 2)
-      return
-    }
-
+  buildBackground(W, H, pointId = 'pointA') {
     this._usesArtBackground = false
 
     const g = this.scene.add.graphics().setDepth(0)
+    const theme = this._themeForPoint(pointId)
 
     // 空 (0 〜 15%)
-    g.fillGradientStyle(C.SKY_T, C.SKY_T, C.SKY_B, C.SKY_B, 1)
+    g.fillGradientStyle(theme.skyTop, theme.skyTop, theme.skyBottom, theme.skyBottom, 1)
     g.fillRect(0, 0, W, H * 0.15)
 
     // 太陽
@@ -57,11 +42,11 @@ export class BackgroundManager {
     this._cloud(g, W * 0.76, H * 0.03, 0.60)
 
     // 島背景レイヤー (13〜22%)
-    g.fillGradientStyle(0xc8eeff, 0xc8eeff, 0xa8ddf0, 0xa8ddf0, 1)
+    g.fillGradientStyle(theme.farTop, theme.farTop, theme.farBottom, theme.farBottom, 1)
     g.fillRect(0, H * 0.13, W, H * 0.09)
 
     // 島シルエット
-    g.fillStyle(C.ISLAND, 1)
+    g.fillStyle(theme.land, 1)
     g.lineStyle(2.5, C.OUTLINE, 1)
     g.fillEllipse(W * 0.12, H * 0.213, W * 0.19, H * 0.066)
     g.strokeEllipse(W * 0.12, H * 0.213, W * 0.19, H * 0.066)
@@ -75,11 +60,11 @@ export class BackgroundManager {
     g.fillRect(0, H * 0.209, W, 3)
 
     // 海 (22〜84%)
-    g.fillGradientStyle(C.SEA_T, C.SEA_T, C.SEA_B, C.SEA_B, 1)
+    g.fillGradientStyle(theme.seaTop, theme.seaTop, theme.seaBottom, theme.seaBottom, 1)
     g.fillRect(0, H * 0.22, W, H * 0.62)
 
     // 海上部の丸みウェーブ
-    g.fillStyle(C.SEA_T, 1)
+    g.fillStyle(theme.seaTop, 1)
     g.fillEllipse(W * 0.5, H * 0.213, W * 1.12, H * 0.024)
 
     // セルシェーディングストライプ
@@ -90,7 +75,7 @@ export class BackgroundManager {
 
     // 岸 (84〜100%)
     // 草
-    g.fillGradientStyle(C.GRASS_T, C.GRASS_T, C.GRASS_B, C.GRASS_B, 1)
+    g.fillGradientStyle(theme.groundTop, theme.groundTop, theme.groundBottom, theme.groundBottom, 1)
     g.fillRect(0, H * 0.84, W, H * 0.048)
     g.lineStyle(3, 0x3aaa20, 1)
     g.strokeRect(0, H * 0.84, W, H * 0.048)
@@ -98,7 +83,7 @@ export class BackgroundManager {
     // 草の葉
     ;[0.14, 0.24, 0.40, 0.60, 0.72, 0.85].forEach(fx => {
       const tx = W * fx, ty = H * 0.84 + H * 0.048
-      g.fillStyle(C.GRASS_B, 1)
+      g.fillStyle(theme.groundBottom, 1)
       g.fillTriangle(tx, ty, tx - 5, ty + 10, tx + 5, ty + 10)
     })
 
@@ -107,7 +92,7 @@ export class BackgroundManager {
     g.fillRect(0, H * 0.84 + H * 0.046, W, 5)
 
     // 砂
-    g.fillGradientStyle(C.SAND_T, C.SAND_T, C.SAND_B, C.SAND_B, 1)
+    g.fillGradientStyle(theme.deckTop, theme.deckTop, theme.deckBottom, theme.deckBottom, 1)
     g.fillRect(0, H * 0.888, W, H * 0.112)
     g.lineStyle(3, 0xe8c060, 1)
     g.strokeRect(0, H * 0.888, W, H * 0.112)
@@ -129,11 +114,44 @@ export class BackgroundManager {
       { x: 0.295, y: 0.930, w: 16, h: 10 },
       { x: 0.80, y: 0.934, w: 22, h: 13 },
     ].forEach(r => {
-      g.fillStyle(C.ROCK, 1)
+      g.fillStyle(theme.rock, 1)
       g.lineStyle(2.5, C.OUTLINE, 1)
       g.fillEllipse(W * r.x, H * r.y, r.w, r.h)
       g.strokeEllipse(W * r.x, H * r.y, r.w, r.h)
     })
+  }
+
+  _themeForPoint(pointId) {
+    const themes = {
+      pointA: {
+        skyTop: 0x8fd8f2, skyBottom: 0xdcf7ff,
+        farTop: 0xc8eeff, farBottom: 0xa8ddf0,
+        seaTop: 0x5ad8ff, seaBottom: 0x0f496e,
+        land: 0x7bd15f,
+        groundTop: 0x78e040, groundBottom: 0x50c030,
+        deckTop: 0xf0d878, deckBottom: 0xc0a040,
+        rock: 0x585868,
+      },
+      pointB: {
+        skyTop: 0xb7e8de, skyBottom: 0xe7fff5,
+        farTop: 0xd7f2dc, farBottom: 0xb7dfbf,
+        seaTop: 0x65d6ca, seaBottom: 0x145a68,
+        land: 0x66c676,
+        groundTop: 0x82d85a, groundBottom: 0x3da35a,
+        deckTop: 0xeed99a, deckBottom: 0xb99552,
+        rock: 0x5f6b63,
+      },
+      pointC: {
+        skyTop: 0xffd7a6, skyBottom: 0xcfe7ff,
+        farTop: 0xffdfb8, farBottom: 0xa7cfe0,
+        seaTop: 0x48b8d9, seaBottom: 0x123b62,
+        land: 0xa7c468,
+        groundTop: 0xcfc372, groundBottom: 0x8b9852,
+        deckTop: 0xd7ba72, deckBottom: 0x9c7445,
+        rock: 0x66606b,
+      },
+    }
+    return themes[pointId] ?? themes.pointA
   }
 
   _cloud(g, cx, cy, sc) {

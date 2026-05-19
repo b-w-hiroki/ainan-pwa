@@ -12,8 +12,8 @@ export const ASSETS = {
     },
     fishingHarbor: {
       key: 'bg_fishing_harbor',
-      path: 'assets/backgrounds/bg_title_harbor_morning.png',
-      status: 'ready',
+      path: 'assets/backgrounds/bg_fishing_harbor.png',
+      status: 'planned',
     },
     fishingBay: {
       key: 'bg_fishing_bay',
