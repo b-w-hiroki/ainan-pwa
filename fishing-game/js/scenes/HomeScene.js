@@ -22,10 +22,7 @@ export default class HomeScene extends Phaser.Scene {
     this._buildBackground(W, H)
     this._buildHeader(W, H)
     this._buildTitle(W, H)
-    this._buildStatsCard(W, H)
-    this._buildMissionCard(W, H)
     this._buildMainCTA(W, H)
-    this._buildSubMenu(W, H)
     this._buildFooter(W, H)
   }
 
@@ -100,7 +97,7 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildTitle(W, H) {
-    const logoGroup = this.add.container(W / 2, H * 0.145).setDepth(10)
+    const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(10)
 
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
@@ -121,77 +118,17 @@ export default class HomeScene extends Phaser.Scene {
 
     const tagBg = this.add.graphics().setDepth(9)
     tagBg.fillStyle(0x123a54, 0.32)
-    tagBg.fillRoundedRect(W / 2 - 118, H * 0.202 - 15, 236, 30, 15)
-    this.add.text(W / 2, H * 0.202, '釣って、集めて、港をにぎやかに', {
+    tagBg.fillRoundedRect(W / 2 - 118, H * 0.255 - 15, 236, 30, 15)
+    this.add.text(W / 2, H * 0.255, '釣って、集めて、港をにぎやかに', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900',
       color: '#ffffff', shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(10)
   }
 
-  _buildStatsCard(W, H) {
-    const totalScore = parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
-    const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
-    const catchCount = catches.length
-    const uniqueFish = new Set(catches.map(c => c.fishId)).size
-
-    const x = W * 0.08
-    const y = H * 0.258
-    const w = W * 0.84
-    const h = 108
-
-    this._card(x, y, w, h, 3)
-    this._sectionBadge(x + 14, y + 12, 72, 'MY釣果')
-
-    const cols = [
-      { x: x + w * 0.18, icon: ICONS.SCORE, val: totalScore.toLocaleString(), label: 'スコア', color: '#e07800' },
-      { x: x + w * 0.50, icon: ICONS.FISH, val: `${catchCount}`, label: '釣果', color: '#0077cc' },
-      { x: x + w * 0.82, icon: ICONS.BOOK, val: `${uniqueFish}/5`, label: '図鑑', color: '#00aa66' },
-    ]
-
-    cols.forEach(c => {
-      this.add.text(c.x, y + 43, c.icon, { fontSize: '21px', resolution: TEXT_RES })
-        .setOrigin(0.5).setDepth(5)
-      this.add.text(c.x, y + 67, c.val, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '22px', fontWeight: '900', color: c.color,
-      }).setOrigin(0.5).setDepth(5)
-      this.add.text(c.x, y + 89, c.label, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '12px', fontWeight: '900', color: '#365a78',
-      }).setOrigin(0.5).setDepth(5)
-    })
-  }
-
-  _buildMissionCard(W, H) {
-    const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
-    const progress = Math.min(catches.length, 1)
-    const x = W * 0.08
-    const y = H * 0.397
-    const w = W * 0.84
-    const h = 68
-
-    this._card(x, y, w, h, 3)
-    this._sectionBadge(x + 14, y + 10, 86, '本日の目標')
-    this.add.text(x + 24, y + 38, 'まずは1匹釣って、図鑑を増やそう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + w - 22, y + 38, `${progress}/1`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontWeight: '900', color: '#e07800',
-    }).setOrigin(1, 0.5).setDepth(5)
-
-    const bar = this.add.graphics().setDepth(5)
-    bar.fillStyle(0xeaf2f8, 1)
-    bar.fillRoundedRect(x + 24, y + 52, w - 48, 9, 5)
-    bar.fillStyle(progress >= 1 ? 0x00aa66 : 0xffd900, 1)
-    bar.fillRoundedRect(x + 24, y + 52, Math.max(9, (w - 48) * progress), 9, 5)
-  }
-
   _buildMainCTA(W, H) {
     new Button(this, {
-      x: W / 2, y: H * 0.542,
+      x: W / 2, y: H * 0.42,
       w: 306, h: 66,
       label: '釣りに行く',
       icon: ICONS.ROD,
@@ -204,75 +141,12 @@ export default class HomeScene extends Phaser.Scene {
     const hintBg = this.add.graphics().setDepth(9)
     hintBg.fillStyle(0xffffff, 0.88)
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
-    hintBg.fillRoundedRect(W / 2 - 120, H * 0.542 + 38, 240, 27, 14)
-    hintBg.strokeRoundedRect(W / 2 - 120, H * 0.542 + 38, 240, 27, 14)
-    this.add.text(W / 2, H * 0.542 + 52, '釣り場を選んで出発', {
+    hintBg.fillRoundedRect(W / 2 - 120, H * 0.42 + 38, 240, 27, 14)
+    hintBg.strokeRoundedRect(W / 2 - 120, H * 0.42 + 38, 240, 27, 14)
+    this.add.text(W / 2, H * 0.42 + 52, '釣り場を選んで出発', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(10)
-  }
-
-  _buildSubMenu(W, H) {
-    const panelX = W * 0.055
-    const panelY = H * 0.632
-    const panelW = W * 0.89
-    const panelH = H * 0.208
-
-    const panel = this.add.graphics().setDepth(2)
-    panel.fillStyle(0xffffff, 0.74)
-    panel.lineStyle(2, 0xffffff, 0.55)
-    panel.fillRoundedRect(panelX, panelY, panelW, panelH, 18)
-    panel.strokeRoundedRect(panelX, panelY, panelW, panelH, 18)
-
-    this.add.text(W / 2, H * 0.662, '港のメニュー', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontWeight: '900', color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(4)
-
-    const items = [
-      { icon: ICONS.BOOK, label: '図鑑', caption: '魚を集める', color: 0x5ebcff },
-      { icon: ICONS.GEAR, label: 'タックル', caption: '竿・エサ強化', color: 0xa088ff },
-      { icon: ICONS.GIFT, label: '交換所', caption: 'ポイント交換', color: 0xff9b5e },
-    ]
-    const itemW = 94
-    const itemH = 90
-    const gap = 9
-    const startX = W / 2 - (items.length * itemW + (items.length - 1) * gap) / 2 + itemW / 2
-    const cy = H * 0.756
-
-    items.forEach((it, i) => {
-      const cx = startX + i * (itemW + gap)
-      const x = cx - itemW / 2
-      const y = cy - itemH / 2
-      const g = this.add.graphics().setDepth(3)
-      g.fillStyle(0x000000, 0.10)
-      g.fillRoundedRect(x + 2, y + 3, itemW, itemH, 14)
-      g.fillStyle(0xffffff, 0.96)
-      g.lineStyle(2.5, it.color, 0.95)
-      g.fillRoundedRect(x, y, itemW, itemH, 14)
-      g.strokeRoundedRect(x, y, itemW, itemH, 14)
-      g.fillStyle(it.color, 0.18)
-      g.fillCircle(cx, y + 24, 20)
-
-      this.add.text(cx, y + 24, it.icon, { fontSize: '25px', resolution: TEXT_RES })
-        .setOrigin(0.5).setDepth(4)
-      this.add.text(cx, y + 51, it.label, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
-      }).setOrigin(0.5).setDepth(4)
-      this.add.text(cx, y + 68, it.caption, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '10px', fontWeight: '900', color: '#5a7090',
-      }).setOrigin(0.5).setDepth(4)
-
-      const badge = this.add.graphics().setDepth(5)
-      badge.fillStyle(0xff6a3d, 1)
-      badge.fillRoundedRect(x + 10, y + itemH - 19, itemW - 20, 15, 5)
-      this.add.text(cx, y + itemH - 11.5, '実装予定', {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '9px', fontWeight: '900', color: '#ffffff',
-      }).setOrigin(0.5).setDepth(6)
-    })
   }
 
   _buildFooter(W, H) {
@@ -324,29 +198,6 @@ export default class HomeScene extends Phaser.Scene {
       fontWeight: '900',
       color: tab.active ? '#1a3a5a' : '#6b7f8f',
     }).setOrigin(0.5).setDepth(33)
-  }
-
-  _card(x, y, w, h, depth) {
-    const sh = this.add.graphics().setDepth(depth - 1)
-    sh.fillStyle(0x000000, 0.16)
-    sh.fillRoundedRect(x + 3, y + 4, w, h, 18)
-
-    const g = this.add.graphics().setDepth(depth)
-    g.fillStyle(0xffffff, 0.96)
-    g.lineStyle(2.5, 0x1a2a3a, 1)
-    g.fillRoundedRect(x, y, w, h, 18)
-    g.strokeRoundedRect(x, y, w, h, 18)
-    return g
-  }
-
-  _sectionBadge(x, y, w, label) {
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0xffd900, 1)
-    g.fillRoundedRect(x, y, w, 20, 7)
-    this.add.text(x + w / 2, y + 10, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900', color: '#1a2a3a',
-    }).setOrigin(0.5).setDepth(6)
   }
 
   _shortNum(value) {
