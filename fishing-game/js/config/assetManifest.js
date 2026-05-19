@@ -5,6 +5,11 @@ export const ASSETS = {
       path: 'assets/backgrounds/bg_title_harbor_morning.png',
       status: 'ready',
     },
+    homeBase: {
+      key: 'bg_home_base',
+      path: 'assets/backgrounds/bg_home_base.png',
+      status: 'ready',
+    },
     mapTown: {
       key: 'bg_map_town',
       path: 'assets/backgrounds/bg_map_town.png',
