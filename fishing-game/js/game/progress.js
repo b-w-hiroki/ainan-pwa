@@ -159,6 +159,61 @@ export function saveClaimedMissions(claimed) {
   localStorage.setItem('ainan_claimed_missions', JSON.stringify(claimed))
 }
 
+export function getClaimedLicenses() {
+  return readJson('ainan_claimed_licenses', {})
+}
+
+export function saveClaimedLicenses(claimed) {
+  localStorage.setItem('ainan_claimed_licenses', JSON.stringify(claimed))
+}
+
+export function claimLicenseReward(licenseId) {
+  const item = LICENSE_META.find(m => m.id === licenseId)
+  if (!item) return false
+
+  const claimed = getClaimedLicenses()
+  if (claimed[licenseId]) return false
+
+  const inventory = getInventory()
+  switch (licenseId) {
+    case 'go_fishing':
+    case 'use_bait':
+      inventory.baits.worm = (inventory.baits.worm ?? 0) + 5
+      saveInventory(inventory)
+      break
+    case 'check_book':
+      inventory.baits.shrimp = (inventory.baits.shrimp ?? 0) + 2
+      saveInventory(inventory)
+      break
+    case 'upgrade_try':
+      inventory.baits.shrimp = (inventory.baits.shrimp ?? 0) + 3
+      saveInventory(inventory)
+      break
+    case 'license_done':
+      inventory.rods.premium = 1
+      saveInventory(inventory)
+      break
+    case 'first_catch':
+      setScore(getScore() + 80)
+      break
+    case 'equip_rod':
+      setScore(getScore() + 60)
+      break
+    case 'catch_three':
+      setScore(getScore() + 100)
+      break
+    case 'find_spot':
+      setScore(getScore() + 120)
+      break
+    default:
+      break
+  }
+
+  claimed[licenseId] = true
+  saveClaimedLicenses(claimed)
+  return true
+}
+
 export function markBookSeen() {
   localStorage.setItem('ainan_seen_book', '1')
 }
