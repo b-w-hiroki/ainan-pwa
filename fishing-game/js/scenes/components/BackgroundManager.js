@@ -1,4 +1,5 @@
 import { C } from '../../config/palette.js'
+import { addCoverImage } from '../../utils/imageLayout.js'
 
 /**
  * 背景・プレイヤー・魚影の描画とTween管理を担当するマネージャー。
@@ -14,12 +15,30 @@ export class BackgroundManager {
     this._fishGfx = []
     /** @type {Phaser.Tweens.Tween[]} */
     this._fishTweens = []
+    this._usesArtBackground = false
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // BACKGROUND
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  buildBackground(W, H) {
+  buildBackground(W, H, backgroundKey = null) {
+    const artBg = backgroundKey ? addCoverImage(this.scene, backgroundKey, W, H, 0) : null
+    if (artBg) {
+      this._usesArtBackground = true
+      const overlay = this.scene.add.graphics().setDepth(1)
+      overlay.fillGradientStyle(0x0a3550, 0x0a3550, 0x0a3550, 0x0a3550, 0.00, 0.00, 0.36, 0.36)
+      overlay.fillRect(0, H * 0.18, W, H * 0.64)
+      overlay.fillStyle(0xffffff, 0.12)
+      overlay.fillRect(0, H * 0.31, W, 3)
+      overlay.fillStyle(0xffffff, 0.08)
+      overlay.fillRect(0, H * 0.44, W, 2)
+      overlay.fillStyle(0xffffff, 0.06)
+      overlay.fillRect(0, H * 0.58, W, 2)
+      return
+    }
+
+    this._usesArtBackground = false
+
     const g = this.scene.add.graphics().setDepth(0)
 
     // 空 (0 〜 15%)
@@ -200,14 +219,23 @@ export class BackgroundManager {
   // FISH SHADOWS
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   spawnFish(W, H) {
-    this._fishDefs = [
-      { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
-      { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
-      { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
-      { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
-      { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
-      { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
-    ]
+    this._fishDefs = this._usesArtBackground
+      ? [
+          { t: 'common',   y: 0.48, dur: 8000,  delay: 0,    sc: 0.85, rtl: false },
+          { t: 'common',   y: 0.56, dur: 10000, delay: 1500, sc: 0.75, rtl: true },
+          { t: 'common',   y: 0.66, dur: 9000,  delay: 3000, sc: 0.65, rtl: false },
+          { t: 'uncommon', y: 0.52, dur: 7000,  delay: 2000, sc: 1.20, rtl: false },
+          { t: 'uncommon', y: 0.70, dur: 12000, delay: 4000, sc: 1.05, rtl: true },
+          { t: 'rare',     y: 0.61, dur: 14000, delay: 4000, sc: 1.55, rtl: false },
+        ]
+      : [
+          { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
+          { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
+          { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
+          { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
+          { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
+          { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
+        ]
     this._fishGfx = []
     this._fishTweens = []
 

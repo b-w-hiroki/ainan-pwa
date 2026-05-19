@@ -2,6 +2,7 @@
 import { FONT } from '../config/fontStyles.js'
 import { CS } from '../config/palette.js'
 import { DEFAULT_ROD, DEFAULT_BAIT, ROD_STATS, BAIT_STATS } from '../game/params.js'
+import { ASSETS } from '../config/assetManifest.js'
 import { TackleUI } from './components/TackleUI.js'
 import { selectFish } from '../game/fish.js'
 import { buildBiteConfig, randomWaitMs, calcAttractRadius, isInAttractRange } from '../game/bite.js'
@@ -28,6 +29,11 @@ const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
+
+  preload() {
+    const bg = ASSETS.backgrounds.fishingHarbor
+    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+  }
 
   create(data = {}) {
     const { width: W, height: H } = this.scale
@@ -66,7 +72,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ─── レイヤー描画 ────────────────────────────────────────────
     this.bg = new BackgroundManager(this)
-    this.bg.buildBackground(W, H)
+    this.bg.buildBackground(W, H, this._getFishingBackgroundKey())
     this.bg.spawnFish(W, H)
     const anchor         = this.bg.buildPlayer(W, H)
     this.anchorX         = anchor.anchorX
@@ -134,6 +140,11 @@ export default class GameScene extends Phaser.Scene {
     window.addEventListener('beforeunload', this._beforeUnloadHandler)
 
     this._enterCast()
+  }
+
+  _getFishingBackgroundKey() {
+    if (this.env?.point === 'pointA') return ASSETS.backgrounds.fishingHarbor.key
+    return null
   }
 
 

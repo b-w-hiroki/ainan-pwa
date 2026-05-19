@@ -28,7 +28,7 @@ function startGame() {
   window.__game = game
 }
 
-// フォント読み込み完了後にゲームを起動し、初回描画のにじみを抑える。
+// Start after web fonts are ready so the first Phaser text render is stable.
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {

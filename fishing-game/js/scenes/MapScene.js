@@ -40,10 +40,7 @@ export default class MapScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale
 
-    // ─── 背景 ──────────────────────────────────────
-    const bg = this.add.graphics().setDepth(0)
-    bg.fillGradientStyle(0xeaf6ff, 0xeaf6ff, 0xa8ddf0, 0xa8ddf0, 1)
-    bg.fillRect(0, 0, W, H)
+    this._buildMapBackground(W, H)
 
     // ─── 戻るボタン ──────────────────────────────
     this._buildBackBtn(W, H)
@@ -67,6 +64,70 @@ export default class MapScene extends Phaser.Scene {
     FISHING_POINTS.forEach((point, i) => {
       this._buildPointCard(point, W, 184 + i * 170)
     })
+  }
+
+  _buildMapBackground(W, H) {
+    const bg = this.add.graphics().setDepth(0)
+    bg.fillGradientStyle(0xfff2cf, 0xfff2cf, 0xa8ddf0, 0xa8ddf0, 1)
+    bg.fillRect(0, 0, W, H)
+
+    bg.fillGradientStyle(0x78cdec, 0x78cdec, 0x4fa7d6, 0x4fa7d6, 1)
+    bg.fillRoundedRect(W * 0.03, H * 0.17, W * 0.94, H * 0.76, 28)
+
+    bg.fillStyle(0xffffff, 0.26)
+    ;[0.24, 0.34, 0.49, 0.63, 0.79].forEach(f => {
+      bg.fillRoundedRect(W * 0.08, H * f, W * 0.84, 3, 2)
+    })
+
+    bg.fillStyle(0xf2d789, 1)
+    bg.lineStyle(2.5, 0x1a2a3a, 0.22)
+    bg.beginPath()
+    bg.moveTo(0, H * 0.20)
+    bg.lineTo(W * 0.22, H * 0.18)
+    bg.lineTo(W * 0.30, H * 0.31)
+    bg.lineTo(W * 0.19, H * 0.45)
+    bg.lineTo(W * 0.34, H * 0.62)
+    bg.lineTo(W * 0.21, H * 0.82)
+    bg.lineTo(0, H * 0.92)
+    bg.closePath()
+    bg.fillPath()
+    bg.strokePath()
+
+    bg.fillStyle(0x76c65a, 0.82)
+    bg.fillCircle(W * 0.12, H * 0.28, 26)
+    bg.fillCircle(W * 0.19, H * 0.38, 20)
+    bg.fillCircle(W * 0.15, H * 0.72, 28)
+
+    bg.lineStyle(4, 0xffffff, 0.56)
+    const route = [
+      [W * 0.20, H * 0.24],
+      [W * 0.72, H * 0.30],
+      [W * 0.28, H * 0.50],
+      [W * 0.74, H * 0.66],
+      [W * 0.30, H * 0.82],
+    ]
+    for (let i = 0; i < route.length - 1; i++) {
+      const [x1, y1] = route[i]
+      const [x2, y2] = route[i + 1]
+      this._drawDashedLine(bg, x1, y1, x2, y2, 10, 8)
+    }
+
+    bg.fillStyle(0xffffff, 0.30)
+    bg.fillCircle(W * 0.84, H * 0.20, 34)
+    bg.lineStyle(2, 0x1a3a5a, 0.18)
+    bg.strokeCircle(W * 0.84, H * 0.20, 34)
+  }
+
+  _drawDashedLine(g, x1, y1, x2, y2, dash, gap) {
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const len = Math.hypot(dx, dy)
+    const ux = dx / len
+    const uy = dy / len
+    for (let d = 0; d < len; d += dash + gap) {
+      const d2 = Math.min(d + dash, len)
+      g.lineBetween(x1 + ux * d, y1 + uy * d, x1 + ux * d2, y1 + uy * d2)
+    }
   }
 
   _buildPointCard(point, W, cy) {
@@ -123,7 +184,7 @@ export default class MapScene extends Phaser.Scene {
     this.add.text(cardX + 82, cardY + 50, point.description, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '700', color: '#4a7090',
-      wordWrap: { width: cardW - 108 },
+      wordWrap: { width: cardW - 152 },
     }).setOrigin(0, 0).setDepth(4)
 
     // 魚種チップ

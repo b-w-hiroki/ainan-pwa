@@ -1,6 +1,8 @@
 ﻿import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
+import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -9,11 +11,20 @@ export default class TitleScene extends Phaser.Scene {
     super({ key: 'TitleScene' })
   }
 
+  preload() {
+    const bg = ASSETS.backgrounds.titleHarborMorning
+    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+  }
+
   create() {
     const { width: W, height: H } = this.scale
 
-    // ─── 背景：朝焼け→海のグラデ + 太陽 ───────────────
+    const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
+    if (artBg) addReadableOverlay(this, W, H, 1)
+
+    // ─── 背景：画像がない時のフォールバック ───────────────
     const bg = this.add.graphics().setDepth(0)
+    bg.setVisible(!artBg)
     bg.fillGradientStyle(0xffe8b8, 0xffe8b8, 0xa0d6ee, 0xa0d6ee, 1)
     bg.fillRect(0, 0, W, H * 0.55)
     bg.fillGradientStyle(0x5db3df, 0x5db3df, 0x1f6996, 0x1f6996, 1)
@@ -53,7 +64,7 @@ export default class TitleScene extends Phaser.Scene {
     this._drawBird(bg, W * 0.74, H * 0.34, 0.7)
 
     // ─── ロゴ ──────────────────────────────────────
-    const logoGroup = this.add.container(W / 2, H * 0.21).setDepth(5)
+    const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(5)
 
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
@@ -76,12 +87,15 @@ export default class TitleScene extends Phaser.Scene {
     logoGroup.add([logo, kariBg, kariTxt])
 
     this.tweens.add({
-      targets: logoGroup, y: H * 0.21 - 6,
+      targets: logoGroup, y: H * 0.19 - 6,
       duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
     // サブタイトル（ロゴの下）
-    this.add.text(W / 2, H * 0.29, '— 釣り × 町おこし —', {
+    const subBg = this.add.graphics().setDepth(4)
+    subBg.fillStyle(0x123a54, 0.26)
+    subBg.fillRoundedRect(W / 2 - 92, H * 0.27 - 14, 184, 28, 14)
+    this.add.text(W / 2, H * 0.27, '— 釣り × 町おこし —', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '17px', fontWeight: '800',
       color: '#ffffff',
@@ -89,7 +103,10 @@ export default class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
 
     // ─── キャッチコピー ─────────────────────────────
-    this.add.text(W / 2, H * 0.625, '小さな港町で、大きな一匹を狙おう', {
+    const copyBg = this.add.graphics().setDepth(4)
+    copyBg.fillStyle(0x123a54, 0.34)
+    copyBg.fillRoundedRect(W / 2 - 142, H * 0.62 - 18, 284, 36, 18)
+    this.add.text(W / 2, H * 0.62, '小さな港町で、大きな一匹を狙おう', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '16px', fontWeight: '700',
       color: '#ffffff',
@@ -98,7 +115,7 @@ export default class TitleScene extends Phaser.Scene {
 
     // ─── スタートボタン ──────────────────────────────
     const btn = new Button(this, {
-      x: W / 2, y: H * 0.73,
+      x: W / 2, y: H * 0.735,
       w: 270, h: 68,
       label: 'タップでスタート',
       icon:  ICONS.PLAY,
@@ -116,11 +133,14 @@ export default class TitleScene extends Phaser.Scene {
     })
 
     // ─── フッター ─────────────────────────────────
+    const footerBg = this.add.graphics().setDepth(4)
+    footerBg.fillStyle(0xffffff, 0.70)
+    footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
     this.add.text(W / 2, H * 0.95, '釣り × 町おこしゲーム（プロトタイプ）', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '700',
       color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(5).setAlpha(0.75)
+    }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
   }
 
   _drawCloud(g, cx, cy, sc) {

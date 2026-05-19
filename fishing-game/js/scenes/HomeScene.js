@@ -1,12 +1,19 @@
 ﻿import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
+import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 export default class HomeScene extends Phaser.Scene {
   constructor() {
     super({ key: 'HomeScene' })
+  }
+
+  preload() {
+    const bg = ASSETS.backgrounds.titleHarborMorning
+    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }
 
   create() {
@@ -22,7 +29,14 @@ export default class HomeScene extends Phaser.Scene {
 
   // ─── 背景：空→海のグラデ + 波のシルエット ─────────────────
   _buildBackground(W, H) {
+    const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
+    if (artBg) {
+      artBg.setAlpha(0.96)
+      addReadableOverlay(this, W, H, 1)
+    }
+
     const bg = this.add.graphics().setDepth(0)
+    bg.setVisible(!artBg)
     bg.fillGradientStyle(0xfdf5d6, 0xfdf5d6, 0xcfe9fa, 0xcfe9fa, 1)
     bg.fillRect(0, 0, W, H * 0.55)
     bg.fillGradientStyle(0x7fc8e8, 0x7fc8e8, 0x4ba3cf, 0x4ba3cf, 1)
@@ -108,9 +122,9 @@ export default class HomeScene extends Phaser.Scene {
 
     this.add.text(W / 2, H * 0.185, '港町の海で釣りを楽しもう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontWeight: '700',
-      color: '#1a3a5a',
-      shadow: SHADOW.soft,
+      fontSize: '15px', fontWeight: '800',
+      color: '#ffffff',
+      shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
   }
 
@@ -122,7 +136,7 @@ export default class HomeScene extends Phaser.Scene {
     const uniqueFish = new Set(catches.map(c => c.fishId)).size
 
     const cardW = W * 0.84
-    const cardH = 116
+    const cardH = 124
     const cardX = W / 2
     const cardY = H * 0.30
 
@@ -133,7 +147,7 @@ export default class HomeScene extends Phaser.Scene {
 
     // 本体
     const g = this.add.graphics().setDepth(3)
-    g.fillStyle(0xffffff, 0.97)
+    g.fillStyle(0xffffff, 0.985)
     g.lineStyle(2.5, 0x1a2a3a, 1)
     g.fillRoundedRect(cardX - cardW / 2, cardY - cardH / 2, cardW, cardH, 16)
     g.strokeRoundedRect(cardX - cardW / 2, cardY - cardH / 2, cardW, cardH, 16)
@@ -158,11 +172,11 @@ export default class HomeScene extends Phaser.Scene {
         .setOrigin(0.5).setDepth(4)
       this.add.text(c.x, colY + 10, c.val, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '22px', fontWeight: '800', color: c.color,
+        fontSize: '24px', fontWeight: '900', color: c.color,
       }).setOrigin(0.5).setDepth(4)
       this.add.text(c.x, colY + 30, c.label, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontWeight: '700', color: '#4a7090',
+        fontSize: '13px', fontWeight: '800', color: '#365a78',
       }).setOrigin(0.5).setDepth(4)
     })
   }
@@ -179,19 +193,25 @@ export default class HomeScene extends Phaser.Scene {
       depth: 10,
       onClick: () => this.scene.start('MapScene'),
     })
-    this.add.text(W / 2, H * 0.54 + 52, 'ポイントを選んで出発しよう', {
+    const hintBg = this.add.graphics().setDepth(9)
+    hintBg.fillStyle(0xffffff, 0.76)
+    hintBg.fillRoundedRect(W / 2 - 112, H * 0.54 + 39, 224, 28, 14)
+    this.add.text(W / 2, H * 0.54 + 53, 'ポイントを選んで出発しよう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '700', color: '#1a3a5a',
-      shadow: SHADOW.soft,
-    }).setOrigin(0.5).setAlpha(0.85).setDepth(10)
+      fontSize: '14px', fontWeight: '800', color: '#1a3a5a',
+    }).setOrigin(0.5).setAlpha(0.95).setDepth(10)
   }
 
   // ─── 今後実装する機能の予告セクション ──────────────────
   _buildSubMenu(W, H) {
+    const panel = this.add.graphics().setDepth(2)
+    panel.fillStyle(0xffffff, 0.54)
+    panel.fillRoundedRect(W * 0.055, H * 0.642, W * 0.89, H * 0.262, 18)
+
     this.add.text(W / 2, H * 0.67, '今後追加される機能', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '800', color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(4).setAlpha(0.85)
+      fontSize: '15px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5).setDepth(4).setAlpha(0.95)
 
     const sep = this.add.graphics().setDepth(3)
     sep.lineStyle(1.5, 0x1a2a3a, 0.25)
