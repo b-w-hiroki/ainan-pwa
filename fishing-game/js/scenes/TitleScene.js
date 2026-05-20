@@ -127,6 +127,17 @@ export default class TitleScene extends Phaser.Scene {
       onClick: () => this.scene.start('HomeScene'),
     })
 
+    new Button(this, {
+      x: W / 2, y: H * 0.825,
+      w: 210, h: 46,
+      label: '遊び方',
+      icon: ICONS.HELP,
+      variant: 'ghost',
+      fontSize: 16,
+      depth: 10,
+      onClick: () => this.scene.start('HelpScene'),
+    })
+
     // ボタン誘導パルス
     this.tweens.add({
       targets: btn.container,

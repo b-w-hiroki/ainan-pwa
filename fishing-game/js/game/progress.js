@@ -133,6 +133,32 @@ export function setScore(score) {
   localStorage.setItem('ainan_score', String(Math.max(0, score)))
 }
 
+function todayKey() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+export function getDailyBonusState() {
+  const lastClaimed = localStorage.getItem('ainan_daily_bonus_date') ?? ''
+  const streak = parseInt(localStorage.getItem('ainan_daily_bonus_streak') ?? '0', 10)
+  const canClaim = lastClaimed !== todayKey()
+  const reward = 100 + Math.min(6, streak) * 20
+  return { canClaim, lastClaimed, streak, reward }
+}
+
+export function claimDailyBonus() {
+  const state = getDailyBonusState()
+  if (!state.canClaim) return { ok: false, ...state }
+  const nextStreak = state.streak + 1
+  setScore(getScore() + state.reward)
+  localStorage.setItem('ainan_daily_bonus_date', todayKey())
+  localStorage.setItem('ainan_daily_bonus_streak', String(nextStreak))
+  return { ok: true, ...state, streak: nextStreak }
+}
+
 export function getCatches() {
   return readJson('ainan_catches', [])
 }

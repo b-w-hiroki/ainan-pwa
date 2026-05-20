@@ -23,6 +23,8 @@ export const ICONS = {
   LICENSE:  '📋',
   RANK:     '⭐',
   TOWN:     '🏘️',
+  HELP:     '❔',
+  BONUS:    '🎁',
 }
 
 export const SEASON_ICON  = { spring: '🌸', summer: '☀️', autumn: '🍁', winter: '❄️' }

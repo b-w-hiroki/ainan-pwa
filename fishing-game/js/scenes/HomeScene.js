@@ -5,7 +5,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
-import { MISSION_META, getMissionProgress, getTownSummary } from '../game/progress.js'
+import { MISSION_META, claimDailyBonus, getDailyBonusState, getMissionProgress, getTownSummary } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -26,7 +26,10 @@ export default class HomeScene extends Phaser.Scene {
     this._buildTitle(W, H)
     this._buildMainCTA(W, H)
     this._buildBanners(W, H)
+    this._buildHelpButton(W)
+    this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
+    this._maybeShowDailyBonus(W, H)
   }
 
   _buildBackground(W, H) {
@@ -168,6 +171,118 @@ export default class HomeScene extends Phaser.Scene {
     this._banner(22, H * 0.56, W - 44, 58, '釣り免許', `進行度 ${completedLicenses}/9  遊び方を覚えよう`, 0xffd900, ICONS.LICENSE, () => this.scene.start('LicenseScene'))
     this._banner(22, H * 0.64, W - 44, 58, '今日のミッション', `${firstMission.title}  ${missionValue}/${firstMission.target}`, 0x5ebcff, ICONS.MISSION, () => this.scene.start('MissionScene'))
     this._banner(22, H * 0.72, W - 44, 58, '釣り師ランク', '釣果でランクアップして能力を開放', 0xff9b5e, ICONS.RANK, () => this.scene.start('RankScene'))
+  }
+
+  _buildHelpButton(W) {
+    const g = this.add.graphics().setDepth(23)
+    g.fillStyle(0xffffff, 0.95)
+    g.lineStyle(2, 0x1a2a3a, 0.72)
+    g.fillCircle(W - 28, 82, 18)
+    g.strokeCircle(W - 28, 82, 18)
+    this.add.text(W - 28, 82, ICONS.HELP, {
+      fontSize: '16px', resolution: TEXT_RES,
+    }).setOrigin(0.5).setDepth(24)
+    this.add.circle(W - 28, 82, 23, 0x000000, 0)
+      .setDepth(25)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start('HelpScene'))
+  }
+
+  _buildDailyButton(W) {
+    const state = getDailyBonusState()
+    if (!state.canClaim) return
+    const x = W - 72
+    const g = this.add.graphics().setDepth(23)
+    g.fillStyle(0xfff4ce, 0.98)
+    g.lineStyle(2, 0xe07800, 0.86)
+    g.fillCircle(x, 82, 18)
+    g.strokeCircle(x, 82, 18)
+    this.add.text(x, 82, ICONS.BONUS, {
+      fontSize: '16px', resolution: TEXT_RES,
+    }).setOrigin(0.5).setDepth(24)
+    const dot = this.add.graphics().setDepth(25)
+    dot.fillStyle(0xff4f4f, 1)
+    dot.fillCircle(x + 12, 70, 5)
+    this.add.circle(x, 82, 23, 0x000000, 0)
+      .setDepth(26)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this._showDailyBonus(this.scale.width, this.scale.height))
+  }
+
+  _maybeShowDailyBonus(W, H) {
+    const state = getDailyBonusState()
+    if (!state.canClaim) return
+    if (window.__ainanDailyBonusDismissed) return
+    this._showDailyBonus(W, H)
+  }
+
+  _showDailyBonus(W, H) {
+    const state = getDailyBonusState()
+    if (!state.canClaim) return
+    this._dailyModal?.destroy(true)
+    const items = []
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x1a2a3a, 0.38)
+      .setInteractive()
+      .on('pointerdown', () => this._dismissDailyBonus()))
+
+    const x = 36
+    const y = 238
+    const w = W - 72
+    const h = 250
+    const bg = this.add.graphics()
+    bg.fillStyle(0xffffff, 0.98)
+    bg.lineStyle(3, 0x1a2a3a, 1)
+    bg.fillRoundedRect(x, y, w, h, 22)
+    bg.strokeRoundedRect(x, y, w, h, 22)
+    bg.fillStyle(0xffd900, 0.24)
+    bg.fillCircle(W / 2, y + 62, 42)
+    items.push(bg)
+    items.push(this.add.text(W / 2, y + 62, ICONS.BONUS, {
+      fontSize: '40px', resolution: TEXT_RES,
+    }).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 118, 'デイリーボーナス', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '22px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 150, `連続 ${state.streak}日 / ${state.reward}pt`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '14px', fontWeight: '900', color: '#e07800',
+    }).setOrigin(0.5))
+    items.push(this._smallActionButton(W / 2, y + 196, '受け取る', () => {
+      claimDailyBonus()
+      this.scene.restart()
+    }))
+    items.push(this.add.text(W / 2, y + h - 24, 'あとで', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._dismissDailyBonus()))
+
+    this._dailyModal = this.add.container(0, 18, items).setDepth(120).setAlpha(0)
+    this.tweens.add({ targets: this._dailyModal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
+  }
+
+  _dismissDailyBonus() {
+    window.__ainanDailyBonusDismissed = true
+    this._dailyModal?.destroy(true)
+    this._dailyModal = null
+  }
+
+  _smallActionButton(x, y, label, onTap) {
+    const c = this.add.container(0, 0)
+    const bg = this.add.graphics()
+    bg.fillStyle(0xffd900, 1)
+    bg.lineStyle(2.5, 0x1a2a3a, 1)
+    bg.fillRoundedRect(x - 68, y - 20, 136, 40, 14)
+    bg.strokeRoundedRect(x - 68, y - 20, 136, 40, 14)
+    const txt = this.add.text(x, y, label, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '14px', fontWeight: '900', color: '#1a2a3a',
+    }).setOrigin(0.5)
+    const hit = this.add.rectangle(x, y, 146, 48, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', onTap)
+    c.add([bg, txt, hit])
+    return c
   }
 
   _licenseCount() {
