@@ -4,7 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
-import { getRewards, getScore, REWARD_META, saveRewards, spendScore } from '../game/progress.js'
+import { getRewards, getScore, getTownBonuses, REWARD_META, saveRewards, spendScore } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -61,11 +61,12 @@ export default class ExchangeScene extends Phaser.Scene {
       const row = Math.floor(i / cols)
       const x = startX + col * (cardW + gap)
       const y = 124 + row * 196
-      this._tile(x, y, cardW, cardH, item, rewards[item.id] ?? 0, Math.floor(score / item.cost))
+      const cost = this._exchangeCost(item)
+      this._tile(x, y, cardW, cardH, item, rewards[item.id] ?? 0, Math.floor(score / cost), cost)
     })
   }
 
-  _tile(x, y, w, h, item, count, available) {
+  _tile(x, y, w, h, item, count, available, cost) {
     const g = this.add.graphics().setDepth(4)
     g.fillStyle(0x000000, 0.12)
     g.fillRoundedRect(x + 3, y + 4, w, h, 18)
@@ -99,7 +100,7 @@ export default class ExchangeScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '10px', fontWeight: '900', color: '#00aa66',
     }).setOrigin(1, 0).setDepth(5)
-    this.add.text(x + w / 2, y + h - 12, `${item.cost} pt`, {
+    this.add.text(x + w / 2, y + h - 12, `${cost} pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '900', color: '#e07800',
     }).setOrigin(0.5).setDepth(5)
@@ -107,10 +108,10 @@ export default class ExchangeScene extends Phaser.Scene {
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(6)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._showModal(item, count, available))
+      .on('pointerdown', () => this._showModal(item, count, available, cost))
   }
 
-  _showModal(item, count, available) {
+  _showModal(item, count, available, cost) {
     const { width: W, height: H } = this.scale
     this._modal?.destroy(true)
     const items = []
@@ -143,24 +144,29 @@ export default class ExchangeScene extends Phaser.Scene {
       fontSize: '13px', fontWeight: '900', color: '#4a7090',
       wordWrap: { width: w - 48 }, align: 'center',
     }).setOrigin(0.5, 0))
-    items.push(this.add.text(W / 2, y + 214, `所持 ${count}   交換可能 ${available}   価格 ${item.cost} pt`, {
+    items.push(this.add.text(W / 2, y + 214, `所持 ${count}   交換可能 ${available}   価格 ${cost} pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900', color: '#e07800',
     }).setOrigin(0.5))
 
-    items.push(this._actionButton(W / 2, y + 270, '交換する', () => this._exchange(item)))
+    items.push(this._actionButton(W / 2, y + 270, '交換する', () => this._exchange(item, cost)))
     items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true)))
 
     this._modal = this.add.container(0, 20, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
 
-  _exchange(item) {
-    if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
+  _exchange(item, cost) {
+    if (!spendScore(cost)) return this._toast('ポイントが足りません')
     const rewards = getRewards()
     rewards[item.id] = (rewards[item.id] ?? 0) + 1
     saveRewards(rewards)
     this.scene.restart()
+  }
+
+  _exchangeCost(item) {
+    const discount = getTownBonuses().exchangeDiscount
+    return Math.max(1, Math.round(item.cost * (1 - discount)))
   }
 
   _actionButton(x, y, label, onTap) {

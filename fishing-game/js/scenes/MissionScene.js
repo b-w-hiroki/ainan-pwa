@@ -4,7 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
-import { MISSION_META, getMissionProgress, getClaimedMissions, saveClaimedMissions, getScore, setScore } from '../game/progress.js'
+import { MISSION_META, getMissionProgress, getClaimedMissions, saveClaimedMissions, getScore, getTownBonuses, setScore } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -85,7 +85,7 @@ export default class MissionScene extends Phaser.Scene {
       fontSize: '12px', fontWeight: '800',
       color: '#4a7090',
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + 76, y + 72, `${value}/${mission.target}   報酬 ${mission.reward}pt`, {
+    this.add.text(x + 76, y + 72, `${value}/${mission.target}   報酬 ${this._missionReward(mission)}pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '900',
       color: '#e07800',
@@ -118,8 +118,12 @@ export default class MissionScene extends Phaser.Scene {
     if (claimed[mission.id]) return
     claimed[mission.id] = true
     saveClaimedMissions(claimed)
-    setScore(getScore() + mission.reward)
+    setScore(getScore() + this._missionReward(mission))
     this.scene.restart()
+  }
+
+  _missionReward(mission) {
+    return Math.round(mission.reward * getTownBonuses().missionRewardMod)
   }
 
   _back(W) {

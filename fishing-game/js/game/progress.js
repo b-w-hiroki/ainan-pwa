@@ -243,6 +243,16 @@ export function getTownSummary() {
   return { facilities, totalLevel, catches, rewards, bustle, rank }
 }
 
+export function getTownBonuses() {
+  const f = getTownFacilities()
+  return {
+    scoreMod: 1 + (f.market ?? 0) * 0.04,
+    attractRadiusMod: 1 + (f.pier ?? 0) * 0.025,
+    missionRewardMod: 1 + (f.guide ?? 0) * 0.05,
+    exchangeDiscount: Math.min(0.20, (f.festival ?? 0) * 0.04),
+  }
+}
+
 export function getPlayerRank() {
   const catches = getCatches().length
   const rank = Math.max(1, Math.floor(catches / 3) + 1)

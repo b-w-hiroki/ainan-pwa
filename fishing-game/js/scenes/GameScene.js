@@ -24,7 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { getEquipment, getInventory, getRankBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
+import { getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const RARITY_SIZE = {
@@ -261,7 +261,7 @@ export default class GameScene extends Phaser.Scene {
       baitType:   this.bait.id,
       rodType:    this.rod.id,
       skillLevel: this.env?.player?.skillLevel ?? 1,
-    })
+    }) * getTownBonuses().attractRadiusMod
     const candidates = this.bg._fishGfx
       .map((gfx, i) => ({ gfx, i }))
       .filter(({ gfx }) => isInAttractRange(gfx, { x: bobberX, y: bobberY }, radius))
@@ -521,7 +521,7 @@ export default class GameScene extends Phaser.Scene {
    */
   calcScore(fish, sizeMultiplier = 1.0) {
     const RARITY_MULT = { common: 1.0, uncommon: 1.5, rare: 2.5, legendary: 5.0 }
-    return Math.round(fish.scoreBase * sizeMultiplier * (RARITY_MULT[fish.rarity] ?? 1.0))
+    return Math.round(fish.scoreBase * sizeMultiplier * (RARITY_MULT[fish.rarity] ?? 1.0) * getTownBonuses().scoreMod)
   }
 
   _finishBattle(outcome) {
