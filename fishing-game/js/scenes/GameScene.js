@@ -24,7 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { getEquipment, getInventory, getRankBonuses, markLicenseFlag } from '../game/progress.js'
+import { getEquipment, getInventory, getRankBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const RARITY_SIZE = {
@@ -593,6 +593,8 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
 
+    if (!this._consumeBaitForCast()) return
+
     const { width: W, height: H } = this.scale
     const MARGIN = 40
     // 海エリア：上端 22%、下端（砂浜上端）84%
@@ -756,6 +758,7 @@ export default class GameScene extends Phaser.Scene {
 
   // env.player の選択を this.rod / this.bait に反映
   _syncTackle() {
+    this.env.player.inventory = getInventory()
     const rodId  = this.env?.player?.rodType  ?? 'carbon'
     const baitId = this.env?.player?.baitType ?? 'worm'
     const rs = ROD_STATS[rodId]   ?? ROD_STATS.carbon
@@ -775,6 +778,21 @@ export default class GameScene extends Phaser.Scene {
       attractRadius: bs.attractRadius,
     }
     this.castRangePx = Math.min(this.scale.height * 0.78, this.baseCastRangePx * this.rod.castRange)
+  }
+
+  _consumeBaitForCast() {
+    const baitId = this.env?.player?.baitType ?? 'worm'
+    const inventory = this.env?.player?.inventory ?? getInventory()
+    const current = inventory.baits?.[baitId] ?? 0
+    if (current <= 0) {
+      this.resultUI?.toast('エサがありません')
+      this.hintText?.setText('エサを選ぶか、交換所で補充しよう')
+      return false
+    }
+    inventory.baits[baitId] = current - 1
+    this.env.player.inventory = inventory
+    saveInventory(inventory)
+    return true
   }
 
   _saveProgress() {
