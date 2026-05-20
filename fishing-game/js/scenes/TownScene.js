@@ -147,7 +147,9 @@ export default class TownScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._modal?.destroy(true)
     const items = []
-    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x1a2a3a, 0.42).setInteractive())
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x1a2a3a, 0.42)
+      .setInteractive()
+      .on('pointerdown', () => this._modal?.destroy(true)))
 
     const x = 34
     const y = 190

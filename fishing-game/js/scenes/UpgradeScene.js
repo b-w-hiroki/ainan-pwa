@@ -293,7 +293,9 @@ export default class UpgradeScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._modal?.destroy(true)
     const items = []
-    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x102b42, 0.48).setInteractive())
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x102b42, 0.48)
+      .setInteractive()
+      .on('pointerdown', () => this._modal?.destroy(true)))
 
     const x = 30
     const y = 166

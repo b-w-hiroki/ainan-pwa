@@ -135,7 +135,9 @@ export default class CollectionScene extends Phaser.Scene {
     this._modal?.destroy(true)
     const items = []
     const accent = RARITY_COLOR[fish.rarity] ?? 0x5ebcff
-    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x1a2a3a, 0.42).setInteractive())
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x1a2a3a, 0.42)
+      .setInteractive()
+      .on('pointerdown', () => this._modal?.destroy(true)))
 
     const x = 30
     const y = 164
