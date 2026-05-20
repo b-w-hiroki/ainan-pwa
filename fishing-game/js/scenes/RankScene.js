@@ -4,16 +4,9 @@ import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
-import { getCatches, getScore } from '../game/progress.js'
+import { getCatches, getPlayerRank, getRankBonuses, getScore } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
-
-const SKILLS = [
-  { name: 'キャスト', desc: '遠くへ投げやすくなる', lv: 1, icon: '🎯' },
-  { name: '引き寄せ', desc: '魚を寄せる力が上がる', lv: 1, icon: '🌀' },
-  { name: '大物運', desc: '大物の気配を見つけやすい', lv: 0, icon: '✨' },
-  { name: '節約', desc: 'エサを大事に使える', lv: 0, icon: '🍀' },
-]
 
 export default class RankScene extends Phaser.Scene {
   constructor() {
@@ -58,8 +51,8 @@ export default class RankScene extends Phaser.Scene {
   _rankPanel(W) {
     const catches = getCatches().length
     const score = getScore()
-    const rank = Math.max(1, Math.floor(catches / 3) + 1)
-    const current = catches % 3
+    const rankInfo = getPlayerRank()
+    const { rank, current, nextNeed, title } = rankInfo
     const x = 22
     const y = 116
     const w = W - 44
@@ -76,7 +69,7 @@ export default class RankScene extends Phaser.Scene {
       fontSize: '40px', fontWeight: '900',
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(x + 124, y + 42, '港の釣り人', {
+    this.add.text(x + 124, y + 42, title, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '20px', fontWeight: '900',
       color: '#1a3a5a',
@@ -92,7 +85,7 @@ export default class RankScene extends Phaser.Scene {
     g.fillRoundedRect(bx, by, 190, 14, 7)
     g.fillStyle(0x00aa66, 1)
     g.fillRoundedRect(bx, by, 190 * (current / 3), 14, 7)
-    this.add.text(bx + 95, by + 27, `次のランクまで ${3 - current}匹`, {
+    this.add.text(bx + 95, by + 27, `次のランクまで ${nextNeed}匹`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '11px', fontWeight: '900',
       color: '#e07800',
@@ -105,7 +98,14 @@ export default class RankScene extends Phaser.Scene {
       fontSize: '18px', fontWeight: '900',
       color: '#1a3a5a',
     }).setDepth(5)
-    SKILLS.forEach((s, i) => {
+    const bonus = getRankBonuses()
+    const skills = [
+      { name: 'キャスト', desc: `飛距離 +${Math.round((bonus.castRangeMod - 1) * 100)}%`, lv: Math.max(1, Math.floor(bonus.skillLevel / 2)), icon: '🎯' },
+      { name: '引き寄せ', desc: `魚影範囲 +${Math.round((bonus.attractRadiusMod - 1) * 100)}%`, lv: Math.max(1, Math.floor(bonus.skillLevel / 2)), icon: '🌀' },
+      { name: '合わせ', desc: `食いつき +${Math.round(bonus.biteRateBonus * 100)}%`, lv: bonus.skillLevel >= 2 ? Math.floor(bonus.skillLevel / 2) : 0, icon: '✨' },
+      { name: 'ファイト', desc: `引き寄せ力 +${Math.round((bonus.pullPowerMod - 1) * 100)}%`, lv: bonus.skillLevel >= 3 ? Math.floor(bonus.skillLevel / 3) : 0, icon: '💪' },
+    ]
+    skills.forEach((s, i) => {
       const x = 22 + (i % 2) * 176
       const y = 338 + Math.floor(i / 2) * 126
       this._skillCard(x, y, 160, 104, s)

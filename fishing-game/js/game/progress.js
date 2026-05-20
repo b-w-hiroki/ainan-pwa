@@ -82,6 +82,41 @@ export const LICENSE_META = [
   { id: 'license_done', title: '釣り免許卒業', desc: 'すべての課題を終える', reward: '高級竿' },
 ]
 
+export const TOWN_FACILITY_META = [
+  {
+    id: 'market',
+    name: '魚市場',
+    icon: '🐟',
+    desc: '釣果を町のにぎわいに変える拠点',
+    effect: '釣果ポイントの価値アップ',
+    baseCost: 120,
+  },
+  {
+    id: 'pier',
+    name: 'にぎわい桟橋',
+    icon: '⚓',
+    desc: '釣り人が集まる港のシンボル',
+    effect: '魚影チャンスの演出強化',
+    baseCost: 180,
+  },
+  {
+    id: 'guide',
+    name: '案内所',
+    icon: '📋',
+    desc: '初心者にもわかりやすい案内拠点',
+    effect: 'ミッション報酬の見通しアップ',
+    baseCost: 220,
+  },
+  {
+    id: 'festival',
+    name: '港まつり広場',
+    icon: '🎪',
+    desc: '町おこしイベントの中心になる広場',
+    effect: '交換所アイテムの魅力アップ',
+    baseCost: 320,
+  },
+]
+
 const readJson = (key, fallback) => {
   try {
     return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback))
@@ -139,6 +174,71 @@ export function spendScore(cost) {
   if (score < cost) return false
   setScore(score - cost)
   return true
+}
+
+export function getTownFacilities() {
+  return {
+    market: 0,
+    pier: 0,
+    guide: 0,
+    festival: 0,
+    ...readJson('ainan_town_facilities', {}),
+  }
+}
+
+export function saveTownFacilities(facilities) {
+  localStorage.setItem('ainan_town_facilities', JSON.stringify(facilities))
+}
+
+export function getTownFacilityCost(id) {
+  const meta = TOWN_FACILITY_META.find(f => f.id === id)
+  const lv = getTownFacilities()[id] ?? 0
+  return Math.round((meta?.baseCost ?? 100) * (1 + lv * 0.75))
+}
+
+export function upgradeTownFacility(id) {
+  const facilities = getTownFacilities()
+  const lv = facilities[id] ?? 0
+  if (lv >= 5) return { ok: false, reason: 'max' }
+  const cost = getTownFacilityCost(id)
+  if (!spendScore(cost)) return { ok: false, reason: 'score' }
+  facilities[id] = lv + 1
+  saveTownFacilities(facilities)
+  return { ok: true, level: facilities[id] }
+}
+
+export function getTownSummary() {
+  const facilities = getTownFacilities()
+  const totalLevel = Object.values(facilities).reduce((sum, lv) => sum + lv, 0)
+  const catches = getCatches().length
+  const rewards = Object.values(getRewards()).reduce((sum, count) => sum + count, 0)
+  const bustle = Math.min(100, totalLevel * 10 + catches * 2 + rewards * 4)
+  const rank = bustle >= 80 ? '港町フェス級' : bustle >= 50 ? '人気スポット' : bustle >= 25 ? 'にぎわい始め' : '小さな港町'
+  return { facilities, totalLevel, catches, rewards, bustle, rank }
+}
+
+export function getPlayerRank() {
+  const catches = getCatches().length
+  const rank = Math.max(1, Math.floor(catches / 3) + 1)
+  const current = catches % 3
+  return {
+    rank,
+    current,
+    nextNeed: 3 - current,
+    title: rank >= 8 ? '港の名人' : rank >= 5 ? '人気の釣り師' : rank >= 3 ? '一人前の釣り師' : '港の釣り人',
+  }
+}
+
+export function getRankBonuses() {
+  const { rank } = getPlayerRank()
+  const step = Math.max(0, rank - 1)
+  return {
+    skillLevel: rank,
+    castRangeMod: 1 + Math.min(0.20, step * 0.025),
+    pullPowerMod: 1 + Math.min(0.25, step * 0.03),
+    biteRateBonus: Math.min(0.10, step * 0.012),
+    attractRadiusMod: 1 + Math.min(0.20, step * 0.025),
+  }
 }
 
 export function getMissionProgress() {

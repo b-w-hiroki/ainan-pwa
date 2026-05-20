@@ -22,6 +22,7 @@ export const ICONS = {
   MISSION:  '✅',
   LICENSE:  '📋',
   RANK:     '⭐',
+  TOWN:     '🏘️',
 }
 
 export const SEASON_ICON  = { spring: '🌸', summer: '☀️', autumn: '🍁', winter: '❄️' }

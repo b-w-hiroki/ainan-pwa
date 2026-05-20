@@ -9,6 +9,7 @@ import ExchangeScene from './scenes/ExchangeScene.js'
 import MissionScene from './scenes/MissionScene.js'
 import LicenseScene from './scenes/LicenseScene.js'
 import RankScene from './scenes/RankScene.js'
+import TownScene from './scenes/TownScene.js'
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
@@ -27,7 +28,7 @@ const config = {
     width: 390,
     height: 844,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene, TownScene],
 }
 
 function startGame() {

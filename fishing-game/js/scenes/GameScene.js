@@ -24,7 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { getEquipment, getInventory, markLicenseFlag } from '../game/progress.js'
+import { getEquipment, getInventory, getRankBonuses, markLicenseFlag } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const RARITY_SIZE = {
@@ -46,7 +46,7 @@ export default class GameScene extends Phaser.Scene {
       ...data,
       player: {
         ...getEquipment(),
-        skillLevel: 1,
+        skillLevel: getRankBonuses().skillLevel,
         inventory: getInventory(),
         ...data.player,
       },
@@ -76,6 +76,7 @@ export default class GameScene extends Phaser.Scene {
     const anchor         = this.bg.buildPlayer(W, H)
     this.anchorX         = anchor.anchorX
     this.anchorY         = anchor.anchorY
+    this.baseCastRangePx = anchor.castRangePx
     this.castRangePx     = anchor.castRangePx
     this.shaftDisplayPx  = anchor.shaftDisplayPx
 
@@ -259,7 +260,7 @@ export default class GameScene extends Phaser.Scene {
     const radius = calcAttractRadius({
       baitType:   this.bait.id,
       rodType:    this.rod.id,
-      skillLevel: 1,
+      skillLevel: this.env?.player?.skillLevel ?? 1,
     })
     const candidates = this.bg._fishGfx
       .map((gfx, i) => ({ gfx, i }))
@@ -759,8 +760,21 @@ export default class GameScene extends Phaser.Scene {
     const baitId = this.env?.player?.baitType ?? 'worm'
     const rs = ROD_STATS[rodId]   ?? ROD_STATS.carbon
     const bs = BAIT_STATS[baitId] ?? BAIT_STATS.worm
-    this.rod  = { id: rodId,  pullPower: rs.pullPower,  castRange: rs.castRange,  attractRadius: rs.attractRadius }
-    this.bait = { id: baitId, biteRateBonus: bs.biteRateBonus, rareFishBonus: bs.rareFishBonus, attractRadius: bs.attractRadius }
+    const rankBonus = getRankBonuses()
+    this.env.player.skillLevel = rankBonus.skillLevel
+    this.rod  = {
+      id: rodId,
+      pullPower: rs.pullPower * rankBonus.pullPowerMod,
+      castRange: rs.castRange * rankBonus.castRangeMod,
+      attractRadius: rs.attractRadius * rankBonus.attractRadiusMod,
+    }
+    this.bait = {
+      id: baitId,
+      biteRateBonus: bs.biteRateBonus + rankBonus.biteRateBonus,
+      rareFishBonus: bs.rareFishBonus,
+      attractRadius: bs.attractRadius,
+    }
+    this.castRangePx = Math.min(this.scale.height * 0.78, this.baseCastRangePx * this.rod.castRange)
   }
 
   _saveProgress() {
