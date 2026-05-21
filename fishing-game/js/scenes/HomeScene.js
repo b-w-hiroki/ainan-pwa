@@ -24,8 +24,10 @@ export default class HomeScene extends Phaser.Scene {
     this._buildBackground(W, H)
     this._buildHeader(W)
     this._buildTitle(W, H)
+    this._buildHomeCharacter(W, H)
     this._buildMainCTA(W, H)
-    this._buildFeatureDock(W, H)
+    this._buildFloatingActions(W, H)
+    this._buildEventBanner(W, H)
     this._buildHelpButton(W)
     this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
@@ -113,10 +115,10 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildTitle(W, H) {
-    const logoGroup = this.add.container(W / 2, H * 0.18).setDepth(10)
+    const logoGroup = this.add.container(W / 2, H * 0.145).setDepth(10)
     const logo = this.add.text(0, 0, '釣りゲーム', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '38px', fontWeight: '900',
+      fontSize: '34px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.strong,
     }).setOrigin(0.5)
@@ -131,18 +133,81 @@ export default class HomeScene extends Phaser.Scene {
 
     const tagBg = this.add.graphics().setDepth(9)
     tagBg.fillStyle(0x123a54, 0.34)
-    tagBg.fillRoundedRect(W / 2 - 122, H * 0.247 - 15, 244, 30, 15)
-    this.add.text(W / 2, H * 0.247, '釣って、集めて、港をにぎやかに', {
+    tagBg.fillRoundedRect(W / 2 - 122, H * 0.208 - 15, 244, 30, 15)
+    this.add.text(W / 2, H * 0.208, '釣って、集めて、港をにぎやかに', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '900',
       color: '#ffffff', shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(10)
   }
 
+  _buildHomeCharacter(W, H) {
+    const c = this.add.container(W / 2, H * 0.47).setDepth(7)
+    const aura = this.add.graphics()
+    aura.fillStyle(0xffffff, 0.34)
+    aura.fillCircle(0, 42, 118)
+    aura.fillStyle(0x5ebcff, 0.18)
+    aura.fillCircle(-36, 20, 82)
+    aura.fillStyle(0xffd900, 0.20)
+    aura.fillCircle(48, 44, 70)
+
+    const shadow = this.add.graphics()
+    shadow.fillStyle(0x1a2a3a, 0.18)
+    shadow.fillEllipse(0, 122, 122, 24)
+
+    const body = this.add.graphics()
+    body.fillStyle(0x2b8fd0, 1)
+    body.fillRoundedRect(-34, 34, 68, 76, 22)
+    body.lineStyle(4, 0x1a2a3a, 1)
+    body.strokeRoundedRect(-34, 34, 68, 76, 22)
+    body.fillStyle(0xffd900, 1)
+    body.fillRoundedRect(-22, 50, 44, 14, 7)
+    body.fillStyle(0xffffff, 1)
+    body.fillCircle(-18, 8, 19)
+    body.fillCircle(18, 8, 19)
+    body.fillStyle(0xffd7b5, 1)
+    body.fillCircle(0, 18, 38)
+    body.lineStyle(4, 0x1a2a3a, 1)
+    body.strokeCircle(0, 18, 38)
+    body.fillStyle(0x1a2a3a, 1)
+    body.fillCircle(-13, 15, 4)
+    body.fillCircle(13, 15, 4)
+    body.lineStyle(3, 0x1a2a3a, 1)
+    body.lineBetween(-9, 31, 9, 31)
+    body.fillStyle(0x175d91, 1)
+    body.fillRoundedRect(-34, -30, 68, 34, 16)
+    body.lineStyle(4, 0x1a2a3a, 1)
+    body.strokeRoundedRect(-34, -30, 68, 34, 16)
+    body.fillStyle(0xffffff, 1)
+    body.fillTriangle(-18, -30, 0, -60, 18, -30)
+    body.lineStyle(5, 0x1a2a3a, 1)
+    body.lineBetween(-58, 62, -92, 22)
+    body.lineBetween(58, 62, 92, 26)
+    body.lineStyle(4, 0x8b5a2b, 1)
+    body.lineBetween(46, 70, 96, -76)
+    body.fillStyle(0xfff1c6, 1)
+    body.fillCircle(98, -82, 10)
+
+    const sparkle = this.add.graphics()
+    sparkle.fillStyle(0xffffff, 0.88)
+    ;[
+      [-82, -22, 5],
+      [78, -4, 4],
+      [-70, 82, 4],
+      [88, 86, 5],
+    ].forEach(([x, y, r]) => {
+      sparkle.fillCircle(x, y, r)
+      sparkle.fillTriangle(x, y - r * 2.5, x - r, y, x + r, y)
+    })
+
+    c.add([aura, shadow, body, sparkle])
+    this.tweens.add({ targets: c, y: H * 0.47 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  }
+
   _buildMainCTA(W, H) {
     new Button(this, {
-      x: W / 2, y: H * 0.39,
-      w: 306, h: 66,
+      x: W / 2, y: H * 0.745,
+      w: 248, h: 66,
       label: '釣りに行く',
       icon: ICONS.ROD,
       variant: 'primary',
@@ -153,89 +218,71 @@ export default class HomeScene extends Phaser.Scene {
     const hintBg = this.add.graphics().setDepth(9)
     hintBg.fillStyle(0xffffff, 0.88)
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
-    hintBg.fillRoundedRect(W / 2 - 120, H * 0.39 + 38, 240, 27, 14)
-    hintBg.strokeRoundedRect(W / 2 - 120, H * 0.39 + 38, 240, 27, 14)
-    this.add.text(W / 2, H * 0.39 + 52, '釣り場を選んで出発', {
+    hintBg.fillRoundedRect(W / 2 - 112, H * 0.745 + 39, 224, 25, 13)
+    hintBg.strokeRoundedRect(W / 2 - 112, H * 0.745 + 39, 224, 25, 13)
+    this.add.text(W / 2, H * 0.745 + 52, '釣り場を選んで出発', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(10)
   }
 
-  _buildFeatureDock(W, H) {
+  _buildFloatingActions(W, H) {
     const progress = getMissionProgress()
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
     const town = getTownSummary()
 
-    const dockX = 18
-    const dockY = H * 0.49
-    const dockW = W - 36
-    const dockH = 214
-    const bg = this.add.graphics().setDepth(11)
-    bg.fillStyle(0xffffff, 0.88)
-    bg.lineStyle(2.5, 0x1a2a3a, 0.55)
-    bg.fillRoundedRect(dockX, dockY, dockW, dockH, 22)
-    bg.strokeRoundedRect(dockX, dockY, dockW, dockH, 22)
-    bg.fillStyle(0xffffff, 0.25)
-    bg.fillRoundedRect(dockX + 10, dockY + 10, dockW - 20, 34, 17)
-
-    this.add.text(dockX + 22, dockY + 27, 'メニュー', uiText('chip', {
-      fontSize: '14px',
-      color: '#1a3a5a',
-    })).setOrigin(0, 0.5).setDepth(12)
-    this.add.text(dockX + dockW - 22, dockY + 27, '育成・報酬・町づくり', uiText('micro', {
-      fontSize: '10px',
-      color: '#4a7090',
-    })).setOrigin(1, 0.5).setDepth(12)
-
     const items = [
-      { title: '町おこし', sub: `にぎわい ${town.bustle}/100`, icon: ICONS.TOWN, accent: 0x8bcf52, scene: 'TownScene', badge: town.rank },
-      { title: '釣り免許', sub: `${license.done}/${license.total}`, icon: ICONS.LICENSE, accent: 0xffd900, scene: 'LicenseScene', badge: '課題' },
-      { title: 'ミッション', sub: `${missionValue}/${firstMission.target}`, icon: ICONS.MISSION, accent: 0x5ebcff, scene: 'MissionScene', badge: '今日' },
-      { title: 'ランク', sub: '能力解放', icon: ICONS.RANK, accent: 0xff9b5e, scene: 'RankScene', badge: '成長' },
+      { x: 38, y: H * 0.33, title: '町', sub: `${town.bustle}/100`, icon: ICONS.TOWN, accent: 0x8bcf52, scene: 'TownScene', badge: '町' },
+      { x: 38, y: H * 0.43, title: '免許', sub: `${license.done}/${license.total}`, icon: ICONS.LICENSE, accent: 0xffd900, scene: 'LicenseScene', badge: '課題' },
+      { x: 38, y: H * 0.53, title: 'ランク', sub: '成長', icon: ICONS.RANK, accent: 0xff9b5e, scene: 'RankScene', badge: '育成' },
+      { x: W - 38, y: H * 0.33, title: 'ミッション', sub: `${missionValue}/${firstMission.target}`, icon: ICONS.MISSION, accent: 0x5ebcff, scene: 'MissionScene', badge: '今日' },
+      { x: W - 38, y: H * 0.43, title: '報酬', sub: '受取', icon: ICONS.GIFT, accent: 0xff6a9a, scene: 'ExchangeScene', badge: '交換' },
+      { x: W - 38, y: H * 0.53, title: '図鑑', sub: '魚', icon: ICONS.BOOK, accent: 0xbc7cff, scene: 'CollectionScene', badge: '本' },
     ]
-    items.forEach((item, i) => {
-      const col = i % 2
-      const row = Math.floor(i / 2)
-      this._featureIconButton(dockX + 18 + col * 174, dockY + 56 + row * 74, 154, 62, item)
-    })
+    items.forEach(item => this._floatingIconButton(item))
   }
 
-  _featureIconButton(x, y, w, h, item) {
+  _floatingIconButton(item) {
+    const x = item.x
+    const y = item.y
+    const w = 70
+    const h = 66
     const g = this.add.graphics().setDepth(12)
-    g.fillStyle(0x000000, 0.10)
-    g.fillRoundedRect(x + 3, y + 4, w, h, 18)
+    g.fillStyle(0x000000, 0.16)
+    g.fillRoundedRect(x - w / 2 + 3, y - h / 2 + 4, w, h, 18)
     g.fillStyle(0xffffff, 0.96)
     g.lineStyle(2.4, 0x1a2a3a, 0.78)
-    g.fillRoundedRect(x, y, w, h, 18)
-    g.strokeRoundedRect(x, y, w, h, 18)
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 18)
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18)
     g.fillStyle(item.accent, 0.22)
-    g.fillRoundedRect(x + 8, y + 8, 46, 46, 15)
+    g.fillCircle(x, y - 10, 23)
     g.lineStyle(2, item.accent, 0.85)
-    g.strokeRoundedRect(x + 8, y + 8, 46, 46, 15)
+    g.strokeCircle(x, y - 10, 23)
 
-    this.add.text(x + 31, y + 31, item.icon, {
-      fontSize: '23px',
+    this.add.text(x, y - 10, item.icon, {
+      fontSize: '22px',
       resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(13)
-    this.add.text(x + 64, y + 20, item.title, uiText('cardTitle', {
-      fontSize: '13px',
+    this.add.text(x, y + 20, item.title, uiText('cardTitle', {
+      fontSize: '10px',
       color: '#1a3a5a',
-    })).setOrigin(0, 0.5).setDepth(13)
-    this.add.text(x + 64, y + 41, item.sub, uiText('cardMeta', {
+    })).setOrigin(0.5).setDepth(13)
+    this.add.text(x, y + 34, item.sub, uiText('micro', {
+      fontSize: '8px',
       color: '#d56f00',
-    })).setOrigin(0, 0.5).setDepth(13)
+    })).setOrigin(0.5).setDepth(13)
 
     const badge = this.add.graphics().setDepth(13)
     badge.fillStyle(item.accent, 0.92)
-    badge.fillRoundedRect(x + w - 49, y + 8, 38, 18, 8)
-    this.add.text(x + w - 30, y + 17, item.badge, uiText('micro', {
+    badge.fillRoundedRect(x + 12, y - 34, 34, 17, 8)
+    this.add.text(x + 29, y - 25.5, item.badge, uiText('micro', {
       fontSize: '8px',
       color: '#1a2a3a',
     })).setOrigin(0.5).setDepth(14)
 
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
+    this.add.rectangle(x, y, w + 8, h + 8, 0x000000, 0)
       .setDepth(15)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.scene.start(item.scene))
@@ -245,6 +292,41 @@ export default class HomeScene extends Phaser.Scene {
       .on('pointerout', () => {
         badge.setAlpha(1)
       })
+  }
+
+  _buildEventBanner(W, H) {
+    const x = 24
+    const y = H * 0.822
+    const w = W - 48
+    const h = 52
+    const g = this.add.graphics().setDepth(10)
+    g.fillStyle(0x000000, 0.14)
+    g.fillRoundedRect(x + 3, y + 4, w, h, 16)
+    g.fillGradientStyle(0xfff4ce, 0xfff4ce, 0xdff8ec, 0xdff8ec, 0.98)
+    g.lineStyle(2.5, 0x1a2a3a, 0.82)
+    g.fillRoundedRect(x, y, w, h, 16)
+    g.strokeRoundedRect(x, y, w, h, 16)
+    g.fillStyle(0xff6a3d, 0.94)
+    g.fillRoundedRect(x + 10, y + 9, 66, 34, 12)
+    this.add.text(x + 43, y + 26, 'イベント', uiText('micro', {
+      fontSize: '10px',
+      color: '#ffffff',
+    })).setOrigin(0.5).setDepth(11)
+    this.add.text(x + 88, y + 18, '港まつり準備 開催中', uiText('cardTitle', {
+      fontSize: '13px',
+    })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 88, y + 36, '期間限定ミッションで報酬を集めよう', uiText('micro', {
+      fontSize: '9px',
+      color: '#4a7090',
+    })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + w - 22, y + h / 2, ICONS.CHEVRON, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '22px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0.5).setDepth(11)
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
+      .setDepth(12)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start('MissionScene', { tab: 'limited', sheetIndex: 0 }))
   }
 
   _buildHelpButton(W) {
