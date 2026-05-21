@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { FONT, SHADOW } from '../config/fontStyles.js'
+import { FONT, SHADOW, uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
@@ -25,7 +25,7 @@ export default class HomeScene extends Phaser.Scene {
     this._buildHeader(W)
     this._buildTitle(W, H)
     this._buildMainCTA(W, H)
-    this._buildBanners(W, H)
+    this._buildFeatureDock(W, H)
     this._buildHelpButton(W)
     this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
@@ -161,16 +161,90 @@ export default class HomeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(10)
   }
 
-  _buildBanners(W, H) {
+  _buildFeatureDock(W, H) {
     const progress = getMissionProgress()
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
     const town = getTownSummary()
-    this._banner(22, H * 0.48, W - 44, 58, '町おこし', `にぎわい ${town.bustle}/100  ${town.rank}`, 0x8bcf52, ICONS.TOWN, () => this.scene.start('TownScene'))
-    this._banner(22, H * 0.56, W - 44, 58, '釣り免許', `進行度 ${license.done}/${license.total}  複数シート公開中`, 0xffd900, ICONS.LICENSE, () => this.scene.start('LicenseScene'))
-    this._banner(22, H * 0.64, W - 44, 58, '今日のミッション', `${firstMission.title}  ${missionValue}/${firstMission.target}`, 0x5ebcff, ICONS.MISSION, () => this.scene.start('MissionScene'))
-    this._banner(22, H * 0.72, W - 44, 58, '釣り師ランク', '釣果でランクアップして能力を開放', 0xff9b5e, ICONS.RANK, () => this.scene.start('RankScene'))
+
+    const dockX = 18
+    const dockY = H * 0.49
+    const dockW = W - 36
+    const dockH = 214
+    const bg = this.add.graphics().setDepth(11)
+    bg.fillStyle(0xffffff, 0.88)
+    bg.lineStyle(2.5, 0x1a2a3a, 0.55)
+    bg.fillRoundedRect(dockX, dockY, dockW, dockH, 22)
+    bg.strokeRoundedRect(dockX, dockY, dockW, dockH, 22)
+    bg.fillStyle(0xffffff, 0.25)
+    bg.fillRoundedRect(dockX + 10, dockY + 10, dockW - 20, 34, 17)
+
+    this.add.text(dockX + 22, dockY + 27, 'メニュー', uiText('chip', {
+      fontSize: '14px',
+      color: '#1a3a5a',
+    })).setOrigin(0, 0.5).setDepth(12)
+    this.add.text(dockX + dockW - 22, dockY + 27, '育成・報酬・町づくり', uiText('micro', {
+      fontSize: '10px',
+      color: '#4a7090',
+    })).setOrigin(1, 0.5).setDepth(12)
+
+    const items = [
+      { title: '町おこし', sub: `にぎわい ${town.bustle}/100`, icon: ICONS.TOWN, accent: 0x8bcf52, scene: 'TownScene', badge: town.rank },
+      { title: '釣り免許', sub: `${license.done}/${license.total}`, icon: ICONS.LICENSE, accent: 0xffd900, scene: 'LicenseScene', badge: '課題' },
+      { title: 'ミッション', sub: `${missionValue}/${firstMission.target}`, icon: ICONS.MISSION, accent: 0x5ebcff, scene: 'MissionScene', badge: '今日' },
+      { title: 'ランク', sub: '能力解放', icon: ICONS.RANK, accent: 0xff9b5e, scene: 'RankScene', badge: '成長' },
+    ]
+    items.forEach((item, i) => {
+      const col = i % 2
+      const row = Math.floor(i / 2)
+      this._featureIconButton(dockX + 18 + col * 174, dockY + 56 + row * 74, 154, 62, item)
+    })
+  }
+
+  _featureIconButton(x, y, w, h, item) {
+    const g = this.add.graphics().setDepth(12)
+    g.fillStyle(0x000000, 0.10)
+    g.fillRoundedRect(x + 3, y + 4, w, h, 18)
+    g.fillStyle(0xffffff, 0.96)
+    g.lineStyle(2.4, 0x1a2a3a, 0.78)
+    g.fillRoundedRect(x, y, w, h, 18)
+    g.strokeRoundedRect(x, y, w, h, 18)
+    g.fillStyle(item.accent, 0.22)
+    g.fillRoundedRect(x + 8, y + 8, 46, 46, 15)
+    g.lineStyle(2, item.accent, 0.85)
+    g.strokeRoundedRect(x + 8, y + 8, 46, 46, 15)
+
+    this.add.text(x + 31, y + 31, item.icon, {
+      fontSize: '23px',
+      resolution: TEXT_RES,
+    }).setOrigin(0.5).setDepth(13)
+    this.add.text(x + 64, y + 20, item.title, uiText('cardTitle', {
+      fontSize: '13px',
+      color: '#1a3a5a',
+    })).setOrigin(0, 0.5).setDepth(13)
+    this.add.text(x + 64, y + 41, item.sub, uiText('cardMeta', {
+      color: '#d56f00',
+    })).setOrigin(0, 0.5).setDepth(13)
+
+    const badge = this.add.graphics().setDepth(13)
+    badge.fillStyle(item.accent, 0.92)
+    badge.fillRoundedRect(x + w - 49, y + 8, 38, 18, 8)
+    this.add.text(x + w - 30, y + 17, item.badge, uiText('micro', {
+      fontSize: '8px',
+      color: '#1a2a3a',
+    })).setOrigin(0.5).setDepth(14)
+
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
+      .setDepth(15)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start(item.scene))
+      .on('pointerover', () => {
+        this.tweens.add({ targets: badge, alpha: 0.72, duration: 80 })
+      })
+      .on('pointerout', () => {
+        badge.setAlpha(1)
+      })
   }
 
   _buildHelpButton(W) {
