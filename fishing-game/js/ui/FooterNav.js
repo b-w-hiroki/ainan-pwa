@@ -14,8 +14,8 @@ const TABS = [
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
   const y = H - 60
   const bar = scene.add.graphics().setDepth(90)
-  bar.fillStyle(0xffffff, 0.96)
-  bar.lineStyle(2.5, 0x1a2a3a, 1)
+  bar.fillStyle(0xffffff, 0.97)
+  bar.lineStyle(2.5, 0x1a2a3a, 0.92)
   bar.fillRoundedRect(10, y, W - 20, 50, 18)
   bar.strokeRoundedRect(10, y, W - 20, 50, 18)
 
@@ -40,13 +40,11 @@ function buildTab(scene, x, y, tab, activeKey) {
       if (!active) scene.scene.start(tab.scene)
     })
 
-  const iconY = y - 9
-  const labelY = y + 11
-  scene.add.text(x, iconY, tab.icon, {
+  scene.add.text(x, y - 9, tab.icon, {
     fontSize: '18px',
     resolution: TEXT_RES,
   }).setOrigin(0.5).setDepth(93)
-  scene.add.text(x, labelY, tab.label, {
+  scene.add.text(x, y + 11, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
     fontSize: '9px',
     fontWeight: '900',

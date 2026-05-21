@@ -35,7 +35,7 @@ export const ASSETS = {
     guideDefault: {
       key: 'ch_guide_default',
       path: 'assets/characters/ch_guide_default.png',
-      status: 'planned',
+      status: 'ready',
     },
     playerDefault: {
       key: 'ch_player_default',
