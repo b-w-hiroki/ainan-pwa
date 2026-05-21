@@ -24,7 +24,7 @@ export default class ExchangeScene extends Phaser.Scene {
     this._background(W, H)
     this._header(W)
     this._grid(W)
-    buildFooterNav(this, W, H, 'exchange')
+    buildFooterNav(this, W, H, 'shop')
   }
 
   _background(W, H) {

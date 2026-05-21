@@ -37,7 +37,6 @@ export default class LicenseScene extends Phaser.Scene {
     this._header(W)
     this._panel(W, H)
     this._sheetBanners(W, H)
-    this._back()
     buildFooterNav(this, W, H, 'home')
   }
 

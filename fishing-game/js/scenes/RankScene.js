@@ -24,7 +24,6 @@ export default class RankScene extends Phaser.Scene {
     this._header(W)
     this._rankPanel(W)
     this._skills(W)
-    this._back()
     buildFooterNav(this, W, H, 'home')
   }
 

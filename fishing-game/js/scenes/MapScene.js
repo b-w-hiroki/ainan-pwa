@@ -5,6 +5,7 @@ import { ICONS, POINT_ICON } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
+import { buildFooterNav } from '../ui/FooterNav.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -68,9 +69,6 @@ export default class MapScene extends Phaser.Scene {
 
     this._buildMapBackground(W, H)
 
-    // ─── 戻るボタン ──────────────────────────────
-    this._buildBackBtn(W, H)
-
     // ─── タイトル ──────────────────────────────
     const header = this.add.graphics().setDepth(4)
     header.fillStyle(0xffffff, 0.78)
@@ -103,6 +101,7 @@ export default class MapScene extends Phaser.Scene {
     })
 
     this._showMapHint(W, H)
+    buildFooterNav(this, W, H, 'fish')
   }
 
   _buildMapBackground(W, H) {

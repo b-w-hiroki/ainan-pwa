@@ -39,7 +39,7 @@ export default class CollectionScene extends Phaser.Scene {
     this._background(W, H)
     this._header(W)
     this._grid(W)
-    buildFooterNav(this, W, H, 'book')
+    buildFooterNav(this, W, H, 'menu')
   }
 
   _background(W, H) {

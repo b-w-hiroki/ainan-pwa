@@ -31,8 +31,7 @@ export default class TownScene extends Phaser.Scene {
     this._header(W)
     this._summary(W)
     this._facilityGrid(W)
-    this._back()
-    buildFooterNav(this, W, H, 'home')
+    buildFooterNav(this, W, H, 'town')
   }
 
   _background(W, H) {

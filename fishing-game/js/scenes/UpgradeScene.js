@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { FONT, SHADOW } from '../config/fontStyles.js'
+import { FONT, SHADOW, uiText } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
@@ -30,16 +30,33 @@ const BAIT_RANK = {
   special: { label: 'SR', color: 0xffc447, glow: 0xfff2cc },
 }
 
-const EMPTY_SLOTS = [
-  { label: '帽子', icon: '🧢', x: 72, y: 166 },
-  { label: '服', icon: '👕', x: 318, y: 166 },
-  { label: 'お守り', icon: '✨', x: 72, y: 276 },
-  { label: 'バッグ', icon: '🎒', x: 318, y: 276 },
+const ROD_ICON = {
+  basic: '🎋',
+  carbon: '🎣',
+  premium: '🏆',
+}
+
+const BAIT_ICON = {
+  worm: '🪱',
+  shrimp: '🦐',
+  special: '🍡',
+}
+
+const MATERIAL_ITEMS = [
+  { id: 'scale', name: 'きらめく鱗', desc: '強化素材。今後の育成に使用予定', icon: '✨', qty: 12, rank: { label: 'R', color: 0x5ebcff, glow: 0xe7f7ff } },
+  { id: 'shell', name: '貝殻パーツ', desc: '港町のショップ素材', icon: '🐚', qty: 8, rank: { label: 'N', color: 0x8bcf52, glow: 0xecf8df } },
+  { id: 'ticket', name: '交換チケット', desc: 'ショップで使える補助券', icon: '🎟️', qty: 3, rank: { label: 'SR', color: 0xffc447, glow: 0xfff2cc } },
+  { id: 'gem', name: '青い宝石', desc: 'イベント報酬素材', icon: '💎', qty: 1, rank: { label: 'SR', color: 0x6c7cff, glow: 0xe8e9ff } },
 ]
 
 export default class UpgradeScene extends Phaser.Scene {
   constructor() {
     super({ key: 'UpgradeScene' })
+  }
+
+  init(data = {}) {
+    this._tab = data.tab ?? this._tab ?? 'rod'
+    this._scroll = data.scroll ?? 0
   }
 
   preload() {
@@ -54,46 +71,38 @@ export default class UpgradeScene extends Phaser.Scene {
     this._background(W, H)
     this._header(W)
     this._loadout(W)
-    this._inventoryGrid(W)
-    buildFooterNav(this, W, H, 'upgrade')
+    this._inventoryPanel(W, H)
+    buildFooterNav(this, W, H, 'equip')
   }
 
   _background(W, H) {
     addCoverImage(this, ASSETS.backgrounds.homeBase.key, W, H, 0)
-
     const veil = this.add.graphics().setDepth(1)
     veil.fillStyle(0xf7fbff, 0.72)
     veil.fillRect(0, 0, W, H)
-
     const top = this.add.graphics().setDepth(2)
     top.fillGradientStyle(0x1f83c6, 0x1f83c6, 0x82dfff, 0x82dfff, 0.9, 0.9, 0.15, 0.15)
     top.fillRect(0, 0, W, 155)
-
-    const floor = this.add.graphics().setDepth(2)
-    floor.fillGradientStyle(0xffffff, 0xffffff, 0xdaf7ff, 0xdaf7ff, 0.18, 0.18, 0.82, 0.82)
-    floor.fillRect(0, 155, W, H - 155)
   }
 
   _header(W) {
-    this.add.text(W / 2, 32, `${ICONS.GEAR} タックル強化`, {
+    this.add.text(W / 2, 32, `${ICONS.GEAR} 装備`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '27px', fontWeight: '900',
       color: '#ffffff', shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
-
     this._pill(W / 2, 70, 178, 30, `${ICONS.SCORE} ${getScore().toLocaleString()} pt`, 0xffffff, '#1a3a5a')
-    this.add.text(W / 2, 106, 'キャラと装備を整えて、釣果を伸ばそう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
-      color: '#ffffff', shadow: SHADOW.medium,
-    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, 106, 'キャラと装備を整えて、釣果を伸ばそう', uiText('chip', {
+      fontSize: '13px',
+      color: '#ffffff',
+      shadow: SHADOW.medium,
+    })).setOrigin(0.5).setDepth(5)
   }
 
   _loadout(W) {
     const equipment = getEquipment()
     const inventory = getInventory()
     const y = 130
-
     const panel = this.add.graphics().setDepth(4)
     panel.fillStyle(0x000000, 0.14)
     panel.fillRoundedRect(18 + 3, y + 5, W - 36, 250, 24)
@@ -103,76 +112,51 @@ export default class UpgradeScene extends Phaser.Scene {
     panel.strokeRoundedRect(18, y, W - 36, 250, 24)
 
     this._character(W / 2, y + 132)
-
-    this._equipSlot(72, y + 68, '竿', ICONS.ROD, equipment.rodType, ROD_META[equipment.rodType], ROD_RANK[equipment.rodType], inventory.rods?.[equipment.rodType] ?? 0, 'rod', true)
-    this._equipSlot(318, y + 68, 'エサ', ICONS.BAIT, equipment.baitType, BAIT_META[equipment.baitType], BAIT_RANK[equipment.baitType], inventory.baits?.[equipment.baitType] ?? 0, 'bait', true)
-
-    EMPTY_SLOTS.forEach(slot => this._emptySlot(slot.x, y + slot.y - 130, slot.label, slot.icon))
+    this._equipSlot(72, y + 68, '竿', ROD_ICON[equipment.rodType], equipment.rodType, ROD_META[equipment.rodType], ROD_RANK[equipment.rodType], inventory.rods?.[equipment.rodType] ?? 0, 'rod')
+    this._equipSlot(318, y + 68, 'エサ', BAIT_ICON[equipment.baitType], equipment.baitType, BAIT_META[equipment.baitType], BAIT_RANK[equipment.baitType], inventory.baits?.[equipment.baitType] ?? 0, 'bait')
+    this._emptySlot(72, y + 174, '帽子', '🧢')
+    this._emptySlot(318, y + 174, 'バッグ', '🎒')
   }
 
   _character(x, y) {
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x5cc8ff, 0.14)
     g.fillEllipse(x, y + 82, 128, 32)
-
     g.fillStyle(0xffd29a, 1)
     g.lineStyle(3, 0x1a2a3a, 1)
     g.fillCircle(x, y - 36, 35)
     g.strokeCircle(x, y - 36, 35)
-
     g.fillStyle(0x1a3a5a, 1)
     g.fillCircle(x - 12, y - 42, 3)
     g.fillCircle(x + 12, y - 42, 3)
     g.lineStyle(2, 0x1a3a5a, 1)
-    g.beginPath()
-    g.arc(x, y - 33, 11, 0.15, Math.PI - 0.15)
-    g.strokePath()
-
+    g.lineBetween(x - 9, y - 28, x + 9, y - 28)
     g.fillStyle(0x3ab7ff, 1)
     g.lineStyle(3, 0x1a2a3a, 1)
     g.fillRoundedRect(x - 36, y, 72, 80, 20)
     g.strokeRoundedRect(x - 36, y, 72, 80, 20)
-
     g.fillStyle(0xffffff, 0.92)
     g.fillCircle(x, y + 29, 20)
     this.add.text(x, y + 29, ICONS.ROD, { fontSize: '25px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(7)
-
-    this.add.text(x, y + 104, '港の釣り人', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(7)
+    this.add.text(x, y + 104, '港の釣り人', uiText('cardTitle', { fontSize: '15px' })).setOrigin(0.5).setDepth(7)
   }
 
-  _equipSlot(x, y, label, icon, id, item, rank, qty, type, equipped) {
+  _equipSlot(x, y, label, icon, id, item, rank, qty, type) {
     const size = 72
     const g = this.add.graphics().setDepth(7)
     g.fillStyle(0x000000, 0.12)
     g.fillRoundedRect(x - size / 2 + 3, y - size / 2 + 4, size, size, 18)
     g.fillStyle(rank.glow, 1)
-    g.lineStyle(equipped ? 4 : 2.5, equipped ? 0xffd900 : rank.color, 1)
+    g.lineStyle(4, 0xffd900, 1)
     g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 18)
     g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 18)
     g.fillStyle(0xffffff, 0.74)
     g.fillCircle(x, y - 10, 25)
-
     this.add.text(x, y - 10, icon, { fontSize: '27px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(8)
     this._rankBadge(x - 22, y - 26, rank)
-    this.add.text(x, y + 22, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
-      color: '#55708a',
-    }).setOrigin(0.5).setDepth(8)
-    this.add.text(x, y + 36, type === 'bait' ? `x${qty}` : '装備中', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
-      color: '#e07800',
-    }).setOrigin(0.5).setDepth(8)
-
-    this.add.rectangle(x, y, size, size, 0x000000, 0)
-      .setDepth(9)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._showModal(id, item, type, icon, true, qty, true, rank))
+    this.add.text(x, y + 22, label, uiText('micro', { fontSize: '10px', color: '#55708a' })).setOrigin(0.5).setDepth(8)
+    this.add.text(x, y + 36, type === 'bait' ? `x${qty}` : '装備中', uiText('micro', { fontSize: '10px', color: '#e07800' })).setOrigin(0.5).setDepth(8)
+    this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(9).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(id, item, type, icon, true, qty, true, rank))
   }
 
   _emptySlot(x, y, label, icon) {
@@ -182,29 +166,15 @@ export default class UpgradeScene extends Phaser.Scene {
     g.lineStyle(2, 0x6b8aa4, 0.35)
     g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 18)
     g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 18)
-    this.add.text(x, y - 8, icon, {
-      fontSize: '21px',
-      resolution: TEXT_RES,
-      alpha: 0.48,
-    }).setOrigin(0.5).setDepth(6)
-    this.add.text(x, y + 18, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
-      color: '#6b7f8f',
-    }).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y - 8, icon, { fontSize: '21px', resolution: TEXT_RES, alpha: 0.48 }).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y + 18, label, uiText('micro', { fontSize: '9px', color: '#6b7f8f' })).setOrigin(0.5).setDepth(6)
   }
 
-  _inventoryGrid(W) {
-    const items = [
-      ...Object.entries(ROD_META).map(([id, item]) => ({ id, item, type: 'rod', icon: ICONS.ROD, rank: ROD_RANK[id] })),
-      ...Object.entries(BAIT_META).map(([id, item]) => ({ id, item, type: 'bait', icon: ICONS.BAIT, rank: BAIT_RANK[id] })),
-    ]
-
+  _inventoryPanel(W, H) {
     const x = 18
     const y = 402
     const w = W - 36
     const h = 260
-
     const panel = this.add.graphics().setDepth(4)
     panel.fillStyle(0x000000, 0.14)
     panel.fillRoundedRect(x + 3, y + 5, w, h, 24)
@@ -212,38 +182,79 @@ export default class UpgradeScene extends Phaser.Scene {
     panel.lineStyle(2.5, 0x1a2a3a, 0.9)
     panel.fillRoundedRect(x, y, w, h, 24)
     panel.strokeRoundedRect(x, y, w, h, 24)
+    this.add.text(x + 22, y + 24, '所持品', uiText('panelTitle', { fontSize: '17px' })).setOrigin(0, 0.5).setDepth(5)
 
-    this.add.text(x + 22, y + 26, '所持品', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '17px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + w - 22, y + 26, 'タップで詳細', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
-      color: '#6b7f8f',
-    }).setOrigin(1, 0.5).setDepth(5)
-
-    const size = 78
-    const gapX = 27
-    const gapY = 16
-    const startX = x + 22
-    const startY = y + 52
-    items.forEach((entry, i) => {
-      const col = i % 3
-      const row = Math.floor(i / 3)
-      this._inventoryTile(startX + col * (size + gapX), startY + row * (size + gapY), size, entry)
-    })
+    const tabs = [
+      { id: 'rod', label: '竿' },
+      { id: 'bait', label: 'エサ' },
+      { id: 'material', label: '素材' },
+    ]
+    tabs.forEach((tab, i) => this._tabButton(x + 82 + i * 72, y + 24, 62, 28, tab))
+    this._inventoryGrid(x + 18, y + 56, w - 36, h - 76)
   }
 
-  _inventoryTile(x, y, size, entry) {
+  _tabButton(x, y, w, h, tab) {
+    const active = this._tab === tab.id
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(active ? 0xffd900 : 0xffffff, 1)
+    g.lineStyle(2, active ? 0x1a2a3a : 0xb7c4cf, 1)
+    g.fillRoundedRect(x, y - h / 2, w, h, 10)
+    g.strokeRoundedRect(x, y - h / 2, w, h, 10)
+    this.add.text(x + w / 2, y, tab.label, uiText('button', { fontSize: '11px' })).setOrigin(0.5).setDepth(6)
+    this.add.rectangle(x + w / 2, y, w, h, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart({ tab: tab.id, scroll: 0 }))
+  }
+
+  _inventoryItems() {
+    if (this._tab === 'rod') return Object.entries(ROD_META).map(([id, item]) => ({ id, item, type: 'rod', icon: ROD_ICON[id], rank: ROD_RANK[id] }))
+    if (this._tab === 'bait') return Object.entries(BAIT_META).map(([id, item]) => ({ id, item, type: 'bait', icon: BAIT_ICON[id], rank: BAIT_RANK[id] }))
+    return MATERIAL_ITEMS.map(item => ({ id: item.id, item, type: 'material', icon: item.icon, rank: item.rank, fixedQty: item.qty }))
+  }
+
+  _inventoryGrid(x, y, w, viewH) {
+    const items = this._inventoryItems()
+    const size = 74
+    const gapX = 23
+    const gapY = 16
+    const cols = 3
+    const rows = Math.ceil(items.length / cols)
+    const contentH = rows * size + Math.max(0, rows - 1) * gapY
+    const maxScroll = Math.max(0, contentH - viewH)
+    this._scroll = Phaser.Math.Clamp(this._scroll, 0, maxScroll)
+
+    const maskShape = this.add.graphics().setVisible(false)
+    maskShape.fillStyle(0xffffff, 1)
+    maskShape.fillRect(x - 2, y - 2, w + 4, viewH + 4)
+    const list = this.add.container(0, -this._scroll).setDepth(5).setMask(maskShape.createGeometryMask())
+
+    items.forEach((entry, i) => {
+      const col = i % cols
+      const row = Math.floor(i / cols)
+      this._inventoryTile(list, x + col * (size + gapX), y + row * (size + gapY), size, entry)
+    })
+
+    if (maxScroll > 0) {
+      this.input.on('wheel', (_pointer, _objects, _dx, dy) => {
+        const next = Phaser.Math.Clamp(this._scroll + dy * 0.55, 0, maxScroll)
+        if (next !== this._scroll) this.scene.restart({ tab: this._tab, scroll: next })
+      })
+    }
+  }
+
+  _inventoryTile(parent, x, y, size, entry) {
+    const add = obj => {
+      parent.add(obj)
+      return obj
+    }
     const inventory = getInventory()
     const equipment = getEquipment()
-    const owned = entry.type === 'rod' ? (inventory.rods?.[entry.id] ?? 0) > 0 : (inventory.baits?.[entry.id] ?? 0) > 0
-    const qty = entry.type === 'bait' ? (inventory.baits?.[entry.id] ?? 0) : (owned ? 1 : 0)
-    const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : equipment.baitType === entry.id
-
-    const g = this.add.graphics().setDepth(5)
+    const owned = entry.type === 'material'
+      ? true
+      : entry.type === 'rod'
+        ? (inventory.rods?.[entry.id] ?? 0) > 0
+        : (inventory.baits?.[entry.id] ?? 0) > 0
+    const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (inventory.baits?.[entry.id] ?? 0) : (owned ? 1 : 0)
+    const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : entry.type === 'bait' ? equipment.baitType === entry.id : false
+    const g = add(this.add.graphics())
     g.fillStyle(0x000000, 0.12)
     g.fillRoundedRect(x + 3, y + 4, size, size, 18)
     g.fillStyle(owned ? entry.rank.glow : 0xf1f4f7, 1)
@@ -251,52 +262,29 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, size, size, 18)
     g.strokeRoundedRect(x, y, size, size, 18)
     g.fillStyle(0xffffff, owned ? 0.74 : 0.54)
-    g.fillCircle(x + size / 2, y + 26, 23)
-
-    this.add.text(x + size / 2, y + 26, owned ? entry.icon : ICONS.LOCK, {
-      fontSize: owned ? '25px' : '20px', resolution: TEXT_RES,
-    }).setOrigin(0.5).setDepth(6)
-    this._rankBadge(x + 17, y + 17, entry.rank)
-    this.add.text(x + size / 2, y + 52, entry.item.name, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
-      color: '#1a3a5a',
-      wordWrap: { width: size - 8 },
-      align: 'center',
-    }).setOrigin(0.5, 0).setDepth(6)
-    this.add.text(x + size / 2, y + size - 10, entry.type === 'bait' ? `x${qty}` : (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`), {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
-      color: equipped ? '#e07800' : '#4a7090',
-    }).setOrigin(0.5).setDepth(6)
-
-    this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0)
-      .setDepth(7)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.icon, owned, qty, equipped, entry.rank))
+    g.fillCircle(x + size / 2, y + 25, 22)
+    add(this.add.text(x + size / 2, y + 25, owned ? entry.icon : ICONS.LOCK, { fontSize: owned ? '24px' : '20px', resolution: TEXT_RES }).setOrigin(0.5))
+    this._rankBadge(x + 17, y + 17, entry.rank, parent)
+    add(this.add.text(x + size / 2, y + 50, entry.item.name, uiText('micro', { fontSize: '9px', color: '#1a3a5a', wordWrap: { width: size - 8 }, align: 'center' })).setOrigin(0.5, 0))
+    add(this.add.text(x + size / 2, y + size - 9, entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : `x${qty}`, uiText('micro', { fontSize: '9px', color: equipped ? '#e07800' : '#4a7090' })).setOrigin(0.5))
+    add(this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.icon, owned, qty, equipped, entry.rank)))
   }
 
-  _rankBadge(x, y, rank) {
+  _rankBadge(x, y, rank, parent = null) {
     const g = this.add.graphics().setDepth(8)
     g.fillStyle(rank.color, 1)
     g.lineStyle(1.5, 0xffffff, 0.85)
     g.fillRoundedRect(x - 14, y - 9, 28, 18, 7)
     g.strokeRoundedRect(x - 14, y - 9, 28, 18, 7)
-    this.add.text(x, y, rank.label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
-      color: '#ffffff',
-    }).setOrigin(0.5).setDepth(9)
+    const t = this.add.text(x, y, rank.label, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5)
+    if (parent) parent.add([g, t])
   }
 
   _showModal(id, item, type, icon, owned, qty, equipped, rank) {
     const { width: W, height: H } = this.scale
     this._modal?.destroy(true)
     const items = []
-    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x102b42, 0.48)
-      .setInteractive()
-      .on('pointerdown', () => this._modal?.destroy(true)))
-
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x102b42, 0.48).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
     const x = 30
     const y = 166
     const w = W - 60
@@ -313,47 +301,18 @@ export default class UpgradeScene extends Phaser.Scene {
     bg.fillStyle(0xffffff, 0.76)
     bg.fillCircle(W / 2, y + 70, 45)
     items.push(bg)
-
-    items.push(this.add.text(W / 2, y + 70, owned ? icon : ICONS.LOCK, {
-      fontSize: owned ? '42px' : '34px', resolution: TEXT_RES,
-    }).setOrigin(0.5))
-    items.push(this.add.text(x + 42, y + 38, type === 'rod' ? 'ROD' : 'BAIT', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
-      color: '#5b7890',
-    }).setOrigin(0, 0.5))
-    items.push(this.add.text(x + w - 42, y + 38, rank.label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '18px', fontWeight: '900',
-      color: '#ffffff',
-      backgroundColor: Phaser.Display.Color.IntegerToColor(rank.color).rgba,
-      padding: { x: 8, y: 3 },
-    }).setOrigin(1, 0.5))
-
-    items.push(this.add.text(W / 2, y + 152, item.name, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '24px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 188, item.desc, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
-      color: '#4a7090',
-      wordWrap: { width: w - 48 },
-      align: 'center',
-    }).setOrigin(0.5, 0))
-
-    const status = type === 'rod'
-      ? (equipped ? '現在装備中' : owned ? '所持済み' : `${item.cost} ptで購入`)
-      : `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
+    items.push(this.add.text(W / 2, y + 70, owned ? icon : ICONS.LOCK, { fontSize: owned ? '42px' : '34px', resolution: TEXT_RES }).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 152, item.name, uiText('panelTitle', { fontSize: '24px' })).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 188, item.desc, uiText('screenLead', { fontSize: '13px', wordWrap: { width: w - 48 }, align: 'center' })).setOrigin(0.5, 0))
+    const status = type === 'material'
+      ? `所持 ${qty}`
+      : type === 'rod'
+        ? (equipped ? '現在装備中' : owned ? '所持済み' : `${item.cost} ptで購入`)
+        : `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
     items.push(this._statLine(W / 2, y + 244, status))
-
-    const action = type === 'rod'
-      ? (equipped ? null : owned ? '装備する' : '購入して装備')
-      : '購入して装備'
+    const action = type === 'material' ? null : type === 'rod' ? (equipped ? null : owned ? '装備する' : '購入して装備') : '購入して装備'
     if (action) items.push(this._actionButton(W / 2, y + 294, action, () => this._apply(id, item, type, owned, qty)))
     items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true)))
-
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
@@ -365,11 +324,7 @@ export default class UpgradeScene extends Phaser.Scene {
     bg.lineStyle(2, 0xe07800, 0.55)
     bg.fillRoundedRect(x - 118, y - 18, 236, 36, 14)
     bg.strokeRoundedRect(x - 118, y - 18, 236, 36, 14)
-    const label = this.add.text(x, y, text, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '900',
-      color: '#9a5600',
-    }).setOrigin(0.5)
+    const label = this.add.text(x, y, text, uiText('chip', { fontSize: '14px', color: '#9a5600' })).setOrigin(0.5)
     c.add([bg, label])
     return c
   }
@@ -381,14 +336,14 @@ export default class UpgradeScene extends Phaser.Scene {
       if (!owned && !spendScore(item.cost)) return this._toast('ポイントが足りません')
       inventory.rods[id] = 1
       equipment.rodType = id
-    } else {
+    } else if (type === 'bait') {
       if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
       inventory.baits[id] = qty + item.amount
       equipment.baitType = id
     }
     saveInventory(inventory)
     saveEquipment(equipment)
-    this.scene.restart()
+    this.scene.restart({ tab: this._tab, scroll: this._scroll })
   }
 
   _actionButton(x, y, label, onTap) {
@@ -398,22 +353,14 @@ export default class UpgradeScene extends Phaser.Scene {
     bg.lineStyle(2.5, 0x1a2a3a, 1)
     bg.fillRoundedRect(x - 86, y - 22, 172, 44, 15)
     bg.strokeRoundedRect(x - 86, y - 22, 172, 44, 15)
-    const txt = this.add.text(x, y, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '900',
-      color: '#1a2a3a',
-    }).setOrigin(0.5)
+    const txt = this.add.text(x, y, label, uiText('button', { fontSize: '14px' })).setOrigin(0.5)
     const hit = this.add.rectangle(x, y, 184, 52, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
     c.add([bg, txt, hit])
     return c
   }
 
   _plainButton(x, y, label, onTap) {
-    return this.add.text(x, y, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
-      color: '#4a7090',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
+    return this.add.text(x, y, label, uiText('chip', { fontSize: '13px', color: '#4a7090' })).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
   }
 
   _pill(x, y, w, h, label, fill, color) {
@@ -422,11 +369,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.lineStyle(2, 0x1a2a3a, 0.55)
     g.fillRoundedRect(x - w / 2, y - h / 2, w, h, h / 2)
     g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, h / 2)
-    this.add.text(x, y, label, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
-      color,
-    }).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y, label, uiText('chip', { fontSize: '13px', color })).setOrigin(0.5).setDepth(6)
   }
 
   _toast(message) {
@@ -435,11 +378,7 @@ export default class UpgradeScene extends Phaser.Scene {
     const bg = this.add.graphics().setDepth(120)
     bg.fillStyle(0x1a2a3a, 0.92)
     bg.fillRoundedRect(W / 2 - 112, 650, 224, 38, 15)
-    const txt = this.add.text(W / 2, 669, message, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
-      color: '#ffffff',
-    }).setOrigin(0.5).setDepth(121)
+    const txt = this.add.text(W / 2, 669, message, uiText('chip', { fontSize: '13px', color: '#ffffff' })).setOrigin(0.5).setDepth(121)
     this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=14', duration: 900, onComplete: () => { bg.destroy(); txt.destroy() } })
   }
 }

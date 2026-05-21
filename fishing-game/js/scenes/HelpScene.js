@@ -31,7 +31,6 @@ export default class HelpScene extends Phaser.Scene {
     this._background(W, H)
     this._header(W)
     this._items(W)
-    this._back()
     buildFooterNav(this, W, H, 'home')
   }
 
