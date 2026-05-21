@@ -6,11 +6,11 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import {
   LICENSE_SHEETS,
+  claimAllLicenseRewards,
   claimLicenseBonus,
   claimLicenseReward,
   getClaimedLicenseBonuses,
   getClaimedLicenses,
-  getLicenseLineIndexes,
   getLicenseProgress,
 } from '../game/progress.js'
 
@@ -68,11 +68,12 @@ export default class LicenseScene extends Phaser.Scene {
     const claimedBonus = getClaimedLicenseBonuses()
     const completed = sheet.tasks.filter(m => progress[m.id]).length
     const claimedCount = sheet.tasks.filter(m => claimed[m.id]).length
+    const claimableCount = sheet.tasks.filter(m => progress[m.id] && !claimed[m.id]).length
 
     const x = 18
     const y = 94
     const w = W - 36
-    const h = 494
+    const h = 526
     const bg = this.add.graphics().setDepth(4)
     bg.fillStyle(0xffffff, 0.97)
     bg.lineStyle(3, 0x1a2a3a, 0.9)
@@ -92,17 +93,19 @@ export default class LicenseScene extends Phaser.Scene {
       color: '#e07800',
     }).setOrigin(0.5).setDepth(5)
 
-    const size = 78
-    const gap = 16
+    this._completeRewardCard(x + 18, y + 96, w - 36, 98, sheet, completed, claimedBonus)
+
+    const size = 74
+    const gap = 13
     const startX = (W - (size * 3 + gap * 2)) / 2
-    const startY = y + 112
+    const startY = y + 216
     sheet.tasks.forEach((m, i) => {
       const col = i % 3
       const row = Math.floor(i / 3)
       this._tile(startX + col * (size + gap), startY + row * (size + gap), size, m, !!progress[m.id], !!claimed[m.id], i, sheet.color)
     })
 
-    this._bonusPanel(W, y + 382, sheet, progress, claimedBonus)
+    this._claimAllBar(x + 18, y + h - 58, w - 36, sheet, claimableCount, completed)
   }
 
   _tile(x, y, size, item, done, claimed, index, accent) {
@@ -140,73 +143,102 @@ export default class LicenseScene extends Phaser.Scene {
       .on('pointerdown', () => this._showDetail(item, done, claimed))
   }
 
-  _bonusPanel(W, y, sheet, progress, claimedBonus) {
-    const x = 34
-    const w = W - 68
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0xf7fbff, 1)
-    g.lineStyle(2, 0x1a2a3a, 0.30)
-    g.fillRoundedRect(x, y, w, 100, 18)
-    g.strokeRoundedRect(x, y, w, 100, 18)
-
-    this.add.text(x + 16, y + 18, '列・行ボーナス', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + w - 16, y + 18, `全達成ボーナス`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900', color: '#e07800',
-    }).setOrigin(1, 0.5).setDepth(6)
-
-    sheet.lineRewards.forEach((r, i) => {
-      const lineDone = getLicenseLineIndexes(r.id).every(index => progress[sheet.tasks[index]?.id])
-      const key = `${sheet.id}:${r.id}`
-      this._bonusChip(x + 12 + (i % 2) * 96, y + 36 + Math.floor(i / 2) * 20, 88, this._bonusLabel(r.id), r.text, lineDone, !!claimedBonus[key], () => {
-        if (claimLicenseBonus(sheet.id, r.id)) this.scene.restart({ sheetIndex: this._sheetIndex })
-      })
-    })
-
-    const completeDone = sheet.tasks.every(task => progress[task.id])
+  _completeRewardCard(x, y, w, h, sheet, completed, claimedBonus) {
+    const completeDone = completed >= sheet.tasks.length
     const completeKey = `${sheet.id}:complete`
-    this._bonusChip(x + w - 106, y + 56, 94, '全達成', sheet.completeReward.text, completeDone, !!claimedBonus[completeKey], () => {
-      if (claimLicenseBonus(sheet.id, 'complete')) this.scene.restart({ sheetIndex: this._sheetIndex })
-    })
-  }
+    const completeClaimed = !!claimedBonus[completeKey]
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(0x2b2015, 0.92)
+    g.lineStyle(2.5, sheet.color, 0.95)
+    g.fillRoundedRect(x, y, w, h, 18)
+    g.strokeRoundedRect(x, y, w, h, 18)
+    g.fillStyle(sheet.color, 0.25)
+    g.fillCircle(x + 54, y + 50, 36)
+    g.fillStyle(0xffffff, 0.12)
+    g.fillCircle(x + 75, y + 26, 12)
+    g.fillCircle(x + 28, y + 74, 9)
 
-  _bonusLabel(id) {
-    return {
-      row0: '1行',
-      row1: '2行',
-      row2: '3行',
-      col0: '1列',
-      col1: '2列',
-      col2: '3列',
-    }[id] ?? id
-  }
+    this.add.text(x + 54, y + 50, ICONS.GIFT, {
+      fontSize: '36px', resolution: TEXT_RES,
+    }).setOrigin(0.5).setDepth(6)
+    this.add.text(x + 104, y + 25, 'シート全達成報酬', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '13px', fontWeight: '900',
+      color: '#ffe7a3',
+    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 104, y + 53, sheet.completeReward.text, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '25px', fontWeight: '900',
+      color: '#ffffff', shadow: SHADOW.medium,
+    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 104, y + 78, completeClaimed ? '受取済み' : `あと ${Math.max(0, sheet.tasks.length - completed)} 件`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: completeDone ? '#8ff0aa' : '#ffd980',
+    }).setOrigin(0, 0.5).setDepth(6)
 
-  _bonusChip(x, y, w, label, reward, done, claimed, onTap) {
-    const fill = claimed ? 0xfff4ce : done ? 0xe3f8ee : 0xffffff
-    const stroke = claimed ? 0xffb000 : done ? 0x00aa66 : 0xb7c4cf
-    const g = this.add.graphics().setDepth(6)
-    g.fillStyle(fill, 1)
-    g.lineStyle(1.6, stroke, 0.95)
-    g.fillRoundedRect(x, y, w, 20, 8)
-    g.strokeRoundedRect(x, y, w, 20, 8)
-    this.add.text(x + 8, y + 10, label.toUpperCase(), {
+    const label = completeClaimed ? '済' : completeDone ? '受取' : '未達成'
+    const bx = x + w - 78
+    const by = y + 60
+    const active = completeDone && !completeClaimed
+    const btn = this.add.graphics().setDepth(6)
+    btn.fillStyle(active ? 0xffd900 : 0x8b8f96, 1)
+    btn.lineStyle(2, 0xffffff, 0.75)
+    btn.fillRoundedRect(bx, by, 58, 26, 10)
+    btn.strokeRoundedRect(bx, by, 58, 26, 10)
+    this.add.text(bx + 29, by + 13, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '8px', fontWeight: '900',
-      color: done || claimed ? '#1a3a5a' : '#7b8794',
-    }).setOrigin(0, 0.5).setDepth(7)
-    this.add.text(x + w - 7, y + 10, claimed ? '済' : reward, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '8px', fontWeight: '900',
-      color: claimed ? '#cc7700' : done ? '#00aa66' : '#7b8794',
-    }).setOrigin(1, 0.5).setDepth(7)
-    if (done && !claimed) {
-      this.add.rectangle(x + w / 2, y + 10, w, 24, 0x000000, 0)
+      fontSize: '11px', fontWeight: '900',
+      color: active ? '#1a2a3a' : '#ffffff',
+    }).setOrigin(0.5).setDepth(7)
+    if (active) {
+      this.add.rectangle(bx + 29, by + 13, 66, 34, 0x000000, 0)
         .setDepth(8)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', onTap)
+        .on('pointerdown', () => {
+          if (claimLicenseBonus(sheet.id, 'complete')) this.scene.restart({ sheetIndex: this._sheetIndex })
+        })
+    }
+  }
+
+  _claimAllBar(x, y, w, sheet, claimableCount, completed) {
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(0xffffff, 0.94)
+    g.lineStyle(2, 0x1a2a3a, 0.28)
+    g.fillRoundedRect(x, y, w, 42, 14)
+    g.strokeRoundedRect(x, y, w, 42, 14)
+    this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
+    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 14, y + 29, claimableCount > 0 ? `未受取 ${claimableCount}件` : '未受取なし', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '10px', fontWeight: '900',
+      color: claimableCount > 0 ? '#e07800' : '#7b8794',
+    }).setOrigin(0, 0.5).setDepth(6)
+
+    const completeClaimed = !!getClaimedLicenseBonuses()[`${sheet.id}:complete`]
+    const active = claimableCount > 0 || (completed >= sheet.tasks.length && !completeClaimed)
+    const bx = x + w - 118
+    const by = y + 7
+    const btn = this.add.graphics().setDepth(6)
+    btn.fillStyle(active ? 0xffd900 : 0xdce3ea, 1)
+    btn.lineStyle(2.5, 0x1a2a3a, active ? 0.95 : 0.35)
+    btn.fillRoundedRect(bx, by, 104, 28, 11)
+    btn.strokeRoundedRect(bx, by, 104, 28, 11)
+    this.add.text(bx + 52, by + 14, '一括受取', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: active ? '#1a2a3a' : '#7b8794',
+    }).setOrigin(0.5).setDepth(7)
+    if (active) {
+      this.add.rectangle(bx + 52, by + 14, 112, 36, 0x000000, 0)
+        .setDepth(8)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+          claimAllLicenseRewards(sheet.id)
+          this.scene.restart({ sheetIndex: this._sheetIndex })
+        })
     }
   }
 
