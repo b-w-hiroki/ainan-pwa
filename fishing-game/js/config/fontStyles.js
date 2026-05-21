@@ -21,6 +21,27 @@ export const TYPE = {
   badge:   { fontFamily: FONT, fontSize: '11px', fontWeight: '900', color: '#1a2a3a' },
 }
 
+export const UI_TEXT = {
+  screenTitle: { fontSize: '28px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.subtle },
+  screenLead:  { fontSize: '13px', fontWeight: '900', color: '#45687f' },
+  panelTitle:  { fontSize: '21px', fontWeight: '900', color: '#1a3a5a' },
+  panelMeta:   { fontSize: '11px', fontWeight: '900', color: '#d56f00' },
+  cardTitle:   { fontSize: '13px', fontWeight: '900', color: '#1a3a5a' },
+  cardMeta:    { fontSize: '10px', fontWeight: '900', color: '#d56f00' },
+  chip:        { fontSize: '12px', fontWeight: '900', color: '#1a2a3a' },
+  micro:       { fontSize: '9px', fontWeight: '900', color: '#4a7090' },
+  button:      { fontSize: '12px', fontWeight: '900', color: '#1a2a3a' },
+}
+
+export function uiText(preset, overrides = {}) {
+  return {
+    fontFamily: FONT,
+    resolution: window.devicePixelRatio ?? 1,
+    ...(UI_TEXT[preset] ?? UI_TEXT.cardTitle),
+    ...overrides,
+  }
+}
+
 export const FONT_STYLES = {
   title: {
     fontFamily: FONT,

@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { FONT, SHADOW } from '../config/fontStyles.js'
+import { FONT, SHADOW, uiText } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
@@ -53,16 +53,8 @@ export default class MissionScene extends Phaser.Scene {
   }
 
   _header(W) {
-    this.add.text(W / 2, 36, `${ICONS.MISSION} ミッション`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '28px', fontWeight: '900',
-      color: '#1a3a5a', shadow: SHADOW.subtle,
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, 66, 'シートを進めて追加報酬を集めよう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
-      color: '#4a7090',
-    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, 36, `${ICONS.MISSION} ミッション`, uiText('screenTitle')).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, 66, 'シートを進めて追加報酬を集めよう', uiText('screenLead')).setOrigin(0.5).setDepth(5)
   }
 
   _tabs(W) {
@@ -76,11 +68,7 @@ export default class MissionScene extends Phaser.Scene {
       g.lineStyle(active ? 3 : 2, active ? 0x1a2a3a : 0xb7c4cf, 1)
       g.fillRoundedRect(x, y, tabW, 34, 13)
       g.strokeRoundedRect(x, y, tabW, 34, 13)
-      this.add.text(x + tabW / 2, y + 17, tab.label, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '13px', fontWeight: '900',
-        color: '#1a3a5a',
-      }).setOrigin(0.5).setDepth(7)
+      this.add.text(x + tabW / 2, y + 17, tab.label, uiText('chip')).setOrigin(0.5).setDepth(7)
       this.add.rectangle(x + tabW / 2, y + 17, tabW, 38, 0x000000, 0)
         .setDepth(8)
         .setInteractive({ useHandCursor: true })
@@ -118,16 +106,8 @@ export default class MissionScene extends Phaser.Scene {
     bg.fillStyle(sheet.color, 0.22)
     bg.fillRoundedRect(x + 16, y + 14, w - 32, 58, 18)
 
-    this.add.text(W / 2, y + 31, sheet.title, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '20px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, y + 54, `${sheet.subtitle}  進行 ${completed}/${sheet.tasks.length}  報酬 ${claimedCount}/${sheet.tasks.length}`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
-      color: '#e07800',
-    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, y + 31, sheet.title, uiText('panelTitle')).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, y + 55, `${sheet.subtitle}  進行 ${completed}/${sheet.tasks.length}  報酬 ${claimedCount}/${sheet.tasks.length}`, uiText('panelMeta')).setOrigin(0.5).setDepth(5)
 
     this._progressPanel(x + 18, y + 86, w - 36, sheet, completed, claimedBonus)
     this._missionCards(x + 18, y + 162, w - 36, sheet, progress, claimed)
@@ -137,15 +117,13 @@ export default class MissionScene extends Phaser.Scene {
   _progressPanel(x, y, w, sheet, completed, claimedBonus) {
     const h = 62
     const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0xffffff, 0.94)
+    g.fillStyle(0xffffff, 0.96)
     g.lineStyle(2, 0x1a2a3a, 0.22)
     g.fillRoundedRect(x, y, w, h, 16)
     g.strokeRoundedRect(x, y, w, h, 16)
-    this.add.text(x + 14, y + 16, `進行度 ${completed}/${sheet.tasks.length}`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(6)
+    g.fillStyle(sheet.color, 0.12)
+    g.fillRoundedRect(x + 8, y + 8, w - 16, 18, 9)
+    this.add.text(x + 16, y + 17, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
 
     const barX = x + 18
     const barY = y + 34
@@ -169,14 +147,10 @@ export default class MissionScene extends Phaser.Scene {
       marker.strokeCircle(px, barY + 6, 12)
       this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: claimed ? '10px' : '11px', fontWeight: '900',
+        fontSize: claimed ? '11px' : '12px', fontWeight: '900',
         color: '#1a3a5a',
       }).setOrigin(0.5).setDepth(8)
-      this.add.text(px, y + 53, reward.text, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '8px', fontWeight: '900',
-        color: done ? '#e07800' : '#7b8794',
-      }).setOrigin(0.5).setDepth(8)
+      this.add.text(px, y + 53, reward.text, uiText('micro', { color: done ? '#d56f00' : '#6d7f8e' })).setOrigin(0.5).setDepth(8)
       if (done && !claimed) {
         this.add.rectangle(px, barY + 9, 54, 42, 0x000000, 0)
           .setDepth(9)
@@ -193,7 +167,7 @@ export default class MissionScene extends Phaser.Scene {
     const cols = compact ? 2 : 1
     const gap = 8
     const cardW = compact ? (w - gap) / 2 : w
-    const cardH = compact ? 66 : 72
+    const cardH = compact ? 68 : 72
     sheet.tasks.forEach((mission, i) => {
       const col = i % cols
       const row = Math.floor(i / cols)
@@ -221,16 +195,16 @@ export default class MissionScene extends Phaser.Scene {
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(6)
 
-    this.add.text(x + (compact ? 39 : 54), y + (compact ? 15 : 16), mission.title, {
+    this.add.text(x + (compact ? 39 : 54), y + (compact ? 16 : 16), mission.title, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '10px' : '13px', fontWeight: '900',
+      fontSize: compact ? '11px' : '13px', fontWeight: '900',
       color: '#1a3a5a',
       wordWrap: { width: compact ? w - 50 : w - 150 },
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + (compact ? 14 : 54), y + h - 16, `${value}/${mission.target}  ${this._missionReward(mission)}pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '9px' : '10px', fontWeight: '900',
-      color: '#e07800',
+      fontSize: compact ? '10px' : '10px', fontWeight: '900',
+      color: '#d56f00',
     }).setOrigin(0, 0.5).setDepth(6)
 
     const label = claimed ? '済' : done ? '受取' : '進行中'
@@ -242,7 +216,7 @@ export default class MissionScene extends Phaser.Scene {
     btn.strokeRoundedRect(bx - (compact ? 26 : 33), y + h / 2 - 15, compact ? 52 : 66, 30, 10)
     this.add.text(bx, y + h / 2, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '10px' : '11px', fontWeight: '900',
+      fontSize: compact ? '10px' : '12px', fontWeight: '900',
       color: claimed ? '#7b8794' : '#1a2a3a',
     }).setOrigin(0.5).setDepth(7)
     if (done && !claimed) {
@@ -266,14 +240,11 @@ export default class MissionScene extends Phaser.Scene {
     g.lineStyle(2, 0x1a2a3a, 0.28)
     g.fillRoundedRect(x, y, w, 42, 14)
     g.strokeRoundedRect(x, y, w, 42, 14)
-    this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '10px', fontWeight: '900',
-      color: totalClaimable > 0 ? '#e07800' : '#7b8794',
+      color: totalClaimable > 0 ? '#d56f00' : '#6d7f8e',
     }).setOrigin(0, 0.5).setDepth(6)
 
     const bx = x + w - 118

@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { FONT, SHADOW } from '../config/fontStyles.js'
+import { FONT, SHADOW, uiText } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
@@ -49,16 +49,8 @@ export default class LicenseScene extends Phaser.Scene {
   }
 
   _header(W) {
-    this.add.text(W / 2, 38, `${ICONS.LICENSE} 釣り免許`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '28px', fontWeight: '900',
-      color: '#1a3a5a', shadow: SHADOW.subtle,
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, 70, '3×3の課題を達成して報酬を集めよう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
-      color: '#4a7090',
-    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, 38, `${ICONS.LICENSE} 釣り免許`, uiText('screenTitle')).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, 70, '3×3の課題を達成して報酬を集めよう', uiText('screenLead')).setOrigin(0.5).setDepth(5)
   }
 
   _panel(W, H) {
@@ -82,16 +74,8 @@ export default class LicenseScene extends Phaser.Scene {
     bg.fillStyle(sheet.color, 0.22)
     bg.fillRoundedRect(x + 16, y + 16, w - 32, 66, 18)
 
-    this.add.text(W / 2, y + 34, sheet.title, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '20px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, y + 58, `${sheet.subtitle}  進行度 ${completed}/9  報酬 ${claimedCount}/9`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
-      color: '#e07800',
-    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, y + 34, sheet.title, uiText('panelTitle')).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, y + 59, `${sheet.subtitle}  進行度 ${completed}/9  報酬 ${claimedCount}/9`, uiText('panelMeta')).setOrigin(0.5).setDepth(5)
 
     this._completeRewardCard(x + 18, y + 96, w - 36, 92, sheet, completed, claimedBonus)
     this._progressPanel(x + 18, y + 202, w - 36, sheet, completed, claimedBonus)
@@ -125,17 +109,17 @@ export default class LicenseScene extends Phaser.Scene {
       fontSize: claimed ? '15px' : done ? '20px' : '13px', fontWeight: '900',
       color: done || claimed ? '#ffffff' : '#1a3a5a',
     }).setOrigin(0.5).setDepth(6)
-    this.add.text(x + size / 2, y + 40, item.title, {
+    this.add.text(x + size / 2, y + 39, item.title, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '8px', fontWeight: '900',
+      fontSize: '9px', fontWeight: '900',
       color: '#1a3a5a',
       wordWrap: { width: size - 8 },
       align: 'center',
     }).setOrigin(0.5, 0).setDepth(6)
     this.add.text(x + size / 2, y + size - 7, item.reward, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '8px', fontWeight: '900',
-      color: claimed ? '#cc7700' : done ? '#00aa66' : '#e07800',
+      fontSize: '9px', fontWeight: '900',
+      color: claimed ? '#cc7700' : done ? '#00aa66' : '#d56f00',
     }).setOrigin(0.5).setDepth(6)
 
     this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0)
@@ -205,16 +189,14 @@ export default class LicenseScene extends Phaser.Scene {
   _progressPanel(x, y, w, sheet, completed, claimedBonus) {
     const h = 62
     const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0xffffff, 0.94)
+    g.fillStyle(0xffffff, 0.96)
     g.lineStyle(2, 0x1a2a3a, 0.22)
     g.fillRoundedRect(x, y, w, h, 16)
     g.strokeRoundedRect(x, y, w, h, 16)
+    g.fillStyle(sheet.color, 0.12)
+    g.fillRoundedRect(x + 8, y + 8, w - 16, 18, 9)
 
-    this.add.text(x + 14, y + 16, `進行度 ${completed}/${sheet.tasks.length}`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
-      color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 16, y + 17, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
 
     const barX = x + 18
     const barY = y + 34
@@ -238,14 +220,10 @@ export default class LicenseScene extends Phaser.Scene {
       marker.strokeCircle(px, barY + 6, 12)
       this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: claimed ? '10px' : '11px', fontWeight: '900',
+        fontSize: claimed ? '11px' : '12px', fontWeight: '900',
         color: '#1a3a5a',
       }).setOrigin(0.5).setDepth(8)
-      this.add.text(px, y + 53, reward.text, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '8px', fontWeight: '900',
-        color: done ? '#e07800' : '#7b8794',
-      }).setOrigin(0.5).setDepth(8)
+      this.add.text(px, y + 53, reward.text, uiText('micro', { color: done ? '#d56f00' : '#6d7f8e' })).setOrigin(0.5).setDepth(8)
       if (done && !claimed) {
         this.add.rectangle(px, barY + 9, 54, 42, 0x000000, 0)
           .setDepth(9)
@@ -269,14 +247,11 @@ export default class LicenseScene extends Phaser.Scene {
     g.lineStyle(2, 0x1a2a3a, 0.28)
     g.fillRoundedRect(x, y, w, 42, 14)
     g.strokeRoundedRect(x, y, w, 42, 14)
-    this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
-    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '10px', fontWeight: '900',
-      color: totalClaimable > 0 ? '#e07800' : '#7b8794',
+      color: totalClaimable > 0 ? '#d56f00' : '#6d7f8e',
     }).setOrigin(0, 0.5).setDepth(6)
 
     const active = claimableCount > 0 || hasMilestone || (completed >= sheet.tasks.length && !completeClaimed)
