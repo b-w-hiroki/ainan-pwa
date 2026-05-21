@@ -25,9 +25,9 @@ export default class HomeScene extends Phaser.Scene {
     this._buildHeader(W)
     this._buildTitle(W, H)
     this._buildTopShortcuts(W, H)
+    this._buildEventBanner(W, H)
     this._buildGuideCharacter(W, H)
     this._buildMainCTA(W, H)
-    this._buildEventBanner(W, H)
     this._buildHelpButton(W)
     this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
@@ -116,8 +116,8 @@ export default class HomeScene extends Phaser.Scene {
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
-    this._shortcut(24, H * 0.232, 158, 50, ICONS.MISSION, 'ミッション', `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
-    this._shortcut(24, H * 0.298, 158, 50, ICONS.LICENSE, '釣り免許', `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
+    this._shortcut(24, H * 0.258, 158, 50, ICONS.MISSION, 'ミッション', `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
+    this._shortcut(24, H * 0.324, 158, 50, ICONS.LICENSE, '釣り免許', `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
   }
 
   _shortcut(x, y, w, h, icon, title, sub, accent, onTap) {
@@ -201,7 +201,7 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildEventBanner(W, H) {
     const x = 24
-    const y = H * 0.812
+    const y = H * 0.225
     const w = W - 48
     const h = 52
     const g = this.add.graphics().setDepth(10)

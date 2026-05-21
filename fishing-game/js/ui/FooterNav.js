@@ -4,12 +4,11 @@ import { ICONS } from '../config/icons.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const TABS = [
-  { key: 'home', icon: ICONS.HOME, label: 'ホーム', scene: 'HomeScene', x: 0.09 },
-  { key: 'equip', icon: ICONS.GEAR, label: '装備', scene: 'UpgradeScene', x: 0.255 },
-  { key: 'fish', icon: ICONS.ROD, label: '釣り', scene: 'MapScene', x: 0.42, primary: true },
-  { key: 'town', icon: ICONS.TOWN, label: '投資', scene: 'TownScene', x: 0.585 },
-  { key: 'shop', icon: ICONS.GIFT, label: 'ショップ', scene: 'ExchangeScene', x: 0.75 },
-  { key: 'menu', icon: ICONS.MENU, label: 'メニュー', scene: 'MenuScene', x: 0.91 },
+  { key: 'home', icon: ICONS.HOME, label: 'ホーム', scene: 'HomeScene', x: 0.10 },
+  { key: 'equip', icon: ICONS.GEAR, label: '装備', scene: 'UpgradeScene', x: 0.30 },
+  { key: 'town', icon: ICONS.TOWN, label: '投資', scene: 'TownScene', x: 0.50 },
+  { key: 'shop', icon: ICONS.GIFT, label: 'ショップ', scene: 'ExchangeScene', x: 0.70 },
+  { key: 'menu', icon: ICONS.MENU, label: 'メニュー', scene: 'MenuScene', x: 0.90 },
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
@@ -26,36 +25,30 @@ export function buildFooterNav(scene, W, H, activeKey = 'home') {
 function buildTab(scene, x, y, tab, activeKey) {
   const active = tab.key === activeKey
 
-  if (tab.primary) {
-    const g = scene.add.graphics().setDepth(91)
-    g.fillStyle(active ? 0xffd900 : 0xffffff, 1)
-    g.lineStyle(3, 0x1a2a3a, 1)
-    g.fillCircle(x, y - 8, 30)
-    g.strokeCircle(x, y - 8, 30)
-    scene.add.rectangle(x, y - 8, 60, 60, 0x000000, 0)
-      .setDepth(94)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        if (!active) scene.scene.start(tab.scene)
-      })
-  } else {
-    scene.add.rectangle(x, y, 52, 44, 0x000000, 0)
-      .setDepth(94)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        if (!active) scene.scene.start(tab.scene)
-      })
+  if (active) {
+    const activeBg = scene.add.graphics().setDepth(91)
+    activeBg.fillStyle(0xfff1c6, 1)
+    activeBg.lineStyle(2, 0xffd900, 1)
+    activeBg.fillRoundedRect(x - 27, y - 21, 54, 42, 14)
+    activeBg.strokeRoundedRect(x - 27, y - 21, 54, 42, 14)
   }
 
-  const iconY = tab.primary ? y - 16 : y - 9
-  const labelY = tab.primary ? y + 7 : y + 11
+  scene.add.rectangle(x, y, 56, 44, 0x000000, 0)
+    .setDepth(94)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+      if (!active) scene.scene.start(tab.scene)
+    })
+
+  const iconY = y - 9
+  const labelY = y + 11
   scene.add.text(x, iconY, tab.icon, {
-    fontSize: tab.primary ? '23px' : '18px',
+    fontSize: '18px',
     resolution: TEXT_RES,
   }).setOrigin(0.5).setDepth(93)
   scene.add.text(x, labelY, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
-    fontSize: tab.primary ? '11px' : '9px',
+    fontSize: '9px',
     fontWeight: '900',
     color: active ? '#1a3a5a' : '#6b7f8f',
   }).setOrigin(0.5).setDepth(93)

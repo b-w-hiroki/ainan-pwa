@@ -101,7 +101,7 @@ export default class MapScene extends Phaser.Scene {
     })
 
     this._showMapHint(W, H)
-    buildFooterNav(this, W, H, 'fish')
+    buildFooterNav(this, W, H, 'home')
   }
 
   _buildMapBackground(W, H) {
