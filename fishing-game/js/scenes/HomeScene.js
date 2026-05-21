@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { SHADOW, uiText } from '../config/fontStyles.js'
+import { uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
@@ -43,12 +43,10 @@ export default class HomeScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._buildBackground(W, H)
     this._buildHeader(W)
-    this._buildTitle(W, H)
     this._buildEventBanner(W, H)
     this._buildTopShortcuts(W, H)
     this._buildGuideCharacter(W, H)
     this._buildMainCTA(W, H)
-    this._buildHelpButton(W)
     this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
     this._maybeShowDailyBonus(W, H)
@@ -113,27 +111,11 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(x + 32, y + 18, value, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(22)
   }
 
-  _buildTitle(W, H) {
-    const logo = this.add.text(W / 2, H * 0.13, T.title, {
-      ...uiText('screenTitle', { fontSize: '33px', color: '#ffffff', shadow: SHADOW.strong }),
-    }).setOrigin(0.5).setDepth(10)
-    this.tweens.add({ targets: logo, y: H * 0.13 - 3, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
-
-    const tagBg = this.add.graphics().setDepth(9)
-    tagBg.fillStyle(0x123a54, 0.38)
-    tagBg.fillRoundedRect(W / 2 - 126, H * 0.18 - 15, 252, 30, 15)
-    this.add.text(W / 2, H * 0.18, T.tagline, uiText('chip', {
-      fontSize: '14px',
-      color: '#ffffff',
-      shadow: SHADOW.medium,
-    })).setOrigin(0.5).setDepth(10)
-  }
-
   _buildEventBanner(W, H) {
     const x = 24
-    const y = H * 0.218
+    const y = 82
     const w = W - 48
-    const h = 52
+    const h = 58
     const g = this.add.graphics().setDepth(10)
     g.fillStyle(0x000000, 0.12)
     g.fillRoundedRect(x + 3, y + 4, w, h, 16)
@@ -142,10 +124,10 @@ export default class HomeScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, h, 16)
     g.strokeRoundedRect(x, y, w, h, 16)
     g.fillStyle(0xff6a3d, 0.94)
-    g.fillRoundedRect(x + 10, y + 9, 66, 34, 12)
-    this.add.text(x + 43, y + 26, T.event, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
-    this.add.text(x + 88, y + 18, T.eventTitle, uiText('cardTitle', { fontSize: '13px' })).setOrigin(0, 0.5).setDepth(11)
-    this.add.text(x + 88, y + 36, T.eventLead, uiText('micro', { fontSize: '9px', color: '#4a7090' })).setOrigin(0, 0.5).setDepth(11)
+    g.fillRoundedRect(x + 10, y + 10, 66, 36, 12)
+    this.add.text(x + 43, y + 28, T.event, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
+    this.add.text(x + 88, y + 21, T.eventTitle, uiText('cardTitle', { fontSize: '13px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 88, y + 40, T.eventLead, uiText('micro', { fontSize: '9.5px', color: '#4a7090' })).setOrigin(0, 0.5).setDepth(11)
     this.add.text(x + w - 22, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '22px' })).setOrigin(0.5).setDepth(11)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(12)
@@ -158,8 +140,8 @@ export default class HomeScene extends Phaser.Scene {
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
-    this._iconShortcut(24, H * 0.305, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
-    this._iconShortcut(24, H * 0.385, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
+    this._iconShortcut(24, 154, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
+    this._iconShortcut(94, 154, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
   }
 
   _iconShortcut(x, y, size, icon, title, sub, accent, onTap) {
@@ -227,16 +209,6 @@ export default class HomeScene extends Phaser.Scene {
     hintBg.fillRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
     hintBg.strokeRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
     this.add.text(W / 2, H * 0.812 + 48, T.goLead, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
-  }
-
-  _buildHelpButton(W) {
-    const g = this.add.graphics().setDepth(23)
-    g.fillStyle(0xffffff, 0.95)
-    g.lineStyle(2, 0x1a2a3a, 0.72)
-    g.fillCircle(W - 28, 82, 18)
-    g.strokeCircle(W - 28, 82, 18)
-    this.add.text(W - 28, 82, ICONS.HELP, { fontSize: '16px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(24)
-    this.add.circle(W - 28, 82, 23, 0x000000, 0).setDepth(25).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('HelpScene'))
   }
 
   _buildDailyButton(W) {

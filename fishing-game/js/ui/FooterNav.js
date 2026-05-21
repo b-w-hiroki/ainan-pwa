@@ -14,22 +14,24 @@ const TABS = [
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
-  const y = H - 90
-  const h = 82
+  const y = H - 76
+  const h = 70
   const bar = scene.add.graphics().setDepth(90)
-  bar.fillStyle(0x2d2115, 0.24)
-  bar.fillRoundedRect(9, y + 5, W - 18, h, 20)
-  bar.fillStyle(0xfff7dd, 0.98)
-  bar.lineStyle(3, 0x8d6227, 0.96)
-  bar.fillRoundedRect(8, y, W - 16, h, 20)
-  bar.strokeRoundedRect(8, y, W - 16, h, 20)
-  bar.lineStyle(1.5, 0x8d6227, 0.20)
+  bar.fillStyle(0x2d2115, 0.22)
+  bar.fillRoundedRect(8, y + 6, W - 16, h, 18)
+  bar.fillGradientStyle(0xfff7dd, 0xfff1c0, 0xf4d48b, 0xf2cc78, 0.98)
+  bar.lineStyle(2.2, 0xb5792d, 0.92)
+  bar.fillRoundedRect(8, y, W - 16, h, 18)
+  bar.strokeRoundedRect(8, y, W - 16, h, 18)
+  bar.fillStyle(0xffffff, 0.38)
+  bar.fillRoundedRect(18, y + 5, W - 36, 13, 7)
+  bar.lineStyle(1.2, 0x8d6227, 0.16)
   ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
     const x = W * f
-    bar.lineBetween(x, y + 14, x, y + h - 14)
+    bar.lineBetween(x, y + 18, x, y + h - 9)
   })
 
-  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 43, tab, activeKey))
+  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 36, tab, activeKey))
 }
 
 function buildTab(scene, x, y, tab, activeKey) {
@@ -37,21 +39,21 @@ function buildTab(scene, x, y, tab, activeKey) {
 
   if (active) {
     const activeBg = scene.add.graphics().setDepth(91)
-    activeBg.fillStyle(0xffe58a, 0.50)
-    activeBg.lineStyle(2, 0xffd35a, 0.95)
-    activeBg.fillRoundedRect(x - 35, y - 36, 70, 74, 18)
-    activeBg.strokeRoundedRect(x - 35, y - 36, 70, 74, 18)
+    activeBg.fillStyle(0xffffff, 0.32)
+    activeBg.lineStyle(2, 0xffe080, 0.78)
+    activeBg.fillRoundedRect(x - 35, y - 44, 70, 82, 18)
+    activeBg.strokeRoundedRect(x - 35, y - 44, 70, 82, 18)
   }
 
-  scene.add.rectangle(x, y, 76, 82, 0x000000, 0)
+  scene.add.rectangle(x, y - 5, 76, 92, 0x000000, 0)
     .setDepth(94)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
       if (!active) scene.scene.start(tab.scene)
     })
 
-  addFooterIcon(scene, x, y - 10, tab, active)
-  scene.add.text(x, y + 26, tab.label, {
+  addFooterIcon(scene, x, y - 20, tab, active)
+  scene.add.text(x, y + 25, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
     fontSize: '10.5px',
     fontWeight: '900',
@@ -92,6 +94,6 @@ function addFooterIcon(scene, x, y, tab, active) {
 function addImageIcon(scene, x, y, key, active) {
   scene.add.image(x, y, key)
     .setOrigin(0.5)
-    .setDisplaySize(active ? 52 : 48, active ? 60 : 55)
+    .setDisplaySize(active ? 66 : 60, active ? 68 : 62)
     .setDepth(93)
 }
