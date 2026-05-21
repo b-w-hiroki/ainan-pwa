@@ -71,6 +71,31 @@ export const ASSETS = {
     },
   },
   ui: {
+    footerHome: {
+      key: 'ui_footer_home',
+      path: 'assets/ui/ui_footer_home.png',
+      status: 'ready',
+    },
+    footerEquip: {
+      key: 'ui_footer_equip',
+      path: 'assets/ui/ui_footer_equip.png',
+      status: 'ready',
+    },
+    footerTown: {
+      key: 'ui_footer_town',
+      path: 'assets/ui/ui_footer_town.png',
+      status: 'ready',
+    },
+    footerShop: {
+      key: 'ui_footer_shop',
+      path: 'assets/ui/ui_footer_shop.png',
+      status: 'ready',
+    },
+    footerMenu: {
+      key: 'ui_footer_menu',
+      path: 'assets/ui/ui_footer_menu.png',
+      status: 'ready',
+    },
     resultFrame: {
       key: 'ui_result_frame',
       path: 'assets/ui/ui_result_frame.png',
