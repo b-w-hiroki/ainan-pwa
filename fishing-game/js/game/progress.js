@@ -70,6 +70,141 @@ export const MISSION_META = [
   { id: 'open_book', title: '図鑑を確認する', desc: '釣った魚の情報を見てみよう', target: 1, reward: 60, type: 'manual' },
 ]
 
+export const MISSION_TABS = [
+  { id: 'daily', label: 'デイリー', color: 0x5ebcff },
+  { id: 'weekly', label: 'ウィークリー', color: 0xffd900 },
+  { id: 'limited', label: '期間限定', color: 0xff8f5e },
+]
+
+export const MISSION_SHEETS = [
+  {
+    id: 'daily_basic',
+    tab: 'daily',
+    title: '今日の釣り支度',
+    subtitle: '毎日こなして釣果を伸ばす',
+    color: 0x5ebcff,
+    completeReward: { text: '240pt', grant: { score: 240 } },
+    milestoneRewards: [
+      { id: 'm2', count: 2, text: '80pt', grant: { score: 80 } },
+      { id: 'm3', count: 3, text: 'エビ x3', grant: { baits: { shrimp: 3 } } },
+    ],
+    tasks: MISSION_META,
+  },
+  {
+    id: 'daily_growth',
+    tab: 'daily',
+    title: '港町ルーティン',
+    subtitle: '画面を回って育成を進める',
+    color: 0x8bcf52,
+    completeReward: { text: 'ミミズ x10', grant: { baits: { worm: 10 } } },
+    milestoneRewards: [
+      { id: 'm2', count: 2, text: '100pt', grant: { score: 100 } },
+      { id: 'm3', count: 3, text: 'エビ x4', grant: { baits: { shrimp: 4 } } },
+    ],
+    tasks: [
+      { id: 'daily_go_fishing', title: '釣り場へ行く', desc: '釣り場選択を開く', target: 1, reward: 70 },
+      { id: 'daily_touch_tackle', title: '仕掛けを確認', desc: '竿かエサを選んで確認する', target: 1, reward: 80 },
+      { id: 'daily_check_town', title: '町を確認', desc: '町おこし画面を開く', target: 1, reward: 90 },
+    ],
+  },
+  {
+    id: 'weekly_angler',
+    tab: 'weekly',
+    title: '今週の釣り込み',
+    subtitle: '少し長めの目標に挑戦',
+    color: 0xffd900,
+    completeReward: { text: '特製まき餌 x4', grant: { baits: { special: 4 } } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: '250pt', grant: { score: 250 } },
+      { id: 'm5', count: 5, text: 'エビ x8', grant: { baits: { shrimp: 8 } } },
+    ],
+    tasks: [
+      { id: 'weekly_catch_5', title: '5匹釣る', desc: '累計5匹の釣果をあげる', target: 5, reward: 160 },
+      { id: 'weekly_catch_10', title: '10匹釣る', desc: '累計10匹の釣果をあげる', target: 10, reward: 220 },
+      { id: 'weekly_score_1000', title: '1000pt到達', desc: '所持ポイントを1000pt以上にする', target: 1000, reward: 200 },
+      { id: 'weekly_find_3', title: '3種類発見', desc: '図鑑に3種類登録する', target: 3, reward: 180 },
+      { id: 'weekly_rank_3', title: 'ランク3到達', desc: '釣り師ランクを3にする', target: 3, reward: 240 },
+      { id: 'weekly_claim_3', title: '報酬3回受取', desc: 'ミッション報酬を3回受け取る', target: 3, reward: 180 },
+    ],
+  },
+  {
+    id: 'limited_festival',
+    tab: 'limited',
+    title: '港まつり準備',
+    subtitle: '町おこしに関わる期間限定目標',
+    color: 0xff8f5e,
+    completeReward: { text: '500pt', grant: { score: 500 } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: '200pt', grant: { score: 200 } },
+      { id: 'm5', count: 5, text: '特製まき餌 x3', grant: { baits: { special: 3 } } },
+    ],
+    tasks: [
+      { id: 'limited_bustle_25', title: 'にぎわい25', desc: '町のにぎわいを25以上にする', target: 25, reward: 180 },
+      { id: 'limited_facility_3', title: '施設合計Lv3', desc: '施設レベル合計を3にする', target: 3, reward: 220 },
+      { id: 'limited_exchange_1', title: '交換1回', desc: '交換所アイテムを1つ所持する', target: 1, reward: 160 },
+      { id: 'limited_catch_5', title: '釣果5匹', desc: '期間中の準備として5匹釣る', target: 5, reward: 180 },
+      { id: 'limited_market_2', title: '魚市場Lv2', desc: '魚市場をLv2にする', target: 2, reward: 260 },
+    ],
+  },
+  {
+    id: 'limited_bigcatch',
+    tab: 'limited',
+    title: '大物チャレンジ',
+    subtitle: '釣果と図鑑をまとめて伸ばす',
+    color: 0xbc7cff,
+    completeReward: { text: '高級竿', grant: { rods: { premium: 1 } } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: 'エビ x8', grant: { baits: { shrimp: 8 } } },
+      { id: 'm5', count: 5, text: '450pt', grant: { score: 450 } },
+    ],
+    tasks: [
+      { id: 'limited_rare_1', title: 'レア魚1匹', desc: 'レア魚を1匹釣る', target: 1, reward: 260 },
+      { id: 'limited_find_3', title: '3種類登録', desc: '図鑑に3種類登録する', target: 3, reward: 180 },
+      { id: 'limited_score_1500', title: '1500pt到達', desc: '所持ポイントを1500pt以上にする', target: 1500, reward: 240 },
+      { id: 'limited_catch_10', title: '10匹釣る', desc: '累計10匹釣る', target: 10, reward: 260 },
+      { id: 'limited_rank_4', title: 'ランク4', desc: '釣り師ランク4に到達する', target: 4, reward: 300 },
+    ],
+  },
+  {
+    id: 'limited_tackle',
+    tab: 'limited',
+    title: '道具強化週間',
+    subtitle: '装備とエサをそろえる期間限定目標',
+    color: 0x5ebcff,
+    completeReward: { text: 'エビ x12', grant: { baits: { shrimp: 12 } } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: '250pt', grant: { score: 250 } },
+      { id: 'm5', count: 5, text: '特製まき餌 x3', grant: { baits: { special: 3 } } },
+    ],
+    tasks: [
+      { id: 'limited_seen_upgrade', title: '強化を確認', desc: '強化画面を開く', target: 1, reward: 120 },
+      { id: 'limited_touch_tackle', title: '仕掛け確認', desc: '竿かエサを確認する', target: 1, reward: 120 },
+      { id: 'limited_own_premium', title: '高級竿所持', desc: '高級竿を所持する', target: 1, reward: 280 },
+      { id: 'limited_score_800', title: '800pt到達', desc: '所持ポイントを800pt以上にする', target: 800, reward: 180 },
+      { id: 'limited_catch_3_tool', title: '3匹釣る', desc: '道具を使って3匹釣る', target: 3, reward: 160 },
+    ],
+  },
+  {
+    id: 'limited_book',
+    tab: 'limited',
+    title: '図鑑調査隊',
+    subtitle: '魚の発見を進める期間限定目標',
+    color: 0x8bcf52,
+    completeReward: { text: '600pt', grant: { score: 600 } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: 'ミミズ x12', grant: { baits: { worm: 12 } } },
+      { id: 'm5', count: 5, text: '300pt', grant: { score: 300 } },
+    ],
+    tasks: [
+      { id: 'limited_seen_book', title: '図鑑を開く', desc: '図鑑画面を確認する', target: 1, reward: 100 },
+      { id: 'limited_find_2', title: '2種類登録', desc: '図鑑に2種類登録する', target: 2, reward: 160 },
+      { id: 'limited_find_4', title: '4種類登録', desc: '図鑑に4種類登録する', target: 4, reward: 260 },
+      { id: 'limited_catch_aji', title: 'アジを釣る', desc: 'アジを1匹釣る', target: 1, reward: 120 },
+      { id: 'limited_catch_tai', title: 'マダイを釣る', desc: 'マダイを1匹釣る', target: 1, reward: 220 },
+    ],
+  },
+]
+
 export const LICENSE_SHEETS = [
   {
     id: 'basic',
@@ -362,10 +497,48 @@ export function getRankBonuses() {
 export function getMissionProgress() {
   const catches = getCatches()
   const seenBook = localStorage.getItem('ainan_seen_book') === '1'
+  const foundFish = new Set(catches.map(c => c.fishId))
+  const score = getScore()
+  const rank = getPlayerRank().rank
+  const claimedMissions = getClaimedMissions()
+  const town = getTownSummary()
+  const facilities = getTownFacilities()
+  const rewards = Object.values(getRewards()).reduce((sum, count) => sum + count, 0)
+  const rareCount = catches.filter(c => ['bass', 'kue'].includes(c.fishId)).length
+  const claimedCount = Object.values(claimedMissions).filter(Boolean).length
   return {
     catch_aji: catches.filter(c => c.fishId === 'aji').length,
     catch_any_3: catches.length,
     open_book: seenBook ? 1 : 0,
+    daily_go_fishing: localStorage.getItem('ainan_went_fishing') === '1' ? 1 : 0,
+    daily_touch_tackle: localStorage.getItem('ainan_touched_tackle') === '1' ? 1 : 0,
+    daily_check_town: town.totalLevel > 0 || localStorage.getItem('ainan_seen_town') === '1' ? 1 : 0,
+    weekly_catch_5: catches.length,
+    weekly_catch_10: catches.length,
+    weekly_score_1000: score,
+    weekly_find_3: foundFish.size,
+    weekly_rank_3: rank,
+    weekly_claim_3: claimedCount,
+    limited_bustle_25: town.bustle,
+    limited_facility_3: town.totalLevel,
+    limited_exchange_1: rewards,
+    limited_catch_5: catches.length,
+    limited_market_2: facilities.market ?? 0,
+    limited_rare_1: rareCount,
+    limited_find_3: foundFish.size,
+    limited_score_1500: score,
+    limited_catch_10: catches.length,
+    limited_rank_4: rank,
+    limited_seen_upgrade: localStorage.getItem('ainan_seen_upgrade') === '1' ? 1 : 0,
+    limited_touch_tackle: localStorage.getItem('ainan_touched_tackle') === '1' ? 1 : 0,
+    limited_own_premium: (getInventory().rods?.premium ?? 0) > 0 ? 1 : 0,
+    limited_score_800: score,
+    limited_catch_3_tool: catches.length,
+    limited_seen_book: seenBook ? 1 : 0,
+    limited_find_2: foundFish.size,
+    limited_find_4: foundFish.size,
+    limited_catch_aji: catches.filter(c => c.fishId === 'aji').length,
+    limited_catch_tai: catches.filter(c => c.fishId === 'tai').length,
   }
 }
 
@@ -375,6 +548,81 @@ export function getClaimedMissions() {
 
 export function saveClaimedMissions(claimed) {
   localStorage.setItem('ainan_claimed_missions', JSON.stringify(claimed))
+}
+
+export function getClaimedMissionBonuses() {
+  return readJson('ainan_claimed_mission_bonuses', {})
+}
+
+export function saveClaimedMissionBonuses(claimed) {
+  localStorage.setItem('ainan_claimed_mission_bonuses', JSON.stringify(claimed))
+}
+
+function grantMissionGrant(grant = {}) {
+  const adjusted = { ...grant }
+  if (adjusted.score) adjusted.score = Math.round(adjusted.score * getTownBonuses().missionRewardMod)
+  grantReward(adjusted)
+}
+
+export function getMissionSheetProgress(sheet) {
+  const progress = getMissionProgress()
+  return sheet.tasks.filter(task => Math.min(progress[task.id] ?? 0, task.target) >= task.target).length
+}
+
+export function claimMissionReward(missionId) {
+  const item = MISSION_SHEETS.flatMap(sheet => sheet.tasks).find(m => m.id === missionId)
+  if (!item) return false
+  const progress = getMissionProgress()
+  if (Math.min(progress[item.id] ?? 0, item.target) < item.target) return false
+  const claimed = getClaimedMissions()
+  if (claimed[missionId]) return false
+  grantMissionGrant(item.grant ?? { score: item.reward })
+  claimed[missionId] = true
+  saveClaimedMissions(claimed)
+  return true
+}
+
+export function claimMissionBonus(sheetId, bonusId) {
+  const sheet = MISSION_SHEETS.find(s => s.id === sheetId)
+  if (!sheet) return false
+  const claimed = getClaimedMissionBonuses()
+  const key = `${sheetId}:${bonusId}`
+  if (claimed[key]) return false
+  const completed = getMissionSheetProgress(sheet)
+  let reward = null
+  if (bonusId === 'complete') {
+    if (completed < sheet.tasks.length) return false
+    reward = sheet.completeReward
+  } else {
+    reward = sheet.milestoneRewards?.find(r => r.id === bonusId)
+    if (!reward || completed < reward.count) return false
+  }
+  grantMissionGrant(reward.grant)
+  claimed[key] = true
+  saveClaimedMissionBonuses(claimed)
+  return true
+}
+
+export function claimAllMissionRewards(sheetId) {
+  const sheet = MISSION_SHEETS.find(s => s.id === sheetId)
+  if (!sheet) return { taskCount: 0, bonusCount: 0, completeClaimed: false }
+  const progress = getMissionProgress()
+  const claimed = getClaimedMissions()
+  let taskCount = 0
+  sheet.tasks.forEach(task => {
+    if (Math.min(progress[task.id] ?? 0, task.target) < task.target || claimed[task.id]) return
+    grantMissionGrant(task.grant ?? { score: task.reward })
+    claimed[task.id] = true
+    taskCount += 1
+  })
+  if (taskCount > 0) saveClaimedMissions(claimed)
+
+  let bonusCount = 0
+  ;(sheet.milestoneRewards ?? []).forEach(reward => {
+    if (claimMissionBonus(sheetId, reward.id)) bonusCount += 1
+  })
+  const completeClaimed = claimMissionBonus(sheetId, 'complete')
+  return { taskCount, bonusCount, completeClaimed }
 }
 
 export function getClaimedLicenses() {
