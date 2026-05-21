@@ -73,7 +73,7 @@ export default class LicenseScene extends Phaser.Scene {
     const x = 18
     const y = 94
     const w = W - 36
-    const h = 526
+    const h = 562
     const bg = this.add.graphics().setDepth(4)
     bg.fillStyle(0xffffff, 0.97)
     bg.lineStyle(3, 0x1a2a3a, 0.9)
@@ -93,19 +93,20 @@ export default class LicenseScene extends Phaser.Scene {
       color: '#e07800',
     }).setOrigin(0.5).setDepth(5)
 
-    this._completeRewardCard(x + 18, y + 96, w - 36, 98, sheet, completed, claimedBonus)
+    this._completeRewardCard(x + 18, y + 96, w - 36, 92, sheet, completed, claimedBonus)
+    this._progressPanel(x + 18, y + 202, w - 36, sheet, completed, claimedBonus)
 
-    const size = 74
-    const gap = 13
+    const size = 66
+    const gap = 12
     const startX = (W - (size * 3 + gap * 2)) / 2
-    const startY = y + 216
+    const startY = y + 276
     sheet.tasks.forEach((m, i) => {
       const col = i % 3
       const row = Math.floor(i / 3)
       this._tile(startX + col * (size + gap), startY + row * (size + gap), size, m, !!progress[m.id], !!claimed[m.id], i, sheet.color)
     })
 
-    this._claimAllBar(x + 18, y + h - 58, w - 36, sheet, claimableCount, completed)
+    this._claimAllBar(x + 18, y + h - 50, w - 36, sheet, claimableCount, completed)
   }
 
   _tile(x, y, size, item, done, claimed, index, accent) {
@@ -119,19 +120,19 @@ export default class LicenseScene extends Phaser.Scene {
     g.fillStyle(claimed ? 0xffb000 : done ? 0x00aa66 : accent, done || claimed ? 1 : 0.20)
     g.fillCircle(x + size / 2, y + 23, 18)
 
-    this.add.text(x + size / 2, y + 23, claimed ? ICONS.GIFT : done ? '✓' : `${index + 1}`, {
+    this.add.text(x + size / 2, y + 21, claimed ? ICONS.GIFT : done ? '✓' : `${index + 1}`, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: claimed ? '15px' : done ? '20px' : '13px', fontWeight: '900',
       color: done || claimed ? '#ffffff' : '#1a3a5a',
     }).setOrigin(0.5).setDepth(6)
-    this.add.text(x + size / 2, y + 45, item.title, {
+    this.add.text(x + size / 2, y + 40, item.title, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
+      fontSize: '8px', fontWeight: '900',
       color: '#1a3a5a',
       wordWrap: { width: size - 8 },
       align: 'center',
     }).setOrigin(0.5, 0).setDepth(6)
-    this.add.text(x + size / 2, y + size - 8, item.reward, {
+    this.add.text(x + size / 2, y + size - 7, item.reward, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '8px', fontWeight: '900',
       color: claimed ? '#cc7700' : done ? '#00aa66' : '#e07800',
@@ -201,7 +202,68 @@ export default class LicenseScene extends Phaser.Scene {
     }
   }
 
+  _progressPanel(x, y, w, sheet, completed, claimedBonus) {
+    const h = 62
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(0xffffff, 0.94)
+    g.lineStyle(2, 0x1a2a3a, 0.22)
+    g.fillRoundedRect(x, y, w, h, 16)
+    g.strokeRoundedRect(x, y, w, h, 16)
+
+    this.add.text(x + 14, y + 16, `進行度 ${completed}/${sheet.tasks.length}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: '#1a3a5a',
+    }).setOrigin(0, 0.5).setDepth(6)
+
+    const barX = x + 18
+    const barY = y + 34
+    const barW = w - 36
+    const fillW = Math.max(0, Math.min(1, completed / sheet.tasks.length)) * barW
+    const bar = this.add.graphics().setDepth(6)
+    bar.fillStyle(0xdce8ef, 1)
+    bar.fillRoundedRect(barX, barY, barW, 12, 6)
+    bar.fillStyle(sheet.color, 1)
+    bar.fillRoundedRect(barX, barY, fillW, 12, 6)
+
+    ;(sheet.milestoneRewards ?? []).forEach(reward => {
+      const px = barX + barW * (reward.count / sheet.tasks.length)
+      const key = `${sheet.id}:${reward.id}`
+      const done = completed >= reward.count
+      const claimed = !!claimedBonus[key]
+      const marker = this.add.graphics().setDepth(7)
+      marker.fillStyle(claimed ? 0xffd900 : done ? 0x00aa66 : 0xffffff, 1)
+      marker.lineStyle(2, done ? 0x1a2a3a : 0x9aa9b5, 0.95)
+      marker.fillCircle(px, barY + 6, 12)
+      marker.strokeCircle(px, barY + 6, 12)
+      this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, {
+        fontFamily: FONT, resolution: TEXT_RES,
+        fontSize: claimed ? '10px' : '11px', fontWeight: '900',
+        color: '#1a3a5a',
+      }).setOrigin(0.5).setDepth(8)
+      this.add.text(px, y + 53, reward.text, {
+        fontFamily: FONT, resolution: TEXT_RES,
+        fontSize: '8px', fontWeight: '900',
+        color: done ? '#e07800' : '#7b8794',
+      }).setOrigin(0.5).setDepth(8)
+      if (done && !claimed) {
+        this.add.rectangle(px, barY + 9, 54, 42, 0x000000, 0)
+          .setDepth(9)
+          .setInteractive({ useHandCursor: true })
+          .on('pointerdown', () => {
+            if (claimLicenseBonus(sheet.id, reward.id)) this.scene.restart({ sheetIndex: this._sheetIndex })
+          })
+      }
+    })
+  }
+
   _claimAllBar(x, y, w, sheet, claimableCount, completed) {
+    const claimedBonus = getClaimedLicenseBonuses()
+    const hasMilestone = (sheet.milestoneRewards ?? []).some(reward => completed >= reward.count && !claimedBonus[`${sheet.id}:${reward.id}`])
+    const milestoneCount = (sheet.milestoneRewards ?? []).filter(reward => completed >= reward.count && !claimedBonus[`${sheet.id}:${reward.id}`]).length
+    const completeClaimed = !!claimedBonus[`${sheet.id}:complete`]
+    const completeCount = completed >= sheet.tasks.length && !completeClaimed ? 1 : 0
+    const totalClaimable = claimableCount + milestoneCount + completeCount
     const g = this.add.graphics().setDepth(5)
     g.fillStyle(0xffffff, 0.94)
     g.lineStyle(2, 0x1a2a3a, 0.28)
@@ -211,14 +273,13 @@ export default class LicenseScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 14, y + 29, claimableCount > 0 ? `未受取 ${claimableCount}件` : '未受取なし', {
+    this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '10px', fontWeight: '900',
-      color: claimableCount > 0 ? '#e07800' : '#7b8794',
+      color: totalClaimable > 0 ? '#e07800' : '#7b8794',
     }).setOrigin(0, 0.5).setDepth(6)
 
-    const completeClaimed = !!getClaimedLicenseBonuses()[`${sheet.id}:complete`]
-    const active = claimableCount > 0 || (completed >= sheet.tasks.length && !completeClaimed)
+    const active = claimableCount > 0 || hasMilestone || (completed >= sheet.tasks.length && !completeClaimed)
     const bx = x + w - 118
     const by = y + 7
     const btn = this.add.graphics().setDepth(6)
@@ -243,7 +304,7 @@ export default class LicenseScene extends Phaser.Scene {
   }
 
   _sheetBanners(W, H) {
-    const y = H - 174
+    const y = H - 158
     this.add.text(24, y - 18, '免許シート', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '13px', fontWeight: '900', color: '#1a3a5a',

@@ -77,6 +77,10 @@ export const LICENSE_SHEETS = [
     subtitle: '基本操作と画面を覚える',
     color: 0xffd900,
     completeReward: { text: '高級竿', grant: { rods: { premium: 1 } } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: 'ミミズ x10', grant: { baits: { worm: 10 } } },
+      { id: 'm5', count: 5, text: '200pt', grant: { score: 200 } },
+    ],
     lineRewards: [
       { id: 'row0', text: '80pt', grant: { score: 80 } },
       { id: 'row1', text: 'ミミズ x5', grant: { baits: { worm: 5 } } },
@@ -103,6 +107,10 @@ export const LICENSE_SHEETS = [
     subtitle: '釣果と図鑑を伸ばす',
     color: 0x5ebcff,
     completeReward: { text: '特製まき餌 x5', grant: { baits: { special: 5 } } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: 'エビ x8', grant: { baits: { shrimp: 8 } } },
+      { id: 'm5', count: 5, text: '350pt', grant: { score: 350 } },
+    ],
     lineRewards: [
       { id: 'row0', text: '160pt', grant: { score: 160 } },
       { id: 'row1', text: 'エビ x5', grant: { baits: { shrimp: 5 } } },
@@ -129,6 +137,10 @@ export const LICENSE_SHEETS = [
     subtitle: '施設と交換で町を育てる',
     color: 0x8bcf52,
     completeReward: { text: '500pt', grant: { score: 500 } },
+    milestoneRewards: [
+      { id: 'm3', count: 3, text: '300pt', grant: { score: 300 } },
+      { id: 'm5', count: 5, text: '特製まき餌 x4', grant: { baits: { special: 4 } } },
+    ],
     lineRewards: [
       { id: 'row0', text: '200pt', grant: { score: 200 } },
       { id: 'row1', text: 'エビ x6', grant: { baits: { shrimp: 6 } } },
@@ -412,15 +424,21 @@ export function claimLicenseReward(licenseId) {
 export function claimLicenseBonus(sheetId, bonusId) {
   const sheet = LICENSE_SHEETS.find(s => s.id === sheetId)
   if (!sheet) return false
-  if (bonusId !== 'complete') return false
   const progress = getLicenseProgress()
   const claimed = getClaimedLicenseBonuses()
   const key = `${sheetId}:${bonusId}`
   if (claimed[key]) return false
 
   const tasks = sheet.tasks
-  if (!tasks.every(task => progress[task.id])) return false
-  const reward = sheet.completeReward
+  const completed = tasks.filter(task => progress[task.id]).length
+  let reward = null
+  if (bonusId === 'complete') {
+    if (completed < tasks.length) return false
+    reward = sheet.completeReward
+  } else {
+    reward = sheet.milestoneRewards?.find(r => r.id === bonusId)
+    if (!reward || completed < reward.count) return false
+  }
   grantReward(reward.grant)
   claimed[key] = true
   saveClaimedLicenseBonuses(claimed)
@@ -442,8 +460,12 @@ export function claimAllLicenseRewards(sheetId) {
   })
   if (taskCount > 0) saveClaimedLicenses(claimed)
 
+  let bonusCount = 0
+  ;(sheet.milestoneRewards ?? []).forEach(reward => {
+    if (claimLicenseBonus(sheetId, reward.id)) bonusCount += 1
+  })
   const completeClaimed = claimLicenseBonus(sheetId, 'complete')
-  return { taskCount, completeClaimed }
+  return { taskCount, bonusCount, completeClaimed }
 }
 
 export function markBookSeen() {
