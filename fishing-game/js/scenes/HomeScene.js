@@ -159,60 +159,68 @@ export default class HomeScene extends Phaser.Scene {
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
-    this._shortcut(24, H * 0.30, 150, 48, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
-    this._shortcut(24, H * 0.365, 150, 48, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
+    this._iconShortcut(24, H * 0.305, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
+    this._iconShortcut(24, H * 0.385, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
   }
 
-  _shortcut(x, y, w, h, icon, title, sub, accent, onTap) {
+  _iconShortcut(x, y, size, icon, title, sub, accent, onTap) {
+    const cx = x + size / 2
+    const cy = y + size / 2
     const g = this.add.graphics().setDepth(13)
     g.fillStyle(0x000000, 0.12)
-    g.fillRoundedRect(x + 3, y + 4, w, h, 16)
+    g.fillRoundedRect(x + 3, y + 4, size, size, 18)
     g.fillStyle(0xffffff, 0.97)
     g.lineStyle(2.4, 0x1a2a3a, 0.76)
-    g.fillRoundedRect(x, y, w, h, 16)
-    g.strokeRoundedRect(x, y, w, h, 16)
+    g.fillRoundedRect(x, y, size, size, 18)
+    g.strokeRoundedRect(x, y, size, size, 18)
     g.fillStyle(accent, 0.22)
-    g.fillCircle(x + 27, y + h / 2, 19)
-    this.add.text(x + 27, y + h / 2, icon, { fontSize: '18px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(14)
-    this.add.text(x + 52, y + 17, title, uiText('cardTitle', { fontSize: '12px' })).setOrigin(0, 0.5).setDepth(14)
-    this.add.text(x + 52, y + 34, sub, uiText('micro', { fontSize: '10px', color: '#d56f00' })).setOrigin(0, 0.5).setDepth(14)
-    this.add.text(x + w - 16, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '17px' })).setOrigin(0.5).setDepth(14)
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
+    g.fillCircle(cx, cy - 4, 22)
+    this.add.text(cx, cy - 4, icon, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(14)
+    this.add.text(cx, cy + 19, sub, uiText('micro', {
+      fontSize: '8px',
+      color: '#d56f00',
+      backgroundColor: '#ffffff',
+      padding: { x: 3, y: 1 },
+    })).setOrigin(0.5).setDepth(14)
+    this.add.rectangle(cx, cy, size + 8, size + 8, 0x000000, 0)
+      .setDepth(15)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', onTap)
   }
 
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 28, H * 0.52).setDepth(7)
+    const c = this.add.container(W / 2 + 30, H * 0.505).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.44)
-    aura.fillEllipse(0, 54, 212, 266)
+    aura.fillEllipse(0, 64, 242, 306)
     aura.fillStyle(0x5ebcff, 0.12)
-    aura.fillEllipse(-32, 58, 160, 220)
+    aura.fillEllipse(-32, 68, 184, 252)
     aura.fillStyle(0xffd900, 0.12)
-    aura.fillEllipse(42, 80, 130, 170)
+    aura.fillEllipse(42, 92, 150, 198)
 
     const shadow = this.add.graphics()
     shadow.fillStyle(0x1a2a3a, 0.16)
-    shadow.fillEllipse(0, 152, 116, 20)
+    shadow.fillEllipse(0, 178, 136, 22)
 
     const guide = this.add.image(0, 10, ASSETS.characters.guideDefault.key)
       .setOrigin(0.5)
-      .setDisplaySize(214, 320)
-    const text = this.add.text(0, 172, T.guide, uiText('chip', {
+      .setDisplaySize(264, 394)
+    const text = this.add.text(0, 211, T.guide, uiText('chip', {
       fontSize: '12px',
       color: '#1a3a5a',
       backgroundColor: '#ffffff',
       padding: { x: 12, y: 5 },
     })).setOrigin(0.5)
     c.add([aura, shadow, guide, text])
-    this.tweens.add({ targets: c, y: H * 0.52 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    this.tweens.add({ targets: c, y: H * 0.505 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   }
 
   _buildMainCTA(W, H) {
     new Button(this, {
       x: W / 2,
-      y: H * 0.748,
-      w: 248,
-      h: 64,
+      y: H * 0.812,
+      w: 258,
+      h: 62,
       label: T.goFishing,
       icon: ICONS.ROD,
       variant: 'primary',
@@ -223,9 +231,9 @@ export default class HomeScene extends Phaser.Scene {
     const hintBg = this.add.graphics().setDepth(15)
     hintBg.fillStyle(0xffffff, 0.90)
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
-    hintBg.fillRoundedRect(W / 2 - 112, H * 0.748 + 38, 224, 25, 13)
-    hintBg.strokeRoundedRect(W / 2 - 112, H * 0.748 + 38, 224, 25, 13)
-    this.add.text(W / 2, H * 0.748 + 51, T.goLead, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
+    hintBg.fillRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
+    hintBg.strokeRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
+    this.add.text(W / 2, H * 0.812 + 48, T.goLead, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
   }
 
   _buildHelpButton(W) {

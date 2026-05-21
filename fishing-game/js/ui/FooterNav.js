@@ -12,14 +12,20 @@ const TABS = [
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
-  const y = H - 60
+  const y = H - 72
+  const h = 62
   const bar = scene.add.graphics().setDepth(90)
   bar.fillStyle(0xffffff, 0.97)
   bar.lineStyle(2.5, 0x1a2a3a, 0.92)
-  bar.fillRoundedRect(10, y, W - 20, 50, 18)
-  bar.strokeRoundedRect(10, y, W - 20, 50, 18)
+  bar.fillRoundedRect(10, y, W - 20, h, 20)
+  bar.strokeRoundedRect(10, y, W - 20, h, 20)
+  bar.lineStyle(1.5, 0x1a2a3a, 0.14)
+  ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
+    const x = W * f
+    bar.lineBetween(x, y + 10, x, y + h - 10)
+  })
 
-  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 25, tab, activeKey))
+  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 31, tab, activeKey))
 }
 
 function buildTab(scene, x, y, tab, activeKey) {
@@ -29,11 +35,11 @@ function buildTab(scene, x, y, tab, activeKey) {
     const activeBg = scene.add.graphics().setDepth(91)
     activeBg.fillStyle(0xfff1c6, 1)
     activeBg.lineStyle(2, 0xffd900, 1)
-    activeBg.fillRoundedRect(x - 27, y - 21, 54, 42, 14)
-    activeBg.strokeRoundedRect(x - 27, y - 21, 54, 42, 14)
+    activeBg.fillRoundedRect(x - 32, y - 26, 64, 52, 16)
+    activeBg.strokeRoundedRect(x - 32, y - 26, 64, 52, 16)
   }
 
-  scene.add.rectangle(x, y, 56, 44, 0x000000, 0)
+  scene.add.rectangle(x, y, 70, 58, 0x000000, 0)
     .setDepth(94)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
@@ -41,12 +47,12 @@ function buildTab(scene, x, y, tab, activeKey) {
     })
 
   scene.add.text(x, y - 9, tab.icon, {
-    fontSize: '18px',
+    fontSize: '23px',
     resolution: TEXT_RES,
   }).setOrigin(0.5).setDepth(93)
-  scene.add.text(x, y + 11, tab.label, {
+  scene.add.text(x, y + 16, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
-    fontSize: '9px',
+    fontSize: '10px',
     fontWeight: '900',
     color: active ? '#1a3a5a' : '#6b7f8f',
   }).setOrigin(0.5).setDepth(93)
