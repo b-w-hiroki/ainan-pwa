@@ -188,24 +188,24 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 42, H * 0.565).setDepth(7)
+    const c = this.add.container(W / 2 + 8, H * 0.595).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.44)
-    aura.fillEllipse(0, 72, 330, 430)
+    aura.fillEllipse(0, 76, 376, 502)
     aura.fillStyle(0x5ebcff, 0.12)
-    aura.fillEllipse(-40, 78, 248, 354)
+    aura.fillEllipse(-42, 82, 286, 420)
     aura.fillStyle(0xffd900, 0.12)
-    aura.fillEllipse(56, 118, 202, 268)
+    aura.fillEllipse(62, 126, 238, 316)
 
     const shadow = this.add.graphics()
     shadow.fillStyle(0x1a2a3a, 0.16)
-    shadow.fillEllipse(0, 286, 184, 28)
+    shadow.fillEllipse(0, 342, 214, 32)
 
     const guide = this.add.image(0, 10, ASSETS.characters.guideDefault.key)
       .setOrigin(0.5)
-      .setDisplaySize(396, 594)
+      .setDisplaySize(475, 713)
     c.add([aura, shadow, guide])
-    this.tweens.add({ targets: c, y: H * 0.565 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    this.tweens.add({ targets: c, y: H * 0.595 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   }
 
   _buildMainCTA(W, H) {
