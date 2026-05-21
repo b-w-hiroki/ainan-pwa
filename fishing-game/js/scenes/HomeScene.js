@@ -5,7 +5,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
-import { MISSION_META, claimDailyBonus, getDailyBonusState, getMissionProgress, getTownSummary } from '../game/progress.js'
+import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress, getTownSummary } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -165,10 +165,10 @@ export default class HomeScene extends Phaser.Scene {
     const progress = getMissionProgress()
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
-    const completedLicenses = this._licenseCount()
+    const license = this._licenseCount()
     const town = getTownSummary()
     this._banner(22, H * 0.48, W - 44, 58, '町おこし', `にぎわい ${town.bustle}/100  ${town.rank}`, 0x8bcf52, ICONS.TOWN, () => this.scene.start('TownScene'))
-    this._banner(22, H * 0.56, W - 44, 58, '釣り免許', `進行度 ${completedLicenses}/9  遊び方を覚えよう`, 0xffd900, ICONS.LICENSE, () => this.scene.start('LicenseScene'))
+    this._banner(22, H * 0.56, W - 44, 58, '釣り免許', `進行度 ${license.done}/${license.total}  複数シート公開中`, 0xffd900, ICONS.LICENSE, () => this.scene.start('LicenseScene'))
     this._banner(22, H * 0.64, W - 44, 58, '今日のミッション', `${firstMission.title}  ${missionValue}/${firstMission.target}`, 0x5ebcff, ICONS.MISSION, () => this.scene.start('MissionScene'))
     this._banner(22, H * 0.72, W - 44, 58, '釣り師ランク', '釣果でランクアップして能力を開放', 0xff9b5e, ICONS.RANK, () => this.scene.start('RankScene'))
   }
@@ -286,19 +286,12 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _licenseCount() {
-    const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
-    const checks = [
-      localStorage.getItem('ainan_went_fishing') === '1',
-      catches.length >= 1,
-      localStorage.getItem('ainan_seen_book') === '1',
-      localStorage.getItem('ainan_seen_upgrade') === '1',
-      localStorage.getItem('ainan_touched_tackle') === '1',
-      catches.length >= 3,
-      localStorage.getItem('ainan_seen_spot') === '1',
-      localStorage.getItem('ainan_seen_upgrade') === '1',
-      catches.length >= 3 && localStorage.getItem('ainan_seen_book') === '1' && localStorage.getItem('ainan_seen_upgrade') === '1' && localStorage.getItem('ainan_seen_spot') === '1',
-    ]
-    return checks.filter(Boolean).length
+    const progress = getLicenseProgress()
+    const tasks = LICENSE_SHEETS.flatMap(sheet => sheet.tasks)
+    return {
+      done: tasks.filter(task => progress[task.id]).length,
+      total: tasks.length,
+    }
   }
 
   _banner(x, y, w, h, title, desc, accent, icon, onTap) {

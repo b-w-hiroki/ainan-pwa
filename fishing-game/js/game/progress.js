@@ -70,17 +70,87 @@ export const MISSION_META = [
   { id: 'open_book', title: '図鑑を確認する', desc: '釣った魚の情報を見てみよう', target: 1, reward: 60, type: 'manual' },
 ]
 
-export const LICENSE_META = [
-  { id: 'go_fishing', title: '釣り場へ行く', desc: 'マップから釣り場を選ぶ', reward: 'ミミズ x5' },
-  { id: 'first_catch', title: 'はじめて釣る', desc: '魚を1匹釣り上げる', reward: '80pt' },
-  { id: 'check_book', title: '図鑑を見る', desc: '魚のヒントを確認する', reward: 'エビ x2' },
-  { id: 'equip_rod', title: '竿を確認', desc: '強化画面で装備を見る', reward: '60pt' },
-  { id: 'use_bait', title: 'エサを選ぶ', desc: '釣り画面でエサを確認する', reward: 'ミミズ x5' },
-  { id: 'catch_three', title: '3匹釣る', desc: '累計3匹釣る', reward: 'カーボン素材' },
-  { id: 'find_spot', title: '釣り場情報', desc: '未発見魚数を確認する', reward: '120pt' },
-  { id: 'upgrade_try', title: '強化に触れる', desc: '装備詳細を開く', reward: 'エビ x3' },
-  { id: 'license_done', title: '釣り免許卒業', desc: 'すべての課題を終える', reward: '高級竿' },
+export const LICENSE_SHEETS = [
+  {
+    id: 'basic',
+    title: 'はじめての釣り',
+    subtitle: '基本操作と画面を覚える',
+    color: 0xffd900,
+    completeReward: { text: '高級竿', grant: { rods: { premium: 1 } } },
+    lineRewards: [
+      { id: 'row0', text: '80pt', grant: { score: 80 } },
+      { id: 'row1', text: 'ミミズ x5', grant: { baits: { worm: 5 } } },
+      { id: 'row2', text: 'エビ x3', grant: { baits: { shrimp: 3 } } },
+      { id: 'col0', text: '60pt', grant: { score: 60 } },
+      { id: 'col1', text: 'エビ x2', grant: { baits: { shrimp: 2 } } },
+      { id: 'col2', text: '120pt', grant: { score: 120 } },
+    ],
+    tasks: [
+      { id: 'go_fishing', title: '釣り場へ行く', desc: 'マップから釣り場を選ぶ', reward: 'ミミズ x5', grant: { baits: { worm: 5 } } },
+      { id: 'first_catch', title: 'はじめて釣る', desc: '魚を1匹釣り上げる', reward: '80pt', grant: { score: 80 } },
+      { id: 'check_book', title: '図鑑を見る', desc: '魚のヒントを確認する', reward: 'エビ x2', grant: { baits: { shrimp: 2 } } },
+      { id: 'equip_rod', title: '竿を確認', desc: '強化画面で装備を見る', reward: '60pt', grant: { score: 60 } },
+      { id: 'use_bait', title: 'エサを選ぶ', desc: '釣り画面でエサを確認する', reward: 'ミミズ x5', grant: { baits: { worm: 5 } } },
+      { id: 'catch_three', title: '3匹釣る', desc: '累計3匹釣る', reward: '100pt', grant: { score: 100 } },
+      { id: 'find_spot', title: '釣り場情報', desc: '未発見魚数を確認する', reward: '120pt', grant: { score: 120 } },
+      { id: 'upgrade_try', title: '強化に触れる', desc: '装備詳細を開く', reward: 'エビ x3', grant: { baits: { shrimp: 3 } } },
+      { id: 'license_done', title: '基本卒業', desc: 'このシートをすべて達成する', reward: '高級竿', grant: { rods: { premium: 1 } } },
+    ],
+  },
+  {
+    id: 'angler',
+    title: '釣り師への道',
+    subtitle: '釣果と図鑑を伸ばす',
+    color: 0x5ebcff,
+    completeReward: { text: '特製まき餌 x5', grant: { baits: { special: 5 } } },
+    lineRewards: [
+      { id: 'row0', text: '160pt', grant: { score: 160 } },
+      { id: 'row1', text: 'エビ x5', grant: { baits: { shrimp: 5 } } },
+      { id: 'row2', text: '220pt', grant: { score: 220 } },
+      { id: 'col0', text: 'ミミズ x8', grant: { baits: { worm: 8 } } },
+      { id: 'col1', text: '180pt', grant: { score: 180 } },
+      { id: 'col2', text: '特製まき餌 x2', grant: { baits: { special: 2 } } },
+    ],
+    tasks: [
+      { id: 'catch_five', title: '5匹釣る', desc: '累計5匹釣る', reward: '120pt', grant: { score: 120 } },
+      { id: 'catch_ten', title: '10匹釣る', desc: '累計10匹釣る', reward: '180pt', grant: { score: 180 } },
+      { id: 'score_1000', title: '1000pt到達', desc: '所持ポイント1000pt以上', reward: 'エビ x4', grant: { baits: { shrimp: 4 } } },
+      { id: 'find_three_fish', title: '3種発見', desc: '図鑑で3種類見つける', reward: '160pt', grant: { score: 160 } },
+      { id: 'catch_rare', title: 'レアを狙う', desc: 'レア魚を1匹釣る', reward: '特製まき餌 x2', grant: { baits: { special: 2 } } },
+      { id: 'own_premium', title: '高級竿入手', desc: '高級竿を所持する', reward: '220pt', grant: { score: 220 } },
+      { id: 'mission_two', title: 'ミッション2個', desc: 'ミッション報酬を2個受け取る', reward: 'ミミズ x8', grant: { baits: { worm: 8 } } },
+      { id: 'rank_three', title: 'ランク3', desc: '釣り師ランク3に到達', reward: '240pt', grant: { score: 240 } },
+      { id: 'angler_done', title: '釣り師認定', desc: 'このシートをすべて達成する', reward: '特製まき餌 x5', grant: { baits: { special: 5 } } },
+    ],
+  },
+  {
+    id: 'town',
+    title: '町おこし活動',
+    subtitle: '施設と交換で町を育てる',
+    color: 0x8bcf52,
+    completeReward: { text: '500pt', grant: { score: 500 } },
+    lineRewards: [
+      { id: 'row0', text: '200pt', grant: { score: 200 } },
+      { id: 'row1', text: 'エビ x6', grant: { baits: { shrimp: 6 } } },
+      { id: 'row2', text: '300pt', grant: { score: 300 } },
+      { id: 'col0', text: 'ミミズ x10', grant: { baits: { worm: 10 } } },
+      { id: 'col1', text: '特製まき餌 x3', grant: { baits: { special: 3 } } },
+      { id: 'col2', text: '350pt', grant: { score: 350 } },
+    ],
+    tasks: [
+      { id: 'facility_one', title: '施設Lv1', desc: 'いずれかの施設をLv1にする', reward: '120pt', grant: { score: 120 } },
+      { id: 'facility_total_three', title: '施設合計Lv3', desc: '施設Lv合計を3にする', reward: 'エビ x4', grant: { baits: { shrimp: 4 } } },
+      { id: 'bustle_25', title: 'にぎわい25', desc: '町のにぎわい25以上', reward: '180pt', grant: { score: 180 } },
+      { id: 'market_two', title: '魚市場Lv2', desc: '魚市場をLv2にする', reward: '220pt', grant: { score: 220 } },
+      { id: 'pier_two', title: '桟橋Lv2', desc: 'にぎわい桟橋をLv2にする', reward: '特製まき餌 x2', grant: { baits: { special: 2 } } },
+      { id: 'guide_two', title: '案内所Lv2', desc: '案内所をLv2にする', reward: '260pt', grant: { score: 260 } },
+      { id: 'exchange_one', title: '交換1回', desc: '交換所のアイテムを1個所持', reward: 'ミミズ x10', grant: { baits: { worm: 10 } } },
+      { id: 'festival_two', title: '広場Lv2', desc: '港まつり広場をLv2にする', reward: '300pt', grant: { score: 300 } },
+      { id: 'town_done', title: '町おこし認定', desc: 'このシートをすべて達成する', reward: '500pt', grant: { score: 500 } },
+    ],
+  },
 ]
+export const LICENSE_META = LICENSE_SHEETS[0].tasks
 
 export const TOWN_FACILITY_META = [
   {
@@ -303,50 +373,62 @@ export function saveClaimedLicenses(claimed) {
   localStorage.setItem('ainan_claimed_licenses', JSON.stringify(claimed))
 }
 
-export function claimLicenseReward(licenseId) {
-  const item = LICENSE_META.find(m => m.id === licenseId)
-  if (!item) return false
+export function getClaimedLicenseBonuses() {
+  return readJson('ainan_claimed_license_bonuses', {})
+}
 
+export function saveClaimedLicenseBonuses(claimed) {
+  localStorage.setItem('ainan_claimed_license_bonuses', JSON.stringify(claimed))
+}
+
+function grantReward(grant = {}) {
+  if (grant.score) setScore(getScore() + grant.score)
+  const inventory = getInventory()
+  let changedInventory = false
+  Object.entries(grant.rods ?? {}).forEach(([id, value]) => {
+    inventory.rods[id] = Math.max(inventory.rods[id] ?? 0, value)
+    changedInventory = true
+  })
+  Object.entries(grant.baits ?? {}).forEach(([id, value]) => {
+    inventory.baits[id] = (inventory.baits[id] ?? 0) + value
+    changedInventory = true
+  })
+  if (changedInventory) saveInventory(inventory)
+}
+
+export function claimLicenseReward(licenseId) {
+  const item = LICENSE_SHEETS.flatMap(sheet => sheet.tasks).find(m => m.id === licenseId)
+  if (!item) return false
   const claimed = getClaimedLicenses()
   if (claimed[licenseId]) return false
-
-  const inventory = getInventory()
-  switch (licenseId) {
-    case 'go_fishing':
-    case 'use_bait':
-      inventory.baits.worm = (inventory.baits.worm ?? 0) + 5
-      saveInventory(inventory)
-      break
-    case 'check_book':
-      inventory.baits.shrimp = (inventory.baits.shrimp ?? 0) + 2
-      saveInventory(inventory)
-      break
-    case 'upgrade_try':
-      inventory.baits.shrimp = (inventory.baits.shrimp ?? 0) + 3
-      saveInventory(inventory)
-      break
-    case 'license_done':
-      inventory.rods.premium = 1
-      saveInventory(inventory)
-      break
-    case 'first_catch':
-      setScore(getScore() + 80)
-      break
-    case 'equip_rod':
-      setScore(getScore() + 60)
-      break
-    case 'catch_three':
-      setScore(getScore() + 100)
-      break
-    case 'find_spot':
-      setScore(getScore() + 120)
-      break
-    default:
-      break
-  }
-
+  grantReward(item.grant)
   claimed[licenseId] = true
   saveClaimedLicenses(claimed)
+  return true
+}
+
+export function claimLicenseBonus(sheetId, bonusId) {
+  const sheet = LICENSE_SHEETS.find(s => s.id === sheetId)
+  if (!sheet) return false
+  const progress = getLicenseProgress()
+  const claimed = getClaimedLicenseBonuses()
+  const key = `${sheetId}:${bonusId}`
+  if (claimed[key]) return false
+
+  const tasks = sheet.tasks
+  let reward = null
+  if (bonusId === 'complete') {
+    if (!tasks.every(task => progress[task.id])) return false
+    reward = sheet.completeReward
+  } else {
+    const indexes = getLicenseLineIndexes(bonusId)
+    if (!indexes.length || !indexes.every(index => progress[tasks[index]?.id])) return false
+    reward = sheet.lineRewards.find(r => r.id === bonusId)
+  }
+  if (!reward) return false
+  grantReward(reward.grant)
+  claimed[key] = true
+  saveClaimedLicenseBonuses(claimed)
   return true
 }
 
@@ -356,10 +438,17 @@ export function markBookSeen() {
 
 export function getLicenseProgress() {
   const catches = getCatches()
+  const foundFish = new Set(catches.map(c => c.fishId))
   const seenBook = localStorage.getItem('ainan_seen_book') === '1'
   const seenUpgrade = localStorage.getItem('ainan_seen_upgrade') === '1'
   const seenSpot = localStorage.getItem('ainan_seen_spot') === '1'
   const touchedTackle = localStorage.getItem('ainan_touched_tackle') === '1'
+  const inventory = getInventory()
+  const claimedMissions = getClaimedMissions()
+  const rewards = getRewards()
+  const town = getTownSummary()
+  const facilities = getTownFacilities()
+  const score = getScore()
   return {
     go_fishing: localStorage.getItem('ainan_went_fishing') === '1',
     first_catch: catches.length >= 1,
@@ -370,7 +459,37 @@ export function getLicenseProgress() {
     find_spot: seenSpot,
     upgrade_try: seenUpgrade,
     license_done: catches.length >= 3 && seenBook && seenUpgrade && seenSpot,
+    catch_five: catches.length >= 5,
+    catch_ten: catches.length >= 10,
+    score_1000: score >= 1000,
+    find_three_fish: foundFish.size >= 3,
+    catch_rare: catches.some(c => ['bass', 'kue'].includes(c.fishId)),
+    own_premium: (inventory.rods?.premium ?? 0) > 0,
+    mission_two: Object.values(claimedMissions).filter(Boolean).length >= 2,
+    rank_three: getPlayerRank().rank >= 3,
+    angler_done: catches.length >= 10 && foundFish.size >= 3 && getPlayerRank().rank >= 3,
+    facility_one: Object.values(facilities).some(lv => lv >= 1),
+    facility_total_three: town.totalLevel >= 3,
+    bustle_25: town.bustle >= 25,
+    market_two: (facilities.market ?? 0) >= 2,
+    pier_two: (facilities.pier ?? 0) >= 2,
+    guide_two: (facilities.guide ?? 0) >= 2,
+    exchange_one: Object.values(rewards).reduce((sum, count) => sum + count, 0) >= 1,
+    festival_two: (facilities.festival ?? 0) >= 2,
+    town_done: town.totalLevel >= 8 && town.bustle >= 50,
   }
+}
+
+export function getLicenseLineIndexes(lineId) {
+  const lines = {
+    row0: [0, 1, 2],
+    row1: [3, 4, 5],
+    row2: [6, 7, 8],
+    col0: [0, 3, 6],
+    col1: [1, 4, 7],
+    col2: [2, 5, 8],
+  }
+  return lines[lineId] ?? []
 }
 
 export function markLicenseFlag(key) {
