@@ -18,7 +18,6 @@ const T = {
   event: '\u30a4\u30d9\u30f3\u30c8',
   eventTitle: '\u6e2f\u307e\u3064\u308a\u6e96\u5099 \u958b\u50ac\u4e2d',
   eventLead: '\u671f\u9593\u9650\u5b9a\u30df\u30c3\u30b7\u30e7\u30f3\u3067\u5831\u916c\u3092\u96c6\u3081\u3088\u3046',
-  guide: '\u30ac\u30a4\u30c9',
   goFishing: '\u91e3\u308a\u306b\u884c\u304f',
   goLead: '\u91e3\u308a\u5834\u3092\u9078\u3093\u3067\u51fa\u767a',
   daily: '\u30c7\u30a4\u30ea\u30fc\u30dc\u30fc\u30ca\u30b9',
@@ -189,30 +188,24 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 30, H * 0.505).setDepth(7)
+    const c = this.add.container(W / 2 + 42, H * 0.565).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.44)
-    aura.fillEllipse(0, 64, 242, 306)
+    aura.fillEllipse(0, 72, 330, 430)
     aura.fillStyle(0x5ebcff, 0.12)
-    aura.fillEllipse(-32, 68, 184, 252)
+    aura.fillEllipse(-40, 78, 248, 354)
     aura.fillStyle(0xffd900, 0.12)
-    aura.fillEllipse(42, 92, 150, 198)
+    aura.fillEllipse(56, 118, 202, 268)
 
     const shadow = this.add.graphics()
     shadow.fillStyle(0x1a2a3a, 0.16)
-    shadow.fillEllipse(0, 178, 136, 22)
+    shadow.fillEllipse(0, 286, 184, 28)
 
     const guide = this.add.image(0, 10, ASSETS.characters.guideDefault.key)
       .setOrigin(0.5)
-      .setDisplaySize(264, 394)
-    const text = this.add.text(0, 211, T.guide, uiText('chip', {
-      fontSize: '12px',
-      color: '#1a3a5a',
-      backgroundColor: '#ffffff',
-      padding: { x: 12, y: 5 },
-    })).setOrigin(0.5)
-    c.add([aura, shadow, guide, text])
-    this.tweens.add({ targets: c, y: H * 0.505 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+      .setDisplaySize(396, 594)
+    c.add([aura, shadow, guide])
+    this.tweens.add({ targets: c, y: H * 0.565 - 6, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   }
 
   _buildMainCTA(W, H) {
