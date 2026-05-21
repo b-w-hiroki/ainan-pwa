@@ -4,11 +4,11 @@ import { ICONS } from '../config/icons.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const TABS = [
-  { key: 'home', icon: ICONS.HOME, label: 'ホーム', scene: 'HomeScene', x: 0.10 },
-  { key: 'equip', icon: ICONS.GEAR, label: '装備', scene: 'UpgradeScene', x: 0.30 },
-  { key: 'town', icon: ICONS.TOWN, label: '投資', scene: 'TownScene', x: 0.50 },
-  { key: 'shop', icon: ICONS.GIFT, label: 'ショップ', scene: 'ExchangeScene', x: 0.70 },
-  { key: 'menu', icon: ICONS.MENU, label: 'メニュー', scene: 'MenuScene', x: 0.90 },
+  { key: 'home', icon: ICONS.HOME, label: '\u30db\u30fc\u30e0', scene: 'HomeScene', x: 0.10 },
+  { key: 'equip', icon: ICONS.GEAR, label: '\u88c5\u5099', scene: 'UpgradeScene', x: 0.30 },
+  { key: 'town', icon: ICONS.TOWN, label: '\u6295\u8cc7', scene: 'TownScene', x: 0.50 },
+  { key: 'shop', icon: ICONS.GIFT, label: '\u30b7\u30e7\u30c3\u30d7', scene: 'ExchangeScene', x: 0.70 },
+  { key: 'menu', icon: ICONS.MENU, label: '\u30e1\u30cb\u30e5\u30fc', scene: 'MenuScene', x: 0.90 },
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
