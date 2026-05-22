@@ -11,8 +11,6 @@ const TEXT_RES = window.devicePixelRatio ?? 1
 
 const T = {
   player: '\u6e2f\u306e\u91e3\u308a\u4eba',
-  title: '\u753a\u304a\u3053\u3057\u91e3\u308a',
-  tagline: '\u91e3\u3063\u3066\u3001\u96c6\u3081\u3066\u3001\u6e2f\u3092\u306b\u304e\u3084\u304b\u306b',
   mission: '\u30df\u30c3\u30b7\u30e7\u30f3',
   license: '\u91e3\u308a\u514d\u8a31',
   event: '\u30a4\u30d9\u30f3\u30c8',
@@ -47,7 +45,6 @@ export default class HomeScene extends Phaser.Scene {
     this._buildTopShortcuts(W, H)
     this._buildGuideCharacter(W, H)
     this._buildMainCTA(W, H)
-    this._buildDailyButton(W)
     buildFooterNav(this, W, H, 'home')
     this._maybeShowDailyBonus(W, H)
   }
@@ -142,6 +139,8 @@ export default class HomeScene extends Phaser.Scene {
     const license = this._licenseCount()
     this._iconShortcut(24, 154, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
     this._iconShortcut(94, 154, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
+    const daily = getDailyBonusState()
+    if (daily.canClaim) this._iconShortcut(164, 154, 58, ICONS.BONUS, T.daily, `${daily.streak + 1}${T.day}`, 0xff6a3d, () => this._showDailyBonus(this.scale.width, this.scale.height))
   }
 
   _iconShortcut(x, y, size, icon, title, sub, accent, onTap) {
@@ -209,22 +208,6 @@ export default class HomeScene extends Phaser.Scene {
     hintBg.fillRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
     hintBg.strokeRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
     this.add.text(W / 2, H * 0.812 + 48, T.goLead, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
-  }
-
-  _buildDailyButton(W) {
-    const state = getDailyBonusState()
-    if (!state.canClaim) return
-    const x = W - 72
-    const g = this.add.graphics().setDepth(23)
-    g.fillStyle(0xfff4ce, 0.98)
-    g.lineStyle(2, 0xe07800, 0.86)
-    g.fillCircle(x, 82, 18)
-    g.strokeCircle(x, 82, 18)
-    this.add.text(x, 82, ICONS.BONUS, { fontSize: '16px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(24)
-    const dot = this.add.graphics().setDepth(25)
-    dot.fillStyle(0xff4f4f, 1)
-    dot.fillCircle(x + 12, 70, 5)
-    this.add.circle(x, 82, 23, 0x000000, 0).setDepth(26).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showDailyBonus(this.scale.width, this.scale.height))
   }
 
   _maybeShowDailyBonus(W, H) {
