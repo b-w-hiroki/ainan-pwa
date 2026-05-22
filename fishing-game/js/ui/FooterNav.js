@@ -12,25 +12,27 @@ const TABS = [
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
-  const y = H - 78
-  const h = 72
+  const y = H - 82
+  const h = 76
   const bar = scene.add.graphics().setDepth(90)
-  bar.fillStyle(0x173248, 0.24)
-  bar.fillRoundedRect(8, y + 5, W - 16, h, 18)
-  bar.fillGradientStyle(0xfff7df, 0xfff2cf, 0xe9d4a8, 0xe3c893, 0.97)
-  bar.lineStyle(2, 0x9e7a43, 0.72)
+  bar.fillStyle(0x173248, 0.28)
+  bar.fillRoundedRect(7, y + 6, W - 14, h, 18)
+  bar.fillGradientStyle(0x7f5622, 0x7f5622, 0x3f2b16, 0x3f2b16, 0.98)
+  bar.fillRoundedRect(7, y + 41, W - 14, 36, 16)
+  bar.fillGradientStyle(0xfff6dd, 0xffe9ae, 0xe2bd75, 0xc9964a, 1)
+  bar.lineStyle(2.4, 0x7f5622, 0.92)
   bar.fillRoundedRect(8, y, W - 16, h, 18)
   bar.strokeRoundedRect(8, y, W - 16, h, 18)
-  bar.fillStyle(0xffffff, 0.32)
-  bar.fillRoundedRect(18, y + 5, W - 36, 13, 7)
-  bar.lineStyle(1.2, 0x8d6227, 0.13)
+  bar.fillGradientStyle(0xffffff, 0xffffff, 0xffe9a6, 0xffe9a6, 0.44, 0.28, 0.10, 0.08)
+  bar.fillRoundedRect(18, y + 6, W - 36, 15, 8)
+  bar.lineStyle(1.2, 0x80551d, 0.22)
   ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
     const x = W * f
-    bar.lineBetween(x, y + 18, x, y + h - 9)
+    bar.lineBetween(x, y + 19, x, y + h - 10)
   })
 
-  TABS.forEach(tab => drawTabWell(scene, W * tab.x, y + 35, tab.key === activeKey))
-  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 36, tab, activeKey))
+  TABS.forEach(tab => drawTabWell(scene, W * tab.x, y + 37, tab.key === activeKey))
+  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 38, tab, activeKey))
 }
 
 function buildTab(scene, x, y, tab, activeKey) {
@@ -56,34 +58,53 @@ function buildTab(scene, x, y, tab, activeKey) {
 
 function drawTabWell(scene, x, y, active) {
   const g = scene.add.graphics().setDepth(91)
-  const w = active ? 62 : 58
-  const h = active ? 64 : 60
-  const rx = 17
-  g.fillStyle(0x6f512b, 0.18)
-  g.fillRoundedRect(x - w / 2, y - h / 2 + 3, w, h, rx)
-  g.fillStyle(active ? 0xfff4d4 : 0xefe0c7, active ? 0.98 : 0.88)
-  g.lineStyle(active ? 2.2 : 1.5, active ? 0xc89945 : 0xb9a47d, active ? 0.90 : 0.50)
+  const w = active ? 64 : 58
+  const h = active ? 66 : 60
+  const rx = 16
+  if (active) {
+    g.fillStyle(0xffdf6d, 0.28)
+    g.fillRoundedRect(x - w / 2 - 4, y - h / 2 - 3, w + 8, h + 8, rx + 3)
+  }
+  g.fillStyle(0x3d2a16, active ? 0.28 : 0.20)
+  g.fillRoundedRect(x - w / 2, y - h / 2 + 4, w, h, rx)
+  g.fillGradientStyle(
+    active ? 0xfff7d8 : 0xf4e7d1,
+    active ? 0xffedb0 : 0xe9d7b8,
+    active ? 0xd9a450 : 0xc3aa7d,
+    active ? 0xb87a27 : 0xa99168,
+    active ? 0.99 : 0.90,
+  )
+  g.lineStyle(active ? 2.4 : 1.5, active ? 0x7f5622 : 0x9c835a, active ? 0.92 : 0.55)
   g.fillRoundedRect(x - w / 2, y - h / 2, w, h, rx)
   g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, rx)
-  g.fillStyle(0xffffff, active ? 0.32 : 0.18)
-  g.fillRoundedRect(x - w / 2 + 7, y - h / 2 + 6, w - 14, 9, 5)
-  g.fillStyle(0x9e7a43, active ? 0.30 : 0.16)
-  g.fillRoundedRect(x - 18, y + 18, 36, 4, 2)
+  g.fillStyle(0xffffff, active ? 0.36 : 0.18)
+  g.fillRoundedRect(x - w / 2 + 7, y - h / 2 + 6, w - 14, 8, 5)
+  g.fillStyle(active ? 0x24445a : 0x8f7653, active ? 0.20 : 0.12)
+  g.fillRoundedRect(x - 22, y + 17, 44, 5, 3)
+  if (active) {
+    g.fillStyle(0xffffff, 0.52)
+    g.fillCircle(x - 18, y - 22, 3)
+    g.fillCircle(x + 18, y - 22, 3)
+  }
 }
 
 function addFooterIcon(scene, x, y, tab, active) {
   const g = scene.add.graphics().setDepth(93)
-  const s = active ? 1.02 : 0.94
-  const bg = active ? 0xf9e6bd : 0xf3ead9
-  const fg = active ? 0x24445a : 0x6c7680
+  const s = active ? 1.06 : 0.92
+  const bg = active ? 0xfff0c4 : 0xf3ead9
+  const fg = active ? 0x163a54 : 0x6c7680
   const line = active ? 0xc89b47 : 0xb9a47d
 
-  g.fillStyle(0x173248, active ? 0.08 : 0.04)
-  g.fillCircle(x, y + 1, 21 * s)
-  g.fillStyle(bg, active ? 0.76 : 0.42)
-  g.lineStyle(1.4, line, active ? 0.55 : 0.22)
+  g.fillStyle(0x173248, active ? 0.14 : 0.05)
+  g.fillCircle(x, y + 2, 23 * s)
+  g.fillGradientStyle(bg, bg, active ? 0xe8bd69 : 0xe2d6c1, active ? 0xd4a24d : 0xd4c7b2, active ? 0.98 : 0.52)
+  g.lineStyle(1.6, line, active ? 0.72 : 0.25)
   g.fillCircle(x, y, 22 * s)
   g.strokeCircle(x, y, 22 * s)
+  if (active) {
+    g.fillStyle(0xffffff, 0.38)
+    g.fillEllipse(x - 7, y - 8, 18, 8)
+  }
   g.fillStyle(fg, 1)
   g.lineStyle(2.8, fg, 1)
   drawGlyph(g, tab.glyph, x, y, s)
