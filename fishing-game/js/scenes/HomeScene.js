@@ -86,8 +86,8 @@ export default class HomeScene extends Phaser.Scene {
     profile.fillStyle(0xffd900, 1)
     profile.fillCircle(42, 38, 15)
     this.add.text(42, 38, ICONS.ROD, { fontSize: '18px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
-    this.add.text(64, 31, T.player, uiText('cardTitle', { fontSize: '13px' })).setOrigin(0, 0.5).setDepth(22)
-    this.add.text(64, 46, `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: '#e07800' })).setOrigin(0, 0.5).setDepth(22)
+    this.add.text(64, 31, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
+    this.add.text(64, 47, `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '12px', color: '#e07800' })).setOrigin(0, 0.5).setDepth(22)
     this.add.rectangle(92, 38, 152, 48, 0x000000, 0)
       .setDepth(23)
       .setInteractive({ useHandCursor: true })
@@ -104,7 +104,7 @@ export default class HomeScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, 48, 36, 13)
     g.strokeRoundedRect(x, y, 48, 36, 13)
     this.add.text(x + 15, y + 18, icon, { fontSize: '14px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
-    this.add.text(x + 32, y + 18, value, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(22)
+    this.add.text(x + 32, y + 18, value, uiText('chip', { fontSize: '14px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(22)
   }
 
   _buildEventBanner(W, H) {
@@ -121,9 +121,9 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 16)
     g.fillStyle(0xff6a3d, 0.94)
     g.fillRoundedRect(x + 10, y + 10, 66, 36, 12)
-    this.add.text(x + 43, y + 28, T.event, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
-    this.add.text(x + 88, y + 21, T.eventTitle, uiText('cardTitle', { fontSize: '13px' })).setOrigin(0, 0.5).setDepth(11)
-    this.add.text(x + 88, y + 40, T.eventLead, uiText('micro', { fontSize: '9.5px', color: '#4a7090' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 43, y + 28, T.event, uiText('micro', { fontSize: '12px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
+    this.add.text(x + 88, y + 20, T.eventTitle, uiText('cardTitle', { fontSize: '15px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 88, y + 41, T.eventLead, uiText('micro', { fontSize: '12px', color: '#4a7090' })).setOrigin(0, 0.5).setDepth(11)
     this.add.text(x + w - 22, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '22px' })).setOrigin(0.5).setDepth(11)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(12)
@@ -156,7 +156,7 @@ export default class HomeScene extends Phaser.Scene {
     g.fillCircle(cx, cy - 4, 22)
     this.add.text(cx, cy - 4, icon, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(14)
     this.add.text(cx, cy + 19, sub, uiText('micro', {
-      fontSize: '8px',
+      fontSize: '12px',
       color: '#d56f00',
       backgroundColor: '#ffffff',
       padding: { x: 3, y: 1 },
@@ -247,7 +247,7 @@ export default class HomeScene extends Phaser.Scene {
     draw()
 
     const title = this.add.text(18, -4, T.goFishing, uiText('button', {
-      fontSize: '25px',
+      fontSize: '26px',
       color: '#173248',
       stroke: '#ffffff',
       strokeThickness: 3,
@@ -274,7 +274,7 @@ export default class HomeScene extends Phaser.Scene {
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
     hintBg.fillRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
     hintBg.strokeRoundedRect(W / 2 - 112, H * 0.812 + 36, 224, 24, 12)
-    this.add.text(W / 2, H * 0.812 + 48, T.goLead, uiText('chip', { fontSize: '13px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
+    this.add.text(W / 2, H * 0.812 + 48, T.goLead, uiText('chip', { fontSize: '14px', color: '#1a3a5a' })).setOrigin(0.5).setDepth(16)
   }
 
   _maybeShowDailyBonus(W, H) {

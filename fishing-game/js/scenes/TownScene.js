@@ -83,7 +83,7 @@ export default class TownScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 22, y + 54, `釣果 ${summary.catches}匹 / 交換 ${summary.rewards}個 / 施設Lv ${summary.totalLevel}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#4a7090',
+      fontSize: '14px', fontWeight: '900', color: '#4a7090',
     }).setOrigin(0, 0.5).setDepth(6)
 
     g.fillStyle(0xd8e6ee, 1)
@@ -92,7 +92,7 @@ export default class TownScene extends Phaser.Scene {
     g.fillRoundedRect(x + 22, y + 78, (w - 44) * (summary.bustle / 100), 16, 8)
     this.add.text(W / 2, y + 106, `にぎわい ${summary.bustle}/100`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#e07800',
+      fontSize: '14px', fontWeight: '900', color: '#e07800',
     }).setOrigin(0.5).setDepth(6)
   }
 
@@ -130,11 +130,11 @@ export default class TownScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 66, y + 47, `Lv.${lv}/5`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: maxed ? '#cc7700' : '#e07800',
+      fontSize: '14px', fontWeight: '900', color: maxed ? '#cc7700' : '#e07800',
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 16, y + 76, maxed ? '最大まで発展済み' : `${cost}ptで発展`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: maxed ? '#00aa66' : '#4a7090',
+      fontSize: '14px', fontWeight: '900', color: maxed ? '#00aa66' : '#4a7090',
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(6)
@@ -172,12 +172,12 @@ export default class TownScene extends Phaser.Scene {
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 160, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+      fontSize: '15px', fontWeight: '900', color: '#4a7090',
       align: 'center', wordWrap: { width: w - 50 },
     }).setOrigin(0.5, 0))
     items.push(this.add.text(W / 2, y + 210, `${item.effect} / Lv.${lv}/5`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#e07800',
+      fontSize: '15px', fontWeight: '900', color: '#e07800',
       align: 'center', wordWrap: { width: w - 50 },
     }).setOrigin(0.5))
 
@@ -213,7 +213,7 @@ export default class TownScene extends Phaser.Scene {
   _plainButton(x, y, label, onTap) {
     return this.add.text(x, y, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+      fontSize: '15px', fontWeight: '900', color: '#4a7090',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
   }
 
@@ -225,7 +225,7 @@ export default class TownScene extends Phaser.Scene {
     bg.fillRoundedRect(W / 2 - 112, 650, 224, 38, 15)
     const txt = this.add.text(W / 2, 669, message, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#ffffff',
+      fontSize: '15px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5).setDepth(121)
     this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=14', duration: 900, onComplete: () => { bg.destroy(); txt.destroy() } })
   }

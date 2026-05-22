@@ -58,7 +58,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this.add.text(x + 38, y + h / 2, item.icon, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(6)
     this.add.text(x + 76, y + 27, item.title, uiText('cardTitle', { fontSize: '17px' })).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 76, y + 51, item.desc, uiText('screenLead', { fontSize: '12px' })).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 76, y + 51, item.desc, uiText('screenLead', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + w - 24, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '24px' })).setOrigin(0.5).setDepth(6)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(item.scene))
   }

@@ -93,7 +93,7 @@ export default class UpgradeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
     this._pill(W / 2, 70, 178, 30, `${ICONS.SCORE} ${getScore().toLocaleString()} pt`, 0xffffff, '#1a3a5a')
     this.add.text(W / 2, 106, 'キャラと装備を整えて、釣果を伸ばそう', uiText('chip', {
-      fontSize: '13px',
+      fontSize: '15px',
       color: '#ffffff',
       shadow: SHADOW.medium,
     })).setOrigin(0.5).setDepth(5)
@@ -138,7 +138,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillStyle(0xffffff, 0.92)
     g.fillCircle(x, y + 29, 20)
     this.add.text(x, y + 29, ICONS.ROD, { fontSize: '25px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(7)
-    this.add.text(x, y + 104, '港の釣り人', uiText('cardTitle', { fontSize: '15px' })).setOrigin(0.5).setDepth(7)
+    this.add.text(x, y + 104, '港の釣り人', uiText('cardTitle', { fontSize: '16px' })).setOrigin(0.5).setDepth(7)
   }
 
   _equipSlot(x, y, label, icon, id, item, rank, qty, type) {
@@ -154,8 +154,8 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillCircle(x, y - 10, 25)
     this.add.text(x, y - 10, icon, { fontSize: '27px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(8)
     this._rankBadge(x - 22, y - 26, rank)
-    this.add.text(x, y + 22, label, uiText('micro', { fontSize: '10px', color: '#55708a' })).setOrigin(0.5).setDepth(8)
-    this.add.text(x, y + 36, type === 'bait' ? `x${qty}` : '装備中', uiText('micro', { fontSize: '10px', color: '#e07800' })).setOrigin(0.5).setDepth(8)
+    this.add.text(x, y + 22, label, uiText('micro', { fontSize: '13px', color: '#55708a' })).setOrigin(0.5).setDepth(8)
+    this.add.text(x, y + 36, type === 'bait' ? `x${qty}` : '装備中', uiText('micro', { fontSize: '13px', color: '#e07800' })).setOrigin(0.5).setDepth(8)
     this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(9).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(id, item, type, icon, true, qty, true, rank))
   }
 
@@ -167,7 +167,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 18)
     g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 18)
     this.add.text(x, y - 8, icon, { fontSize: '21px', resolution: TEXT_RES, alpha: 0.48 }).setOrigin(0.5).setDepth(6)
-    this.add.text(x, y + 18, label, uiText('micro', { fontSize: '9px', color: '#6b7f8f' })).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y + 18, label, uiText('micro', { fontSize: '12px', color: '#6b7f8f' })).setOrigin(0.5).setDepth(6)
   }
 
   _inventoryPanel(W, H) {
@@ -200,7 +200,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.lineStyle(2, active ? 0x1a2a3a : 0xb7c4cf, 1)
     g.fillRoundedRect(x, y - h / 2, w, h, 10)
     g.strokeRoundedRect(x, y - h / 2, w, h, 10)
-    this.add.text(x + w / 2, y, tab.label, uiText('button', { fontSize: '11px' })).setOrigin(0.5).setDepth(6)
+    this.add.text(x + w / 2, y, tab.label, uiText('button', { fontSize: '13px' })).setOrigin(0.5).setDepth(6)
     this.add.rectangle(x + w / 2, y, w, h, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart({ tab: tab.id, scroll: 0 }))
   }
 
@@ -212,8 +212,8 @@ export default class UpgradeScene extends Phaser.Scene {
 
   _inventoryGrid(x, y, w, viewH) {
     const items = this._inventoryItems()
-    const size = 74
-    const gapX = 23
+    const size = 84
+    const gapX = 16
     const gapY = 16
     const cols = 3
     const rows = Math.ceil(items.length / cols)
@@ -265,8 +265,8 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillCircle(x + size / 2, y + 25, 22)
     add(this.add.text(x + size / 2, y + 25, owned ? entry.icon : ICONS.LOCK, { fontSize: owned ? '24px' : '20px', resolution: TEXT_RES }).setOrigin(0.5))
     this._rankBadge(x + 17, y + 17, entry.rank, parent)
-    add(this.add.text(x + size / 2, y + 50, entry.item.name, uiText('micro', { fontSize: '9px', color: '#1a3a5a', wordWrap: { width: size - 8 }, align: 'center' })).setOrigin(0.5, 0))
-    add(this.add.text(x + size / 2, y + size - 9, entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : `x${qty}`, uiText('micro', { fontSize: '9px', color: equipped ? '#e07800' : '#4a7090' })).setOrigin(0.5))
+    add(this.add.text(x + size / 2, y + 50, entry.item.name, uiText('micro', { fontSize: '12px', color: '#1a3a5a', wordWrap: { width: size - 6 }, align: 'center' })).setOrigin(0.5, 0))
+    add(this.add.text(x + size / 2, y + size - 10, entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : `x${qty}`, uiText('micro', { fontSize: '12px', color: equipped ? '#e07800' : '#4a7090' })).setOrigin(0.5))
     add(this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.icon, owned, qty, equipped, entry.rank)))
   }
 
@@ -276,7 +276,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.lineStyle(1.5, 0xffffff, 0.85)
     g.fillRoundedRect(x - 14, y - 9, 28, 18, 7)
     g.strokeRoundedRect(x - 14, y - 9, 28, 18, 7)
-    const t = this.add.text(x, y, rank.label, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5)
+    const t = this.add.text(x, y, rank.label, uiText('micro', { fontSize: '12px', color: '#ffffff' })).setOrigin(0.5)
     if (parent) parent.add([g, t])
   }
 
@@ -303,7 +303,7 @@ export default class UpgradeScene extends Phaser.Scene {
     items.push(bg)
     items.push(this.add.text(W / 2, y + 70, owned ? icon : ICONS.LOCK, { fontSize: owned ? '42px' : '34px', resolution: TEXT_RES }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 152, item.name, uiText('panelTitle', { fontSize: '24px' })).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 188, item.desc, uiText('screenLead', { fontSize: '13px', wordWrap: { width: w - 48 }, align: 'center' })).setOrigin(0.5, 0))
+    items.push(this.add.text(W / 2, y + 188, item.desc, uiText('screenLead', { fontSize: '15px', wordWrap: { width: w - 48 }, align: 'center' })).setOrigin(0.5, 0))
     const status = type === 'material'
       ? `所持 ${qty}`
       : type === 'rod'
@@ -324,7 +324,7 @@ export default class UpgradeScene extends Phaser.Scene {
     bg.lineStyle(2, 0xe07800, 0.55)
     bg.fillRoundedRect(x - 118, y - 18, 236, 36, 14)
     bg.strokeRoundedRect(x - 118, y - 18, 236, 36, 14)
-    const label = this.add.text(x, y, text, uiText('chip', { fontSize: '14px', color: '#9a5600' })).setOrigin(0.5)
+    const label = this.add.text(x, y, text, uiText('chip', { fontSize: '15px', color: '#9a5600' })).setOrigin(0.5)
     c.add([bg, label])
     return c
   }
@@ -353,14 +353,14 @@ export default class UpgradeScene extends Phaser.Scene {
     bg.lineStyle(2.5, 0x1a2a3a, 1)
     bg.fillRoundedRect(x - 86, y - 22, 172, 44, 15)
     bg.strokeRoundedRect(x - 86, y - 22, 172, 44, 15)
-    const txt = this.add.text(x, y, label, uiText('button', { fontSize: '14px' })).setOrigin(0.5)
+    const txt = this.add.text(x, y, label, uiText('button', { fontSize: '15px' })).setOrigin(0.5)
     const hit = this.add.rectangle(x, y, 184, 52, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
     c.add([bg, txt, hit])
     return c
   }
 
   _plainButton(x, y, label, onTap) {
-    return this.add.text(x, y, label, uiText('chip', { fontSize: '13px', color: '#4a7090' })).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
+    return this.add.text(x, y, label, uiText('chip', { fontSize: '15px', color: '#4a7090' })).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
   }
 
   _pill(x, y, w, h, label, fill, color) {
@@ -369,7 +369,7 @@ export default class UpgradeScene extends Phaser.Scene {
     g.lineStyle(2, 0x1a2a3a, 0.55)
     g.fillRoundedRect(x - w / 2, y - h / 2, w, h, h / 2)
     g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, h / 2)
-    this.add.text(x, y, label, uiText('chip', { fontSize: '13px', color })).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y, label, uiText('chip', { fontSize: '14px', color })).setOrigin(0.5).setDepth(6)
   }
 
   _toast(message) {
@@ -378,7 +378,7 @@ export default class UpgradeScene extends Phaser.Scene {
     const bg = this.add.graphics().setDepth(120)
     bg.fillStyle(0x1a2a3a, 0.92)
     bg.fillRoundedRect(W / 2 - 112, 650, 224, 38, 15)
-    const txt = this.add.text(W / 2, 669, message, uiText('chip', { fontSize: '13px', color: '#ffffff' })).setOrigin(0.5).setDepth(121)
+    const txt = this.add.text(W / 2, 669, message, uiText('chip', { fontSize: '15px', color: '#ffffff' })).setOrigin(0.5).setDepth(121)
     this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=14', duration: 900, onComplete: () => { bg.destroy(); txt.destroy() } })
   }
 }

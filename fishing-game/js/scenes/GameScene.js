@@ -153,7 +153,7 @@ export default class GameScene extends Phaser.Scene {
     g.strokeRoundedRect(-56, -18, 112, 36, 15)
     const txt = this.add.text(0, 0, '魚群チャンス', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: '#e07800',
     }).setOrigin(0.5)
     this.schoolFx.add([g, txt])
@@ -504,7 +504,7 @@ export default class GameScene extends Phaser.Scene {
     }).setOrigin(0.5)
     const sub = this.add.text(0, 20, danger ? '伝説級の気配！' : '大物の引き！', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#ffffff',
     }).setOrigin(0.5)
     c.add([bg, label, sub])

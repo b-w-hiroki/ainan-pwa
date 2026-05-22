@@ -89,7 +89,7 @@ export class CastUI {
     }).setOrigin(0.5).setDepth(55)
 
     scene.powerLabel = scene.add.text(W / 2, H * 0.74, 'CAST POWER', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '800',
       color: CS, stroke: COLOR.WHITE, strokeThickness: 1,
       letterSpacing: 2,
     }).setOrigin(0.5).setDepth(37).setVisible(false)

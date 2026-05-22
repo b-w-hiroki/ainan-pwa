@@ -15,22 +15,22 @@ export const TYPE = {
   h1:      { fontFamily: FONT, fontSize: '30px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.medium },
   h2:      { fontFamily: FONT, fontSize: '22px', fontWeight: '800', color: '#1a3a5a' },
   h3:      { fontFamily: FONT, fontSize: '18px', fontWeight: '700', color: '#1a3a5a' },
-  body:    { fontFamily: FONT, fontSize: '15px', fontWeight: '700', color: '#1a3a5a' },
-  label:   { fontFamily: FONT, fontSize: '13px', fontWeight: '800', color: '#4a7090' },
-  caption: { fontFamily: FONT, fontSize: '12px', fontWeight: '700', color: '#4a7090' },
-  badge:   { fontFamily: FONT, fontSize: '11px', fontWeight: '900', color: '#1a2a3a' },
+  body:    { fontFamily: FONT, fontSize: '16px', fontWeight: '800', color: '#1a3a5a' },
+  label:   { fontFamily: FONT, fontSize: '14px', fontWeight: '900', color: '#4a7090' },
+  caption: { fontFamily: FONT, fontSize: '13px', fontWeight: '800', color: '#4a7090' },
+  badge:   { fontFamily: FONT, fontSize: '13px', fontWeight: '900', color: '#1a2a3a' },
 }
 
 export const UI_TEXT = {
-  screenTitle: { fontSize: '28px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.subtle },
-  screenLead:  { fontSize: '13px', fontWeight: '900', color: '#45687f' },
-  panelTitle:  { fontSize: '21px', fontWeight: '900', color: '#1a3a5a' },
-  panelMeta:   { fontSize: '11px', fontWeight: '900', color: '#d56f00' },
-  cardTitle:   { fontSize: '13px', fontWeight: '900', color: '#1a3a5a' },
-  cardMeta:    { fontSize: '10px', fontWeight: '900', color: '#d56f00' },
-  chip:        { fontSize: '12px', fontWeight: '900', color: '#1a2a3a' },
-  micro:       { fontSize: '9px', fontWeight: '900', color: '#4a7090' },
-  button:      { fontSize: '12px', fontWeight: '900', color: '#1a2a3a' },
+  screenTitle: { fontSize: '30px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.subtle },
+  screenLead:  { fontSize: '15px', fontWeight: '900', color: '#45687f' },
+  panelTitle:  { fontSize: '23px', fontWeight: '900', color: '#1a3a5a' },
+  panelMeta:   { fontSize: '13px', fontWeight: '900', color: '#d56f00' },
+  cardTitle:   { fontSize: '15px', fontWeight: '900', color: '#1a3a5a' },
+  cardMeta:    { fontSize: '13px', fontWeight: '900', color: '#d56f00' },
+  chip:        { fontSize: '14px', fontWeight: '900', color: '#1a2a3a' },
+  micro:       { fontSize: '12px', fontWeight: '900', color: '#4a7090' },
+  button:      { fontSize: '14px', fontWeight: '900', color: '#1a2a3a' },
 }
 
 export function uiText(preset, overrides = {}) {
@@ -70,7 +70,7 @@ export const FONT_STYLES = {
   },
   scoreLabel: {
     fontFamily: FONT,
-    fontSize: '12px',
+    fontSize: '13px',
     fontWeight: '700',
     color: '#4a7090',
   },

@@ -241,7 +241,7 @@ export default class MapScene extends Phaser.Scene {
     g.strokeRoundedRect(W / 2 - 118, H - 112, 236, 34, 16)
     this.add.text(W / 2, H - 95, 'マップのポイントをタップ', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '15px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5)
   }
 
@@ -274,7 +274,7 @@ export default class MapScene extends Phaser.Scene {
     nameBg.strokeRoundedRect(-42, 30, 84, 25, 10)
     const name = this.add.text(0, 42, point.name, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '14px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0.5)
 
     const hit = this.add.circle(0, 0, 38, 0x000000, 0)
@@ -346,19 +346,19 @@ export default class MapScene extends Phaser.Scene {
 
     items.push(this.add.text(x + 76, y + 58, point.description, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '800', color: '#4a7090',
+      fontSize: '15px', fontWeight: '800', color: '#4a7090',
       wordWrap: { width: w - 108 },
     }).setOrigin(0, 0))
 
     items.push(this.add.text(x + 22, y + 88, `未発見 ${unknownCount}/${point.fishIds.length}  魚影 ${point.fishShadows}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: '#e07800',
     }).setOrigin(0, 0.5))
 
     items.push(this.add.text(x + 22, y + 110, point.env, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: '#4a7090',
     }).setOrigin(0, 0.5))
 
@@ -369,7 +369,7 @@ export default class MapScene extends Phaser.Scene {
       const chipBg = this.add.graphics()
       const txt = this.add.text(chipX + 9, y + 134, name, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '12px', fontWeight: '900', color: '#1a3a5a',
+        fontSize: '14px', fontWeight: '900', color: '#1a3a5a',
       }).setOrigin(0, 0.5)
       const cw = txt.width + 18
       chipBg.fillStyle(point.accent, 0.16)
@@ -427,7 +427,7 @@ export default class MapScene extends Phaser.Scene {
     const label = ['かんたん', 'ふつう', 'むずかしい'][level - 1] ?? ''
     items.push(this.add.text(rightX, topY + 20, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: level === 3 ? '#cc4422' : (level === 2 ? '#cc7700' : '#0077cc'),
     }).setOrigin(1, 0))
   }
@@ -449,7 +449,7 @@ export default class MapScene extends Phaser.Scene {
     const label = ['かんたん', 'ふつう', 'むずかしい'][level - 1] ?? ''
     this.add.text(rightX, topY + 20, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: level === 3 ? '#cc4422' : (level === 2 ? '#cc7700' : '#0077cc'),
     }).setOrigin(1, 0).setDepth(depth)
   }

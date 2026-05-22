@@ -82,27 +82,27 @@ export default class ExchangeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
     this.add.text(x + w / 2, y + 78, item.name, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#1a3a5a', align: 'center',
       wordWrap: { width: w - 18 },
     }).setOrigin(0.5, 0).setDepth(5)
     this.add.text(x + w / 2, y + 108, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '800',
+      fontSize: '12px', fontWeight: '800',
       color: '#4a7090', align: 'center',
       wordWrap: { width: w - 18 },
     }).setOrigin(0.5, 0).setDepth(5)
     this.add.text(x + 14, y + h - 29, `所持 ${count}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900', color: '#4a7090',
+      fontSize: '12px', fontWeight: '900', color: '#4a7090',
     }).setOrigin(0, 0).setDepth(5)
     this.add.text(x + w - 14, y + h - 29, `可 ${available}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900', color: '#00aa66',
+      fontSize: '12px', fontWeight: '900', color: '#00aa66',
     }).setOrigin(1, 0).setDepth(5)
     this.add.text(x + w / 2, y + h - 12, `${cost} pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: '#e07800',
+      fontSize: '14px', fontWeight: '900', color: '#e07800',
     }).setOrigin(0.5).setDepth(5)
 
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
@@ -141,7 +141,7 @@ export default class ExchangeScene extends Phaser.Scene {
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 164, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+      fontSize: '15px', fontWeight: '900', color: '#4a7090',
       wordWrap: { width: w - 48 }, align: 'center',
     }).setOrigin(0.5, 0))
     items.push(this.add.text(W / 2, y + 214, `所持 ${count}   交換可能 ${available}   価格 ${cost} pt`, {
@@ -188,7 +188,7 @@ export default class ExchangeScene extends Phaser.Scene {
   _plainButton(x, y, label, onTap) {
     return this.add.text(x, y, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#4a7090',
+      fontSize: '15px', fontWeight: '900', color: '#4a7090',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
   }
 
@@ -200,7 +200,7 @@ export default class ExchangeScene extends Phaser.Scene {
     bg.fillRoundedRect(W / 2 - 112, 640, 224, 38, 15)
     const txt = this.add.text(W / 2, 659, message, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#ffffff',
+      fontSize: '15px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5).setDepth(121)
     this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=14', duration: 900, onComplete: () => { bg.destroy(); txt.destroy() } })
   }

@@ -42,7 +42,7 @@ export default class RankScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
     this.add.text(W / 2, 76, '釣果でランクアップして能力を開放', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#4a7090',
     }).setOrigin(0.5).setDepth(5)
   }
@@ -75,7 +75,7 @@ export default class RankScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 124, y + 72, `釣果 ${catches}匹  /  ${score.toLocaleString()}pt`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#4a7090',
     }).setOrigin(0, 0.5).setDepth(5)
     const bx = x + 124
@@ -86,7 +86,7 @@ export default class RankScene extends Phaser.Scene {
     g.fillRoundedRect(bx, by, 190 * (current / 3), 14, 7)
     this.add.text(bx + 95, by + 27, `次のランクまで ${nextNeed}匹`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: '#e07800',
     }).setOrigin(0.5).setDepth(5)
   }
@@ -129,12 +129,12 @@ export default class RankScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 62, y + 47, `Lv.${skill.lv}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: skill.lv > 0 ? '#e07800' : '#7b8794',
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 16, y + 76, skill.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '800',
+      fontSize: '13px', fontWeight: '800',
       color: '#4a7090',
       wordWrap: { width: w - 32 },
     }).setOrigin(0, 0.5).setDepth(5)

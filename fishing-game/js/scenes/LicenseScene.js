@@ -105,19 +105,19 @@ export default class LicenseScene extends Phaser.Scene {
 
     this.add.text(x + size / 2, y + 21, claimed ? ICONS.GIFT : done ? '✓' : `${index + 1}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: claimed ? '15px' : done ? '20px' : '13px', fontWeight: '900',
+      fontSize: claimed ? '16px' : done ? '21px' : '14px', fontWeight: '900',
       color: done || claimed ? '#ffffff' : '#1a3a5a',
     }).setOrigin(0.5).setDepth(6)
     this.add.text(x + size / 2, y + 39, item.title, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
+      fontSize: '12px', fontWeight: '900',
       color: '#1a3a5a',
       wordWrap: { width: size - 8 },
       align: 'center',
     }).setOrigin(0.5, 0).setDepth(6)
     this.add.text(x + size / 2, y + size - 7, item.reward, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '9px', fontWeight: '900',
+      fontSize: '12px', fontWeight: '900',
       color: claimed ? '#cc7700' : done ? '#00aa66' : '#d56f00',
     }).setOrigin(0.5).setDepth(6)
 
@@ -147,7 +147,7 @@ export default class LicenseScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(6)
     this.add.text(x + 104, y + 25, 'シート全達成報酬', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#ffe7a3',
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 104, y + 53, sheet.completeReward.text, {
@@ -157,7 +157,7 @@ export default class LicenseScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 104, y + 78, completeClaimed ? '受取済み' : `あと ${Math.max(0, sheet.tasks.length - completed)} 件`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: completeDone ? '#8ff0aa' : '#ffd980',
     }).setOrigin(0, 0.5).setDepth(6)
 
@@ -172,7 +172,7 @@ export default class LicenseScene extends Phaser.Scene {
     btn.strokeRoundedRect(bx, by, 58, 26, 10)
     this.add.text(bx + 29, by + 13, label, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: active ? '#1a2a3a' : '#ffffff',
     }).setOrigin(0.5).setDepth(7)
     if (active) {
@@ -219,7 +219,7 @@ export default class LicenseScene extends Phaser.Scene {
       marker.strokeCircle(px, barY + 6, 12)
       this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: claimed ? '11px' : '12px', fontWeight: '900',
+        fontSize: claimed ? '13px' : '14px', fontWeight: '900',
         color: '#1a3a5a',
       }).setOrigin(0.5).setDepth(8)
       this.add.text(px, y + 53, reward.text, uiText('micro', { color: done ? '#d56f00' : '#6d7f8e' })).setOrigin(0.5).setDepth(8)
@@ -249,7 +249,7 @@ export default class LicenseScene extends Phaser.Scene {
     this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: totalClaimable > 0 ? '#d56f00' : '#6d7f8e',
     }).setOrigin(0, 0.5).setDepth(6)
 
@@ -263,7 +263,7 @@ export default class LicenseScene extends Phaser.Scene {
     btn.strokeRoundedRect(bx, by, 104, 28, 11)
     this.add.text(bx + 52, by + 14, '一括受取', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: active ? '#1a2a3a' : '#7b8794',
     }).setOrigin(0.5).setDepth(7)
     if (active) {
@@ -281,7 +281,7 @@ export default class LicenseScene extends Phaser.Scene {
     const y = H - 158
     this.add.text(24, y - 18, '免許シート', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '15px', fontWeight: '900', color: '#1a3a5a',
     }).setDepth(5)
     LICENSE_SHEETS.forEach((sheet, i) => {
       const x = 22 + i * 118
@@ -300,11 +300,11 @@ export default class LicenseScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 16)
     this.add.text(x + 12, y + 17, sheet.title, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '900', color: '#1a3a5a',
+      fontSize: '13px', fontWeight: '900', color: '#1a3a5a',
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + 12, y + 36, `${done}/9`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900', color: active ? '#1a3a5a' : '#e07800',
+      fontSize: '14px', fontWeight: '900', color: active ? '#1a3a5a' : '#e07800',
     }).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + w - 14, y + 27, ICONS.CHEVRON, {
       fontFamily: FONT, resolution: TEXT_RES,
@@ -346,7 +346,7 @@ export default class LicenseScene extends Phaser.Scene {
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 130, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#4a7090',
       wordWrap: { width: w - 48 },
       align: 'center',

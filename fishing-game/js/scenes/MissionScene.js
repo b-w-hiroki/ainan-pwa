@@ -147,7 +147,7 @@ export default class MissionScene extends Phaser.Scene {
       marker.lineStyle(2, done ? 0x1a2a3a : 0x9aa9b5, 0.95)
       marker.fillCircle(px, barY + 6, 12)
       marker.strokeCircle(px, barY + 6, 12)
-      this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, uiText('chip', { fontSize: '12px' })).setOrigin(0.5).setDepth(8)
+    this.add.text(px, barY + 6, claimed ? ICONS.GIFT : `${reward.count}`, uiText('chip', { fontSize: '14px' })).setOrigin(0.5).setDepth(8)
       this.add.text(px, y + 53, reward.text, uiText('micro', { color: done ? '#d56f00' : '#6d7f8e' })).setOrigin(0.5).setDepth(8)
       if (done && !claimed) {
         this.add.rectangle(px, barY + 9, 54, 42, 0x000000, 0).setDepth(9).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
@@ -205,9 +205,9 @@ export default class MissionScene extends Phaser.Scene {
     g.fillStyle(done || claimed ? 0xffd900 : accent, done || claimed ? 1 : 0.20)
     g.fillCircle(x + 28, y + h / 2, 17)
 
-    add(this.add.text(x + 28, y + h / 2, claimed ? ICONS.GIFT : done ? '✓' : ICONS.MISSION, uiText('chip', { fontSize: done && !claimed ? '18px' : '14px' })).setOrigin(0.5))
-    add(this.add.text(x + 54, y + 18, mission.title, uiText('cardTitle', { fontSize: '13px', wordWrap: { width: w - 152 } })).setOrigin(0, 0.5))
-    add(this.add.text(x + 54, y + h - 17, `${value}/${mission.target}  ${this._missionReward(mission)}pt`, uiText('cardMeta', { fontSize: '11px' })).setOrigin(0, 0.5))
+    add(this.add.text(x + 28, y + h / 2, claimed ? ICONS.GIFT : done ? '✓' : ICONS.MISSION, uiText('chip', { fontSize: done && !claimed ? '20px' : '16px' })).setOrigin(0.5))
+    add(this.add.text(x + 56, y + 18, mission.title, uiText('cardTitle', { fontSize: '16px', wordWrap: { width: w - 158 } })).setOrigin(0, 0.5))
+    add(this.add.text(x + 56, y + h - 17, `${value}/${mission.target}  ${this._missionReward(mission)}pt`, uiText('cardMeta', { fontSize: '14px' })).setOrigin(0, 0.5))
 
     const label = claimed ? '済' : done ? '受取' : '進行中'
     const bx = x + w - 48
@@ -216,7 +216,7 @@ export default class MissionScene extends Phaser.Scene {
     btn.lineStyle(2, 0x1a2a3a, done && !claimed ? 0.95 : 0.30)
     btn.fillRoundedRect(bx - 33, y + h / 2 - 15, 66, 30, 10)
     btn.strokeRoundedRect(bx - 33, y + h / 2 - 15, 66, 30, 10)
-    add(this.add.text(bx, y + h / 2, label, uiText('button', { fontSize: '12px', color: claimed ? '#7b8794' : '#1a2a3a' })).setOrigin(0.5))
+    add(this.add.text(bx, y + h / 2, label, uiText('button', { fontSize: '15px', color: claimed ? '#7b8794' : '#1a2a3a' })).setOrigin(0.5))
     if (done && !claimed) {
       add(this.add.rectangle(bx, y + h / 2, 74, 38, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
         if (claimMissionReward(mission.id)) this.scene.restart({ tab: this._tab, sheetIndex: this._sheetIndex, sheetScroll: this._sheetScroll, listScroll: this._listScroll })
@@ -236,7 +236,7 @@ export default class MissionScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, 42, 14)
     g.strokeRoundedRect(x, y, w, 42, 14)
     this.add.text(x + 14, y + 13, `進行度 ${completed}/${sheet.tasks.length}`, uiText('chip')).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', uiText('micro', { fontSize: '10px', color: totalClaimable > 0 ? '#d56f00' : '#6d7f8e' })).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 14, y + 29, totalClaimable > 0 ? `未受取 ${totalClaimable}件` : '未受取なし', uiText('micro', { fontSize: '13px', color: totalClaimable > 0 ? '#d56f00' : '#6d7f8e' })).setOrigin(0, 0.5).setDepth(6)
 
     const bx = x + w - 118
     const by = y + 7
@@ -245,7 +245,7 @@ export default class MissionScene extends Phaser.Scene {
     btn.lineStyle(2.5, 0x1a2a3a, totalClaimable > 0 ? 0.95 : 0.35)
     btn.fillRoundedRect(bx, by, 104, 28, 11)
     btn.strokeRoundedRect(bx, by, 104, 28, 11)
-    this.add.text(bx + 52, by + 14, '一括受取', uiText('button', { fontSize: '12px', color: totalClaimable > 0 ? '#1a2a3a' : '#7b8794' })).setOrigin(0.5).setDepth(7)
+    this.add.text(bx + 52, by + 14, '一括受取', uiText('button', { fontSize: '15px', color: totalClaimable > 0 ? '#1a2a3a' : '#7b8794' })).setOrigin(0.5).setDepth(7)
     if (totalClaimable > 0) {
       this.add.rectangle(bx + 52, by + 14, 112, 36, 0x000000, 0).setDepth(8).setInteractive({ useHandCursor: true }).on('pointerdown', () => {
         claimAllMissionRewards(sheet.id)
@@ -257,7 +257,7 @@ export default class MissionScene extends Phaser.Scene {
   _sheetBanners(W, H) {
     const sheets = this._activeSheets()
     const y = H - 158
-    this.add.text(24, y - 18, 'ミッションシート', uiText('cardTitle', { fontSize: '13px' })).setDepth(5)
+    this.add.text(24, y - 18, 'ミッションシート', uiText('cardTitle', { fontSize: '15px' })).setDepth(5)
 
     const visible = this._tab === 'limited' ? sheets.slice(this._sheetScroll, this._sheetScroll + 3) : sheets.slice(0, 3)
     visible.forEach((sheet, i) => {
@@ -274,8 +274,8 @@ export default class MissionScene extends Phaser.Scene {
     g.lineStyle(active ? 3 : 2, active ? 0x1a2a3a : 0xb7c4cf, 1)
     g.fillRoundedRect(x, y, w, h, 16)
     g.strokeRoundedRect(x, y, w, h, 16)
-    this.add.text(x + 10, y + 17, sheet.title, uiText('micro', { fontSize: '10px', color: '#1a3a5a', wordWrap: { width: w - 28 } })).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 12, y + 36, `${completed}/${sheet.tasks.length}`, uiText('chip', { fontSize: '12px', color: active ? '#1a3a5a' : '#e07800' })).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 10, y + 17, sheet.title, uiText('micro', { fontSize: '13px', color: '#1a3a5a', wordWrap: { width: w - 28 } })).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 12, y + 36, `${completed}/${sheet.tasks.length}`, uiText('chip', { fontSize: '15px', color: active ? '#1a3a5a' : '#e07800' })).setOrigin(0, 0.5).setDepth(6)
     this.add.text(x + w - 14, y + 27, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '18px' })).setOrigin(0.5).setDepth(6)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.restart({ tab: this._tab, sheetIndex: index, sheetScroll: this._sheetScroll, listScroll: 0 }))
   }

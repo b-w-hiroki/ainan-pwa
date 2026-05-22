@@ -115,12 +115,12 @@ export default class CollectionScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
     this.add.text(x + size / 2, y + 71, caught ? fish.name : '未発見', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: '14px', fontWeight: '900',
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5)
     this.add.text(x + size / 2, y + 89, caught ? `x${count}` : fish.habitat, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900',
+      fontSize: '12px', fontWeight: '900',
       color: caught ? '#e07800' : '#7b8794',
     }).setOrigin(0.5).setDepth(5)
 
@@ -164,7 +164,7 @@ export default class CollectionScene extends Phaser.Scene {
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 165, caught ? `${fish.habitat} / ${RARITY_LABEL[fish.rarity]}` : fish.hint, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#4a7090',
       align: 'center',
       wordWrap: { width: w - 48 },
@@ -176,7 +176,7 @@ export default class CollectionScene extends Phaser.Scene {
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 258, caught ? fish.encounter : `ヒント: ${fish.habitat}にいるらしい`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '800',
+      fontSize: '15px', fontWeight: '800',
       color: '#1a3a5a',
       align: 'center',
       wordWrap: { width: w - 48 },

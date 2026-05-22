@@ -42,7 +42,7 @@ export class TackleUI {
     }).setOrigin(0.5).setDepth(46)
 
     const lbl = this.scene.add.text(x, y + 14, label, {
-      fontFamily: FONT, fontSize: '12px', fontWeight: '700',
+      fontFamily: FONT, fontSize: '14px', fontWeight: '800',
       color: CS, resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(46)
 
@@ -205,20 +205,20 @@ export class TackleUI {
       container.add(badge)
 
       const qtyText = this.scene.add.text(x + w / 2 - 12, y - h / 2 + 12, `×${qty}`, {
-        fontFamily: FONT, fontSize: '10px', fontWeight: '800',
+        fontFamily: FONT, fontSize: '12px', fontWeight: '900',
         color: '#ffffff', resolution: TEXT_RES,
       }).setOrigin(0.5)
       container.add(qtyText)
     }
 
     const name = this.scene.add.text(x, y + 10, item.name, {
-      fontFamily: FONT, fontSize: '13px', fontWeight: '700',
+      fontFamily: FONT, fontSize: '15px', fontWeight: '800',
       color: isOwned ? '#ffffff' : '#666666', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(name)
 
     const desc = this.scene.add.text(x, y + 28, item.description, {
-      fontFamily: FONT, fontSize: '10px', color: '#aaccdd',
+      fontFamily: FONT, fontSize: '12px', color: '#d8eef8',
       wordWrap: { width: w - 8 }, align: 'center', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(desc)

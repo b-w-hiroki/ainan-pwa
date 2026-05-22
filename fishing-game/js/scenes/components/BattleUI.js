@@ -52,12 +52,12 @@ export class BattleUI {
     bg.strokeRoundedRect(px, py, panW, 62, 16)
 
     const lbl = scene.add.text(px + 14, py + 14, `${ICONS.REEL} 巻き取り`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#4a7090',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '800', color: '#4a7090',
     })
 
     scene.reelFill    = scene.add.graphics()
     scene.reelValText = scene.add.text(px + panW - 12, py + 31, '0', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#1a3a5a',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '800', color: '#1a3a5a',
     }).setOrigin(1, 0.5)
 
     scene.battlePanel.add([bg, lbl, scene.reelFill, scene.reelValText])
@@ -150,7 +150,7 @@ export class BattleUI {
 
       const l = scene.add.text(x + 34, CHIP_CY + 10, lbl, {
         fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '11px', fontWeight: '700', color: COLOR.TEXT2,
+        fontSize: '13px', fontWeight: '800', color: COLOR.TEXT2,
       }).setOrigin(0, 0.5)
 
       return { els: [shadow, bg, ic, v, l], valText: v }

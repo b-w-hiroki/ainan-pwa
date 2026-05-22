@@ -48,11 +48,11 @@ function buildTab(scene, x, y, tab, activeKey) {
   addFooterIcon(scene, x, y - 18, tab, active)
   scene.add.text(x, y + 25, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
-    fontSize: '10.5px',
+    fontSize: '12px',
     fontWeight: '900',
     color: active ? '#20394d' : '#66707a',
     stroke: '#ffffff',
-    strokeThickness: 2,
+    strokeThickness: 3,
   }).setOrigin(0.5).setDepth(93)
 }
 

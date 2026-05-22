@@ -49,7 +49,7 @@ export default class HelpScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
     this.add.text(W / 2, 78, '釣って、集めて、町をにぎやかにしよう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '13px', fontWeight: '900',
+      fontSize: '15px', fontWeight: '900',
       color: '#4a7090',
     }).setOrigin(0.5).setDepth(5)
   }
@@ -81,7 +81,7 @@ export default class HelpScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 68, y + 44, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '11px', fontWeight: '800', color: '#4a7090',
+      fontSize: '13px', fontWeight: '800', color: '#4a7090',
       wordWrap: { width: w - 88 },
     }).setOrigin(0, 0.5).setDepth(5)
   }
