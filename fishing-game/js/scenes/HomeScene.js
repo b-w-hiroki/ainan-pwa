@@ -2,7 +2,6 @@ import Phaser from 'phaser'
 import { uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
-import { Button } from '../ui/Button.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress } from '../game/progress.js'
@@ -190,18 +189,61 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildMainCTA(W, H) {
-    new Button(this, {
-      x: W / 2,
-      y: H * 0.812,
-      w: 258,
-      h: 62,
-      label: T.goFishing,
-      icon: ICONS.ROD,
-      variant: 'primary',
-      fontSize: 23,
-      depth: 16,
-      onClick: () => this.scene.start('MapScene'),
-    })
+    const x = W / 2
+    const y = H * 0.812
+    const w = 274
+    const h = 68
+    const c = this.add.container(x, y).setDepth(16)
+    const g = this.add.graphics()
+    const draw = (mode = 'idle') => {
+      const press = mode === 'press'
+      g.clear()
+      g.fillStyle(0x16344c, 0.24)
+      g.fillRoundedRect(-w / 2 + 4, -h / 2 + 7, w, h, 22)
+      g.fillStyle(0xb57115, 1)
+      g.fillRoundedRect(-w / 2 - 6, -h / 2 + 8, 46, h - 12, 16)
+      g.fillRoundedRect(w / 2 - 40, -h / 2 + 8, 46, h - 12, 16)
+      g.fillGradientStyle(0xfff2a5, 0xffe05c, 0xffc400, 0xf0a800, 1)
+      g.lineStyle(3.2, 0x173248, 1)
+      g.fillRoundedRect(-w / 2, -h / 2 + (press ? 2 : 0), w, h, 21)
+      g.strokeRoundedRect(-w / 2, -h / 2 + (press ? 2 : 0), w, h, 21)
+      g.fillStyle(0xffffff, 0.42)
+      g.fillRoundedRect(-w / 2 + 16, -h / 2 + 8 + (press ? 2 : 0), w - 32, 14, 7)
+      g.fillGradientStyle(0x1d6d9a, 0x1d6d9a, 0x164b74, 0x164b74, 0.98)
+      g.lineStyle(2.2, 0xffffff, 0.78)
+      g.fillRoundedRect(-w / 2 + 14, -h / 2 + 16 + (press ? 2 : 0), 52, 36, 14)
+      g.strokeRoundedRect(-w / 2 + 14, -h / 2 + 16 + (press ? 2 : 0), 52, 36, 14)
+      g.lineStyle(3, 0xffffff, 1)
+      g.lineBetween(-w / 2 + 28, -1 + (press ? 2 : 0), -w / 2 + 51, -15 + (press ? 2 : 0))
+      g.strokeCircle(-w / 2 + 40, 9 + (press ? 2 : 0), 9)
+      g.fillStyle(0xffffff, 1)
+      g.fillTriangle(w / 2 - 37, -9 + (press ? 2 : 0), w / 2 - 20, 0 + (press ? 2 : 0), w / 2 - 37, 9 + (press ? 2 : 0))
+    }
+    draw()
+
+    const title = this.add.text(18, -4, T.goFishing, uiText('button', {
+      fontSize: '25px',
+      color: '#173248',
+      stroke: '#ffffff',
+      strokeThickness: 3,
+    })).setOrigin(0.5)
+    const shine = this.add.graphics()
+    shine.fillStyle(0xffffff, 0.24)
+    shine.fillEllipse(-30, -2, 34, 8)
+    const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        draw('press')
+        c.setScale(0.985)
+      })
+      .on('pointerup', () => this.scene.start('MapScene'))
+      .on('pointerout', () => {
+        draw()
+        c.setScale(1)
+      })
+    c.add([g, shine, title, hit])
+    this.tweens.add({ targets: c, scaleX: 1.018, scaleY: 1.018, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+
     const hintBg = this.add.graphics().setDepth(15)
     hintBg.fillStyle(0xffffff, 0.90)
     hintBg.lineStyle(1.5, 0x1a2a3a, 0.18)
