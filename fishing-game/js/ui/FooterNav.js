@@ -12,8 +12,8 @@ const TABS = [
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
-  const y = H - 76
-  const h = 70
+  const y = H - 78
+  const h = 72
   const bar = scene.add.graphics().setDepth(90)
   bar.fillStyle(0x173248, 0.24)
   bar.fillRoundedRect(8, y + 5, W - 16, h, 18)
@@ -29,19 +29,12 @@ export function buildFooterNav(scene, W, H, activeKey = 'home') {
     bar.lineBetween(x, y + 18, x, y + h - 9)
   })
 
+  TABS.forEach(tab => drawTabWell(scene, W * tab.x, y + 35, tab.key === activeKey))
   TABS.forEach(tab => buildTab(scene, W * tab.x, y + 36, tab, activeKey))
 }
 
 function buildTab(scene, x, y, tab, activeKey) {
   const active = tab.key === activeKey
-
-  if (active) {
-    const activeBg = scene.add.graphics().setDepth(91)
-    activeBg.fillStyle(0xffffff, 0.42)
-    activeBg.lineStyle(2, 0xf0c15c, 0.72)
-    activeBg.fillRoundedRect(x - 32, y - 40, 64, 76, 18)
-    activeBg.strokeRoundedRect(x - 32, y - 40, 64, 76, 18)
-  }
 
   scene.add.rectangle(x, y - 5, 76, 92, 0x000000, 0)
     .setDepth(94)
@@ -50,7 +43,7 @@ function buildTab(scene, x, y, tab, activeKey) {
       if (!active) scene.scene.start(tab.scene)
     })
 
-  addFooterIcon(scene, x, y - 22, tab, active)
+  addFooterIcon(scene, x, y - 18, tab, active)
   scene.add.text(x, y + 25, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES,
     fontSize: '10.5px',
@@ -61,21 +54,38 @@ function buildTab(scene, x, y, tab, activeKey) {
   }).setOrigin(0.5).setDepth(93)
 }
 
+function drawTabWell(scene, x, y, active) {
+  const g = scene.add.graphics().setDepth(91)
+  const w = active ? 62 : 58
+  const h = active ? 64 : 60
+  const rx = 17
+  g.fillStyle(0x6f512b, 0.18)
+  g.fillRoundedRect(x - w / 2, y - h / 2 + 3, w, h, rx)
+  g.fillStyle(active ? 0xfff4d4 : 0xefe0c7, active ? 0.98 : 0.88)
+  g.lineStyle(active ? 2.2 : 1.5, active ? 0xc89945 : 0xb9a47d, active ? 0.90 : 0.50)
+  g.fillRoundedRect(x - w / 2, y - h / 2, w, h, rx)
+  g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, rx)
+  g.fillStyle(0xffffff, active ? 0.32 : 0.18)
+  g.fillRoundedRect(x - w / 2 + 7, y - h / 2 + 6, w - 14, 9, 5)
+  g.fillStyle(0x9e7a43, active ? 0.30 : 0.16)
+  g.fillRoundedRect(x - 18, y + 18, 36, 4, 2)
+}
+
 function addFooterIcon(scene, x, y, tab, active) {
   const g = scene.add.graphics().setDepth(93)
-  const s = active ? 1.08 : 1
-  const bg = active ? 0xf7ddb0 : 0xf3ead9
+  const s = active ? 1.02 : 0.94
+  const bg = active ? 0xf9e6bd : 0xf3ead9
   const fg = active ? 0x24445a : 0x6c7680
   const line = active ? 0xc89b47 : 0xb9a47d
 
-  g.fillStyle(0x173248, 0.14)
-  g.fillCircle(x + 1, y + 3, 28 * s)
-  g.fillStyle(bg, 0.98)
-  g.lineStyle(2, line, active ? 0.95 : 0.55)
-  g.fillCircle(x, y, 28 * s)
-  g.strokeCircle(x, y, 28 * s)
+  g.fillStyle(0x173248, active ? 0.08 : 0.04)
+  g.fillCircle(x, y + 1, 21 * s)
+  g.fillStyle(bg, active ? 0.76 : 0.42)
+  g.lineStyle(1.4, line, active ? 0.55 : 0.22)
+  g.fillCircle(x, y, 22 * s)
+  g.strokeCircle(x, y, 22 * s)
   g.fillStyle(fg, 1)
-  g.lineStyle(3, fg, 1)
+  g.lineStyle(2.8, fg, 1)
   drawGlyph(g, tab.glyph, x, y, s)
 }
 
