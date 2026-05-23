@@ -11,7 +11,7 @@ export const DEFAULT_ROD = {
 /** @type {{ id: BaitType; label: string; biteRateBonus: number }} */
 export const DEFAULT_BAIT = {
   id: 'worm',
-  label: 'ミミズ',
+  label: 'ふつうのえさ',
   biteRateBonus: 0.15,
 }
 
@@ -38,7 +38,7 @@ export const ROD_LIST = [
 
 /** エサ一覧（UI表示用） */
 export const BAIT_LIST = [
-  { id: 'worm',    icon: '🪱', name: 'ミミズ',       description: '食いつき率 +15%' },
+  { id: 'worm',    icon: '🪱', name: 'ふつうのえさ', description: '標準装備 / 消費なし' },
   { id: 'shrimp',  icon: '🦐', name: 'エビ',         description: 'レア魚出現 +10%' },
   { id: 'special', icon: '✨', name: '特製撒き餌',   description: '誘引範囲 +80%' },
 ]

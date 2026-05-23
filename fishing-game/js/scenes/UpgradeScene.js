@@ -104,6 +104,8 @@ export default class UpgradeScene extends Phaser.Scene {
   _loadout(W) {
     const equipment = getEquipment()
     const inventory = getInventory()
+    const rodType = equipment.rodType ?? 'basic'
+    const baitType = equipment.baitType ?? 'worm'
     const y = 130
     const panel = this.add.graphics().setDepth(4)
     panel.fillStyle(0x000000, 0.14)
@@ -114,8 +116,8 @@ export default class UpgradeScene extends Phaser.Scene {
     panel.strokeRoundedRect(18, y, W - 36, 250, 24)
 
     this._character(W / 2, y + 132)
-    this._equipSlot(72, y + 68, '竿', ROD_ICON[equipment.rodType], equipment.rodType, ROD_META[equipment.rodType], ROD_RANK[equipment.rodType], inventory.rods?.[equipment.rodType] ?? 0, 'rod')
-    this._equipSlot(318, y + 68, 'エサ', BAIT_ICON[equipment.baitType], equipment.baitType, BAIT_META[equipment.baitType], BAIT_RANK[equipment.baitType], inventory.baits?.[equipment.baitType] ?? 0, 'bait')
+    this._equipSlot(72, y + 68, '竿', ROD_ICON[rodType], rodType, ROD_META[rodType], ROD_RANK[rodType], inventory.rods?.[rodType] ?? 0, 'rod')
+    this._equipSlot(318, y + 68, 'エサ', BAIT_ICON[baitType], baitType, BAIT_META[baitType], BAIT_RANK[baitType], inventory.baits?.[baitType] ?? 0, 'bait')
     this._emptySlot(72, y + 174, '帽子', '🧢')
     this._emptySlot(318, y + 174, 'バッグ', '🎒')
   }
@@ -134,6 +136,10 @@ export default class UpgradeScene extends Phaser.Scene {
 
   _equipSlot(x, y, label, icon, id, item, rank, qty, type) {
     const size = 72
+    const isDefault = (type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm')
+    const qtyLabel = type === 'bait'
+      ? (id === 'worm' ? '標準装備' : `x${qty}`)
+      : '装備中'
     const g = this.add.graphics().setDepth(7)
     g.fillStyle(0x000000, 0.12)
     g.fillRoundedRect(x - size / 2 + 3, y - size / 2 + 4, size, size, 18)
@@ -145,8 +151,8 @@ export default class UpgradeScene extends Phaser.Scene {
     g.fillCircle(x, y - 10, 25)
     this.add.text(x, y - 10, icon, { fontSize: '27px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(8)
     this._rankBadge(x - 22, y - 26, rank)
-    this.add.text(x, y + 22, label, uiText('micro', { fontSize: '13px', color: '#55708a' })).setOrigin(0.5).setDepth(8)
-    this.add.text(x, y + 36, type === 'bait' ? `x${qty}` : '装備中', uiText('micro', { fontSize: '13px', color: '#e07800' })).setOrigin(0.5).setDepth(8)
+    this.add.text(x, y + 19, item.name, uiText('micro', { fontSize: '12px', color: '#1a3a5a', wordWrap: { width: size - 8 }, align: 'center' })).setOrigin(0.5).setDepth(8)
+    this.add.text(x, y + 37, isDefault ? '基本' : qtyLabel, uiText('micro', { fontSize: '12px', color: isDefault ? '#4a7090' : '#e07800' })).setOrigin(0.5).setDepth(8)
     this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(9).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(id, item, type, icon, true, qty, true, rank))
   }
 
@@ -242,8 +248,8 @@ export default class UpgradeScene extends Phaser.Scene {
       ? true
       : entry.type === 'rod'
         ? (inventory.rods?.[entry.id] ?? 0) > 0
-        : (inventory.baits?.[entry.id] ?? 0) > 0
-    const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (inventory.baits?.[entry.id] ?? 0) : (owned ? 1 : 0)
+        : entry.id === 'worm' || (inventory.baits?.[entry.id] ?? 0) > 0
+    const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (entry.id === 'worm' ? Infinity : (inventory.baits?.[entry.id] ?? 0)) : (owned ? 1 : 0)
     const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : entry.type === 'bait' ? equipment.baitType === entry.id : false
     const g = add(this.add.graphics())
     g.fillStyle(0x000000, 0.12)
@@ -257,7 +263,7 @@ export default class UpgradeScene extends Phaser.Scene {
     add(this.add.text(x + size / 2, y + 25, owned ? entry.icon : ICONS.LOCK, { fontSize: owned ? '24px' : '20px', resolution: TEXT_RES }).setOrigin(0.5))
     this._rankBadge(x + 17, y + 17, entry.rank, parent)
     add(this.add.text(x + size / 2, y + 50, entry.item.name, uiText('micro', { fontSize: '12px', color: '#1a3a5a', wordWrap: { width: size - 6 }, align: 'center' })).setOrigin(0.5, 0))
-    add(this.add.text(x + size / 2, y + size - 10, entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : `x${qty}`, uiText('micro', { fontSize: '12px', color: equipped ? '#e07800' : '#4a7090' })).setOrigin(0.5))
+    add(this.add.text(x + size / 2, y + size - 10, entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : (entry.id === 'worm' ? '基本' : `x${qty}`), uiText('micro', { fontSize: '12px', color: equipped ? '#e07800' : '#4a7090' })).setOrigin(0.5))
     add(this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.icon, owned, qty, equipped, entry.rank)))
   }
 
@@ -295,14 +301,16 @@ export default class UpgradeScene extends Phaser.Scene {
     items.push(this.add.text(W / 2, y + 70, owned ? icon : ICONS.LOCK, { fontSize: owned ? '42px' : '34px', resolution: TEXT_RES }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 152, item.name, uiText('panelTitle', { fontSize: '24px' })).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 188, item.desc, uiText('screenLead', { fontSize: '15px', wordWrap: { width: w - 48 }, align: 'center' })).setOrigin(0.5, 0))
+    const isDefaultEquipped = equipped && ((type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm'))
     const status = type === 'material'
       ? `所持 ${qty}`
       : type === 'rod'
         ? (equipped ? '現在装備中' : owned ? '所持済み' : `${item.cost} ptで購入`)
-        : `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
+        : id === 'worm' ? '標準装備 / いつでも使える' : `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
     items.push(this._statLine(W / 2, y + 244, status))
-    const action = type === 'material' ? null : type === 'rod' ? (equipped ? null : owned ? '装備する' : '購入して装備') : '購入して装備'
-    if (action) items.push(this._actionButton(W / 2, y + 294, action, () => this._apply(id, item, type, owned, qty)))
+    const action = type === 'material' ? null : type === 'rod' ? (equipped ? null : owned ? '装備する' : '購入して装備') : (equipped ? null : owned ? '装備する' : '購入して装備')
+    if (action) items.push(this._actionButton(W / 2, y + 288, action, () => this._apply(id, item, type, owned, qty)))
+    if (equipped && !isDefaultEquipped) items.push(this._plainButton(W / 2, y + 324, type === 'bait' ? '外してふつうのえさに戻す' : '外して初心者竿に戻す', () => this._unequip(type)))
     items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true)))
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
@@ -328,11 +336,21 @@ export default class UpgradeScene extends Phaser.Scene {
       inventory.rods[id] = 1
       equipment.rodType = id
     } else if (type === 'bait') {
-      if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
-      inventory.baits[id] = qty + item.amount
+      if (!owned) {
+        if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
+        inventory.baits[id] = (Number.isFinite(qty) ? qty : 0) + item.amount
+      }
       equipment.baitType = id
     }
     saveInventory(inventory)
+    saveEquipment(equipment)
+    this.scene.restart({ tab: this._tab, scroll: this._scroll })
+  }
+
+  _unequip(type) {
+    const equipment = getEquipment()
+    if (type === 'rod') equipment.rodType = 'basic'
+    if (type === 'bait') equipment.baitType = 'worm'
     saveEquipment(equipment)
     this.scene.restart({ tab: this._tab, scroll: this._scroll })
   }

@@ -782,6 +782,7 @@ export default class GameScene extends Phaser.Scene {
 
   _consumeBaitForCast() {
     const baitId = this.env?.player?.baitType ?? 'worm'
+    if (baitId === 'worm') return true
     const inventory = this.env?.player?.inventory ?? getInventory()
     const current = inventory.baits?.[baitId] ?? 0
     if (current <= 0) {

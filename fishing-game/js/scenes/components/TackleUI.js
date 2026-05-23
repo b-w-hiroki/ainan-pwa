@@ -172,7 +172,7 @@ export class TackleUI {
     const inventory = this.scene.env?.player?.inventory
     const qty = type === 'rod'
       ? (inventory?.rods?.[item.id]  ?? 1)
-      : (inventory?.baits?.[item.id] ?? 0)
+      : (item.id === 'worm' ? Infinity : (inventory?.baits?.[item.id] ?? 0))
 
     const isSelected = item.id === selectedId
     const isOwned    = qty > 0
@@ -204,7 +204,7 @@ export class TackleUI {
       badge.fillRoundedRect(x + w / 2 - 22, y - h / 2 + 4, 20, 16, 4)
       container.add(badge)
 
-      const qtyText = this.scene.add.text(x + w / 2 - 12, y - h / 2 + 12, `×${qty}`, {
+      const qtyText = this.scene.add.text(x + w / 2 - 12, y - h / 2 + 12, item.id === 'worm' ? '基' : `×${qty}`, {
         fontFamily: FONT, fontSize: '12px', fontWeight: '900',
         color: '#ffffff', resolution: TEXT_RES,
       }).setOrigin(0.5)

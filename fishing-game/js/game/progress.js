@@ -53,7 +53,7 @@ export const ROD_META = {
 }
 
 export const BAIT_META = {
-  worm:    { name: 'ミミズ', desc: '食いつき重視の基本エサ', cost: 60, amount: 5 },
+  worm:    { name: 'ふつうのえさ', desc: '外しても自動で付く基本エサ', cost: 0, amount: 1 },
   shrimp:  { name: 'エビ', desc: 'レア魚を少し狙いやすいエサ', cost: 180, amount: 5 },
   special: { name: '特製まき餌', desc: '遠くの魚を引き寄せるエサ', cost: 360, amount: 3 },
 }
