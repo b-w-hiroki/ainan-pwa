@@ -30,6 +30,9 @@ const BAIT_RANK = {
   special: { label: 'SR', color: 0xffc447, glow: 0xfff2cc },
 }
 
+const ROD_POWER = { basic: 80, carbon: 130, premium: 220 }
+const BAIT_POWER = { worm: 20, shrimp: 55, special: 95 }
+
 const ROD_ICON = {
   basic: '🎋',
   carbon: '🎣',
@@ -93,8 +96,10 @@ export default class UpgradeScene extends Phaser.Scene {
       fontSize: '27px', fontWeight: '900',
       color: '#ffffff', shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
-    this._pill(W / 2, 70, 178, 30, `${ICONS.SCORE} ${getScore().toLocaleString()} pt`, 0xffffff, '#1a3a5a')
-    this.add.text(W / 2, 106, 'キャラと装備を整えて、釣果を伸ばそう', uiText('chip', {
+    const equipment = getEquipment()
+    this._powerPlate(W / 2, 76, this._calcPower(equipment))
+    this._pill(W - 75, 34, 116, 28, `🪙 ${getScore().toLocaleString()} pt`, 0xffffff, '#1a3a5a')
+    this.add.text(W / 2, 116, 'キャラと装備を整えて、釣果を伸ばそう', uiText('chip', {
       fontSize: '15px',
       color: '#ffffff',
       shadow: SHADOW.medium,
@@ -120,6 +125,33 @@ export default class UpgradeScene extends Phaser.Scene {
     this._equipSlot(318, y + 68, 'エサ', BAIT_ICON[baitType], baitType, BAIT_META[baitType], BAIT_RANK[baitType], inventory.baits?.[baitType] ?? 0, 'bait')
     this._emptySlot(72, y + 174, '帽子', '🧢')
     this._emptySlot(318, y + 174, 'バッグ', '🎒')
+  }
+
+  _calcPower(equipment) {
+    const rod = equipment?.rodType ?? 'basic'
+    const bait = equipment?.baitType ?? 'worm'
+    return 100 + (ROD_POWER[rod] ?? ROD_POWER.basic) + (BAIT_POWER[bait] ?? BAIT_POWER.worm)
+  }
+
+  _powerPlate(x, y, value) {
+    const w = 190
+    const h = 44
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(0x000000, 0.18)
+    g.fillRoundedRect(x - w / 2 + 3, y - h / 2 + 4, w, h, 15)
+    g.fillGradientStyle(0xfff6b5, 0xfff6b5, 0xffc83d, 0xffc83d, 1, 1, 1, 1)
+    g.lineStyle(3, 0x7a4a00, 0.95)
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 15)
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 15)
+    g.fillStyle(0xffffff, 0.35)
+    g.fillRoundedRect(x - w / 2 + 8, y - h / 2 + 5, w - 16, 10, 5)
+    this.add.text(x - 56, y, '⚡ 戦力', uiText('chip', { fontSize: '15px', color: '#5a3300' })).setOrigin(0.5).setDepth(6)
+    this.add.text(x + 36, y + 1, String(value), {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '26px', fontWeight: '900',
+      color: '#1a2a3a',
+      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(255,255,255,0.65)', blur: 0, fill: true },
+    }).setOrigin(0.5).setDepth(6)
   }
 
   _character(x, y) {
