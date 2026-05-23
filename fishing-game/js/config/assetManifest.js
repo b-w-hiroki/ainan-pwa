@@ -40,7 +40,7 @@ export const ASSETS = {
     playerDefault: {
       key: 'ch_player_default',
       path: 'assets/characters/ch_player_default.png',
-      status: 'planned',
+      status: 'ready',
     },
   },
   fish: {

@@ -62,6 +62,8 @@ export default class UpgradeScene extends Phaser.Scene {
   preload() {
     const bg = ASSETS.backgrounds.homeBase
     if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    const player = ASSETS.characters.playerDefault
+    if (!this.textures.exists(player.key)) this.load.image(player.key, player.path)
   }
 
   create() {
@@ -121,23 +123,12 @@ export default class UpgradeScene extends Phaser.Scene {
   _character(x, y) {
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x5cc8ff, 0.14)
-    g.fillEllipse(x, y + 82, 128, 32)
-    g.fillStyle(0xffd29a, 1)
-    g.lineStyle(3, 0x1a2a3a, 1)
-    g.fillCircle(x, y - 36, 35)
-    g.strokeCircle(x, y - 36, 35)
-    g.fillStyle(0x1a3a5a, 1)
-    g.fillCircle(x - 12, y - 42, 3)
-    g.fillCircle(x + 12, y - 42, 3)
-    g.lineStyle(2, 0x1a3a5a, 1)
-    g.lineBetween(x - 9, y - 28, x + 9, y - 28)
-    g.fillStyle(0x3ab7ff, 1)
-    g.lineStyle(3, 0x1a2a3a, 1)
-    g.fillRoundedRect(x - 36, y, 72, 80, 20)
-    g.strokeRoundedRect(x - 36, y, 72, 80, 20)
-    g.fillStyle(0xffffff, 0.92)
-    g.fillCircle(x, y + 29, 20)
-    this.add.text(x, y + 29, ICONS.ROD, { fontSize: '25px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(7)
+    g.fillEllipse(x, y + 88, 138, 30)
+    const player = this.add.image(x, y + 2, ASSETS.characters.playerDefault.key)
+      .setOrigin(0.5, 0.55)
+      .setDisplaySize(78, 196)
+      .setDepth(7)
+    player.setRoundPixels?.(true)
     this.add.text(x, y + 104, '港の釣り人', uiText('cardTitle', { fontSize: '16px' })).setOrigin(0.5).setDepth(7)
   }
 
