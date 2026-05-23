@@ -62,7 +62,7 @@ export default class UpgradeScene extends Phaser.Scene {
   preload() {
     const bg = ASSETS.backgrounds.homeBase
     if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
-    const player = ASSETS.characters.playerDefault
+    const player = ASSETS.characters.playerDefaultUi
     if (!this.textures.exists(player.key)) this.load.image(player.key, player.path)
   }
 
@@ -124,11 +124,11 @@ export default class UpgradeScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x5cc8ff, 0.14)
     g.fillEllipse(x, y + 88, 138, 30)
-    const player = this.add.image(x, y + 2, ASSETS.characters.playerDefault.key)
+    const player = this.add.image(x, y - 8, ASSETS.characters.playerDefaultUi.key)
       .setOrigin(0.5, 0.55)
-      .setDisplaySize(78, 196)
+      .setDisplaySize(94, 237)
       .setDepth(7)
-    player.setRoundPixels?.(true)
+    this.textures.get(ASSETS.characters.playerDefaultUi.key)?.setFilter(Phaser.Textures.FilterMode.LINEAR)
     this.add.text(x, y + 104, '港の釣り人', uiText('cardTitle', { fontSize: '16px' })).setOrigin(0.5).setDepth(7)
   }
 

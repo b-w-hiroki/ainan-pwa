@@ -42,6 +42,11 @@ export const ASSETS = {
       path: 'assets/characters/ch_player_default.png',
       status: 'ready',
     },
+    playerDefaultUi: {
+      key: 'ch_player_default_ui',
+      path: 'assets/characters/ch_player_default_ui.png',
+      status: 'ready',
+    },
   },
   fish: {
     ajiIcon: {
