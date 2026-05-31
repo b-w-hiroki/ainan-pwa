@@ -1,3 +1,4 @@
+import Phaser from 'phaser'
 import { RARITY_CHON_BONUS } from './fish.js'
 import { BAIT_STATS, ROD_STATS } from './params.js'
 

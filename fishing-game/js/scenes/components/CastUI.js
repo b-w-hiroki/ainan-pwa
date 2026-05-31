@@ -1,24 +1,15 @@
-import { FONT } from '../../config/fontStyles.js'
+﻿import { FONT, SHADOW } from '../../config/fontStyles.js'
 import { C, CS, COLOR } from '../../config/palette.js'
 import { buildTrajectory } from '../../game/cast.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
-/**
- * キャスト矢印・軌跡ドット・パワーゲージの描画を担当するUI。
- * GameScene が持つ castGfx / powerGfx を直接操作する。
- */
 export class CastUI {
   /** @param {Phaser.Scene} scene */
   constructor(scene) {
     this.scene = scene
   }
 
-  /**
-   * キャストプレビュー（矢印・軌跡ドット）を描画する
-   * @param {number} angleDeg
-   * @param {number} power01
-   */
   drawPreview(angleDeg, power01) {
     const scene = this.scene
     const pts = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, power01, scene.castRangePx)
@@ -59,10 +50,6 @@ export class CastUI {
     }
   }
 
-  /**
-   * パワーゲージを描画する
-   * @param {number} power01
-   */
   drawPowerBar(power01) {
     const { width: W, height: H } = this.scene.scale
     const bx = W / 2 - 95
@@ -92,19 +79,18 @@ export class CastUI {
     this.scene.powerLabel.setVisible(true)
   }
 
-  /** ヒントテキスト・パワーラベルを生成する（GameScene.create() から呼ぶ） */
   buildHUD(W, H) {
     const scene = this.scene
 
     scene.hintText = scene.add.text(W / 2, H * 0.19, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
-      color: COLOR.TEXT1, backgroundColor: 'rgba(255,255,255,0.80)',
-      padding: { x: 10, y: 5 },
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
+      color: COLOR.TEXT1, backgroundColor: 'rgba(255,255,255,0.85)',
+      padding: { x: 12, y: 6 },
     }).setOrigin(0.5).setDepth(55)
 
     scene.powerLabel = scene.add.text(W / 2, H * 0.74, 'CAST POWER', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontStyle: '700',
-      color: CS, stroke: COLOR.WHITE, strokeThickness: 2,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '800',
+      color: CS, stroke: COLOR.WHITE, strokeThickness: 1,
       letterSpacing: 2,
     }).setOrigin(0.5).setDepth(37).setVisible(false)
   }

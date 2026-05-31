@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>AINAN 釣り — Phase 1</title>
+    <title>&#x753a;&#x304a;&#x3053;&#x3057;&#x91e3;&#x308a;&#x30b2;&#x30fc;&#x30e0;&#xff08;&#x4eee;&#xff09;</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=M+PLUS+Rounded+1c:wght@700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=M+PLUS+Rounded+1c:wght@700;800;900&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -22,12 +22,22 @@
       #game-container {
         width: 100%;
         height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #game-container canvas {
+        display: block;
+        width: min(100vw, 390px) !important;
+        height: min(100vh, 844px) !important;
+        max-width: calc(100vh * 390 / 844);
+        max-height: calc(100vw * 844 / 390);
       }
     </style>
   </head>
   <body>
     <div id="game-container"></div>
-    <!-- 対処4: フォント完全ロード後にゲーム起動するための WebFont Loader -->
+    <!-- WebFont Loader keeps the first Phaser text render crisp and stable. -->
     <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
     <script type="module" src="/fishing-game/js/main.js"></script>
   </body>

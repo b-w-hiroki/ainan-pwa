@@ -18,7 +18,7 @@ function randRange(a, b) {
 export function createBattleState(fish, rod) {
   const pull = rod.pullPower ?? 1
   return {
-    escape: Math.min(92, 28 * (fish.resistanceStrength / pull)),
+    escape: Math.min(30, 18 * (fish.resistanceStrength / pull)),
     reel: 48,
     isRaging: false,
     /** @type {number} */

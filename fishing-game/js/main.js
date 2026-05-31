@@ -3,18 +3,26 @@ import TitleScene from './scenes/TitleScene.js'
 import HomeScene from './scenes/HomeScene.js'
 import MapScene from './scenes/MapScene.js'
 import GameScene from './scenes/GameScene.js'
+import CollectionScene from './scenes/CollectionScene.js'
+import UpgradeScene from './scenes/UpgradeScene.js'
+import ExchangeScene from './scenes/ExchangeScene.js'
+import MissionScene from './scenes/MissionScene.js'
+import LicenseScene from './scenes/LicenseScene.js'
+import RankScene from './scenes/RankScene.js'
+import TownScene from './scenes/TownScene.js'
+import HelpScene from './scenes/HelpScene.js'
+import MenuScene from './scenes/MenuScene.js'
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
   backgroundColor: '#ffe0a0',
-  // 対処1: roundPixels で文字のサブピクセルにじみを防ぐ
   render: {
     pixelArt: false,
     antialias: true,
     roundPixels: true,
-    resolution: window.devicePixelRatio ?? 1,
+    resolution: Math.min(window.devicePixelRatio ?? 1, 2),
   },
   scale: {
     mode: Phaser.Scale.FIT,
@@ -22,22 +30,23 @@ const config = {
     width: 390,
     height: 844,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene, TownScene, HelpScene, MenuScene],
 }
 
 function startGame() {
-  new Phaser.Game(config)
+  const game = new Phaser.Game(config)
+  window.__game = game
 }
 
-// 対処4: WebFont が読み込まれる前に描画されるにじみを防ぐ
+// Start after web fonts are ready so the first Phaser text render is stable.
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
-      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800'],
+      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800,900'],
     },
     active: startGame,
-    inactive: startGame,  // フォント失敗時もゲームを起動する
-    timeout: 2000,        // 2秒でタイムアウトして起動
+    inactive: startGame,
+    timeout: 2000,
   })
 } else {
   startGame()

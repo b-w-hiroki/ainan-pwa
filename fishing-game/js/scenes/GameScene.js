@@ -1,4 +1,4 @@
-import Phaser from 'phaser'
+﻿import Phaser from 'phaser'
 import { FONT } from '../config/fontStyles.js'
 import { CS } from '../config/palette.js'
 import { DEFAULT_ROD, DEFAULT_BAIT, ROD_STATS, BAIT_STATS } from '../game/params.js'
@@ -24,7 +24,15 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
+import { getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
+
+const RARITY_SIZE = {
+  common: [18, 34],
+  uncommon: [35, 68],
+  rare: [45, 82],
+  legendary: [80, 135],
+}
 
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
@@ -37,13 +45,9 @@ export default class GameScene extends Phaser.Scene {
       ...getDefaultEnv(),
       ...data,
       player: {
-        rodType:    'carbon',
-        baitType:   'worm',
-        skillLevel: 1,
-        inventory: {
-          rods:  { basic: 1, carbon: 1, premium: 0 },
-          baits: { worm: 12, shrimp: 5, special: 2 },
-        },
+        ...getEquipment(),
+        skillLevel: getRankBonuses().skillLevel,
+        inventory: getInventory(),
         ...data.player,
       },
     }
@@ -66,11 +70,13 @@ export default class GameScene extends Phaser.Scene {
 
     // ─── レイヤー描画 ────────────────────────────────────────────
     this.bg = new BackgroundManager(this)
-    this.bg.buildBackground(W, H)
+    this.bg.buildBackground(W, H, this.env.point)
     this.bg.spawnFish(W, H)
+    this._buildFishSchoolChance(W, H)
     const anchor         = this.bg.buildPlayer(W, H)
     this.anchorX         = anchor.anchorX
     this.anchorY         = anchor.anchorY
+    this.baseCastRangePx = anchor.castRangePx
     this.castRangePx     = anchor.castRangePx
     this.shaftDisplayPx  = anchor.shaftDisplayPx
 
@@ -84,10 +90,25 @@ export default class GameScene extends Phaser.Scene {
     this.bobberMgr = new BobberManager(this)
     this.bobber = this.bobberMgr.create(W, H)
 
-    // ─── 危険フラッシュ ──────────────────────────────────────────
-    this.dangerFx = this.add
-      .rectangle(W / 2, H / 2, W, H, 0xff1e1e, 0)
-      .setDepth(92)
+    // ─── 危険ビネット（depth 55: 全UI要素の下, 背景より上） ──────
+    this.dangerFx = this.add.graphics().setDepth(55).setAlpha(0)
+    const VIGNETTE_EDGE = 0.22
+    // 上端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0.72, 0.72, 0, 0)
+    this.dangerFx.fillRect(0, 0, W, H * VIGNETTE_EDGE)
+    // 下端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0, 0, 0.72, 0.72)
+    this.dangerFx.fillRect(0, H * (1 - VIGNETTE_EDGE), W, H * VIGNETTE_EDGE)
+    // 左端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0.48, 0, 0.48, 0)
+    this.dangerFx.fillRect(0, 0, W * 0.14, H)
+    // 右端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0, 0.48, 0, 0.48)
+    this.dangerFx.fillRect(W * 0.86, 0, W * 0.14, H)
+
+    // フラグ初期化
+    this._skipNextDown = false
+    this._biteSequenceActive = false
 
     // ─── バトル UI ───────────────────────────────────────────────
     this.battleUI = new BattleUI(this)
@@ -108,6 +129,7 @@ export default class GameScene extends Phaser.Scene {
 
     // ─── スコアバー ──────────────────────────────────────────────
     this.battleUI.buildScoreBar(this.totalScore)
+    this._buildLocationBadge(W)
 
     // ─── 結果オーバーレイ ────────────────────────────────────────
     this.resultUI = new ResultUI(this)
@@ -119,6 +141,7 @@ export default class GameScene extends Phaser.Scene {
     // ─── 竿・エサ切り替えUI ─────────────────────────────────────
     this.tackleUI = new TackleUI(this)
     this.tackleUI.build(W, H)
+    markLicenseFlag('ainan_touched_tackle')
 
     // ─── 入力 ────────────────────────────────────────────────────
     this.input.on('pointerdown', this._onDown, this)
@@ -134,6 +157,53 @@ export default class GameScene extends Phaser.Scene {
     window.addEventListener('beforeunload', this._beforeUnloadHandler)
 
     this._enterCast()
+  }
+
+  _buildFishSchoolChance(W, H) {
+    this.schoolFx = this.add.container(W - 76, H * 0.245).setDepth(48)
+    const g = this.add.graphics()
+    g.fillStyle(0xffffff, 0.88)
+    g.lineStyle(2, 0x1a2a3a, 0.35)
+    g.fillRoundedRect(-56, -18, 112, 36, 15)
+    g.strokeRoundedRect(-56, -18, 112, 36, 15)
+    const txt = this.add.text(0, 0, '魚群チャンス', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '14px', fontWeight: '900',
+      color: '#e07800',
+    }).setOrigin(0.5)
+    this.schoolFx.add([g, txt])
+    this.schoolFx.setAlpha(0)
+    this.tweens.add({
+      targets: this.schoolFx,
+      alpha: 1,
+      y: H * 0.235,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
+    })
+  }
+
+  _buildLocationBadge(W) {
+    const pointName = {
+      pointA: '汐風港',
+      pointB: '蒼海湾',
+      pointC: '黒潮崎',
+    }[this.env.point] ?? '釣り場'
+
+    const g = this.add.graphics().setDepth(54)
+    g.fillStyle(0xffffff, 0.92)
+    g.lineStyle(2.5, 0x1a2a3a, 1)
+    g.fillRoundedRect(14, 16, 112, 38, 12)
+    g.strokeRoundedRect(14, 16, 112, 38, 12)
+    g.fillStyle(0xffd900, 1)
+    g.fillCircle(32, 35, 8)
+
+    this.add.text(46, 35, pointName, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '15px', fontWeight: '900',
+      color: '#1a3a5a',
+    }).setOrigin(0, 0.5).setDepth(55)
   }
 
 
@@ -159,7 +229,7 @@ export default class GameScene extends Phaser.Scene {
     this.rageTag.setVisible(false)
     this.hitHint.setVisible(false)
     this.resultOverlay.setVisible(false)
-    this.dangerFx.setFillStyle(0xff1e1e, 0)
+    this.dangerFx.setAlpha(0)
     this.bobber.setVisible(false)
     this.lineGfx.clear()
     this.castGfx.clear()
@@ -205,8 +275,8 @@ export default class GameScene extends Phaser.Scene {
     const radius = calcAttractRadius({
       baitType:   this.bait.id,
       rodType:    this.rod.id,
-      skillLevel: 1,
-    })
+      skillLevel: this.env?.player?.skillLevel ?? 1,
+    }) * getTownBonuses().attractRadiusMod
     const candidates = this.bg._fishGfx
       .map((gfx, i) => ({ gfx, i }))
       .filter(({ gfx }) => isInAttractRange(gfx, { x: bobberX, y: bobberY }, radius))
@@ -256,7 +326,7 @@ export default class GameScene extends Phaser.Scene {
       if (this.phase !== 'wait') return
       const { width: W, height: H } = this.scale
       const msg = this.add.text(W / 2, H * 0.45, '魚がいない…　タップで引き上げ', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontStyle: '700',
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
         color: '#4a7090', backgroundColor: 'rgba(255,255,255,0.85)',
         padding: { x: 12, y: 6 },
       }).setOrigin(0.5).setDepth(60).setAlpha(0)
@@ -273,6 +343,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.phase !== 'wait') return
     this._biteConfig = buildBiteConfig(this.fish)
     this._biteTimers = []
+    this._biteSequenceActive = true
     this._startChonSequence(0)
   }
 
@@ -332,6 +403,7 @@ export default class GameScene extends Phaser.Scene {
 
   _openHitWindow(hitWindowMs = 1200) {
     if (this.phase !== 'wait') return
+    this._biteSequenceActive = false   // ぐんっ！到達 → ちょん中ガードを解除
     // this.fish は _enterWait で決定済み
     this.waitTapActive = true
     this.hitHint.setVisible(true)
@@ -415,6 +487,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.escapeBar.setVisible(true)
     this.battlePanel.setVisible(true)
+    if (this.fish.rarity === 'rare' || this.fish.rarity === 'legendary') {
+      this._showBigHitCutin(this.fish.rarity)
+    }
     this._syncBattleUI()
 
     this._battleTimer = this.time.addEvent({
@@ -429,6 +504,33 @@ export default class GameScene extends Phaser.Scene {
     })
   }
 
+  _showBigHitCutin(rarity) {
+    const { width: W, height: H } = this.scale
+    const danger = rarity === 'legendary'
+    const c = this.add.container(W / 2, H * 0.30).setDepth(130)
+    const bg = this.add.graphics()
+    bg.fillStyle(danger ? 0x1a1020 : 0x102b42, 0.88)
+    bg.lineStyle(3, danger ? 0xffd900 : 0x5ebcff, 1)
+    bg.fillRoundedRect(-142, -36, 284, 72, 18)
+    bg.strokeRoundedRect(-142, -36, 284, 72, 18)
+    const label = this.add.text(0, -9, danger ? 'DANGER' : 'BIG HIT!', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: danger ? '30px' : '28px',
+      fontWeight: '900',
+      color: danger ? '#ffd900' : '#ffffff',
+    }).setOrigin(0.5)
+    const sub = this.add.text(0, 20, danger ? '伝説級の気配！' : '大物の引き！', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '15px', fontWeight: '900',
+      color: '#ffffff',
+    }).setOrigin(0.5)
+    c.add([bg, label, sub])
+    this.cameras.main.shake(220, danger ? 0.012 : 0.006)
+    this.time.delayedCall(650, () => {
+      this.tweens.add({ targets: c, alpha: 0, y: '-=18', duration: 240, onComplete: () => c.destroy(true) })
+    })
+  }
+
   /**
    * スコア計算
    * @param {typeof import('../game/fish.js').SAMPLE_FISH[0]} fish
@@ -436,7 +538,7 @@ export default class GameScene extends Phaser.Scene {
    */
   calcScore(fish, sizeMultiplier = 1.0) {
     const RARITY_MULT = { common: 1.0, uncommon: 1.5, rare: 2.5, legendary: 5.0 }
-    return Math.round(fish.scoreBase * sizeMultiplier * (RARITY_MULT[fish.rarity] ?? 1.0))
+    return Math.round(fish.scoreBase * sizeMultiplier * (RARITY_MULT[fish.rarity] ?? 1.0) * getTownBonuses().scoreMod)
   }
 
   _finishBattle(outcome) {
@@ -450,27 +552,35 @@ export default class GameScene extends Phaser.Scene {
     this.battlePanel.setVisible(false)
     this.reelCTA.setVisible(false)
     this.rageTag.setVisible(false)
-    this.dangerFx.setFillStyle(0xff0000, 0)
+    this.dangerFx.setAlpha(0)
     this.hintText.setText('')
     this.scoreBar.setY(16)
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
+      const sizeCm = this._rollFishSize(this.fish)
+
+      // 釣れた演出
+      this.cameras.main.flash(280, 255, 255, 255, true)
+      this.cameras.main.shake(180, 0.005)
+      const { width: W, height: H } = this.scale
+      this._spawnCaughtConfetti(W, H)
 
       // 累積
       this.totalScore += score
-      this.catches.push({ fishId: this.fish.id, score, timestamp: Date.now() })
+      this.catches.push({ fishId: this.fish.id, score, sizeCm, timestamp: Date.now() })
 
       // 表示更新
       this.scoreValText?.setText(String(this.totalScore))
 
       this._saveProgress()
 
-      this.resLabel.setText('✦ CATCH ✦')
+      this.resultUI.drawResultStripe('caught')
+      this.resLabel.setText('✦ GET! ✦')
       this.resEmoji.setText(this.fish.emoji).setAngle(0)
       this.resName.setText(this.fish.name)
-      this.resPts.setText(`+${score} pts 🎉`)
-      this.resHint.setText('タップで続ける')
+      this.resPts.setText(`${sizeCm}cm  +${score}pt`)
+      this.resHint.setText('タップで続ける / 図鑑に記録')
 
       this.resultEmojiTween?.destroy()
       this.resultEmojiTween = this.tweens.add({
@@ -478,14 +588,42 @@ export default class GameScene extends Phaser.Scene {
         duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
       })
     } else {
-      this.resLabel.setText('')
+      this.resultUI.drawResultStripe('escaped')
+      this.resLabel.setText('✕ ESCAPED ✕')
       this.resEmoji.setText('💨').setAngle(0)
       this.resName.setText('逃げられた…')
-      this.resPts.setText('')
+      this.resPts.setText('竿やエサを強化すると安定する')
       this.resHint.setText('タップで再挑戦')
       this.cameras.main.flash(400, 255, 0, 0)
     }
     this.resultOverlay.setVisible(true)
+  }
+
+  _spawnCaughtConfetti(W, H) {
+    const items = ['🎉', '✨', '⭐', '🐟', '💫', '🎊']
+    for (let i = 0; i < 9; i++) {
+      const emoji = items[i % items.length]
+      const x = W * 0.15 + (i / 8) * W * 0.70
+      const t = this.add.text(x, H * 0.48, emoji, {
+        fontSize: `${16 + (i % 3) * 8}px`,
+        resolution: TEXT_RES,
+      }).setOrigin(0.5).setDepth(125).setAlpha(1)
+      this.tweens.add({
+        targets: t,
+        y: t.y - 70 - (i % 4) * 25,
+        x: t.x + (i % 2 === 0 ? 1 : -1) * (10 + (i % 3) * 15),
+        alpha: 0,
+        angle: (i % 2 === 0 ? 1 : -1) * 40,
+        duration: 700 + (i % 4) * 120,
+        ease: 'Quad.easeOut',
+        onComplete: () => t.destroy(),
+      })
+    }
+  }
+
+  _rollFishSize(fish) {
+    const [min, max] = RARITY_SIZE[fish.rarity] ?? [20, 50]
+    return Math.round(Phaser.Math.FloatBetween(min, max) * 10) / 10
   }
 
   _syncBattleUI() {
@@ -499,6 +637,8 @@ export default class GameScene extends Phaser.Scene {
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
+
+    if (!this._consumeBaitForCast()) return
 
     const { width: W, height: H } = this.scale
     const MARGIN = 40
@@ -557,11 +697,11 @@ export default class GameScene extends Phaser.Scene {
       const st   = this.battleState
       const band = dangerBand(st.escape)
       if (band === 'flash') {
-        this.dangerFx.setFillStyle(0xff1e1e, 0.12 + Math.sin(now * 0.006) * 0.10)
+        this.dangerFx.setAlpha(0.35 + Math.sin(now * 0.006) * 0.20)
       } else if (band === 'critical') {
-        this.dangerFx.setFillStyle(0xff0000, 0.28 + Math.sin(now * 0.022) * 0.18)
+        this.dangerFx.setAlpha(0.65 + Math.sin(now * 0.022) * 0.25)
       } else {
-        this.dangerFx.setFillStyle(0xff1e1e, st.isRaging ? 0.06 : 0)
+        this.dangerFx.setAlpha(st.isRaging ? 0.18 : 0)
       }
     }
   }
@@ -571,8 +711,11 @@ export default class GameScene extends Phaser.Scene {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _onDown(pointer) {
     if (pointer.y < 50 && pointer.x < 130) return   // ナビ領域を除外
+    if (this._skipNextDown) { this._skipNextDown = false; return }
+    if (this.tackleUI?._openPanel != null) return   // タックルパネル開時はゲーム入力をブロック
 
     if (this.phase === 'result') {
+      // カード外タップで続行（ボタン押下時は _skipNextDown フラグで無効化済み）
       this.resultOverlay.setVisible(false)
       this._enterCast()
       return
@@ -597,11 +740,16 @@ export default class GameScene extends Phaser.Scene {
 
     // 待機中・ちょんちょん中（ぐんっ！前）→ 引き上げ
     if (this.phase === 'wait' && !this.waitTapActive) {
+      if (this._biteSequenceActive) {
+        this.resultUI.toast('もうすぐ食いつく…！')
+        return
+      }
       this._reelUp()
       return
     }
 
     if (this.phase === 'cast') {
+      if (pointer.y > this.scale.height - 80) return  // タックルボタン領域を除外
       if (!this.isCharging) {
         this.isCharging = true
         this.chargeStartedAt = this.time.now
@@ -634,6 +782,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _onUp() {
+    if (this.tackleUI?._openPanel != null) return   // タックルパネル開時はキャストをブロック
     if (this.phase !== 'cast' || !this.isCharging) return
     this.isCharging = false
     const power = oscillatePower(this.time.now - this.chargeStartedAt)
@@ -656,16 +805,47 @@ export default class GameScene extends Phaser.Scene {
     this._wt1 = this._wt2 = undefined
     this._chonTween = undefined
     this._approachTween = null
+    this._biteSequenceActive = false
   }
 
   // env.player の選択を this.rod / this.bait に反映
   _syncTackle() {
+    this.env.player.inventory = getInventory()
     const rodId  = this.env?.player?.rodType  ?? 'carbon'
     const baitId = this.env?.player?.baitType ?? 'worm'
     const rs = ROD_STATS[rodId]   ?? ROD_STATS.carbon
     const bs = BAIT_STATS[baitId] ?? BAIT_STATS.worm
-    this.rod  = { id: rodId,  pullPower: rs.pullPower,  castRange: rs.castRange,  attractRadius: rs.attractRadius }
-    this.bait = { id: baitId, biteRateBonus: bs.biteRateBonus, rareFishBonus: bs.rareFishBonus, attractRadius: bs.attractRadius }
+    const rankBonus = getRankBonuses()
+    this.env.player.skillLevel = rankBonus.skillLevel
+    this.rod  = {
+      id: rodId,
+      pullPower: rs.pullPower * rankBonus.pullPowerMod,
+      castRange: rs.castRange * rankBonus.castRangeMod,
+      attractRadius: rs.attractRadius * rankBonus.attractRadiusMod,
+    }
+    this.bait = {
+      id: baitId,
+      biteRateBonus: bs.biteRateBonus + rankBonus.biteRateBonus,
+      rareFishBonus: bs.rareFishBonus,
+      attractRadius: bs.attractRadius,
+    }
+    this.castRangePx = Math.min(this.scale.height * 0.78, this.baseCastRangePx * this.rod.castRange)
+  }
+
+  _consumeBaitForCast() {
+    const baitId = this.env?.player?.baitType ?? 'worm'
+    if (baitId === 'worm') return true
+    const inventory = this.env?.player?.inventory ?? getInventory()
+    const current = inventory.baits?.[baitId] ?? 0
+    if (current <= 0) {
+      this.resultUI?.toast('エサがありません')
+      this.hintText?.setText('エサを選ぶか、交換所で補充しよう')
+      return false
+    }
+    inventory.baits[baitId] = current - 1
+    this.env.player.inventory = inventory
+    saveInventory(inventory)
+    return true
   }
 
   _saveProgress() {
@@ -675,6 +855,7 @@ export default class GameScene extends Phaser.Scene {
 
   _cleanup() {
     this.tackleUI?.destroy()
+    this.battleUI?.destroy()
     this._cleanupBattle()
     this._killWaitTimers()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
