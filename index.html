@@ -2,12 +2,56 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d6b5c" />
-    <title>AINAN 釣り×街おこし</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#69c8f2" />
+    <title>町おこし釣りゲーム（仮）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=M+PLUS+Rounded+1c:wght@700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #ffe0a0;
+        font-family: Nunito, 'M PLUS Rounded 1c', system-ui, sans-serif;
+      }
+
+      #game-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #game-container canvas {
+        display: block;
+        width: min(100vw, 390px) !important;
+        height: min(100vh, 844px) !important;
+        max-width: calc(100vh * 390 / 844);
+        max-height: calc(100vw * 844 / 390);
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="game-container"></div>
+    <script>
+      if (['localhost', '127.0.0.1'].includes(location.hostname)) {
+        navigator.serviceWorker?.getRegistrations?.().then((registrations) => {
+          registrations.forEach((registration) => registration.unregister())
+        })
+        window.caches?.keys?.().then((keys) => {
+          keys.forEach((key) => window.caches.delete(key))
+        })
+      }
+    </script>
+    <!-- WebFont Loader keeps the first Phaser text render crisp and stable. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script type="module" src="/fishing-game/js/main.js"></script>
   </body>
 </html>
