@@ -42,11 +42,44 @@ export class ResultUI {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '700', color: '#00aa44',
     }).setOrigin(0.5)
 
-    scene.resHint = scene.add.text(0, 86, 'タップで続ける', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '700', color: '#4a7090',
+    scene.resHint = scene.add.text(0, 88, 'または下のボタンから選ぶ', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '700', color: '#8aa5bb',
     }).setOrigin(0.5)
 
-    scene.resultOverlay.add([card, scene.resStripe, scene.resLabel, scene.resEmoji, scene.resName, scene.resPts, scene.resHint])
+    // ─── 3択ボタン ────────────────────────────────────────────
+    const BTN_W = 84, BTN_H = 36, BTN_GAP = 8
+    const totalBtnW = BTN_W * 3 + BTN_GAP * 2
+    const btnStartX = -totalBtnW / 2
+    const btnY = 108
+
+    const makeNavBtn = (x, emoji, label, action) => {
+      const bg = scene.add.graphics()
+      const drawBg = (hover) => {
+        bg.clear()
+        bg.fillStyle(hover ? 0xd0f0ff : 0xffffff, 0.97)
+        bg.lineStyle(2, C.OUTLINE, 0.75)
+        bg.fillRoundedRect(x, btnY, BTN_W, BTN_H, 10)
+        bg.strokeRoundedRect(x, btnY, BTN_W, BTN_H, 10)
+      }
+      drawBg(false)
+      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${emoji}\n${label}`, {
+        fontFamily: FONT, resolution: TEXT_RES,
+        fontSize: '11px', fontWeight: '700', color: '#1a3a5a',
+        align: 'center', lineSpacing: 2,
+      }).setOrigin(0.5)
+      const hit = scene.add.rectangle(x + BTN_W / 2, btnY + BTN_H / 2, BTN_W + 4, BTN_H + 4, 0x000000, 0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => { scene._skipNextDown = true; action() })
+        .on('pointerover', () => drawBg(true))
+        .on('pointerout',  () => drawBg(false))
+      return [bg, txt, hit]
+    }
+
+    const b1 = makeNavBtn(btnStartX,                    '🔁', 'もう一度', () => { scene.resultOverlay.setVisible(false); scene._enterCast() })
+    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP,  '🗺', 'マップへ', () => { scene._cleanup(); scene.scene.start('MapScene') })
+    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '🏠', 'ホームへ', () => { scene._cleanup(); scene.scene.start('HomeScene') })
+
+    scene.resultOverlay.add([card, scene.resStripe, scene.resLabel, scene.resEmoji, scene.resName, scene.resPts, scene.resHint, ...b1, ...b2, ...b3])
   }
 
   /** ヘッダーストライプを描画する（caught=green / escaped=red） */
@@ -77,7 +110,7 @@ export class ResultUI {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
       color: CS, backgroundColor: COLOR.WHITE,
       padding: { x: 14, y: 9 },
-      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.3)', blur: 2, fill: true },
+      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.3)', blur: 0, fill: true },
     })
       .setOrigin(0, 1)
       .setDepth(200)

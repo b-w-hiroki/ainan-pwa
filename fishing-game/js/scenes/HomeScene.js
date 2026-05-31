@@ -95,6 +95,42 @@ export default class HomeScene extends Phaser.Scene {
 
     this._buildResourceChip(W - 116, 19, ICONS.SCORE, this._shortNum(totalScore))
     this._buildResourceChip(W - 62, 19, ICONS.FISH, this._shortNum(catches.length))
+
+    // ─── リソースバー（スタミナ・コイン） ───────────────────────
+    this._buildResourceBar(W)
+  }
+
+  _buildResourceBar(W) {
+    const staminaMax = 10
+    const stamina = Math.min(staminaMax, staminaMax)   // TODO: 実装後は実データに差し替え
+    const coins = parseInt(localStorage.getItem('ainan_coins') ?? '500', 10)
+    const bar = this.add.graphics().setDepth(19)
+    bar.fillStyle(0xffffff, 0.82)
+    bar.lineStyle(1.5, 0x1a2a3a, 0.18)
+    bar.fillRoundedRect(10, 72, W - 20, 28, 10)
+    bar.strokeRoundedRect(10, 72, W - 20, 28, 10)
+
+    // スタミナバー（最大幅 W*0.30 で右側のアイコンと重ならないように）
+    const staminaBarMaxW = W * 0.30
+    const staminaFill = this.add.graphics().setDepth(20)
+    const staminaW = staminaBarMaxW * (stamina / staminaMax)
+    staminaFill.fillStyle(0x44cc77, 1)
+    staminaFill.fillRoundedRect(48, 76, staminaW, 16, 6)
+    staminaFill.fillStyle(0x22aa55, 0.5)
+    staminaFill.fillRoundedRect(48, 76, staminaW, 6, 4)
+
+    this.add.text(24, 86, '⚡', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
+    this.add.text(48 + staminaBarMaxW + 4, 86, `${stamina}/${staminaMax}`, uiText('micro', { fontSize: '11px', color: '#228855' })).setOrigin(0, 0.5).setDepth(20)
+
+    // コイン表示
+    const coinX = W * 0.58
+    this.add.text(coinX, 86, '💰', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
+    this.add.text(coinX + 13, 86, this._shortNum(coins), uiText('micro', { fontSize: '12px', color: '#b57115' })).setOrigin(0, 0.5).setDepth(20)
+
+    // ジェム表示
+    const gemX = W * 0.82
+    this.add.text(gemX, 86, '💎', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
+    this.add.text(gemX + 13, 86, '0', uiText('micro', { fontSize: '12px', color: '#5599cc' })).setOrigin(0, 0.5).setDepth(20)
   }
 
   _buildResourceChip(x, y, icon, value) {
@@ -109,7 +145,7 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildEventBanner(W, H) {
     const x = 24
-    const y = 82
+    const y = 106  // リソースバー(72-100)の下に移動
     const w = W - 48
     const h = 58
     const g = this.add.graphics().setDepth(10)
@@ -136,10 +172,10 @@ export default class HomeScene extends Phaser.Scene {
     const firstMission = MISSION_META[0]
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
-    this._iconShortcut(24, 154, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
-    this._iconShortcut(94, 154, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
+    this._iconShortcut(24, 178, 58, ICONS.MISSION, T.mission, `${missionValue}/${firstMission.target}`, 0x5ebcff, () => this.scene.start('MissionScene'))
+    this._iconShortcut(94, 178, 58, ICONS.LICENSE, T.license, `${license.done}/${license.total}`, 0xffd900, () => this.scene.start('LicenseScene'))
     const daily = getDailyBonusState()
-    if (daily.canClaim) this._iconShortcut(164, 154, 58, ICONS.BONUS, T.daily, `${daily.streak + 1}${T.day}`, 0xff6a3d, () => this._showDailyBonus(this.scale.width, this.scale.height))
+    if (daily.canClaim) this._iconShortcut(164, 178, 58, ICONS.BONUS, T.daily, `${daily.streak + 1}${T.day}`, 0xff6a3d, () => this._showDailyBonus(this.scale.width, this.scale.height))
   }
 
   _iconShortcut(x, y, size, icon, title, sub, accent, onTap) {

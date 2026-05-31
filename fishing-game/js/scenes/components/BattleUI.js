@@ -33,7 +33,12 @@ export class BattleUI {
       shadow: SHADOW.medium,
     }).setOrigin(1, 0.5)
 
-    scene.escapeBar.add([bg, title, scene.ebarFill, scene.ebarNum])
+    // 進捗追従の魚アイコン
+    scene.ebarFishIcon = scene.add.text(14, 49, '🐟', {
+      fontSize: '18px', resolution: TEXT_RES,
+    }).setOrigin(0.5)
+
+    scene.escapeBar.add([bg, title, scene.ebarFill, scene.ebarNum, scene.ebarFishIcon])
     scene._ebarW = W - 28
   }
 
@@ -76,13 +81,17 @@ export class BattleUI {
 
     const t2 = scene.add.text(0, 10, ICONS.SWIPE_DN, { fontSize: '28px' }).setOrigin(0.5)
 
-    const t3 = scene.add.text(0, 44, '下にスワイプ！', {
+    const swipeBg = scene.add.graphics()
+    swipeBg.fillStyle(0xffee00, 1)
+    swipeBg.lineStyle(2, C.OUTLINE, 0.6)
+    swipeBg.fillRoundedRect(-62, 32, 124, 28, 12)
+    swipeBg.strokeRoundedRect(-62, 32, 124, 28, 12)
+    const t3 = scene.add.text(0, 46, '下にスワイプ！', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
-      color: CS, backgroundColor: '#ffee00',
-      padding: { x: 12, y: 4 },
+      color: CS,
     }).setOrigin(0.5)
 
-    scene.reelCTA.add([t1, t2, t3])
+    scene.reelCTA.add([t1, t2, swipeBg, t3])
     scene.tweens.add({ targets: t1, y: '-=6', duration: 600, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
     scene.tweens.add({ targets: t2, y: '+=8', duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
   }
@@ -99,6 +108,9 @@ export class BattleUI {
     scene.ebarFill.fillStyle(0xffffff, 0.45)
     scene.ebarFill.fillRect(14 + tw * 0.70, 36, 3, 26)
     scene.ebarNum.setText(String(Math.round(st.escape)))
+    // 魚アイコンを進捗先端に追従
+    const fishX = 14 + Math.max(10, tw * (st.escape / 100))
+    scene.ebarFishIcon?.setX(fishX)
 
     const rw = Math.max(4, reel.w * (st.reel / 100))
     scene.reelFill.clear()
@@ -110,8 +122,13 @@ export class BattleUI {
     scene.reelFill.fillRoundedRect(reel.x + 4, reel.y + 2, Math.max(0, rw - 8), 4, 3)
     scene.reelValText.setText(String(Math.round(st.reel)))
 
+    const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
     scene.reelCTA.setVisible(!st.isRaging)
+    // 暴れ開始の瞬間にカメラシェイク
+    if (st.isRaging && !wasRaging) {
+      scene.cameras.main.shake(180, 0.009)
+    }
   }
 
   buildScoreBar(initialScore) {

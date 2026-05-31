@@ -90,10 +90,25 @@ export default class GameScene extends Phaser.Scene {
     this.bobberMgr = new BobberManager(this)
     this.bobber = this.bobberMgr.create(W, H)
 
-    // ─── 危険フラッシュ ──────────────────────────────────────────
-    this.dangerFx = this.add
-      .rectangle(W / 2, H / 2, W, H, 0xff1e1e, 0)
-      .setDepth(92)
+    // ─── 危険ビネット（depth 55: 全UI要素の下, 背景より上） ──────
+    this.dangerFx = this.add.graphics().setDepth(55).setAlpha(0)
+    const VIGNETTE_EDGE = 0.22
+    // 上端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0.72, 0.72, 0, 0)
+    this.dangerFx.fillRect(0, 0, W, H * VIGNETTE_EDGE)
+    // 下端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0, 0, 0.72, 0.72)
+    this.dangerFx.fillRect(0, H * (1 - VIGNETTE_EDGE), W, H * VIGNETTE_EDGE)
+    // 左端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0.48, 0, 0.48, 0)
+    this.dangerFx.fillRect(0, 0, W * 0.14, H)
+    // 右端グラデ
+    this.dangerFx.fillGradientStyle(0xff2020, 0xff2020, 0xff2020, 0xff2020, 0, 0.48, 0, 0.48)
+    this.dangerFx.fillRect(W * 0.86, 0, W * 0.14, H)
+
+    // フラグ初期化
+    this._skipNextDown = false
+    this._biteSequenceActive = false
 
     // ─── バトル UI ───────────────────────────────────────────────
     this.battleUI = new BattleUI(this)
@@ -214,7 +229,7 @@ export default class GameScene extends Phaser.Scene {
     this.rageTag.setVisible(false)
     this.hitHint.setVisible(false)
     this.resultOverlay.setVisible(false)
-    this.dangerFx.setFillStyle(0xff1e1e, 0)
+    this.dangerFx.setAlpha(0)
     this.bobber.setVisible(false)
     this.lineGfx.clear()
     this.castGfx.clear()
@@ -328,6 +343,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.phase !== 'wait') return
     this._biteConfig = buildBiteConfig(this.fish)
     this._biteTimers = []
+    this._biteSequenceActive = true
     this._startChonSequence(0)
   }
 
@@ -387,6 +403,7 @@ export default class GameScene extends Phaser.Scene {
 
   _openHitWindow(hitWindowMs = 1200) {
     if (this.phase !== 'wait') return
+    this._biteSequenceActive = false   // ぐんっ！到達 → ちょん中ガードを解除
     // this.fish は _enterWait で決定済み
     this.waitTapActive = true
     this.hitHint.setVisible(true)
@@ -535,13 +552,19 @@ export default class GameScene extends Phaser.Scene {
     this.battlePanel.setVisible(false)
     this.reelCTA.setVisible(false)
     this.rageTag.setVisible(false)
-    this.dangerFx.setFillStyle(0xff0000, 0)
+    this.dangerFx.setAlpha(0)
     this.hintText.setText('')
     this.scoreBar.setY(16)
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
       const sizeCm = this._rollFishSize(this.fish)
+
+      // 釣れた演出
+      this.cameras.main.flash(280, 255, 255, 255, true)
+      this.cameras.main.shake(180, 0.005)
+      const { width: W, height: H } = this.scale
+      this._spawnCaughtConfetti(W, H)
 
       // 累積
       this.totalScore += score
@@ -574,6 +597,28 @@ export default class GameScene extends Phaser.Scene {
       this.cameras.main.flash(400, 255, 0, 0)
     }
     this.resultOverlay.setVisible(true)
+  }
+
+  _spawnCaughtConfetti(W, H) {
+    const items = ['🎉', '✨', '⭐', '🐟', '💫', '🎊']
+    for (let i = 0; i < 9; i++) {
+      const emoji = items[i % items.length]
+      const x = W * 0.15 + (i / 8) * W * 0.70
+      const t = this.add.text(x, H * 0.48, emoji, {
+        fontSize: `${16 + (i % 3) * 8}px`,
+        resolution: TEXT_RES,
+      }).setOrigin(0.5).setDepth(125).setAlpha(1)
+      this.tweens.add({
+        targets: t,
+        y: t.y - 70 - (i % 4) * 25,
+        x: t.x + (i % 2 === 0 ? 1 : -1) * (10 + (i % 3) * 15),
+        alpha: 0,
+        angle: (i % 2 === 0 ? 1 : -1) * 40,
+        duration: 700 + (i % 4) * 120,
+        ease: 'Quad.easeOut',
+        onComplete: () => t.destroy(),
+      })
+    }
   }
 
   _rollFishSize(fish) {
@@ -652,11 +697,11 @@ export default class GameScene extends Phaser.Scene {
       const st   = this.battleState
       const band = dangerBand(st.escape)
       if (band === 'flash') {
-        this.dangerFx.setFillStyle(0xff1e1e, 0.12 + Math.sin(now * 0.006) * 0.10)
+        this.dangerFx.setAlpha(0.35 + Math.sin(now * 0.006) * 0.20)
       } else if (band === 'critical') {
-        this.dangerFx.setFillStyle(0xff0000, 0.28 + Math.sin(now * 0.022) * 0.18)
+        this.dangerFx.setAlpha(0.65 + Math.sin(now * 0.022) * 0.25)
       } else {
-        this.dangerFx.setFillStyle(0xff1e1e, st.isRaging ? 0.06 : 0)
+        this.dangerFx.setAlpha(st.isRaging ? 0.18 : 0)
       }
     }
   }
@@ -666,9 +711,11 @@ export default class GameScene extends Phaser.Scene {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _onDown(pointer) {
     if (pointer.y < 50 && pointer.x < 130) return   // ナビ領域を除外
-    if (this.tackleUI?._openPanel !== null) return   // タックルパネル開時はゲーム入力をブロック
+    if (this._skipNextDown) { this._skipNextDown = false; return }
+    if (this.tackleUI?._openPanel != null) return   // タックルパネル開時はゲーム入力をブロック
 
     if (this.phase === 'result') {
+      // カード外タップで続行（ボタン押下時は _skipNextDown フラグで無効化済み）
       this.resultOverlay.setVisible(false)
       this._enterCast()
       return
@@ -693,6 +740,10 @@ export default class GameScene extends Phaser.Scene {
 
     // 待機中・ちょんちょん中（ぐんっ！前）→ 引き上げ
     if (this.phase === 'wait' && !this.waitTapActive) {
+      if (this._biteSequenceActive) {
+        this.resultUI.toast('もうすぐ食いつく…！')
+        return
+      }
       this._reelUp()
       return
     }
@@ -731,7 +782,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _onUp() {
-    if (this.tackleUI?._openPanel !== null) return   // タックルパネル開時はキャストをブロック
+    if (this.tackleUI?._openPanel != null) return   // タックルパネル開時はキャストをブロック
     if (this.phase !== 'cast' || !this.isCharging) return
     this.isCharging = false
     const power = oscillatePower(this.time.now - this.chargeStartedAt)
@@ -754,6 +805,7 @@ export default class GameScene extends Phaser.Scene {
     this._wt1 = this._wt2 = undefined
     this._chonTween = undefined
     this._approachTween = null
+    this._biteSequenceActive = false
   }
 
   // env.player の選択を this.rod / this.bait に反映

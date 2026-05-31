@@ -101,6 +101,7 @@ export default class MapScene extends Phaser.Scene {
     })
 
     this._showMapHint(W, H)
+    this._buildBackBtn(W, H)
     buildFooterNav(this, W, H, 'home')
   }
 
@@ -460,7 +461,7 @@ export default class MapScene extends Phaser.Scene {
       fontSize: '15px', fontWeight: '700', color: COLOR.TEXT1,
       backgroundColor: '#ffffff',
       padding: { x: 14, y: 9 },
-      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.25)', blur: 2, fill: true },
+      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.25)', blur: 0, fill: true },
     })
       .setOrigin(0, 0)
       .setDepth(200)
