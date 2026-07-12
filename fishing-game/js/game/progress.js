@@ -346,6 +346,31 @@ export function getScore() {
   return parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
 }
 
+// ─── スタミナ（時間回復式）──────────────────────────────────────
+export const STAMINA_MAX = 10
+export const STAMINA_REGEN_MS = 5 * 60 * 1000  // 1回復あたり5分
+
+/** @returns {{ current: number, max: number, nextRegenMs: number }} */
+export function getStaminaState() {
+  const raw = readJson('ainan_stamina', null)
+  if (!raw || typeof raw.value !== 'number' || typeof raw.updatedAt !== 'number') {
+    return { current: STAMINA_MAX, max: STAMINA_MAX, nextRegenMs: 0 }
+  }
+  const elapsed = Math.max(0, Date.now() - raw.updatedAt)
+  const regenerated = Math.floor(elapsed / STAMINA_REGEN_MS)
+  const current = Math.min(STAMINA_MAX, raw.value + regenerated)
+  const nextRegenMs = current >= STAMINA_MAX ? 0 : STAMINA_REGEN_MS - (elapsed % STAMINA_REGEN_MS)
+  return { current, max: STAMINA_MAX, nextRegenMs }
+}
+
+/** スタミナを消費して残量を返す（0未満にはならない） */
+export function consumeStamina(amount = 1) {
+  const { current } = getStaminaState()
+  const next = Math.max(0, current - amount)
+  localStorage.setItem('ainan_stamina', JSON.stringify({ value: next, updatedAt: Date.now() }))
+  return next
+}
+
 export function setScore(score) {
   localStorage.setItem('ainan_score', String(Math.max(0, score)))
 }

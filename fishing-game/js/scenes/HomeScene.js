@@ -4,7 +4,7 @@ import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
-import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress } from '../game/progress.js'
+import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress, getScore, getStaminaState } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -101,9 +101,9 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildResourceBar(W) {
-    const staminaMax = 10
-    const stamina = Math.min(staminaMax, staminaMax)   // TODO: 実装後は実データに差し替え
-    const coins = parseInt(localStorage.getItem('ainan_coins') ?? '500', 10)
+    const { current: stamina, max: staminaMax, nextRegenMs } = getStaminaState()
+    const coins = getScore()
+    const gems = parseInt(localStorage.getItem('ainan_gems') ?? '0', 10)
     const bar = this.add.graphics().setDepth(19)
     bar.fillStyle(0xffffff, 0.82)
     bar.lineStyle(1.5, 0x1a2a3a, 0.18)
@@ -119,18 +119,21 @@ export default class HomeScene extends Phaser.Scene {
     staminaFill.fillStyle(0x22aa55, 0.5)
     staminaFill.fillRoundedRect(48, 76, staminaW, 6, 4)
 
-    this.add.text(24, 86, '⚡', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
-    this.add.text(48 + staminaBarMaxW + 4, 86, `${stamina}/${staminaMax}`, uiText('micro', { fontSize: '11px', color: '#228855' })).setOrigin(0, 0.5).setDepth(20)
+    this.add.text(24, 86, '⚡', { fontSize: '13px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(20)
+    const staminaLabel = nextRegenMs > 0
+      ? `${stamina}/${staminaMax} (${Math.ceil(nextRegenMs / 60000)}分)`
+      : `${stamina}/${staminaMax}`
+    this.add.text(48 + staminaBarMaxW + 4, 86, staminaLabel, uiText('micro', { fontSize: '11px', color: '#228855' })).setOrigin(0, 0.5).setDepth(20)
 
-    // コイン表示
+    // コイン表示（所持ポイントと連動）
     const coinX = W * 0.58
-    this.add.text(coinX, 86, '💰', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
+    this.add.text(coinX, 86, '💰', { fontSize: '13px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(20)
     this.add.text(coinX + 13, 86, this._shortNum(coins), uiText('micro', { fontSize: '12px', color: '#b57115' })).setOrigin(0, 0.5).setDepth(20)
 
-    // ジェム表示
+    // ジェム表示（プレミアム通貨・未実装のため保存値のみ）
     const gemX = W * 0.82
-    this.add.text(gemX, 86, '💎', { fontSize: '13px', resolution: window.devicePixelRatio ?? 1 }).setOrigin(0.5).setDepth(20)
-    this.add.text(gemX + 13, 86, '0', uiText('micro', { fontSize: '12px', color: '#5599cc' })).setOrigin(0, 0.5).setDepth(20)
+    this.add.text(gemX, 86, '💎', { fontSize: '13px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(20)
+    this.add.text(gemX + 13, 86, this._shortNum(gems), uiText('micro', { fontSize: '12px', color: '#5599cc' })).setOrigin(0, 0.5).setDepth(20)
   }
 
   _buildResourceChip(x, y, icon, value) {
