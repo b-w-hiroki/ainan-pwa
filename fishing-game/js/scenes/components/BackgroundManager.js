@@ -1,4 +1,12 @@
 import { C } from '../../config/palette.js'
+import { addCoverImage } from '../../utils/imageLayout.js'
+
+// 釣り場ID → 背景イラストのテクスチャキー
+const POINT_BG_KEYS = {
+  pointA: 'bg_fishing_harbor',
+  pointB: 'bg_fishing_bay',
+  pointC: 'bg_fishing_cape',
+}
 
 /**
  * 背景・プレイヤー・魚影の描画とTween管理を担当するマネージャー。
@@ -20,6 +28,13 @@ export class BackgroundManager {
   // BACKGROUND
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   buildBackground(W, H, pointId = 'pointA') {
+    // 生成済みイラストがあれば画像ベース＋コードアニメのハイブリッド構成
+    const imgKey = POINT_BG_KEYS[pointId]
+    if (imgKey && this.scene.textures.exists(imgKey)) {
+      this._buildImageBackground(W, H, imgKey)
+      return
+    }
+
     const g = this.scene.add.graphics().setDepth(0)
     const theme = this._themeForPoint(pointId)
 
@@ -118,6 +133,16 @@ export class BackgroundManager {
     })
   }
 
+  /** 背景イラストをベースに、水面ストライプアニメの下地だけコードで重ねる */
+  _buildImageBackground(W, H, key) {
+    addCoverImage(this.scene, key, W, H, 0)
+    const g = this.scene.add.graphics().setDepth(1)
+    ;[0.12, 0.28, 0.50, 0.72].forEach((frac, i) => {
+      g.fillStyle(0xffffff, 0.10 - i * 0.02)
+      g.fillRect(0, H * 0.22 + H * 0.62 * frac, W, 3)
+    })
+  }
+
   _themeForPoint(pointId) {
     const themes = {
       pointA: {
@@ -168,9 +193,15 @@ export class BackgroundManager {
   /** プレイヤーを描画し、{ anchorX, anchorY, castRangePx, shaftDisplayPx } を返す */
   buildPlayer(W, H) {
     const scene = this.scene
-    const g = scene.add.graphics().setDepth(40)
     const cx = W * 0.50
     const by = H * 0.84
+
+    // 生成済みキャラ立ち絵があれば画像＋コード描画の竿で構成
+    if (scene.textures.exists('ch_player_default')) {
+      return this._buildImagePlayer(cx, by, H)
+    }
+
+    const g = scene.add.graphics().setDepth(40)
 
     // 影
     g.fillStyle(0x000000, 0.10)
@@ -221,6 +252,43 @@ export class BackgroundManager {
     g.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
     g.lineStyle(1.5, 0x5a4000, 1)
     g.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
+
+    return {
+      anchorX:        rodTip.x,
+      anchorY:        rodTip.y,
+      castRangePx:    H * 0.65,
+      shaftDisplayPx: Math.min(H * 0.17, 120),
+    }
+  }
+
+  /**
+   * キャラ立ち絵＋コード描画の竿。
+   * 立ち絵は竿を持っていないため、右手付近から竿だけ Graphics で突き出す。
+   */
+  _buildImagePlayer(cx, by, H) {
+    const scene = this.scene
+    const src   = scene.textures.get('ch_player_default').getSourceImage()
+    const dispH = H * 0.20
+    const scale = dispH / src.height
+    const dispW = src.width * scale
+
+    const shadow = scene.add.graphics().setDepth(40)
+    shadow.fillStyle(0x000000, 0.12)
+    shadow.fillEllipse(cx, by + 2, dispW * 0.85, 10)
+
+    scene.add.image(cx, by, 'ch_player_default')
+      .setOrigin(0.5, 1)
+      .setDisplaySize(dispW, dispH)
+      .setDepth(41)
+
+    // 竿：右手付近から右上へ（旧 Graphics 版とほぼ同じ比率）
+    const rodBase = { x: cx + dispW * 0.30, y: by - dispH * 0.40 }
+    const rodTip  = { x: cx + dispW * 1.10, y: by - dispH * 0.98 }
+    const rod = scene.add.graphics().setDepth(42)
+    rod.lineStyle(4, 0xe8c040, 1)
+    rod.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
+    rod.lineStyle(1.5, 0x5a4000, 1)
+    rod.lineBetween(rodBase.x, rodBase.y, rodTip.x, rodTip.y)
 
     return {
       anchorX:        rodTip.x,

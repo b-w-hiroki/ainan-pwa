@@ -24,7 +24,8 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
+import { consumeStamina, getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
+import { ASSETS } from '../config/assetManifest.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const RARITY_SIZE = {
@@ -34,8 +35,33 @@ const RARITY_SIZE = {
   legendary: [80, 135],
 }
 
+// fish.id → アイコンテクスチャキー（未生成の間は emoji フォールバック）
+const FISH_ICON_KEYS = {
+  aji:  'fish_aji_icon',
+  tai:  'fish_madai_icon',
+  bass: 'fish_black_bass_icon',
+  buri: 'fish_buri_icon',
+  kue:  'fish_kue_icon',
+}
+
 export default class GameScene extends Phaser.Scene {
   constructor() { super({ key: 'GameScene' }) }
+
+  preload() {
+    // status が ready のアセットだけ読み込む（planned は 404 になるため除外）
+    const wanted = [
+      ASSETS.characters.playerDefault,
+      ASSETS.backgrounds.fishingHarbor,
+      ASSETS.backgrounds.fishingBay,
+      ASSETS.backgrounds.fishingCape,
+      ...Object.values(ASSETS.fish),
+    ]
+    wanted.forEach(asset => {
+      if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
+        this.load.image(asset.key, asset.path)
+      }
+    })
+  }
 
   create(data = {}) {
     const { width: W, height: H } = this.scale
@@ -55,6 +81,9 @@ export default class GameScene extends Phaser.Scene {
     this.fish = selectFish(this.env)
     this.rod  = DEFAULT_ROD
     this.bait = DEFAULT_BAIT
+
+    // 釣りセッション開始でスタミナ1消費（0でもプレイは可能・ソフト制限）
+    consumeStamina(1)
 
     // スコア・釣果（localStorage から復元、シーン再起動時は引き継ぐ）
     this.totalScore = parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
@@ -416,14 +445,51 @@ export default class GameScene extends Phaser.Scene {
       duration: 400, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
+    // 残り時間リング（タップ猶予の視覚化）
+    this._startHitRing(hitWindowMs)
+
     // hitWindowMs 以内にタップなし → 逃げた
     this._wt2 = this.time.delayedCall(hitWindowMs, () => {
       if (this.phase !== 'wait' || !this.waitTapActive) return
       this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
+      this._stopHitRing()
       this.waitTapActive = false
       this.hitHint.setVisible(false)
       this._onMiss()
     })
+  }
+
+  // ─── ヒット猶予リング ─────────────────────────────────────────
+  _startHitRing(durationMs) {
+    this._stopHitRing()
+    const x = this.hitHint.x
+    const y = this._hitHintBaseY
+    const RADIUS = 46
+    this._hitRingGfx = this.add.graphics().setDepth(49)
+    const state = { t: 1 }
+    this._hitRingTween = this.tweens.add({
+      targets: state, t: 0, duration: durationMs,
+      onUpdate: () => {
+        const g = this._hitRingGfx
+        if (!g) return
+        g.clear()
+        // ガイド円（薄い全周）
+        g.lineStyle(2, 0xffffff, 0.35)
+        g.strokeCircle(x, y, RADIUS)
+        // 残り時間アーク（半分を切ると警告色に）
+        const color = state.t > 0.5 ? 0xffd900 : 0xff5030
+        g.lineStyle(6, color, 0.92)
+        g.beginPath()
+        g.arc(x, y, RADIUS, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * state.t, false)
+        g.strokePath()
+      },
+      onComplete: () => this._stopHitRing(),
+    })
+  }
+
+  _stopHitRing() {
+    this._hitRingTween?.stop(); this._hitRingTween?.destroy(); this._hitRingTween = null
+    this._hitRingGfx?.destroy(); this._hitRingGfx = null
   }
 
   // ─── 任意タップによる引き上げ ────────────────────────────────
@@ -577,19 +643,20 @@ export default class GameScene extends Phaser.Scene {
 
       this.resultUI.drawResultStripe('caught')
       this.resLabel.setText('✦ GET! ✦')
-      this.resEmoji.setText(this.fish.emoji).setAngle(0)
+      this._showResultFishVisual(this.fish)
       this.resName.setText(this.fish.name)
       this.resPts.setText(`${sizeCm}cm  +${score}pt`)
       this.resHint.setText('タップで続ける / 図鑑に記録')
 
       this.resultEmojiTween?.destroy()
       this.resultEmojiTween = this.tweens.add({
-        targets: this.resEmoji, angle: 8,
+        targets: this.resIcon ?? this.resEmoji, angle: 8,
         duration: 500, yoyo: true, repeat: -1, ease: 'Sine.inOut',
       })
     } else {
       this.resultUI.drawResultStripe('escaped')
       this.resLabel.setText('✕ ESCAPED ✕')
+      this._clearResultFishIcon()
       this.resEmoji.setText('💨').setAngle(0)
       this.resName.setText('逃げられた…')
       this.resPts.setText('竿やエサを強化すると安定する')
@@ -619,6 +686,24 @@ export default class GameScene extends Phaser.Scene {
         onComplete: () => t.destroy(),
       })
     }
+  }
+
+  /** 魚アイコン画像があれば画像を、なければ emoji を表示する */
+  _showResultFishVisual(fish) {
+    this._clearResultFishIcon()
+    const iconKey = FISH_ICON_KEYS[fish.id]
+    if (iconKey && this.textures.exists(iconKey)) {
+      this.resEmoji.setText('')
+      this.resIcon = this.add.image(0, -24, iconKey).setDisplaySize(76, 76).setAngle(0)
+      this.resultOverlay.add(this.resIcon)
+    } else {
+      this.resEmoji.setText(fish.emoji).setAngle(0)
+    }
+  }
+
+  _clearResultFishIcon() {
+    this.resIcon?.destroy()
+    this.resIcon = null
   }
 
   _rollFishSize(fish) {
@@ -728,6 +813,7 @@ export default class GameScene extends Phaser.Scene {
         this.waitTapActive = false
         this.hitHint.setVisible(false)
         this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
+        this._stopHitRing()
         this._wt2?.remove(false); this._wt2 = undefined
         this.resultUI.toast('空振り！')
         this._onMiss()
@@ -806,6 +892,7 @@ export default class GameScene extends Phaser.Scene {
     this._chonTween = undefined
     this._approachTween = null
     this._biteSequenceActive = false
+    this._stopHitRing()
   }
 
   // env.player の選択を this.rod / this.bait に反映
