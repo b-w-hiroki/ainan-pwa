@@ -1,129 +1,153 @@
-﻿import { FONT, SHADOW } from '../../config/fontStyles.js'
-import { C, CS, COLOR } from '../../config/palette.js'
+import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 export class ResultUI {
-  /** @param {Phaser.Scene} scene */
   constructor(scene) {
     this.scene = scene
   }
 
   buildResultOverlay(W, H) {
     const scene = this.scene
-    scene.resultOverlay = scene.add
-      .container(W / 2, H * 0.42)
-      .setDepth(120)
-      .setVisible(false)
+    scene.resultOverlay = scene.add.container(W / 2, H * 0.42).setDepth(120).setVisible(false)
 
-    // カード本体
+    const glow = scene.add.graphics()
+    glow.fillStyle(0xffffff, 0.20)
+    glow.fillCircle(0, 0, 176)
+    glow.fillStyle(0xdff5ff, 0.22)
+    glow.fillCircle(0, 0, 150)
+
     const card = scene.add.graphics()
-    card.fillStyle(0xffffff, 1)
-    card.lineStyle(4, C.OUTLINE, 1)
-    card.fillRoundedRect(-150, -100, 300, 200, 18)
-    card.strokeRoundedRect(-150, -100, 300, 200, 18)
+    card.fillStyle(0x173248, 0.16)
+    card.fillRoundedRect(-157, -105, 314, 234, 26)
+    card.fillStyle(0xf8fdff, 0.99)
+    card.lineStyle(3, 0x9bcfe5, 1)
+    card.fillRoundedRect(-154, -110, 308, 234, 26)
+    card.strokeRoundedRect(-154, -110, 308, 234, 26)
+    card.fillStyle(0xdff5ff, 0.92)
+    card.fillRoundedRect(-142, -98, 284, 42, 18)
+    card.fillStyle(0xffffff, 0.56)
+    card.fillRoundedRect(-132, -91, 264, 10, 6)
 
-    // カラーヘッダーストライプ（catch=緑 / escape=赤）
     scene.resStripe = scene.add.graphics()
 
-    scene.resLabel = scene.add.text(0, -78, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff',
-      shadow: SHADOW.medium,
+    scene.resLabel = scene.add.text(0, -76, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffffff',
+      shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
-    scene.resEmoji = scene.add.text(0, -24, '', { fontSize: '52px' }).setOrigin(0.5)
+    const catchBadge = scene.add.graphics()
+    catchBadge.fillStyle(0xffffff, 0.96)
+    catchBadge.lineStyle(2, 0x9bcfe5, 0.75)
+    catchBadge.fillCircle(0, -21, 43)
+    catchBadge.strokeCircle(0, -21, 43)
+
+    scene.resEmoji = scene.add.text(0, -21, '', { fontSize: '58px', resolution: TEXT_RES }).setOrigin(0.5)
 
     scene.resName = scene.add.text(0, 34, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontWeight: '700', color: '#1a3a5a',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
 
-    scene.resPts = scene.add.text(0, 64, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '700', color: '#00aa44',
+    scene.resPts = scene.add.text(0, 65, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5)
 
-    scene.resHint = scene.add.text(0, 88, 'または下のボタンから選ぶ', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '700', color: '#8aa5bb',
+    scene.resHint = scene.add.text(0, 91, '次の行き先を選ぼう', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5)
 
-    // ─── 3択ボタン ────────────────────────────────────────────
-    const BTN_W = 84, BTN_H = 36, BTN_GAP = 8
+    const BTN_W = 86, BTN_H = 42, BTN_GAP = 8
     const totalBtnW = BTN_W * 3 + BTN_GAP * 2
     const btnStartX = -totalBtnW / 2
-    const btnY = 108
+    const btnY = 112
 
-    const makeNavBtn = (x, emoji, label, action) => {
+    const makeNavBtn = (x, emoji, label, action, primary = false) => {
       const bg = scene.add.graphics()
-      const drawBg = (hover) => {
+      const drawBg = (mode = 'idle') => {
+        const pressed = mode === 'press'
+        const hover = mode === 'hover'
         bg.clear()
-        bg.fillStyle(hover ? 0xd0f0ff : 0xffffff, 0.97)
-        bg.lineStyle(2, C.OUTLINE, 0.75)
-        bg.fillRoundedRect(x, btnY, BTN_W, BTN_H, 10)
-        bg.strokeRoundedRect(x, btnY, BTN_W, BTN_H, 10)
+        bg.fillStyle(0x173248, pressed ? 0.08 : 0.13)
+        bg.fillRoundedRect(x + 2, btnY + (pressed ? 3 : 5), BTN_W, BTN_H, 14)
+        bg.fillStyle(primary ? (hover ? 0xffe78d : 0xffd95a) : (hover ? 0xdff5ff : 0xffffff), 0.99)
+        bg.lineStyle(2, primary ? 0x173248 : 0x9bcfe5, 0.9)
+        bg.fillRoundedRect(x, btnY + (pressed ? 2 : 0), BTN_W, BTN_H, 14)
+        bg.strokeRoundedRect(x, btnY + (pressed ? 2 : 0), BTN_W, BTN_H, 14)
       }
-      drawBg(false)
-      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${emoji}\n${label}`, {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: '11px', fontWeight: '700', color: '#1a3a5a',
-        align: 'center', lineSpacing: 2,
+      drawBg()
+      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${emoji} ${label}`, {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink,
+        align: 'center',
       }).setOrigin(0.5)
       const hit = scene.add.rectangle(x + BTN_W / 2, btnY + BTN_H / 2, BTN_W + 4, BTN_H + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => { scene._skipNextDown = true; action() })
-        .on('pointerover', () => drawBg(true))
-        .on('pointerout',  () => drawBg(false))
+        .on('pointerdown', () => drawBg('press'))
+        .on('pointerup', () => { scene._skipNextDown = true; action() })
+        .on('pointerover', () => drawBg('hover'))
+        .on('pointerout', () => drawBg())
       return [bg, txt, hit]
     }
 
-    const b1 = makeNavBtn(btnStartX,                    '🔁', 'もう一度', () => { scene.resultOverlay.setVisible(false); scene._enterCast() })
-    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP,  '🗺', 'マップへ', () => { scene._cleanup(); scene.scene.start('MapScene') })
-    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '🏠', 'ホームへ', () => { scene._cleanup(); scene.scene.start('HomeScene') })
+    const b1 = makeNavBtn(btnStartX, '↻', 'もう一度', () => { scene.resultOverlay.setVisible(false); scene._enterCast() }, true)
+    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP, '⌖', 'マップ', () => { scene._cleanup(); scene.scene.start('MapScene') })
+    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '⌂', 'ホーム', () => { scene._cleanup(); scene.scene.start('HomeScene') })
 
-    scene.resultOverlay.add([card, scene.resStripe, scene.resLabel, scene.resEmoji, scene.resName, scene.resPts, scene.resHint, ...b1, ...b2, ...b3])
+    scene.resultOverlay.add([glow, card, scene.resStripe, scene.resLabel, catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint, ...b1, ...b2, ...b3])
   }
 
-  /** ヘッダーストライプを描画する（caught=green / escaped=red） */
   drawResultStripe(outcome) {
     const g = this.scene.resStripe
     if (!g) return
     g.clear()
-    const color = outcome === 'caught' ? 0x00aa44 : 0xcc2222
+    const color = outcome === 'caught' ? 0x2caf72 : 0xff765a
     g.fillStyle(color, 1)
-    g.fillRoundedRect(-150, -100, 300, 42, { tl: 18, tr: 18, bl: 0, br: 0 })
+    g.fillRoundedRect(-142, -98, 284, 42, 18)
+    g.fillStyle(0xffffff, 0.28)
+    g.fillRoundedRect(-130, -91, 260, 9, 5)
   }
 
   toast(msg) {
     const { width: W, height: H } = this.scene.scale
+    const bg = this.scene.add.graphics().setDepth(99)
+    bg.fillStyle(0x173248, 0.92)
+    bg.fillRoundedRect(W / 2 - 128, H * 0.38 - 24, 256, 48, 18)
     const t = this.scene.add.text(W / 2, H * 0.38, msg, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '22px', fontWeight: '700',
-      color: '#ffffff',
-      shadow: SHADOW.strong,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5).setDepth(100)
     this.scene.tweens.add({
-      targets: t, alpha: 0, y: t.y - 30, duration: 700, onComplete: () => t.destroy(),
+      targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() },
     })
   }
 
   buildBackBtn(W, H) {
     const scene = this.scene
-    const btn = scene.add.text(16, H - 16, `${ICONS.BACK} マップへ`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
-      color: CS, backgroundColor: COLOR.WHITE,
-      padding: { x: 14, y: 9 },
-      shadow: { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.3)', blur: 0, fill: true },
-    })
-      .setOrigin(0, 1)
-      .setDepth(200)
+    const c = scene.add.container(18, H - 18).setDepth(200)
+    const bg = scene.add.graphics()
+    const draw = (hover = false) => {
+      bg.clear()
+      bg.fillStyle(0x173248, 0.12)
+      bg.fillRoundedRect(2, -40, 120, 40, 14)
+      bg.fillStyle(hover ? 0xdff5ff : 0xf8fdff, 0.98)
+      bg.lineStyle(2, 0x9bcfe5, 0.92)
+      bg.fillRoundedRect(0, -43, 120, 40, 14)
+      bg.strokeRoundedRect(0, -43, 120, 40, 14)
+    }
+    draw()
+    const txt = scene.add.text(60, -23, `${ICONS.BACK} マップへ`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
+    }).setOrigin(0.5)
+    const hit = scene.add.rectangle(60, -23, 124, 44, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', (p) => {
         p.event.stopPropagation()
         scene._cleanup()
         scene.scene.start('MapScene')
       })
-      .on('pointerover', () => btn.setStyle({ backgroundColor: '#d0f0ff' }))
-      .on('pointerout',  () => btn.setStyle({ backgroundColor: COLOR.WHITE }))
-
-    this._backBtn = btn
+      .on('pointerover', () => draw(true))
+      .on('pointerout', () => draw(false))
+    c.add([bg, txt, hit])
+    this._backBtn = c
   }
 
   destroy() {
