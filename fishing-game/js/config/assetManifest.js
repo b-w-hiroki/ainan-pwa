@@ -15,6 +15,21 @@ export const ASSETS = {
       path: '/fishing-game/assets/backgrounds/bg_map_town.png',
       status: 'ready',
     },
+    townQuiet: {
+      key: 'bg_town_quiet',
+      path: '/fishing-game/assets/backgrounds/bg_town_quiet.png',
+      status: 'planned',
+    },
+    townGrowing: {
+      key: 'bg_town_growing',
+      path: '/fishing-game/assets/backgrounds/bg_town_growing.png',
+      status: 'planned',
+    },
+    townBustling: {
+      key: 'bg_town_bustling',
+      path: '/fishing-game/assets/backgrounds/bg_town_bustling.png',
+      status: 'planned',
+    },
     fishingHarbor: {
       key: 'bg_fishing_harbor',
       path: '/fishing-game/assets/backgrounds/bg_fishing_harbor.png',
@@ -46,6 +61,48 @@ export const ASSETS = {
       key: 'ch_player_default_ui',
       path: '/fishing-game/assets/characters/ch_player_default_ui.png',
       status: 'ready',
+    },
+    fishmonger: {
+      key: 'ch_npc_fishmonger',
+      path: '/fishing-game/assets/characters/ch_npc_fishmonger.png',
+      status: 'planned',
+    },
+    dinerOwner: {
+      key: 'ch_npc_diner_owner',
+      path: '/fishing-game/assets/characters/ch_npc_diner_owner.png',
+      status: 'planned',
+    },
+    youngFisher: {
+      key: 'ch_npc_young_fisher',
+      path: '/fishing-game/assets/characters/ch_npc_young_fisher.png',
+      status: 'planned',
+    },
+    harborCaptain: {
+      key: 'ch_npc_harbor_captain',
+      path: '/fishing-game/assets/characters/ch_npc_harbor_captain.png',
+      status: 'planned',
+    },
+  },
+  facilities: {
+    fishShop: {
+      key: 'town_facility_fish_shop',
+      path: '/fishing-game/assets/town/town_facility_fish_shop.png',
+      status: 'planned',
+    },
+    diner: {
+      key: 'town_facility_diner',
+      path: '/fishing-game/assets/town/town_facility_diner.png',
+      status: 'planned',
+    },
+    market: {
+      key: 'town_facility_market',
+      path: '/fishing-game/assets/town/town_facility_market.png',
+      status: 'planned',
+    },
+    pier: {
+      key: 'town_facility_pier',
+      path: '/fishing-game/assets/town/town_facility_pier.png',
+      status: 'planned',
     },
   },
   fish: {
@@ -79,6 +136,16 @@ export const ASSETS = {
     resultFrame: {
       key: 'ui_result_frame',
       path: '/fishing-game/assets/ui/ui_result_frame.png',
+      status: 'planned',
+    },
+    panelHarbor: {
+      key: 'ui_panel_harbor',
+      path: '/fishing-game/assets/ui/ui_panel_harbor.png',
+      status: 'planned',
+    },
+    buttonPrimary: {
+      key: 'ui_button_primary',
+      path: '/fishing-game/assets/ui/ui_button_primary.png',
       status: 'planned',
     },
     spotPinHarbor: {
