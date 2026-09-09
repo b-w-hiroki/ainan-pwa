@@ -1,36 +1,54 @@
-﻿export const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
-export const OUTLINE = '#1a2a3a'
+export const FONT = 'Nunito, "M PLUS Rounded 1c", system-ui, sans-serif'
+
+export const UI_COLORS = {
+  ink: '#173248',
+  inkSoft: '#45687f',
+  ocean: '#2f9ed4',
+  oceanDeep: '#1f6f9f',
+  oceanPale: '#dff5ff',
+  foam: '#f8fdff',
+  sand: '#fff5d9',
+  sun: '#ffd95a',
+  coral: '#ff765a',
+  mint: '#71d6a2',
+  line: '#9bcfe5',
+  muted: '#718392',
+  success: '#2caf72',
+  warning: '#d98519',
+}
+
+export const OUTLINE = UI_COLORS.ink
 
 export const SHADOW = {
-  strong: { offsetX: 2, offsetY: 2, color: 'rgba(0,0,0,0.50)', blur: 0,  fill: true },
-  medium: { offsetX: 1, offsetY: 2, color: 'rgba(0,0,0,0.35)', blur: 0,  fill: true },
-  soft:   { offsetX: 1, offsetY: 1, color: 'rgba(0,0,0,0.22)', blur: 0,  fill: true },
-  subtle: { offsetX: 0, offsetY: 1, color: 'rgba(0,0,0,0.12)', blur: 0,  fill: true },
+  strong: { offsetX: 0, offsetY: 3, color: 'rgba(23,50,72,0.34)', blur: 0, fill: true },
+  medium: { offsetX: 0, offsetY: 2, color: 'rgba(23,50,72,0.22)', blur: 0, fill: true },
+  soft: { offsetX: 0, offsetY: 1, color: 'rgba(23,50,72,0.14)', blur: 0, fill: true },
+  subtle: { offsetX: 0, offsetY: 1, color: 'rgba(23,50,72,0.08)', blur: 0, fill: true },
 }
 
 export const TITLE_SHADOW = SHADOW.medium
 
 export const TYPE = {
   display: { fontFamily: FONT, fontSize: '52px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.strong },
-  h1:      { fontFamily: FONT, fontSize: '30px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.medium },
-  h2:      { fontFamily: FONT, fontSize: '22px', fontWeight: '800', color: '#1a3a5a' },
-  h3:      { fontFamily: FONT, fontSize: '18px', fontWeight: '700', color: '#1a3a5a' },
-  body:    { fontFamily: FONT, fontSize: '16px', fontWeight: '800', color: '#1a3a5a' },
-  label:   { fontFamily: FONT, fontSize: '14px', fontWeight: '900', color: '#4a7090' },
-  caption: { fontFamily: FONT, fontSize: '13px', fontWeight: '800', color: '#4a7090' },
-  badge:   { fontFamily: FONT, fontSize: '13px', fontWeight: '900', color: '#1a2a3a' },
+  h1: { fontFamily: FONT, fontSize: '30px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle },
+  h2: { fontFamily: FONT, fontSize: '22px', fontWeight: '900', color: UI_COLORS.ink },
+  h3: { fontFamily: FONT, fontSize: '18px', fontWeight: '900', color: UI_COLORS.ink },
+  body: { fontFamily: FONT, fontSize: '16px', fontWeight: '800', color: UI_COLORS.ink },
+  label: { fontFamily: FONT, fontSize: '14px', fontWeight: '900', color: UI_COLORS.inkSoft },
+  caption: { fontFamily: FONT, fontSize: '13px', fontWeight: '800', color: UI_COLORS.inkSoft },
+  badge: { fontFamily: FONT, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink },
 }
 
 export const UI_TEXT = {
-  screenTitle: { fontSize: '30px', fontWeight: '900', color: '#1a3a5a', shadow: SHADOW.subtle },
-  screenLead:  { fontSize: '15px', fontWeight: '900', color: '#45687f' },
-  panelTitle:  { fontSize: '23px', fontWeight: '900', color: '#1a3a5a' },
-  panelMeta:   { fontSize: '13px', fontWeight: '900', color: '#d56f00' },
-  cardTitle:   { fontSize: '15px', fontWeight: '900', color: '#1a3a5a' },
-  cardMeta:    { fontSize: '13px', fontWeight: '900', color: '#d56f00' },
-  chip:        { fontSize: '14px', fontWeight: '900', color: '#1a2a3a' },
-  micro:       { fontSize: '12px', fontWeight: '900', color: '#4a7090' },
-  button:      { fontSize: '14px', fontWeight: '900', color: '#1a2a3a' },
+  screenTitle: { fontSize: '30px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle },
+  screenLead: { fontSize: '15px', fontWeight: '900', color: UI_COLORS.inkSoft },
+  panelTitle: { fontSize: '23px', fontWeight: '900', color: UI_COLORS.ink },
+  panelMeta: { fontSize: '13px', fontWeight: '900', color: UI_COLORS.warning },
+  cardTitle: { fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink },
+  cardMeta: { fontSize: '13px', fontWeight: '900', color: UI_COLORS.warning },
+  chip: { fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink },
+  micro: { fontSize: '12px', fontWeight: '900', color: UI_COLORS.inkSoft },
+  button: { fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink },
 }
 
 export function uiText(preset, overrides = {}) {
@@ -46,32 +64,32 @@ export const FONT_STYLES = {
   title: {
     fontFamily: FONT,
     fontSize: '42px',
-    fontWeight: '700',
-    color: '#1a3a5a',
-    shadow: SHADOW.medium,
+    fontWeight: '900',
+    color: UI_COLORS.ink,
+    shadow: SHADOW.subtle,
   },
   button: {
     fontFamily: FONT,
     fontSize: '22px',
-    fontWeight: '700',
-    color: '#1a2a3a',
+    fontWeight: '900',
+    color: UI_COLORS.ink,
   },
   body: {
     fontFamily: FONT,
     fontSize: '17px',
-    fontWeight: '700',
-    color: '#1a3a5a',
+    fontWeight: '800',
+    color: UI_COLORS.ink,
   },
   scoreValue: {
     fontFamily: FONT,
     fontSize: '22px',
-    fontWeight: '700',
-    color: '#e07800',
+    fontWeight: '900',
+    color: UI_COLORS.warning,
   },
   scoreLabel: {
     fontFamily: FONT,
     fontSize: '13px',
-    fontWeight: '700',
-    color: '#4a7090',
+    fontWeight: '800',
+    color: UI_COLORS.inkSoft,
   },
 }
