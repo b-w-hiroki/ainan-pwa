@@ -20,18 +20,18 @@ export const ASSETS = {
     },
     townQuiet: {
       key: 'bg_town_quiet',
-      path: assetPath('fishing-game/assets/backgrounds/bg_town_quiet.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_town_quiet.svg'),
+      status: 'ready',
     },
     townGrowing: {
       key: 'bg_town_growing',
-      path: assetPath('fishing-game/assets/backgrounds/bg_town_growing.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_town_growing.svg'),
+      status: 'ready',
     },
     townBustling: {
       key: 'bg_town_bustling',
-      path: assetPath('fishing-game/assets/backgrounds/bg_town_bustling.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_town_bustling.svg'),
+      status: 'ready',
     },
     fishingHarbor: {
       key: 'bg_fishing_harbor',
