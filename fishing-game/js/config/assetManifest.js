@@ -35,18 +35,18 @@ export const ASSETS = {
     },
     fishingHarbor: {
       key: 'bg_fishing_harbor',
-      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_harbor.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_harbor.svg'),
+      status: 'ready',
     },
     fishingBay: {
       key: 'bg_fishing_bay',
-      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_bay.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_bay.svg'),
+      status: 'ready',
     },
     fishingCape: {
       key: 'bg_fishing_cape',
-      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_cape.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/backgrounds/bg_fishing_cape.svg'),
+      status: 'ready',
     },
   },
   characters: {
