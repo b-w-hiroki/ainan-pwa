@@ -3,6 +3,7 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { getCatches, markLicenseFlag } from '../game/progress.js'
+import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -56,6 +57,7 @@ export default class MapScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._detailPanel = null
     this._dismissLayer = null
+    this._unlocks = getTownUnlockState()
     this._buildMapBackground(W, H)
     this._buildHeader(W)
     this._buildRouteLine(W, H)
@@ -77,7 +79,7 @@ export default class MapScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900',
       color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2 + 18, 99, '場所ごとに魚と景色が変わる', {
+    this.add.text(W / 2 + 18, 99, `町を育てて海を広げる  ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -141,13 +143,14 @@ export default class MapScene extends Phaser.Scene {
 
   _buildRouteLine(W, H) {
     const shadow = this.add.graphics().setDepth(2.4)
-    shadow.lineStyle(5, 0x173248, 0.16)
     const line = this.add.graphics().setDepth(2.5)
-    line.lineStyle(3, 0xffffff, 0.76)
     for (let i = 0; i < FISHING_POINTS.length - 1; i++) {
       const a = FISHING_POINTS[i]
       const b = FISHING_POINTS[i + 1]
+      const targetUnlocked = this._unlocks.points[b.id]?.unlocked ?? true
       const x1 = W * a.pos.x, y1 = H * a.pos.y, x2 = W * b.pos.x, y2 = H * b.pos.y
+      shadow.lineStyle(5, 0x173248, targetUnlocked ? 0.16 : 0.08)
+      line.lineStyle(3, targetUnlocked ? 0xffffff : 0x9caab0, targetUnlocked ? 0.76 : 0.42)
       this._drawDashedLine(shadow, x1, y1 + 2, x2, y2 + 2, 10, 8)
       this._drawDashedLine(line, x1, y1, x2, y2, 10, 8)
     }
@@ -163,60 +166,70 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _showMapHint(W, H) {
+    const nextLocked = Object.values(this._unlocks.points).find(p => !p.unlocked)
+    const label = nextLocked ? `次の海: ${nextLocked.unlockedBy}` : 'すべての釣り場を解放済み'
     const g = this.add.graphics().setDepth(4)
-    g.fillStyle(0xf8fdff, 0.90)
+    g.fillStyle(0xf8fdff, 0.92)
     g.lineStyle(1.5, 0x9bcfe5, 0.8)
-    g.fillRoundedRect(W / 2 - 110, H - 112, 220, 34, 16)
-    g.strokeRoundedRect(W / 2 - 110, H - 112, 220, 34, 16)
-    this.add.text(W / 2, H - 95, 'ピンをタップして釣り場を確認', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
+    g.fillRoundedRect(W / 2 - 126, H - 112, 252, 34, 16)
+    g.strokeRoundedRect(W / 2 - 126, H - 112, 252, 34, 16)
+    this.add.text(W / 2, H - 95, label, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5).setDepth(5)
   }
 
   _buildPointMarker(point, W, H, index) {
     const x = W * point.pos.x, y = H * point.pos.y
+    const unlock = this._unlocks.points[point.id] ?? getFishingPointUnlock(point.id)
     const marker = this.add.container(x, y).setDepth(6)
     const pulse = this.add.graphics()
-    pulse.fillStyle(point.accent, 0.18)
+    pulse.fillStyle(unlock.unlocked ? point.accent : 0x7c8990, unlock.unlocked ? 0.18 : 0.10)
     pulse.fillCircle(0, 0, 38)
 
     const pinAsset = POINT_PIN[point.id]
     const pin = this.add.image(0, -6, pinAsset.key).setDisplaySize(58, 72)
+    if (!unlock.unlocked) pin.setTint(0x7d8b91).setAlpha(0.58)
+
     const numBg = this.add.graphics()
-    numBg.fillStyle(0x173248, 0.82)
-    numBg.fillCircle(21, -28, 11)
-    const num = this.add.text(21, -28, `${index + 1}`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#ffffff',
+    numBg.fillStyle(unlock.unlocked ? 0x173248 : 0x65747b, 0.88)
+    numBg.fillCircle(21, -28, 12)
+    const num = this.add.text(21, -28, unlock.unlocked ? `${index + 1}` : '×', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: unlock.unlocked ? '9px' : '12px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5)
 
     const nameBg = this.add.graphics()
     nameBg.fillStyle(0xf8fdff, 0.96)
-    nameBg.lineStyle(1.5, point.accent, 0.86)
-    nameBg.fillRoundedRect(-45, 30, 90, 27, 11)
-    nameBg.strokeRoundedRect(-45, 30, 90, 27, 11)
-    const name = this.add.text(0, 43, point.name, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
+    nameBg.lineStyle(1.5, unlock.unlocked ? point.accent : 0xa6b2b8, 0.86)
+    nameBg.fillRoundedRect(-48, 30, 96, 29, 11)
+    nameBg.strokeRoundedRect(-48, 30, 96, 29, 11)
+    const name = this.add.text(0, 40, point.name, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
+    }).setOrigin(0.5)
+    const status = this.add.text(0, 52, unlock.unlocked ? 'OPEN' : 'LOCKED', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '7px', fontWeight: '900', color: unlock.unlocked ? '#2c9a68' : '#7d8b91',
     }).setOrigin(0.5)
 
-    const hit = this.add.circle(0, 0, 42, 0x000000, 0)
+    const hit = this.add.circle(0, 0, 44, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => this._showPointDetail(point))
+      .on('pointerdown', () => this._showPointDetail(point, unlock))
       .on('pointerover', () => marker.setScale(1.07))
       .on('pointerout', () => marker.setScale(1))
 
-    marker.add([pulse, pin, numBg, num, nameBg, name, hit])
-    this.tweens.add({ targets: pulse, scaleX: 1.18, scaleY: 1.18, alpha: 0.32, duration: 900 + index * 120, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
-    this.tweens.add({ targets: pin, y: pin.y - 3, duration: 1250 + index * 140, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    marker.add([pulse, pin, numBg, num, nameBg, name, status, hit])
+    if (unlock.unlocked) {
+      this.tweens.add({ targets: pulse, scaleX: 1.18, scaleY: 1.18, alpha: 0.32, duration: 900 + index * 120, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+      this.tweens.add({ targets: pin, y: pin.y - 3, duration: 1250 + index * 140, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    }
   }
 
-  _showPointDetail(point) {
+  _showPointDetail(point, unlock = getFishingPointUnlock(point.id)) {
     const { width: W, height: H } = this.scale
     this._closePointDetail()
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
 
-    const x = W * 0.05, y = H - 276, w = W * 0.90, h = 192
+    const x = W * 0.05, y = H - 288, w = W * 0.90, h = 204
     const items = []
     this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(19).setInteractive().on('pointerdown', () => this._closePointDetail())
 
@@ -225,51 +238,61 @@ export default class MapScene extends Phaser.Scene {
     sh.fillRoundedRect(x + 3, y + 5, w, h, 22)
     const bg = this.add.graphics()
     bg.fillStyle(0xf8fdff, 0.99)
-    bg.lineStyle(2.2, 0x9bcfe5, 0.92)
+    bg.lineStyle(2.2, unlock.unlocked ? 0x9bcfe5 : 0xa9b4ba, 0.92)
     bg.fillRoundedRect(x, y, w, h, 22)
     bg.strokeRoundedRect(x, y, w, h, 22)
-    bg.fillStyle(point.accent, 0.12)
+    bg.fillStyle(unlock.unlocked ? point.accent : 0x88979e, 0.12)
     bg.fillRoundedRect(x + 12, y + 12, 66, 72, 18)
     items.push(sh, bg)
 
     const pinAsset = POINT_PIN[point.id]
-    items.push(this.add.image(x + 45, y + 48, pinAsset.key).setDisplaySize(45, 56))
-    items.push(this.add.text(x + 88, y + 20, point.name, {
+    const detailPin = this.add.image(x + 45, y + 48, pinAsset.key).setDisplaySize(45, 56)
+    if (!unlock.unlocked) detailPin.setTint(0x7d8b91).setAlpha(0.62)
+    items.push(detailPin)
+    items.push(this.add.text(x + 88, y + 18, point.name, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink,
     }))
-    items.push(this.add.text(x + 88, y + 50, point.description, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: w - 110 },
+    items.push(this.add.text(x + 88, y + 48, unlock.unlocked ? point.description : `未解放 / ${unlock.unlockedBy}で解放`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: unlock.unlocked ? UI_COLORS.inkSoft : '#d06b3b', wordWrap: { width: w - 110 },
     }))
 
-    this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty)
-    items.push(this.add.text(x + 18, y + 96, `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.inkSoft,
+    this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty, unlock.unlocked)
+    items.push(this.add.text(x + 18, y + 96, unlock.unlocked
+      ? `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`
+      : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
     }))
 
     point.fishIds.forEach((id, i) => {
       const cx = x + 32 + i * 52
-      const cy = y + 138
+      const cy = y + 142
       const chip = this.add.graphics()
       chip.fillStyle(0xffffff, 0.96)
-      chip.lineStyle(1.4, point.accent, 0.7)
+      chip.lineStyle(1.4, unlock.unlocked ? point.accent : 0xb2bdc2, 0.7)
       chip.fillCircle(cx, cy, 21)
       chip.strokeCircle(cx, cy, 21)
       items.push(chip)
       const art = FISH_ART[id]
-      if (art?.key && this.textures.exists(art.key)) items.push(this.add.image(cx, cy, art.key).setDisplaySize(38, 38))
+      if (art?.key && this.textures.exists(art.key)) {
+        const fishImage = this.add.image(cx, cy, art.key).setDisplaySize(38, 38)
+        if (!unlock.unlocked) fishImage.setTint(0x748087).setAlpha(0.25)
+        items.push(fishImage)
+      }
     })
 
     const btn = this.add.graphics()
     btn.fillStyle(0x173248, 0.12)
-    btn.fillRoundedRect(x + w - 130 + 2, y + 119 + 3, 108, 50, 16)
-    btn.fillStyle(0xffd95a, 1)
+    btn.fillRoundedRect(x + w - 138 + 2, y + 121 + 3, 116, 54, 16)
+    btn.fillStyle(unlock.unlocked ? 0xffd95a : 0xdff5ff, 1)
     btn.lineStyle(2, 0x173248, 0.82)
-    btn.fillRoundedRect(x + w - 130, y + 119, 108, 50, 16)
-    btn.strokeRoundedRect(x + w - 130, y + 119, 108, 50, 16)
-    const btnText = this.add.text(x + w - 76, y + 144, 'ここで釣る', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
+    btn.fillRoundedRect(x + w - 138, y + 121, 116, 54, 16)
+    btn.strokeRoundedRect(x + w - 138, y + 121, 116, 54, 16)
+    const btnText = this.add.text(x + w - 80, y + 148, unlock.unlocked ? 'ここで釣る' : '町を育てる', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
-    const hit = this.add.rectangle(x + w - 76, y + 144, 116, 56, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._goToFishing(point.id))
+    const hit = this.add.rectangle(x + w - 80, y + 148, 124, 60, 0x000000, 0)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => unlock.unlocked ? this._goToFishing(point.id) : this.scene.start('TownScene'))
     items.push(btn, btnText, hit)
 
     this._detailPanel = this.add.container(0, 20, items).setDepth(20).setAlpha(0)
@@ -283,11 +306,11 @@ export default class MapScene extends Phaser.Scene {
     this._dismissLayer = null
   }
 
-  _addDifficultyTo(items, rightX, topY, level) {
+  _addDifficultyTo(items, rightX, topY, level, unlocked = true) {
     const startX = rightX - 48
     for (let i = 0; i < 3; i++) {
       items.push(this.add.text(startX + i * 16, topY, '★', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: i < level ? '#e6a800' : '#cbd6dc',
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: unlocked && i < level ? '#e6a800' : '#cbd6dc',
       }))
     }
   }
@@ -307,6 +330,11 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _goToFishing(pointId) {
+    const unlock = getFishingPointUnlock(pointId)
+    if (!unlock.unlocked) {
+      this.scene.start('TownScene')
+      return
+    }
     markLicenseFlag('ainan_went_fishing')
     this.scene.start('GameScene', {
       point: pointId,
