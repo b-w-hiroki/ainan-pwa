@@ -168,18 +168,18 @@ export const ASSETS = {
     },
     spotPinHarbor: {
       key: 'ui_spot_pin_harbor',
-      path: assetPath('fishing-game/assets/ui/ui_spot_pin_harbor.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/ui/ui_spot_pin_harbor.svg'),
+      status: 'ready',
     },
     spotPinBay: {
       key: 'ui_spot_pin_bay',
-      path: assetPath('fishing-game/assets/ui/ui_spot_pin_bay.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/ui/ui_spot_pin_bay.svg'),
+      status: 'ready',
     },
     spotPinCape: {
       key: 'ui_spot_pin_cape',
-      path: assetPath('fishing-game/assets/ui/ui_spot_pin_cape.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/ui/ui_spot_pin_cape.svg'),
+      status: 'ready',
     },
   },
 }
