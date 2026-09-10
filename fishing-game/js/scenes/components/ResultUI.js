@@ -14,27 +14,25 @@ export class ResultUI {
 
     const glow = scene.add.graphics()
     glow.fillStyle(0xffffff, 0.20)
-    glow.fillCircle(0, 0, 176)
+    glow.fillCircle(0, 0, 184)
     glow.fillStyle(0xdff5ff, 0.22)
-    glow.fillCircle(0, 0, 150)
+    glow.fillCircle(0, 0, 156)
 
     const card = scene.add.graphics()
     card.fillStyle(0x173248, 0.16)
-    card.fillRoundedRect(-157, -105, 314, 234, 26)
+    card.fillRoundedRect(-157, -105, 314, 258, 26)
     card.fillStyle(0xf8fdff, 0.99)
     card.lineStyle(3, 0x9bcfe5, 1)
-    card.fillRoundedRect(-154, -110, 308, 234, 26)
-    card.strokeRoundedRect(-154, -110, 308, 234, 26)
+    card.fillRoundedRect(-154, -110, 308, 258, 26)
+    card.strokeRoundedRect(-154, -110, 308, 258, 26)
     card.fillStyle(0xdff5ff, 0.92)
     card.fillRoundedRect(-142, -98, 284, 42, 18)
     card.fillStyle(0xffffff, 0.56)
     card.fillRoundedRect(-132, -91, 264, 10, 6)
 
     scene.resStripe = scene.add.graphics()
-
     scene.resLabel = scene.add.text(0, -76, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffffff',
-      shadow: SHADOW.soft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const catchBadge = scene.add.graphics()
@@ -44,15 +42,12 @@ export class ResultUI {
     catchBadge.strokeCircle(0, -21, 43)
 
     scene.resEmoji = scene.add.text(0, -21, '', { fontSize: '58px', resolution: TEXT_RES }).setOrigin(0.5)
-
     scene.resName = scene.add.text(0, 34, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
-
     scene.resPts = scene.add.text(0, 65, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5)
-
     scene.resHint = scene.add.text(0, 91, '次の行き先を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5)
@@ -60,9 +55,9 @@ export class ResultUI {
     const BTN_W = 86, BTN_H = 42, BTN_GAP = 8
     const totalBtnW = BTN_W * 3 + BTN_GAP * 2
     const btnStartX = -totalBtnW / 2
-    const btnY = 112
+    const btnY = 116
 
-    const makeNavBtn = (x, emoji, label, action, primary = false) => {
+    const makeNavBtn = (x, mark, label, action, primary = false) => {
       const bg = scene.add.graphics()
       const drawBg = (mode = 'idle') => {
         const pressed = mode === 'press'
@@ -76,9 +71,8 @@ export class ResultUI {
         bg.strokeRoundedRect(x, btnY + (pressed ? 2 : 0), BTN_W, BTN_H, 14)
       }
       drawBg()
-      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${emoji} ${label}`, {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink,
-        align: 'center',
+      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${mark} ${label}`, {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink, align: 'center',
       }).setOrigin(0.5)
       const hit = scene.add.rectangle(x + BTN_W / 2, btnY + BTN_H / 2, BTN_W + 4, BTN_H + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
@@ -90,8 +84,8 @@ export class ResultUI {
     }
 
     const b1 = makeNavBtn(btnStartX, '↻', 'もう一度', () => { scene.resultOverlay.setVisible(false); scene._enterCast() }, true)
-    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP, '⌖', 'マップ', () => { scene._cleanup(); scene.scene.start('MapScene') })
-    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '⌂', 'ホーム', () => { scene._cleanup(); scene.scene.start('HomeScene') })
+    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP, '□', '図鑑', () => { scene._cleanup(); scene.scene.start('CollectionScene') })
+    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '→', '町へ', () => { scene._cleanup(); scene.scene.start('TownScene') })
 
     scene.resultOverlay.add([glow, card, scene.resStripe, scene.resLabel, catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint, ...b1, ...b2, ...b3])
   }
@@ -115,9 +109,7 @@ export class ResultUI {
     const t = this.scene.add.text(W / 2, H * 0.38, msg, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5).setDepth(100)
-    this.scene.tweens.add({
-      targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() },
-    })
+    this.scene.tweens.add({ targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() } })
   }
 
   buildBackBtn(W, H) {
