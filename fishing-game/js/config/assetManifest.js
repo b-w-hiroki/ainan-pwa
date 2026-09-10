@@ -67,26 +67,51 @@ export const ASSETS = {
     },
     fishmonger: {
       key: 'ch_npc_fishmonger',
-      path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger.svg'),
+      status: 'ready',
+    },
+    guideStaff: {
+      key: 'ch_npc_guide_staff',
+      path: assetPath('fishing-game/assets/characters/ch_npc_guide_staff.svg'),
+      status: 'ready',
+    },
+    youngFisher: {
+      key: 'ch_npc_young_fisher',
+      path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher.svg'),
+      status: 'ready',
+    },
+    harborCaptain: {
+      key: 'ch_npc_harbor_captain',
+      path: assetPath('fishing-game/assets/characters/ch_npc_harbor_captain.svg'),
+      status: 'ready',
     },
     dinerOwner: {
       key: 'ch_npc_diner_owner',
       path: assetPath('fishing-game/assets/characters/ch_npc_diner_owner.png'),
       status: 'planned',
     },
-    youngFisher: {
-      key: 'ch_npc_young_fisher',
-      path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher.png'),
-      status: 'planned',
-    },
-    harborCaptain: {
-      key: 'ch_npc_harbor_captain',
-      path: assetPath('fishing-game/assets/characters/ch_npc_harbor_captain.png'),
-      status: 'planned',
-    },
   },
   facilities: {
+    market: {
+      key: 'town_facility_market',
+      path: assetPath('fishing-game/assets/town/town_facility_market.svg'),
+      status: 'ready',
+    },
+    pier: {
+      key: 'town_facility_pier',
+      path: assetPath('fishing-game/assets/town/town_facility_pier.svg'),
+      status: 'ready',
+    },
+    guide: {
+      key: 'town_facility_guide',
+      path: assetPath('fishing-game/assets/town/town_facility_guide.svg'),
+      status: 'ready',
+    },
+    festival: {
+      key: 'town_facility_festival',
+      path: assetPath('fishing-game/assets/town/town_facility_festival.svg'),
+      status: 'ready',
+    },
     fishShop: {
       key: 'town_facility_fish_shop',
       path: assetPath('fishing-game/assets/town/town_facility_fish_shop.png'),
@@ -95,16 +120,6 @@ export const ASSETS = {
     diner: {
       key: 'town_facility_diner',
       path: assetPath('fishing-game/assets/town/town_facility_diner.png'),
-      status: 'planned',
-    },
-    market: {
-      key: 'town_facility_market',
-      path: assetPath('fishing-game/assets/town/town_facility_market.png'),
-      status: 'planned',
-    },
-    pier: {
-      key: 'town_facility_pier',
-      path: assetPath('fishing-game/assets/town/town_facility_pier.png'),
       status: 'planned',
     },
   },
