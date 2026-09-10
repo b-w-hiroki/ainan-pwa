@@ -43,6 +43,14 @@ export const ASSETS = {
     ticket: { key: 'reward_ticket', path: assetPath('fishing-game/assets/rewards/reward_ticket.svg'), status: 'ready' },
     icebox: { key: 'reward_icebox', path: assetPath('fishing-game/assets/rewards/reward_icebox.svg'), status: 'ready' },
   },
+  equipment: {
+    rodBasic: { key: 'equip_rod_basic', path: assetPath('fishing-game/assets/equipment/rod_basic.svg'), status: 'ready' },
+    rodCarbon: { key: 'equip_rod_carbon', path: assetPath('fishing-game/assets/equipment/rod_carbon.svg'), status: 'ready' },
+    rodPremium: { key: 'equip_rod_premium', path: assetPath('fishing-game/assets/equipment/rod_premium.svg'), status: 'ready' },
+    baitWorm: { key: 'equip_bait_worm', path: assetPath('fishing-game/assets/equipment/bait_worm.svg'), status: 'ready' },
+    baitShrimp: { key: 'equip_bait_shrimp', path: assetPath('fishing-game/assets/equipment/bait_shrimp.svg'), status: 'ready' },
+    baitSpecial: { key: 'equip_bait_special', path: assetPath('fishing-game/assets/equipment/bait_special.svg'), status: 'ready' },
+  },
   ui: {
     resultFrame: { key: 'ui_result_frame', path: assetPath('fishing-game/assets/ui/ui_result_frame.png'), status: 'planned' },
     panelHarbor: { key: 'ui_panel_harbor', path: assetPath('fishing-game/assets/ui/ui_panel_harbor.png'), status: 'planned' },
