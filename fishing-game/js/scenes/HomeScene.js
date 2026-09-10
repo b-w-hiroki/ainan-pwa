@@ -5,6 +5,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress, getScore, getStaminaState } from '../game/progress.js'
+import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -12,11 +13,7 @@ const T = {
   player: '港の釣り人',
   mission: 'ミッション',
   license: '釣り免許',
-  event: 'EVENT',
-  eventTitle: '港まつり準備 開催中',
-  eventLead: '釣って、町をにぎやかにしよう',
   goFishing: '釣りに行く',
-  goLead: '釣り場を選んで出発',
   daily: 'デイリーボーナス',
   claim: '受け取る',
   later: 'あとで',
@@ -28,17 +25,19 @@ export default class HomeScene extends Phaser.Scene {
   constructor() { super({ key: 'HomeScene' }) }
 
   preload() {
-    const bg = ASSETS.backgrounds.homeBase
-    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
-    const guide = ASSETS.characters.guideDefault
-    if (!this.textures.exists(guide.key)) this.load.image(guide.key, guide.path)
+    const wanted = [ASSETS.backgrounds.homeBase, ASSETS.characters.guideDefault]
+    wanted.forEach(asset => {
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+    })
   }
 
   create() {
     const { width: W, height: H } = this.scale
+    this._unlocks = getTownUnlockState()
+    this._nextUnlock = getNextTownUnlock()
     this._buildBackground(W, H)
     this._buildHeader(W)
-    this._buildEventBanner(W)
+    this._buildGrowthBanner(W)
     this._buildTopShortcuts(W)
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
@@ -58,7 +57,6 @@ export default class HomeScene extends Phaser.Scene {
       bg.fillStyle(0xe8c77d, 1)
       bg.fillRect(0, H * 0.73, W, H * 0.27)
     }
-
     const veil = this.add.graphics().setDepth(1)
     veil.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.12, 0.12, 0.02, 0.02)
     veil.fillRect(0, 0, W, H * 0.72)
@@ -67,10 +65,9 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildHeader(W) {
-    const totalScore = parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
+    const totalScore = getScore()
     const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
     const rank = Math.max(1, Math.floor(catches.length / 3) + 1)
-
     const shell = this.add.graphics().setDepth(20)
     shell.fillStyle(0x173248, 0.14)
     shell.fillRoundedRect(10, 14, W - 20, 88, 22)
@@ -105,7 +102,6 @@ export default class HomeScene extends Phaser.Scene {
     const { current: stamina, max: staminaMax, nextRegenMs } = getStaminaState()
     const coins = getScore()
     const gems = parseInt(localStorage.getItem('ainan_gems') ?? '0', 10)
-
     const bar = this.add.graphics().setDepth(21)
     bar.fillStyle(0xffffff, 0.76)
     bar.fillRoundedRect(22, 73, W - 44, 18, 9)
@@ -120,7 +116,7 @@ export default class HomeScene extends Phaser.Scene {
     bar.fillRoundedRect(31, 78, Math.max(0, staminaW - 6), 3, 2)
 
     const staminaLabel = nextRegenMs > 0 ? `${stamina}/${staminaMax}  ${Math.ceil(nextRegenMs / 60000)}分` : `${stamina}/${staminaMax}`
-    this.add.text(20, 82, '⚡', { fontSize: '12px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
+    this.add.text(20, 82, 'ST', uiText('micro', { fontSize: '8px', color: UI_COLORS.success })).setOrigin(0.5).setDepth(22)
     this.add.text(32 + staminaMaxW, 82, staminaLabel, uiText('micro', { fontSize: '10px', color: UI_COLORS.success })).setOrigin(0, 0.5).setDepth(22)
 
     const coinX = W * 0.62
@@ -146,8 +142,14 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(x + 33, y + 18, value, uiText('chip', { fontSize: '13px', color: UI_COLORS.ink })).setOrigin(0.5).setDepth(22)
   }
 
-  _buildEventBanner(W) {
+  _buildGrowthBanner(W) {
     const x = 22, y = 108, w = W - 44, h = 54
+    const next = this._nextUnlock
+    const label = next ? 'NEXT SEA' : 'ALL OPEN'
+    const title = next ? `${next.name}を解放しよう` : 'すべての海が開いた'
+    const lead = next ? `${next.unlockedBy}まで町を育てる` : '好きな海で大物を狙おう'
+    const action = next ? () => this.scene.start('TownScene') : () => this.scene.start('MapScene')
+
     const g = this.add.graphics().setDepth(10)
     g.fillStyle(0x173248, 0.1)
     g.fillRoundedRect(x + 2, y + 4, w, h, 18)
@@ -155,14 +157,14 @@ export default class HomeScene extends Phaser.Scene {
     g.lineStyle(1.8, 0x9bcfe5, 0.85)
     g.fillRoundedRect(x, y, w, h, 18)
     g.strokeRoundedRect(x, y, w, h, 18)
-    g.fillStyle(0xff765a, 0.96)
-    g.fillRoundedRect(x + 9, y + 10, 62, 34, 12)
+    g.fillStyle(next ? 0xff765a : 0x71d6a2, 0.96)
+    g.fillRoundedRect(x + 9, y + 10, 68, 34, 12)
 
-    this.add.text(x + 40, y + 27, T.event, uiText('micro', { fontSize: '10px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
-    this.add.text(x + 82, y + 18, T.eventTitle, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(11)
-    this.add.text(x + 82, y + 37, T.eventLead, uiText('micro', { fontSize: '11px' })).setOrigin(0, 0.5).setDepth(11)
-    this.add.text(x + w - 20, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '20px', color: UI_COLORS.oceanDeep })).setOrigin(0.5).setDepth(11)
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(12).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('MissionScene', { tab: 'limited', sheetIndex: 0 }))
+    this.add.text(x + 43, y + 27, label, uiText('micro', { fontSize: '9px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
+    this.add.text(x + 88, y + 18, title, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 88, y + 37, lead, uiText('micro', { fontSize: '11px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + w - 20, y + h / 2, '›', uiText('cardTitle', { fontSize: '20px', color: UI_COLORS.oceanDeep })).setOrigin(0.5).setDepth(11)
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(12).setInteractive({ useHandCursor: true }).on('pointerdown', action)
   }
 
   _buildTopShortcuts(W) {
@@ -171,13 +173,11 @@ export default class HomeScene extends Phaser.Scene {
     const missionValue = Math.min(progress[firstMission.id] ?? 0, firstMission.target)
     const license = this._licenseCount()
     const daily = getDailyBonusState()
-
     const items = [
       { icon: ICONS.MISSION, title: T.mission, sub: `${missionValue}/${firstMission.target}`, accent: 0x2f9ed4, action: () => this.scene.start('MissionScene') },
       { icon: ICONS.LICENSE, title: T.license, sub: `${license.done}/${license.total}`, accent: 0xffd95a, action: () => this.scene.start('LicenseScene') },
       { icon: ICONS.BONUS, title: T.daily, sub: daily.canClaim ? '受取可' : `${daily.streak}${T.day}`, accent: 0xff765a, action: () => this._showDailyBonus(this.scale.width, this.scale.height) },
     ]
-
     const gap = 8
     const w = (W - 44 - gap * 2) / 3
     items.forEach((item, i) => this._shortcutCard(22 + i * (w + gap), 170, w, 54, item))
@@ -200,7 +200,7 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 26, H * 0.57).setDepth(7)
+    const c = this.add.container(W / 2 + 28, H * 0.57).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.35)
     aura.fillEllipse(0, 84, 344, 470)
@@ -215,7 +215,10 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildGuideBubble(W, H) {
-    const x = 20, y = H * 0.365, w = 176, h = 70
+    const x = 20, y = H * 0.365, w = 184, h = 74
+    const next = this._nextUnlock
+    const title = next ? `次は ${next.name}` : '海が全部つながった！'
+    const body = next ? `${next.unlockedBy}で新しい海へ` : '好きな場所で大物を狙おう'
     const g = this.add.graphics().setDepth(14)
     g.fillStyle(0x173248, 0.12)
     g.fillRoundedRect(x + 2, y + 3, w, h, 18)
@@ -225,8 +228,9 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 18)
     g.fillStyle(0xffffff, 0.96)
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
-    this.add.text(x + 14, y + 14, '今日も海、いい感じ。', uiText('cardTitle', { fontSize: '13px' })).setDepth(15)
-    this.add.text(x + 14, y + 38, '釣果を町へ持ち帰ろう！', uiText('micro', { fontSize: '11px' })).setDepth(15)
+    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: '13px' })).setDepth(15)
+    this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color: next ? UI_COLORS.warning : UI_COLORS.success })).setDepth(15)
+    if (next) this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
   }
 
   _buildMainCTA(W, H) {
@@ -252,7 +256,7 @@ export default class HomeScene extends Phaser.Scene {
     draw(false)
     const rod = this.add.text(-w / 2 + 38, 0, ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
     const title = this.add.text(18, -7, T.goFishing, uiText('button', { fontSize: '24px', color: UI_COLORS.ink })).setOrigin(0.5)
-    const sub = this.add.text(18, 16, T.goLead, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
+    const sub = this.add.text(18, 16, `解放済み ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} の釣り場から選ぶ`, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
     const arrow = this.add.text(w / 2 - 28, 0, '›', uiText('button', { fontSize: '32px', color: UI_COLORS.ink })).setOrigin(0.5)
     const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { draw(true); c.setScale(0.985) })
