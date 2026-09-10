@@ -1,6 +1,5 @@
 import Phaser from 'phaser'
-import { FONT, SHADOW, uiText } from '../config/fontStyles.js'
-import { ICONS } from '../config/icons.js'
+import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
@@ -8,58 +7,86 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const MENU_ITEMS = [
-  { title: '図鑑', desc: '釣った魚の記録を見る', icon: ICONS.BOOK, color: 0x5ebcff, scene: 'CollectionScene' },
-  { title: '交換', desc: '報酬やショップ品を確認', icon: ICONS.GIFT, color: 0xff6a9a, scene: 'ExchangeScene' },
-  { title: 'ランク', desc: 'プレイヤー成長を確認', icon: ICONS.RANK, color: 0xffd900, scene: 'RankScene' },
-  { title: 'プロフィール', desc: 'プレイヤー情報を見る', icon: ICONS.PROFILE, color: 0x8bcf52, scene: 'RankScene' },
-  { title: 'ヘルプ', desc: '遊び方と操作を確認', icon: ICONS.HELP, color: 0xbc7cff, scene: 'HelpScene' },
+  { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', mark: '魚', color: 0x5bb5d8, scene: 'CollectionScene' },
+  { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
+  { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
+  { title: 'プロフィール', desc: 'これまでの釣果と実績を見る', mark: '人', color: 0x71d6a2, scene: 'RankScene' },
+  { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
 ]
 
 export default class MenuScene extends Phaser.Scene {
-  constructor() {
-    super({ key: 'MenuScene' })
-  }
+  constructor() { super({ key: 'MenuScene' }) }
 
   preload() {
-    const bg = ASSETS.backgrounds.homeBase
-    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    const bg = ASSETS.backgrounds.townGrowing
+    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }
 
   create() {
     const { width: W, height: H } = this.scale
-    addCoverImage(this, ASSETS.backgrounds.homeBase.key, W, H, 0)
+    addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
     const veil = this.add.graphics().setDepth(1)
-    veil.fillStyle(0xf4fbff, 0.88)
+    veil.fillGradientStyle(0xf8fdff, 0xf8fdff, 0xf1f9fc, 0xf1f9fc, 0.80, 0.80, 0.94, 0.94)
     veil.fillRect(0, 0, W, H)
 
-    this.add.text(W / 2, 42, `${ICONS.MENU} メニュー`, {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '30px', fontWeight: '900',
-      color: '#1a3a5a', shadow: SHADOW.subtle,
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, 74, '確認・管理系の機能をまとめました', uiText('screenLead')).setOrigin(0.5).setDepth(5)
-
-    MENU_ITEMS.forEach((item, i) => this._menuCard(24, 116 + i * 92, W - 48, 76, item))
+    this._header(W)
+    MENU_ITEMS.forEach((item, i) => this._menuCard(22, 112 + i * 94, W - 44, 78, item, i))
     buildFooterNav(this, W, H, 'menu')
   }
 
-  _menuCard(x, y, w, h, item) {
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0x000000, 0.12)
-    g.fillRoundedRect(x + 3, y + 4, w, h, 20)
-    g.fillStyle(0xffffff, 0.97)
-    g.lineStyle(2.5, 0x1a2a3a, 0.85)
-    g.fillRoundedRect(x, y, w, h, 20)
-    g.strokeRoundedRect(x, y, w, h, 20)
-    g.fillStyle(item.color, 0.22)
-    g.fillCircle(x + 38, y + h / 2, 25)
-    g.lineStyle(2, item.color, 0.8)
-    g.strokeCircle(x + 38, y + h / 2, 25)
+  _header(W) {
+    const shell = this.add.graphics().setDepth(4)
+    shell.fillStyle(0x173248, 0.10)
+    shell.fillRoundedRect(16, 15, W - 32, 72, 21)
+    shell.fillStyle(0xf8fdff, 0.97)
+    shell.lineStyle(1.8, 0x9bcfe5, 0.86)
+    shell.fillRoundedRect(16, 11, W - 32, 72, 21)
+    shell.strokeRoundedRect(16, 11, W - 32, 72, 21)
+    shell.fillStyle(0xdff5ff, 0.72)
+    shell.fillRoundedRect(24, 19, W - 48, 12, 6)
 
-    this.add.text(x + 38, y + h / 2, item.icon, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(6)
-    this.add.text(x + 76, y + 27, item.title, uiText('cardTitle', { fontSize: '17px' })).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 76, y + 51, item.desc, uiText('screenLead', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + w - 24, y + h / 2, ICONS.CHEVRON, uiText('cardTitle', { fontSize: '24px' })).setOrigin(0.5).setDepth(6)
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(item.scene))
+    this.add.text(30, 44, 'メニュー', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
+    }).setOrigin(0, 0.5).setDepth(5)
+    this.add.text(30, 68, '港でできることをまとめて確認', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
+    }).setOrigin(0, 0.5).setDepth(5)
+  }
+
+  _menuCard(x, y, w, h, item, index) {
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(0x173248, 0.09)
+    g.fillRoundedRect(x + 3, y + 4, w, h, 19)
+    g.fillStyle(0xffffff, 0.98)
+    g.lineStyle(1.6, 0xb9d4df, 0.88)
+    g.fillRoundedRect(x, y, w, h, 19)
+    g.strokeRoundedRect(x, y, w, h, 19)
+    g.fillStyle(item.color, 0.16)
+    g.fillRoundedRect(x + 10, y + 10, 58, h - 20, 15)
+    g.fillStyle(item.color, 1)
+    g.fillRoundedRect(x, y + 15, 5, h - 30, 3)
+
+    this.add.text(x + 39, y + h / 2, item.mark, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: UI_COLORS.ink,
+    }).setOrigin(0.5).setDepth(6)
+    this.add.text(x + 82, y + 27, item.title, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink,
+    }).setOrigin(0, 0.5).setDepth(6)
+    this.add.text(x + 82, y + 51, item.desc, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
+    }).setOrigin(0, 0.5).setDepth(6)
+
+    const badge = this.add.graphics().setDepth(6)
+    badge.fillStyle(0xeaf6fb, 1)
+    badge.fillCircle(x + w - 28, y + h / 2, 17)
+    this.add.text(x + w - 28, y + h / 2 - 1, '›', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '23px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+    }).setOrigin(0.5).setDepth(7)
+
+    const hit = this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(8).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => this.scene.start(item.scene))
+      .on('pointerover', () => hit.setScale(1.005))
+      .on('pointerout', () => hit.setScale(1))
+    this.tweens.add({ targets: badge, alpha: 0.78 + (index % 2) * 0.1, duration: 1200 + index * 90, yoyo: true, repeat: -1 })
   }
 }
