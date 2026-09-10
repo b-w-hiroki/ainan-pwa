@@ -126,28 +126,28 @@ export const ASSETS = {
   fish: {
     ajiIcon: {
       key: 'fish_aji_icon',
-      path: assetPath('fishing-game/assets/fish/fish_aji_icon.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/fish/fish_aji_icon.svg'),
+      status: 'ready',
     },
     madaiIcon: {
       key: 'fish_madai_icon',
-      path: assetPath('fishing-game/assets/fish/fish_madai_icon.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/fish/fish_madai_icon.svg'),
+      status: 'ready',
     },
     blackBassIcon: {
       key: 'fish_black_bass_icon',
-      path: assetPath('fishing-game/assets/fish/fish_black_bass_icon.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/fish/fish_black_bass_icon.svg'),
+      status: 'ready',
     },
     buriIcon: {
       key: 'fish_buri_icon',
-      path: assetPath('fishing-game/assets/fish/fish_buri_icon.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/fish/fish_buri_icon.svg'),
+      status: 'ready',
     },
     kueIcon: {
       key: 'fish_kue_icon',
-      path: assetPath('fishing-game/assets/fish/fish_kue_icon.png'),
-      status: 'planned',
+      path: assetPath('fishing-game/assets/fish/fish_kue_icon.svg'),
+      status: 'ready',
     },
   },
   ui: {
