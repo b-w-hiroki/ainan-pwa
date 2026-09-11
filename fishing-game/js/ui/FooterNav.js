@@ -1,5 +1,6 @@
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
+import { getCatches, getTownFacilities } from '../game/progress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -12,6 +13,8 @@ const TABS = [
 ]
 
 export function buildFooterNav(scene, W, H, activeKey = 'home') {
+  if (activeKey === 'town') buildTownReaction(scene, W, H)
+
   const y = H - 84
   const h = 78
   const bar = scene.add.graphics().setDepth(90)
@@ -35,6 +38,106 @@ export function buildFooterNav(scene, W, H, activeKey = 'home') {
 
   TABS.forEach(tab => drawTabWell(scene, W * tab.x, y + 38, tab.key === activeKey))
   TABS.forEach(tab => buildTab(scene, W * tab.x, y + 39, tab, activeKey))
+}
+
+function getTownReaction() {
+  const catches = getCatches()
+  const facilities = getTownFacilities()
+  const count = id => catches.filter(c => c.fishId === id).length
+  const caught = id => count(id) > 0
+  const species = new Set(catches.map(c => c.fishId)).size
+
+  if (caught('kue')) {
+    return {
+      speaker: '港の船長',
+      mark: '船',
+      message: '黒潮の主を本当に上げたのか。港中があんたの話でもちきりだ。',
+      accent: 0xffd95a,
+    }
+  }
+  if ((facilities.pier ?? 0) >= 2) {
+    return {
+      speaker: '港の船長',
+      mark: '船',
+      message: '黒潮崎まで出られるようになった。特製まき餌があれば、あの大物も狙えるぞ。',
+      accent: 0xff765a,
+    }
+  }
+  if ((facilities.festival ?? 0) >= 1) {
+    return {
+      speaker: '若い釣り人',
+      mark: '若',
+      message: '広場で特製まき餌が手に入るよ。次は大物を町へ持ち帰ってきて。',
+      accent: 0xbc7cff,
+    }
+  }
+  if ((facilities.market ?? 0) >= 1 && count('aji') >= 2) {
+    return {
+      speaker: '市場のおやじ',
+      mark: '市',
+      message: `アジが${count('aji')}匹も上がったか。市場に魚が並ぶと、町の空気が変わるな。`,
+      accent: 0x5bb5d8,
+    }
+  }
+  if ((facilities.market ?? 0) >= 1) {
+    return {
+      speaker: '市場のおやじ',
+      mark: '市',
+      message: '市場を開けたぞ。エビも仕入れた。レア魚を狙うなら試してみな。',
+      accent: 0x5bb5d8,
+    }
+  }
+  if (species >= 3) {
+    return {
+      speaker: '案内所スタッフ',
+      mark: '案',
+      message: `${species}種類も見つけたんですね。釣果が増えるほど、この町を紹介しやすくなります。`,
+      accent: 0x71d6a2,
+    }
+  }
+  if (catches.length >= 3) {
+    return {
+      speaker: '若い釣り人',
+      mark: '若',
+      message: '最近、魚を持って帰ってくるたびに人が増えてる。もう少しで町が動きそうだ。',
+      accent: 0xff9b5e,
+    }
+  }
+  return {
+    speaker: '案内所スタッフ',
+    mark: '案',
+    message: '釣果を町へ持ち帰ってください。あなたの一匹が、港を少しずつ変えていきます。',
+    accent: 0x71d6a2,
+  }
+}
+
+function buildTownReaction(scene, W, H) {
+  const reaction = getTownReaction()
+  const x = 16, y = H - 142, w = W - 32, h = 50
+  const g = scene.add.graphics().setDepth(86)
+  g.fillStyle(0x173248, 0.14)
+  g.fillRoundedRect(x + 2, y + 4, w, h, 16)
+  g.fillStyle(0xf8fdff, 0.98)
+  g.lineStyle(1.7, reaction.accent, 0.82)
+  g.fillRoundedRect(x, y, w, h, 16)
+  g.strokeRoundedRect(x, y, w, h, 16)
+  g.fillStyle(reaction.accent, 0.18)
+  g.fillCircle(x + 28, y + h / 2, 19)
+  g.fillStyle(reaction.accent, 1)
+  g.fillCircle(x + 28, y + h / 2, 13)
+
+  scene.add.text(x + 28, y + h / 2, reaction.mark, {
+    fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#ffffff',
+  }).setOrigin(0.5).setDepth(87)
+
+  scene.add.text(x + 54, y + 13, reaction.speaker, {
+    fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+  }).setOrigin(0, 0.5).setDepth(87)
+
+  scene.add.text(x + 54, y + 31, reaction.message, {
+    fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.ink,
+    wordWrap: { width: w - 70 },
+  }).setOrigin(0, 0.5).setDepth(87)
 }
 
 function buildTab(scene, x, y, tab, activeKey) {
