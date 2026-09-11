@@ -68,6 +68,24 @@ const RARITY_WEIGHT = {
   legendary: 5,
 }
 
+export const BAIT_FISH_EFFECT = {
+  worm: {
+    label: '標準',
+    detail: 'いろいろな魚をバランスよく狙える',
+    rarityMod: { common: 1, uncommon: 1, rare: 1, legendary: 0 },
+  },
+  shrimp: {
+    label: 'レア魚UP',
+    detail: 'レア魚・マダイを狙いやすくする',
+    rarityMod: { common: 0.82, uncommon: 1.22, rare: 1.60, legendary: 0 },
+  },
+  special: {
+    label: '大物・クエ狙い',
+    detail: '大物の気配を強め、黒潮崎ではクエも狙える',
+    rarityMod: { common: 0.68, uncommon: 1.30, rare: 1.85, legendary: 2.80 },
+  },
+}
+
 export const RARITY_CHON_BONUS = {
   common: 0,
   uncommon: 1,
@@ -82,11 +100,19 @@ export function calcFishWeight(fish, env) {
   const season = fish.seasonBonus?.[env.season] ?? 1.0
   const time = fish.timeBonus?.[env.timeOfDay] ?? 1.0
   const weather = fish.weatherBonus?.[env.weather] ?? 1.0
-  return base * season * time * weather
+  const baitType = env.player?.baitType ?? 'worm'
+  const bait = BAIT_FISH_EFFECT[baitType] ?? BAIT_FISH_EFFECT.worm
+  const baitMod = bait.rarityMod?.[fish.rarity] ?? 1.0
+  return base * season * time * weather * baitMod
 }
 
 export function selectFish(env) {
-  const candidates = FISH_LIST.filter(f => f.habitat.includes(env.point))
+  const baitType = env.player?.baitType ?? 'worm'
+  const candidates = FISH_LIST.filter(fish => {
+    if (!fish.habitat.includes(env.point)) return false
+    if (fish.id === 'kue' && baitType !== 'special') return false
+    return true
+  })
   if (candidates.length === 0) return FISH_LIST[0]
 
   const weights = candidates.map(f => calcFishWeight(f, env))
