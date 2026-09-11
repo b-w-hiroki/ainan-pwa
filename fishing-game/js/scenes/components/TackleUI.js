@@ -1,7 +1,9 @@
 import { FONT } from '../../config/fontStyles.js'
-import { CS, COLOR } from '../../config/palette.js'
+import { CS } from '../../config/palette.js'
 import { ICONS } from '../../config/icons.js'
 import { ROD_LIST, BAIT_LIST } from '../../game/params.js'
+import { BAIT_FISH_EFFECT } from '../../game/fish.js'
+import { getBaitShopUnlock, getKueChallengeState } from '../../game/townUnlocks.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -59,19 +61,21 @@ export class TackleUI {
 
   _drawBtnBg(g, x, y, w, h, hover) {
     g.clear()
-    g.fillStyle(hover ? 0xd0f0ff : 0xffffff, 0.92)
-    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 12)
-    g.lineStyle(2.5, 0x1a2a3a, 1)
-    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12)
+    g.fillStyle(0x173248, 0.14)
+    g.fillRoundedRect(x - w / 2 + 2, y - h / 2 + 3, w, h, 14)
+    g.fillStyle(hover ? 0xdff5ff : 0xf8fdff, 0.96)
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 14)
+    g.lineStyle(2, 0x9bcfe5, 0.95)
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14)
   }
 
   _buildScrollPanel(W, H, type, items) {
-    const PANEL_W   = W * 0.85
-    const PANEL_H   = 145
+    const PANEL_W   = W * 0.88
+    const PANEL_H   = 154
     const PANEL_X   = W / 2
-    const PANEL_Y   = H - 90 - PANEL_H / 2
-    const ITEM_W    = 90
-    const ITEM_H    = 100
+    const PANEL_Y   = H - 94 - PANEL_H / 2
+    const ITEM_W    = 94
+    const ITEM_H    = 106
     const GAP       = 12
     const VISIBLE   = Math.floor(PANEL_W / (ITEM_W + GAP))
     const SCROLL_LEFT = PANEL_X - PANEL_W / 2 + GAP
@@ -79,15 +83,18 @@ export class TackleUI {
     const container = this.scene.add.container(0, 0).setDepth(48)
 
     const bg = this.scene.add.graphics()
-    bg.fillStyle(0x1a2a3a, 0.96)
-    bg.fillRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
-    bg.lineStyle(2, 0xffffff, 0.8)
-    bg.strokeRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 14)
+    bg.fillStyle(0x173248, 0.96)
+    bg.fillRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 18)
+    bg.lineStyle(2, 0x9bcfe5, 0.95)
+    bg.strokeRoundedRect(PANEL_X - PANEL_W / 2, PANEL_Y - PANEL_H / 2, PANEL_W, PANEL_H, 18)
     container.add(bg)
 
-    const label = type === 'rod' ? `${ICONS.ROD} 竿を選ぶ` : `${ICONS.BAIT} エサを選ぶ`
-    const title = this.scene.add.text(PANEL_X, PANEL_Y - PANEL_H / 2 + 14, label, {
-      fontFamily: FONT, fontSize: '14px', fontWeight: '800',
+    const isKueHunt = type === 'bait' && this.scene.env?.point === 'pointC' && getKueChallengeState().unlocked
+    const label = type === 'rod'
+      ? `${ICONS.ROD} 竿を選ぶ`
+      : isKueHunt ? `${ICONS.BAIT} エサを選ぶ　黒潮の主に挑戦中` : `${ICONS.BAIT} エサを選ぶ　出現率が変化`
+    const title = this.scene.add.text(PANEL_X, PANEL_Y - PANEL_H / 2 + 12, label, {
+      fontFamily: FONT, fontSize: type === 'bait' ? '12px' : '14px', fontWeight: '800',
       color: '#ffffff', resolution: TEXT_RES,
     }).setOrigin(0.5, 0)
     container.add(title)
@@ -100,7 +107,7 @@ export class TackleUI {
 
     items.forEach((item, i) => {
       const itemX = ITEM_W / 2 + i * (ITEM_W + GAP)
-      const itemY = PANEL_Y + 10
+      const itemY = PANEL_Y + 12
       this._buildScrollItem(scrollContainer, itemX, itemY, ITEM_W, ITEM_H, item, type, selectedId)
     })
 
@@ -110,14 +117,14 @@ export class TackleUI {
     maskShape.fillStyle(0xffffff)
     maskShape.fillRect(
       PANEL_X - PANEL_W / 2 + GAP,
-      PANEL_Y - PANEL_H / 2 + 34,
+      PANEL_Y - PANEL_H / 2 + 32,
       PANEL_W - GAP * 2,
-      PANEL_H - 44,
+      PANEL_H - 40,
     )
     scrollContainer.setMask(maskShape.createGeometryMask())
 
     if (items.length > VISIBLE) {
-      this._buildScrollIndicator(container, PANEL_X, PANEL_Y + PANEL_H / 2 - 10, items.length, VISIBLE)
+      this._buildScrollIndicator(container, PANEL_X, PANEL_Y + PANEL_H / 2 - 9, items.length, VISIBLE)
     }
 
     const cleanup = this._setupScroll(scrollContainer, type, items.length, ITEM_W, GAP, SCROLL_LEFT, PANEL_W)
@@ -176,52 +183,56 @@ export class TackleUI {
 
     const isSelected = item.id === selectedId
     const isOwned    = qty > 0
+    const baitEffect = type === 'bait' ? BAIT_FISH_EFFECT[item.id] : null
+    const shopUnlock = type === 'bait' ? getBaitShopUnlock(item.id) : null
 
     const bg = this.scene.add.graphics()
-    bg.fillStyle(
-      !isOwned   ? 0x111111 :
-      isSelected ? 0x2a4a6a : 0x2c3e50,
-      isOwned ? 1 : 0.5,
-    )
-    bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 10)
-    bg.lineStyle(
-      isSelected ? 2.5 : 1,
-      isSelected ? 0x55ccff : 0xffffff,
-      isSelected ? 1 : 0.4,
-    )
-    bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 10)
+    bg.fillStyle(!isOwned ? 0x1d2e3a : isSelected ? 0x2b688c : 0x244459, isOwned ? 1 : 0.72)
+    bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 12)
+    bg.lineStyle(isSelected ? 2.5 : 1.5, isSelected ? 0xffd95a : 0x9bcfe5, isSelected ? 1 : 0.68)
+    bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 12)
     container.add(bg)
 
     const iconStr = isOwned ? item.icon : ICONS.LOCK
-    const iconTxt = this.scene.add.text(x, y - 18, iconStr, {
-      fontSize: isOwned ? '28px' : '20px', resolution: TEXT_RES,
-    }).setOrigin(0.5).setAlpha(isOwned ? 1 : 0.5)
+    const iconTxt = this.scene.add.text(x, y - 23, iconStr, {
+      fontSize: isOwned ? '27px' : '19px', resolution: TEXT_RES,
+    }).setOrigin(0.5).setAlpha(isOwned ? 1 : 0.65)
     container.add(iconTxt)
 
     if (qty > 0) {
       const badge = this.scene.add.graphics()
-      badge.fillStyle(0x1a2a3a, 0.85)
-      badge.fillRoundedRect(x + w / 2 - 22, y - h / 2 + 4, 20, 16, 4)
+      badge.fillStyle(isSelected ? 0xffd95a : 0x173248, 0.94)
+      badge.fillRoundedRect(x + w / 2 - 24, y - h / 2 + 4, 22, 16, 5)
       container.add(badge)
 
-      const qtyText = this.scene.add.text(x + w / 2 - 12, y - h / 2 + 12, item.id === 'worm' ? '基' : `×${qty}`, {
-        fontFamily: FONT, fontSize: '12px', fontWeight: '900',
-        color: '#ffffff', resolution: TEXT_RES,
+      const qtyText = this.scene.add.text(x + w / 2 - 13, y - h / 2 + 12, item.id === 'worm' ? '基' : `×${qty}`, {
+        fontFamily: FONT, fontSize: '10px', fontWeight: '900',
+        color: isSelected ? '#173248' : '#ffffff', resolution: TEXT_RES,
       }).setOrigin(0.5)
       container.add(qtyText)
     }
 
-    const name = this.scene.add.text(x, y + 10, item.name, {
-      fontFamily: FONT, fontSize: '15px', fontWeight: '800',
-      color: isOwned ? '#ffffff' : '#666666', resolution: TEXT_RES,
+    const name = this.scene.add.text(x, y + 4, item.name, {
+      fontFamily: FONT, fontSize: '13px', fontWeight: '900',
+      color: isOwned ? '#ffffff' : '#aab9c2', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(name)
 
-    const desc = this.scene.add.text(x, y + 28, item.description, {
-      fontFamily: FONT, fontSize: '12px', color: '#d8eef8',
-      wordWrap: { width: w - 8 }, align: 'center', resolution: TEXT_RES,
+    const effectText = type === 'bait'
+      ? (isOwned ? baitEffect?.label : shopUnlock?.unlocked ? '在庫なし' : shopUnlock?.unlockedBy)
+      : item.description
+    const desc = this.scene.add.text(x, y + 25, effectText ?? item.description, {
+      fontFamily: FONT, fontSize: '10px', fontWeight: type === 'bait' ? '900' : '700', color: isOwned ? '#d8eef8' : '#8fa2ad',
+      wordWrap: { width: w - 10 }, align: 'center', resolution: TEXT_RES,
     }).setOrigin(0.5)
     container.add(desc)
+
+    if (type === 'bait' && isOwned && item.id === 'special' && this.scene.env?.point === 'pointC') {
+      const hunt = this.scene.add.text(x, y + 43, 'クエ候補', {
+        fontFamily: FONT, fontSize: '9px', fontWeight: '900', color: '#ffd95a', resolution: TEXT_RES,
+      }).setOrigin(0.5)
+      container.add(hunt)
+    }
 
     if (isOwned) {
       const hit = this.scene.add.rectangle(x, y, w, h)
@@ -243,7 +254,7 @@ export class TackleUI {
     const totalW = dotCount * DOT_R * 2 + (dotCount - 1) * DOT_GAP
     for (let i = 0; i < dotCount; i++) {
       const dot = this.scene.add.graphics()
-      dot.fillStyle(i === 0 ? 0x1a2a3a : 0xcccccc, 1)
+      dot.fillStyle(i === 0 ? 0xffffff : 0x6b8797, 1)
       dot.fillCircle(cx - totalW / 2 + DOT_R + i * (DOT_R * 2 + DOT_GAP), y, DOT_R)
       container.add(dot)
     }
