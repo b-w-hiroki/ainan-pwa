@@ -3,6 +3,8 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { BAIT_FISH_EFFECT } from '../game/fish.js'
+import { getBaitShopUnlock } from '../game/townUnlocks.js'
 import {
   BAIT_META,
   ROD_META,
@@ -296,6 +298,7 @@ export default class UpgradeScene extends Phaser.Scene {
         : entry.id === 'worm' || (inventory.baits?.[entry.id] ?? 0) > 0
     const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (entry.id === 'worm' ? Infinity : (inventory.baits?.[entry.id] ?? 0)) : (owned ? 1 : 0)
     const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : entry.type === 'bait' ? equipment.baitType === entry.id : false
+    const shopUnlock = entry.type === 'bait' ? getBaitShopUnlock(entry.id) : null
 
     const g = add(this.add.graphics())
     g.fillStyle(0x173248, 0.08)
@@ -320,7 +323,15 @@ export default class UpgradeScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.ink,
       wordWrap: { width: size - 6 }, align: 'center',
     }).setOrigin(0.5, 0))
-    const footer = entry.type === 'rod' ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`) : entry.type === 'material' ? `x${qty}` : (entry.id === 'worm' ? '基本' : `x${qty}`)
+    const footer = entry.type === 'rod'
+      ? (equipped ? '装備中' : owned ? '所持' : `${entry.item.cost}pt`)
+      : entry.type === 'material'
+        ? `x${qty}`
+        : entry.id === 'worm'
+          ? '基本'
+          : !shopUnlock?.unlocked && !owned
+            ? '町で解放'
+            : `x${qty}`
     add(this.add.text(x + size / 2, y + size - 8, footer, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.inkSoft,
     }).setOrigin(0.5))
@@ -370,22 +381,38 @@ export default class UpgradeScene extends Phaser.Scene {
     items.push(this.add.text(W / 2, y + 164, item.name, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 197, item.desc, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '800', color: UI_COLORS.inkSoft,
-      wordWrap: { width: w - 48 }, align: 'center',
+    const effect = type === 'bait' ? BAIT_FISH_EFFECT[id]?.detail : null
+    items.push(this.add.text(W / 2, y + 197, effect ? `${item.desc}\n${effect}` : item.desc, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
+      wordWrap: { width: w - 48 }, align: 'center', lineSpacing: 3,
     }).setOrigin(0.5, 0))
 
     const isDefaultEquipped = equipped && ((type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm'))
+    const shopUnlock = type === 'bait' ? getBaitShopUnlock(id) : null
     const status = type === 'material'
       ? `所持 ${qty}`
       : type === 'rod'
         ? (equipped ? '現在装備中' : owned ? '所持済み' : `${item.cost} ptで購入`)
-        : id === 'worm' ? '標準装備 / いつでも使える' : `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
-    items.push(this._statLine(W / 2, y + 254, status))
+        : id === 'worm'
+          ? '標準装備 / いつでも使える'
+          : shopUnlock?.unlocked
+            ? `在庫 ${qty} / ${item.cost} ptで +${item.amount}`
+            : `在庫 ${qty} / 販売解放: ${shopUnlock?.unlockedBy}`
+    items.push(this._statLine(W / 2, y + 258, status))
 
-    const action = type === 'material' ? null : equipped ? null : owned ? '装備する' : '購入して装備'
-    if (action) items.push(this._actionButton(W / 2, y + 300, action, () => this._apply(id, item, type, owned, qty)))
-    if (equipped && !isDefaultEquipped) items.push(this._plainButton(W / 2, y + 325, type === 'bait' ? 'ふつうのエサに戻す' : '初心者竿に戻す', () => this._unequip(type)))
+    let action = null
+    if (type === 'rod') action = equipped ? null : owned ? '装備する' : '購入して装備'
+    if (type === 'bait') {
+      if (!owned && !shopUnlock?.unlocked) action = null
+      else if (!owned) action = '購入して装備'
+      else if (!equipped) action = '装備する'
+      else if (id !== 'worm' && shopUnlock?.unlocked) action = '補充する'
+    }
+    if (action) items.push(this._actionButton(W / 2, y + 304, action, () => action === '補充する' ? this._restock(id, item, qty) : this._apply(id, item, type, owned, qty)))
+    if (type === 'bait' && !owned && !shopUnlock?.unlocked) {
+      items.push(this._actionButton(W / 2, y + 304, '町で販売を解放', () => this.scene.start('TownScene')))
+    }
+    if (equipped && !isDefaultEquipped) items.push(this._plainButton(W / 2, y + 329, type === 'bait' ? 'ふつうのエサに戻す' : '初心者竿に戻す', () => this._unequip(type)))
     items.push(this._plainButton(W / 2, y + h - 24, '閉じる', () => this._modal?.destroy(true)))
 
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
@@ -415,6 +442,8 @@ export default class UpgradeScene extends Phaser.Scene {
       equipment.rodType = id
     } else if (type === 'bait') {
       if (!owned) {
+        const shopUnlock = getBaitShopUnlock(id)
+        if (!shopUnlock.unlocked) return this._toast(`販売解放: ${shopUnlock.unlockedBy}`)
         if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
         inventory.baits[id] = (Number.isFinite(qty) ? qty : 0) + item.amount
       }
@@ -422,6 +451,16 @@ export default class UpgradeScene extends Phaser.Scene {
     }
     saveInventory(inventory)
     saveEquipment(equipment)
+    this.scene.restart({ tab: this._tab, scroll: this._scroll })
+  }
+
+  _restock(id, item, qty) {
+    const shopUnlock = getBaitShopUnlock(id)
+    if (!shopUnlock.unlocked) return this._toast(`販売解放: ${shopUnlock.unlockedBy}`)
+    if (!spendScore(item.cost)) return this._toast('ポイントが足りません')
+    const inventory = getInventory()
+    inventory.baits[id] = (Number.isFinite(qty) ? qty : 0) + item.amount
+    saveInventory(inventory)
     this.scene.restart({ tab: this._tab, scroll: this._scroll })
   }
 
