@@ -2,6 +2,7 @@ import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+const KUE_CLEAR_SEEN_KEY = 'ainan_kue_first_clear_seen'
 
 export class ResultUI {
   constructor(scene) {
@@ -91,14 +92,78 @@ export class ResultUI {
   }
 
   drawResultStripe(outcome) {
-    const g = this.scene.resStripe
+    const scene = this.scene
+    const g = scene.resStripe
     if (!g) return
     g.clear()
-    const color = outcome === 'caught' ? 0x2caf72 : 0xff765a
+    const isKueClear = outcome === 'caught' && scene.fish?.id === 'kue'
+    const color = isKueClear ? 0xe6a800 : outcome === 'caught' ? 0x2caf72 : 0xff765a
     g.fillStyle(color, 1)
     g.fillRoundedRect(-142, -98, 284, 42, 18)
     g.fillStyle(0xffffff, 0.28)
     g.fillRoundedRect(-130, -91, 260, 9, 5)
+
+    if (isKueClear) this._showKueClearCutin()
+  }
+
+  _showKueClearCutin() {
+    const scene = this.scene
+    if (scene._kueClearCutinActive) return
+    scene._kueClearCutinActive = true
+
+    const { width: W, height: H } = scene.scale
+    const firstClear = localStorage.getItem(KUE_CLEAR_SEEN_KEY) !== '1'
+    localStorage.setItem(KUE_CLEAR_SEEN_KEY, '1')
+
+    scene.time.delayedCall(90, () => {
+      scene.cameras.main.flash(360, 255, 219, 90, true)
+      scene.cameras.main.shake(420, 0.012)
+
+      const c = scene.add.container(W / 2, H * 0.38).setDepth(190).setAlpha(0).setScale(0.88)
+      const shade = scene.add.rectangle(0, 0, W, H, 0x071520, 0.70)
+      const halo = scene.add.graphics()
+      halo.fillStyle(0xffd95a, 0.18)
+      halo.fillCircle(0, 0, 178)
+      halo.lineStyle(5, 0xffd95a, 0.92)
+      halo.strokeCircle(0, 0, 146)
+      halo.lineStyle(2, 0xffffff, 0.50)
+      halo.strokeCircle(0, 0, 166)
+
+      const plate = scene.add.graphics()
+      plate.fillStyle(0x102b42, 0.97)
+      plate.lineStyle(3, 0xffd95a, 1)
+      plate.fillRoundedRect(-156, -78, 312, 156, 24)
+      plate.strokeRoundedRect(-156, -78, 312, 156, 24)
+      plate.fillStyle(0xffd95a, 0.16)
+      plate.fillRoundedRect(-144, -66, 288, 38, 14)
+
+      const top = scene.add.text(0, -48, firstClear ? 'MISSION CLEAR' : 'LEGEND CATCH', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffd95a', letterSpacing: 2,
+      }).setOrigin(0.5)
+      const title = scene.add.text(0, -4, '黒潮の主　クエ', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '28px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.medium,
+      }).setOrigin(0.5)
+      const sub = scene.add.text(0, 38, firstClear ? '大物挑戦を達成した' : '伝説魚を再び釣り上げた', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: '#dff5ff',
+      }).setOrigin(0.5)
+
+      c.add([shade, halo, plate, top, title, sub])
+      scene.tweens.add({ targets: c, alpha: 1, scaleX: 1, scaleY: 1, duration: 260, ease: 'Back.easeOut' })
+      scene.tweens.add({ targets: halo, angle: 16, scaleX: 1.08, scaleY: 1.08, duration: 900, yoyo: true, repeat: 0, ease: 'Sine.easeInOut' })
+      scene.time.delayedCall(1350, () => {
+        scene.tweens.add({
+          targets: c,
+          alpha: 0,
+          y: c.y - 24,
+          duration: 320,
+          ease: 'Sine.easeIn',
+          onComplete: () => {
+            c.destroy(true)
+            scene._kueClearCutinActive = false
+          },
+        })
+      })
+    })
   }
 
   toast(msg) {
