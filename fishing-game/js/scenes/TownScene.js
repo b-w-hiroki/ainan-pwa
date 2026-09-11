@@ -11,7 +11,7 @@ import {
   upgradeTownFacility,
 } from '../game/progress.js'
 import {
-  getFacilityUnlockReward,
+  getFacilityMilestoneRewards,
   getNextTownUnlock,
   getTownUnlockState,
 } from '../game/townUnlocks.js'
@@ -219,19 +219,23 @@ export default class TownScene extends Phaser.Scene {
   _nextMilestoneCard(W, y, summary) {
     const rec = this._recommendedFacility(summary)
     const maxed = rec.level >= 5
-    const title = rec.unlock ? `次の海　${rec.unlock.name}` : maxed ? '港はしっかり育ってきた' : `次のおすすめ　${rec.meta.name}`
-    const body = rec.unlock
-      ? `${rec.unlock.unlockedBy}で「${rec.unlock.rewardText}」が解放される`
-      : maxed ? '釣果を増やして、さらに町のにぎわいを広げよう。' : rec.level === 0 ? rec.meta.desc : `Lv.${rec.level + 1}で ${rec.meta.effect}`
+    const rewards = !maxed ? getFacilityMilestoneRewards(rec.id, rec.level + 1) : []
+    const rewardText = rewards.length ? rewards.map(r => r.label).join(' / ') : ''
+    const title = rec.unlock ? `次の海　${rec.unlock.name}` : rewards.length ? `次の発展　${rec.meta.name}` : maxed ? '港はしっかり育ってきた' : `次のおすすめ　${rec.meta.name}`
+    const body = rewardText
+      ? `Lv.${rec.level + 1}で ${rewardText}`
+      : rec.unlock
+        ? `${rec.unlock.unlockedBy}で「${rec.unlock.rewardText}」が解放される`
+        : maxed ? '釣果を増やして、さらに町のにぎわいを広げよう。' : rec.level === 0 ? rec.meta.desc : `Lv.${rec.level + 1}で ${rec.meta.effect}`
     const x = 22, w = W - 44, h = 62
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x173248, 0.08)
     g.fillRoundedRect(x + 2, y + 3, w, h, 18)
     g.fillStyle(0xffffff, 0.97)
-    g.lineStyle(1.6, rec.unlock ? 0xffb45d : 0x9bcfe5, 0.88)
+    g.lineStyle(1.6, rewards.length || rec.unlock ? 0xffb45d : 0x9bcfe5, 0.88)
     g.fillRoundedRect(x, y, w, h, 18)
     g.strokeRoundedRect(x, y, w, h, 18)
-    g.fillStyle(rec.unlock ? 0xfff1d0 : 0xdff5ff, 1)
+    g.fillStyle(rewards.length || rec.unlock ? 0xfff1d0 : 0xdff5ff, 1)
     g.fillCircle(x + 31, y + h / 2, 22)
 
     if (rec.npc?.key && this.textures.exists(rec.npc.key)) this.add.image(x + 31, y + h / 2 + 5, rec.npc.key).setDisplaySize(34, 52).setDepth(7)
@@ -239,7 +243,7 @@ export default class TownScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(7)
     this.add.text(x + 62, y + 43, body, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: rec.unlock ? UI_COLORS.warning : UI_COLORS.inkSoft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: rewards.length || rec.unlock ? UI_COLORS.warning : UI_COLORS.inkSoft,
       wordWrap: { width: w - 80 },
     }).setOrigin(0, 0.5).setDepth(7)
   }
@@ -265,12 +269,13 @@ export default class TownScene extends Phaser.Scene {
     const lv = this._summary.facilities[item.id] ?? 0
     const maxed = lv >= 5
     const cost = getTownFacilityCost(item.id)
-    const unlockReward = !maxed ? getFacilityUnlockReward(item.id, lv + 1) : null
+    const milestoneRewards = !maxed ? getFacilityMilestoneRewards(item.id, lv + 1) : []
+    const hasMilestone = milestoneRewards.length > 0
     const g = this.add.graphics().setDepth(4)
     g.fillStyle(0x173248, 0.08)
     g.fillRoundedRect(x + 2, y + 3, w, h, 17)
     g.fillStyle(maxed ? 0xfffbec : 0xffffff, 0.97)
-    g.lineStyle(1.7, unlockReward ? 0xffb45d : maxed ? 0xe2b94b : 0x9bcfe5, 0.92)
+    g.lineStyle(1.7, hasMilestone ? 0xffb45d : maxed ? 0xe2b94b : 0x9bcfe5, 0.92)
     g.fillRoundedRect(x, y, w, h, 17)
     g.strokeRoundedRect(x, y, w, h, 17)
 
@@ -279,8 +284,8 @@ export default class TownScene extends Phaser.Scene {
     this.add.text(x + 59, y + 19, item.name, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + 59, y + 39, unlockReward ? `Lv.${lv} → 海解放` : `Lv.${lv}/5`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: unlockReward ? '#d06b3b' : maxed ? UI_COLORS.warning : UI_COLORS.oceanDeep,
+    this.add.text(x + 59, y + 39, hasMilestone ? `Lv.${lv} → 新要素` : `Lv.${lv}/5`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: hasMilestone ? '#d06b3b' : maxed ? UI_COLORS.warning : UI_COLORS.oceanDeep,
     }).setOrigin(0, 0.5).setDepth(5)
 
     for (let i = 0; i < 5; i++) {
@@ -299,7 +304,8 @@ export default class TownScene extends Phaser.Scene {
   _showFacility(item, lv, cost) {
     const { width: W, height: H } = this.scale
     this._modal?.destroy(true)
-    const unlockReward = lv < 5 ? getFacilityUnlockReward(item.id, lv + 1) : null
+    const milestoneRewards = lv < 5 ? getFacilityMilestoneRewards(item.id, lv + 1) : []
+    const hasMilestone = milestoneRewards.length > 0
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.44).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
     const x = 34, y = 166, w = W - 68, h = 364
@@ -307,7 +313,7 @@ export default class TownScene extends Phaser.Scene {
     bg.fillStyle(0x173248, 0.14)
     bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
     bg.fillStyle(0xf8fdff, 0.99)
-    bg.lineStyle(2.2, unlockReward ? 0xffb45d : 0x9bcfe5, 0.9)
+    bg.lineStyle(2.2, hasMilestone ? 0xffb45d : 0x9bcfe5, 0.9)
     bg.fillRoundedRect(x, y, w, h, 24)
     bg.strokeRoundedRect(x, y, w, h, 24)
     bg.fillStyle(0xdff5ff, 1)
@@ -331,64 +337,85 @@ export default class TownScene extends Phaser.Scene {
       align: 'center', wordWrap: { width: w - 50 },
     }).setOrigin(0.5))
 
-    if (unlockReward) {
+    if (hasMilestone) {
       const rewardBg = this.add.graphics()
       rewardBg.fillStyle(0xfff1d0, 1)
       rewardBg.lineStyle(1.8, 0xffb45d, 0.9)
-      rewardBg.fillRoundedRect(x + 38, y + 250, w - 76, 42, 14)
-      rewardBg.strokeRoundedRect(x + 38, y + 250, w - 76, 42, 14)
+      rewardBg.fillRoundedRect(x + 28, y + 246, w - 56, 54, 14)
+      rewardBg.strokeRoundedRect(x + 28, y + 246, w - 56, 54, 14)
       items.push(rewardBg)
-      items.push(this.add.text(W / 2, y + 271, `次のLvで ${unlockReward.name} 解放`, {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: '#b85d2f',
+      items.push(this.add.text(W / 2, y + 260, '次のLvで解放', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#9a5a34',
+      }).setOrigin(0.5))
+      items.push(this.add.text(W / 2, y + 281, milestoneRewards.map(r => r.label).join(' / '), {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#b85d2f',
+        align: 'center', wordWrap: { width: w - 72 },
       }).setOrigin(0.5))
     }
 
-    if (lv < 5) items.push(this._actionButton(W / 2, y + 315, `${cost}ptで発展`, () => this._upgrade(item.id, lv)))
-    items.push(this._plainButton(W / 2, y + h - 22, '閉じる', () => this._modal?.destroy(true)))
+    if (lv < 5) items.push(this._actionButton(W / 2, y + 319, `${cost}ptで発展`, () => this._upgrade(item.id, lv)))
+    items.push(this._plainButton(W / 2, y + h - 20, '閉じる', () => this._modal?.destroy(true)))
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
 
   _upgrade(id, currentLevel) {
-    const unlockReward = getFacilityUnlockReward(id, currentLevel + 1)
+    const milestoneRewards = getFacilityMilestoneRewards(id, currentLevel + 1)
     const result = upgradeTownFacility(id)
     if (!result.ok) return this._toast(result.reason === 'max' ? '最大レベルです' : 'ポイントが足りません')
-    if (unlockReward) localStorage.setItem('ainan_pending_sea_unlock', JSON.stringify(unlockReward))
+    if (milestoneRewards.length) localStorage.setItem('ainan_pending_town_rewards', JSON.stringify(milestoneRewards))
     this.scene.restart()
   }
 
   _maybeShowUnlockCelebration(W, H) {
-    let unlock = null
-    try { unlock = JSON.parse(localStorage.getItem('ainan_pending_sea_unlock') ?? 'null') } catch { unlock = null }
-    if (!unlock) return
+    let rewards = null
+    try { rewards = JSON.parse(localStorage.getItem('ainan_pending_town_rewards') ?? 'null') } catch { rewards = null }
+
+    if (!Array.isArray(rewards) || rewards.length === 0) {
+      let legacy = null
+      try { legacy = JSON.parse(localStorage.getItem('ainan_pending_sea_unlock') ?? 'null') } catch { legacy = null }
+      if (legacy) rewards = [{ type: 'point', id: legacy.pointId, label: `${legacy.name} 解放`, detail: legacy.rewardText }]
+    }
+    if (!Array.isArray(rewards) || rewards.length === 0) return
+
+    localStorage.removeItem('ainan_pending_town_rewards')
     localStorage.removeItem('ainan_pending_sea_unlock')
 
+    const primary = rewards.find(r => r.type === 'challenge') ?? rewards.find(r => r.type === 'point') ?? rewards[0]
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x102b42, 0.58).setInteractive())
-    const x = 34, y = 222, w = W - 68, h = 280
+    const x = 34, y = 210, w = W - 68, h = 304
     const bg = this.add.graphics()
     bg.fillStyle(0xffffff, 0.99)
     bg.lineStyle(3, 0xffb45d, 1)
     bg.fillRoundedRect(x, y, w, h, 26)
     bg.strokeRoundedRect(x, y, w, h, 26)
     bg.fillStyle(0xfff1d0, 1)
-    bg.fillCircle(W / 2, y + 68, 48)
+    bg.fillCircle(W / 2, y + 62, 46)
     bg.fillStyle(0xffd95a, 1)
-    bg.fillCircle(W / 2, y + 68, 30)
+    bg.fillCircle(W / 2, y + 62, 28)
     items.push(bg)
-    items.push(this.add.text(W / 2, y + 68, 'OPEN', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
+    items.push(this.add.text(W / 2, y + 62, 'OPEN', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 132, '新しい海が開いた', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.ink,
+    items.push(this.add.text(W / 2, y + 120, '町が発展した！', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 168, unlock.name, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '28px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+    items.push(this.add.text(W / 2, y + 154, rewards.map(r => r.label).join('\n'), {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '17px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+      align: 'center', lineSpacing: 7, wordWrap: { width: w - 50 },
+    }).setOrigin(0.5, 0))
+    items.push(this.add.text(W / 2, y + 221, '町を育てると、釣りの選択肢も広がる', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.warning,
     }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 202, unlock.rewardText, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.warning,
-    }).setOrigin(0.5))
-    items.push(this._actionButton(W / 2, y + 242, 'マップで見る', () => this.scene.start('MapScene')))
+
+    const action = primary.type === 'challenge'
+      ? () => this.scene.start('ChallengeScene')
+      : primary.type === 'point'
+        ? () => this.scene.start('MapScene')
+        : () => this.scene.start('UpgradeScene', { tab: 'bait' })
+    const label = primary.type === 'challenge' ? '大物挑戦を見る' : primary.type === 'point' ? 'マップで見る' : 'エサを確認する'
+    items.push(this._actionButton(W / 2, y + 260, label, action))
     const c = this.add.container(0, 18, items).setDepth(180).setAlpha(0)
     this.tweens.add({ targets: c, y: 0, alpha: 1, duration: 220, ease: 'Back.easeOut' })
   }
