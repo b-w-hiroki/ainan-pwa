@@ -3,16 +3,9 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { getKueChallengeState } from '../game/townUnlocks.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
-
-const MENU_ITEMS = [
-  { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', mark: '魚', color: 0x5bb5d8, scene: 'CollectionScene' },
-  { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
-  { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
-  { title: 'プロフィール', desc: 'これまでの釣果と実績を見る', mark: '人', color: 0x71d6a2, scene: 'RankScene' },
-  { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
-]
 
 export default class MenuScene extends Phaser.Scene {
   constructor() { super({ key: 'MenuScene' }) }
@@ -24,13 +17,24 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
     const { width: W, height: H } = this.scale
+    const challenge = getKueChallengeState()
+    const challengeDesc = challenge.completed ? 'クエ討伐達成。専用報酬を確認' : challenge.unlocked ? '黒潮崎で伝説のクエに挑戦' : '桟橋を育てて黒潮崎を解放'
+    const menuItems = [
+      { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', mark: '魚', color: 0x5bb5d8, scene: 'CollectionScene' },
+      { title: '大物挑戦', desc: challengeDesc, mark: '主', color: 0x173248, scene: 'ChallengeScene', badge: challenge.completed ? 'CLEAR' : challenge.unlocked ? 'NEW' : 'LOCK' },
+      { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
+      { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
+      { title: 'プロフィール', desc: 'これまでの釣果と実績を見る', mark: '人', color: 0x71d6a2, scene: 'RankScene' },
+      { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
+    ]
+
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
     const veil = this.add.graphics().setDepth(1)
     veil.fillGradientStyle(0xf8fdff, 0xf8fdff, 0xf1f9fc, 0xf1f9fc, 0.80, 0.80, 0.94, 0.94)
     veil.fillRect(0, 0, W, H)
 
     this._header(W)
-    MENU_ITEMS.forEach((item, i) => this._menuCard(22, 112 + i * 94, W - 44, 78, item, i))
+    menuItems.forEach((item, i) => this._menuCard(22, 104 + i * 88, W - 44, 72, item, i))
     buildFooterNav(this, W, H, 'menu')
   }
 
@@ -58,23 +62,32 @@ export default class MenuScene extends Phaser.Scene {
     g.fillStyle(0x173248, 0.09)
     g.fillRoundedRect(x + 3, y + 4, w, h, 19)
     g.fillStyle(0xffffff, 0.98)
-    g.lineStyle(1.6, 0xb9d4df, 0.88)
+    g.lineStyle(1.6, item.badge === 'NEW' ? 0xff765a : 0xb9d4df, item.badge === 'NEW' ? 1 : 0.88)
     g.fillRoundedRect(x, y, w, h, 19)
     g.strokeRoundedRect(x, y, w, h, 19)
-    g.fillStyle(item.color, 0.16)
+    g.fillStyle(item.color, item.badge === 'LOCK' ? 0.08 : 0.16)
     g.fillRoundedRect(x + 10, y + 10, 58, h - 20, 15)
-    g.fillStyle(item.color, 1)
+    g.fillStyle(item.color, item.badge === 'LOCK' ? 0.45 : 1)
     g.fillRoundedRect(x, y + 15, 5, h - 30, 3)
 
     this.add.text(x + 39, y + h / 2, item.mark, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: UI_COLORS.ink,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: item.badge === 'LOCK' ? UI_COLORS.muted : UI_COLORS.ink,
     }).setOrigin(0.5).setDepth(6)
-    this.add.text(x + 82, y + 27, item.title, {
+    this.add.text(x + 82, y + 25, item.title, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(6)
-    this.add.text(x + 82, y + 51, item.desc, {
+    this.add.text(x + 82, y + 48, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0, 0.5).setDepth(6)
+
+    if (item.badge) {
+      const badgeW = item.badge === 'CLEAR' ? 46 : 38
+      g.fillStyle(item.badge === 'CLEAR' ? 0x71d6a2 : item.badge === 'NEW' ? 0xff765a : 0xcbd6dc, 1)
+      g.fillRoundedRect(x + w - badgeW - 16, y + 8, badgeW, 18, 7)
+      this.add.text(x + w - 16 - badgeW / 2, y + 17, item.badge, {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '7px', fontWeight: '900', color: item.badge === 'LOCK' ? UI_COLORS.inkSoft : '#ffffff',
+      }).setOrigin(0.5).setDepth(7)
+    }
 
     const badge = this.add.graphics().setDepth(6)
     badge.fillStyle(0xeaf6fb, 1)
