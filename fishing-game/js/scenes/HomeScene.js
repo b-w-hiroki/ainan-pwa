@@ -4,7 +4,18 @@ import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { addCoverImage } from '../utils/imageLayout.js'
-import { LICENSE_SHEETS, MISSION_META, claimDailyBonus, getDailyBonusState, getLicenseProgress, getMissionProgress, getScore, getStaminaState } from '../game/progress.js'
+import {
+  LICENSE_SHEETS,
+  MISSION_META,
+  claimDailyBonus,
+  getCatches,
+  getDailyBonusState,
+  getLicenseProgress,
+  getMissionProgress,
+  getScore,
+  getStaminaState,
+  getTownSummary,
+} from '../game/progress.js'
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -35,7 +46,12 @@ export default class HomeScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._unlocks = getTownUnlockState()
     this._nextUnlock = getNextTownUnlock()
+    this._town = getTownSummary()
+    this._catches = getCatches()
+    this._hasKue = this._catches.some(c => c.fishId === 'kue')
+
     this._buildBackground(W, H)
+    this._buildTownAtmosphere(W, H)
     this._buildHeader(W)
     this._buildGrowthBanner(W)
     this._buildTopShortcuts(W)
@@ -58,29 +74,55 @@ export default class HomeScene extends Phaser.Scene {
       bg.fillRect(0, H * 0.73, W, H * 0.27)
     }
     const veil = this.add.graphics().setDepth(1)
-    veil.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, 0.12, 0.12, 0.02, 0.02)
+    veil.fillGradientStyle(0xffffff, 0xffffff, 0xffffff, 0xffffff, this._hasKue ? 0.07 : 0.12, this._hasKue ? 0.07 : 0.12, 0.02, 0.02)
     veil.fillRect(0, 0, W, H * 0.72)
     veil.fillGradientStyle(0x173248, 0x173248, 0x173248, 0x173248, 0, 0, 0.12, 0.12)
     veil.fillRect(0, H * 0.72, W, H * 0.18)
   }
 
+  _buildTownAtmosphere(W, H) {
+    const g = this.add.graphics().setDepth(2)
+    if (this._hasKue) {
+      const colors = [0xff765a, 0xffd95a, 0x71d6a2, 0x5bb5d8]
+      g.lineStyle(1.8, 0xffd95a, 0.58)
+      g.lineBetween(14, H * 0.31, W - 14, H * 0.31)
+      for (let i = 0; i < 10; i++) {
+        const x = 20 + i * ((W - 40) / 9)
+        g.fillStyle(colors[i % colors.length], 0.82)
+        g.fillTriangle(x - 7, H * 0.31, x + 7, H * 0.31, x, H * 0.31 + 13 + (i % 2) * 3)
+      }
+      ;[[25, 295], [355, 312], [38, 430], [344, 462], [26, 570], [362, 600]].forEach(([x, y], i) => {
+        g.fillStyle(colors[i % colors.length], 0.62)
+        i % 2 ? g.fillCircle(x, y, 4) : g.fillRoundedRect(x - 4, y - 2, 8, 4, 2)
+      })
+      return
+    }
+
+    if ((this._town?.bustle ?? 0) >= 70) {
+      g.fillStyle(0xffd95a, 0.10)
+      g.fillCircle(W - 46, H * 0.37, 44)
+      g.fillStyle(0x71d6a2, 0.12)
+      g.fillCircle(42, H * 0.53, 34)
+    }
+  }
+
   _buildHeader(W) {
     const totalScore = getScore()
-    const catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
+    const catches = this._catches
     const rank = Math.max(1, Math.floor(catches.length / 3) + 1)
     const shell = this.add.graphics().setDepth(20)
     shell.fillStyle(0x173248, 0.14)
     shell.fillRoundedRect(10, 14, W - 20, 88, 22)
     shell.fillStyle(0xf8fdff, 0.96)
-    shell.lineStyle(2, 0x9bcfe5, 0.88)
+    shell.lineStyle(2, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.88)
     shell.fillRoundedRect(10, 10, W - 20, 88, 22)
     shell.strokeRoundedRect(10, 10, W - 20, 88, 22)
-    shell.fillStyle(0xdff5ff, 0.68)
+    shell.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.68)
     shell.fillRoundedRect(18, 18, W - 36, 16, 8)
 
     const profile = this.add.graphics().setDepth(21)
     profile.fillStyle(0xffffff, 0.98)
-    profile.lineStyle(1.8, 0x9bcfe5, 0.9)
+    profile.lineStyle(1.8, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.9)
     profile.fillRoundedRect(18, 22, 154, 46, 15)
     profile.strokeRoundedRect(18, 22, 154, 46, 15)
     profile.fillStyle(0xffd95a, 1)
@@ -90,7 +132,7 @@ export default class HomeScene extends Phaser.Scene {
 
     this.add.text(42, 45, ICONS.ROD, { fontSize: '18px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
     this.add.text(64, 38, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
-    this.add.text(64, 55, `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '11px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
+    this.add.text(64, 55, this._hasKue ? `RANK ${String(rank).padStart(2, '0')}  LEGEND` : `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
     this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('RankScene'))
 
     this._buildResourceChip(W - 116, 26, ICONS.SCORE, this._shortNum(totalScore), 0xfff5d9)
@@ -145,24 +187,41 @@ export default class HomeScene extends Phaser.Scene {
   _buildGrowthBanner(W) {
     const x = 22, y = 108, w = W - 44, h = 54
     const next = this._nextUnlock
-    const label = next ? 'NEXT SEA' : 'ALL OPEN'
-    const title = next ? `${next.name}を解放しよう` : 'すべての海が開いた'
-    const lead = next ? `${next.unlockedBy}まで町を育てる` : '好きな海で大物を狙おう'
-    const action = next ? () => this.scene.start('TownScene') : () => this.scene.start('MapScene')
+    let label = 'PORT GROWTH'
+    let title = `${this._town.rank}になった`
+    let lead = `にぎわい ${this._town.bustle}/100 ・ 施設Lv ${this._town.totalLevel}`
+    let accent = 0x71d6a2
+    let action = () => this.scene.start('TownScene')
+
+    if (this._hasKue) {
+      label = 'LEGEND PORT'
+      title = '黒潮伝説の港になった！'
+      lead = 'クエ捕獲記念祭を町で開催中'
+      accent = 0xffd95a
+    } else if (next) {
+      label = 'NEXT SEA'
+      title = `${next.name}を解放しよう`
+      lead = `${next.unlockedBy}まで町を育てる`
+      accent = 0xff765a
+    } else if (this._unlocks.unlockedCount >= this._unlocks.totalCount) {
+      label = 'ALL SEA OPEN'
+      title = `${this._town.rank} ・ 海はすべて解放済み`
+      lead = `町のにぎわい ${this._town.bustle}/100 をさらに伸ばそう`
+    }
 
     const g = this.add.graphics().setDepth(10)
     g.fillStyle(0x173248, 0.1)
     g.fillRoundedRect(x + 2, y + 4, w, h, 18)
-    g.fillGradientStyle(0xfff7df, 0xfff7df, 0xe9f9ff, 0xe9f9ff, 1)
-    g.lineStyle(1.8, 0x9bcfe5, 0.85)
+    g.fillGradientStyle(this._hasKue ? 0xfff0b8 : 0xfff7df, this._hasKue ? 0xfff7db : 0xfff7df, 0xe9f9ff, 0xe9f9ff, 1)
+    g.lineStyle(1.8, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.9)
     g.fillRoundedRect(x, y, w, h, 18)
     g.strokeRoundedRect(x, y, w, h, 18)
-    g.fillStyle(next ? 0xff765a : 0x71d6a2, 0.96)
-    g.fillRoundedRect(x + 9, y + 10, 68, 34, 12)
+    g.fillStyle(accent, 0.96)
+    g.fillRoundedRect(x + 9, y + 10, 78, 34, 12)
 
-    this.add.text(x + 43, y + 27, label, uiText('micro', { fontSize: '9px', color: '#ffffff' })).setOrigin(0.5).setDepth(11)
-    this.add.text(x + 88, y + 18, title, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(11)
-    this.add.text(x + 88, y + 37, lead, uiText('micro', { fontSize: '11px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 48, y + 27, label, uiText('micro', { fontSize: label.length > 9 ? '7px' : '9px', color: this._hasKue ? UI_COLORS.ink : '#ffffff' })).setOrigin(0.5).setDepth(11)
+    this.add.text(x + 98, y + 18, title, uiText('cardTitle', { fontSize: '13px' })).setOrigin(0, 0.5).setDepth(11)
+    this.add.text(x + 98, y + 37, lead, uiText('micro', { fontSize: '10px', color: this._hasKue ? '#9a6b00' : UI_COLORS.inkSoft })).setOrigin(0, 0.5).setDepth(11)
     this.add.text(x + w - 20, y + h / 2, '›', uiText('cardTitle', { fontSize: '20px', color: UI_COLORS.oceanDeep })).setOrigin(0.5).setDepth(11)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(12).setInteractive({ useHandCursor: true }).on('pointerdown', action)
   }
@@ -204,7 +263,7 @@ export default class HomeScene extends Phaser.Scene {
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.35)
     aura.fillEllipse(0, 84, 344, 470)
-    aura.fillStyle(0xdff5ff, 0.2)
+    aura.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, this._hasKue ? 0.24 : 0.2)
     aura.fillEllipse(-30, 74, 264, 390)
     const shadow = this.add.graphics()
     shadow.fillStyle(0x173248, 0.14)
@@ -217,20 +276,28 @@ export default class HomeScene extends Phaser.Scene {
   _buildGuideBubble(W, H) {
     const x = 20, y = H * 0.365, w = 184, h = 74
     const next = this._nextUnlock
-    const title = next ? `次は ${next.name}` : '海が全部つながった！'
-    const body = next ? `${next.unlockedBy}で新しい海へ` : '好きな場所で大物を狙おう'
+    let title = next ? `次は ${next.name}` : `${this._town.rank}になったよ`
+    let body = next ? `${next.unlockedBy}で新しい海へ` : `にぎわい ${this._town.bustle}/100 ・ 町を見に行こう`
+    let color = next ? UI_COLORS.warning : UI_COLORS.success
+
+    if (this._hasKue) {
+      title = '港中がクエの話でもちきり！'
+      body = '記念祭の町を見に行こう'
+      color = '#a97700'
+    }
+
     const g = this.add.graphics().setDepth(14)
     g.fillStyle(0x173248, 0.12)
     g.fillRoundedRect(x + 2, y + 3, w, h, 18)
-    g.fillStyle(0xffffff, 0.96)
-    g.lineStyle(1.8, 0x9bcfe5, 0.9)
+    g.fillStyle(this._hasKue ? 0xfffbec : 0xffffff, 0.97)
+    g.lineStyle(1.8, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.9)
     g.fillRoundedRect(x, y, w, h, 18)
     g.strokeRoundedRect(x, y, w, h, 18)
-    g.fillStyle(0xffffff, 0.96)
+    g.fillStyle(this._hasKue ? 0xfffbec : 0xffffff, 0.97)
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
-    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: '13px' })).setDepth(15)
-    this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color: next ? UI_COLORS.warning : UI_COLORS.success })).setDepth(15)
-    if (next) this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
+    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '11px' : '13px' })).setDepth(15)
+    this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color })).setDepth(15)
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
   }
 
   _buildMainCTA(W, H) {
@@ -256,7 +323,7 @@ export default class HomeScene extends Phaser.Scene {
     draw(false)
     const rod = this.add.text(-w / 2 + 38, 0, ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
     const title = this.add.text(18, -7, T.goFishing, uiText('button', { fontSize: '24px', color: UI_COLORS.ink })).setOrigin(0.5)
-    const sub = this.add.text(18, 16, `解放済み ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} の釣り場から選ぶ`, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
+    const sub = this.add.text(18, 16, `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} ・ 町 ${this._town.bustle}/100`, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
     const arrow = this.add.text(w / 2 - 28, 0, '›', uiText('button', { fontSize: '32px', color: UI_COLORS.ink })).setOrigin(0.5)
     const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { draw(true); c.setScale(0.985) })
@@ -280,9 +347,14 @@ export default class HomeScene extends Phaser.Scene {
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.42).setInteractive().on('pointerdown', () => this._dismissDailyBonus()))
     const x = 36, y = 238, w = W - 72, h = 250
     const bg = this.add.graphics()
-    bg.fillStyle(0x173248, 0.14); bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
-    bg.fillStyle(0xf8fdff, 0.99); bg.lineStyle(2.2, 0x9bcfe5, 0.9); bg.fillRoundedRect(x, y, w, h, 24); bg.strokeRoundedRect(x, y, w, h, 24)
-    bg.fillStyle(0xfff5d9, 1); bg.fillCircle(W / 2, y + 62, 43)
+    bg.fillStyle(0x173248, 0.14)
+    bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
+    bg.fillStyle(0xf8fdff, 0.99)
+    bg.lineStyle(2.2, 0x9bcfe5, 0.9)
+    bg.fillRoundedRect(x, y, w, h, 24)
+    bg.strokeRoundedRect(x, y, w, h, 24)
+    bg.fillStyle(0xfff5d9, 1)
+    bg.fillCircle(W / 2, y + 62, 43)
     items.push(bg)
     items.push(this.add.text(W / 2, y + 62, ICONS.BONUS, { fontSize: '40px', resolution: TEXT_RES }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 118, T.daily, uiText('panelTitle', { fontSize: '22px' })).setOrigin(0.5))
@@ -302,8 +374,12 @@ export default class HomeScene extends Phaser.Scene {
   _smallActionButton(x, y, label, onTap) {
     const c = this.add.container(0, 0)
     const bg = this.add.graphics()
-    bg.fillStyle(0x173248, 0.12); bg.fillRoundedRect(x - 68 + 2, y - 20 + 3, 136, 40, 14)
-    bg.fillStyle(0xffd95a, 1); bg.lineStyle(2, 0x173248, 0.72); bg.fillRoundedRect(x - 68, y - 20, 136, 40, 14); bg.strokeRoundedRect(x - 68, y - 20, 136, 40, 14)
+    bg.fillStyle(0x173248, 0.12)
+    bg.fillRoundedRect(x - 66, y - 17, 136, 40, 14)
+    bg.fillStyle(0xffd95a, 1)
+    bg.lineStyle(2, 0x173248, 0.72)
+    bg.fillRoundedRect(x - 68, y - 20, 136, 40, 14)
+    bg.strokeRoundedRect(x - 68, y - 20, 136, 40, 14)
     const txt = this.add.text(x, y, label, uiText('button', { fontSize: '14px' })).setOrigin(0.5)
     const hit = this.add.rectangle(x, y, 146, 48, 0x000000, 0).setInteractive({ useHandCursor: true }).on('pointerdown', onTap)
     c.add([bg, txt, hit])
