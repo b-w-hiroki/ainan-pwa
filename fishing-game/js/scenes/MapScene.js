@@ -57,6 +57,7 @@ export default class MapScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
     this._detailPanel = null
     this._dismissLayer = null
+    this._pointMarkers = {}
     this._unlocks = getTownUnlockState()
     this._buildMapBackground(W, H)
     this._buildHeader(W)
@@ -65,6 +66,7 @@ export default class MapScene extends Phaser.Scene {
     this._showMapHint(W, H)
     this._buildBackBtn()
     buildFooterNav(this, W, H, 'home')
+    this._maybeRevealNewPoint(W, H)
   }
 
   _buildHeader(W) {
@@ -76,8 +78,7 @@ export default class MapScene extends Phaser.Scene {
     g.fillRoundedRect(72, 48, W - 92, 70, 20)
     g.strokeRoundedRect(72, 48, W - 92, 70, 20)
     this.add.text(W / 2 + 18, 70, '釣り場を選ぼう', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900',
-      color: UI_COLORS.ink, shadow: SHADOW.subtle,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
     this.add.text(W / 2 + 18, 99, `町を育てて海を広げる  ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
@@ -182,6 +183,8 @@ export default class MapScene extends Phaser.Scene {
     const x = W * point.pos.x, y = H * point.pos.y
     const unlock = this._unlocks.points[point.id] ?? getFishingPointUnlock(point.id)
     const marker = this.add.container(x, y).setDepth(6)
+    this._pointMarkers[point.id] = marker
+
     const pulse = this.add.graphics()
     pulse.fillStyle(unlock.unlocked ? point.accent : 0x7c8990, unlock.unlocked ? 0.18 : 0.10)
     pulse.fillCircle(0, 0, 38)
@@ -216,9 +219,94 @@ export default class MapScene extends Phaser.Scene {
       .on('pointerout', () => marker.setScale(1))
 
     marker.add([pulse, pin, numBg, num, nameBg, name, status, hit])
+    marker._pulse = pulse
+    marker._pin = pin
     if (unlock.unlocked) {
       this.tweens.add({ targets: pulse, scaleX: 1.18, scaleY: 1.18, alpha: 0.32, duration: 900 + index * 120, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
       this.tweens.add({ targets: pin, y: pin.y - 3, duration: 1250 + index * 140, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    }
+  }
+
+  _maybeRevealNewPoint(W, H) {
+    const point = [...FISHING_POINTS].reverse().find(p => {
+      if (p.id === 'pointA') return false
+      const unlocked = this._unlocks.points[p.id]?.unlocked
+      const seen = localStorage.getItem(`ainan_seen_open_${p.id}`) === '1'
+      return unlocked && !seen
+    })
+    if (!point) return
+
+    localStorage.setItem(`ainan_seen_open_${point.id}`, '1')
+    const marker = this._pointMarkers[point.id]
+    const isBoss = point.id === 'pointC'
+    const accent = isBoss ? 0xffd95a : point.accent
+    this.cameras.main.flash(260, 255, 244, 190, true)
+
+    if (marker) {
+      marker.setScale(0.72)
+      this.tweens.add({ targets: marker, scaleX: 1.16, scaleY: 1.16, duration: 430, ease: 'Back.easeOut', yoyo: true, hold: 260 })
+      const ring = this.add.graphics().setDepth(5.8)
+      ring.lineStyle(4, accent, 0.92)
+      ring.strokeCircle(marker.x, marker.y, 44)
+      ring.lineStyle(2, 0xffffff, 0.78)
+      ring.strokeCircle(marker.x, marker.y, 53)
+      this.tweens.add({
+        targets: ring, alpha: 0, scaleX: 1.55, scaleY: 1.55, duration: 1100, ease: 'Quad.easeOut',
+        onComplete: () => ring.destroy(),
+      })
+    }
+
+    const c = this.add.container(W / 2, 150).setDepth(210).setAlpha(0).setScale(0.92)
+    const bg = this.add.graphics()
+    bg.fillStyle(0x173248, 0.18)
+    bg.fillRoundedRect(-151, -39, 302, 82, 21)
+    bg.fillStyle(isBoss ? 0x201827 : 0xf8fdff, 0.985)
+    bg.lineStyle(3, accent, 0.98)
+    bg.fillRoundedRect(-154, -43, 308, 82, 21)
+    bg.strokeRoundedRect(-154, -43, 308, 82, 21)
+    bg.fillStyle(accent, isBoss ? 0.28 : 0.16)
+    bg.fillRoundedRect(-142, -32, 74, 60, 15)
+
+    const label = this.add.text(-105, -14, isBoss ? 'BOSS\nAREA' : 'NEW\nAREA', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: isBoss ? '12px' : '13px', fontWeight: '900',
+      color: isBoss ? '#ffd95a' : UI_COLORS.oceanDeep, align: 'center', lineSpacing: -2,
+    }).setOrigin(0.5)
+    const title = this.add.text(-52, -19, `${point.name} 解放！`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: isBoss ? '#ffffff' : UI_COLORS.ink,
+    }).setOrigin(0, 0.5)
+    const body = this.add.text(-52, 8, isBoss ? '伝説のクエが待つ最終スポット' : point.description, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: isBoss ? '#dff5ff' : UI_COLORS.inkSoft,
+      wordWrap: { width: 190 },
+    }).setOrigin(0, 0.5)
+    const arrow = this.add.text(130, -3, '›', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '28px', fontWeight: '900', color: accent,
+    }).setOrigin(0.5)
+    const hit = this.add.rectangle(0, 0, 316, 90, 0x000000, 0).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        c.destroy(true)
+        this._showPointDetail(point, this._unlocks.points[point.id])
+      })
+    c.add([bg, label, title, body, arrow, hit])
+    this.tweens.add({ targets: c, alpha: 1, scaleX: 1, scaleY: 1, duration: 330, ease: 'Back.easeOut' })
+
+    for (let i = 0; i < 8; i++) {
+      const angle = (Math.PI * 2 * i) / 8
+      const sx = marker?.x ?? W / 2
+      const sy = marker?.y ?? H / 2
+      const star = this.add.text(sx, sy, i % 2 ? '✦' : '★', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: i % 2 ? '12px' : '10px', fontWeight: '900',
+        color: i % 3 === 0 ? '#ffffff' : isBoss ? '#ffd95a' : '#fff2a6',
+      }).setOrigin(0.5).setDepth(12)
+      this.tweens.add({
+        targets: star,
+        x: sx + Math.cos(angle) * (42 + (i % 3) * 9),
+        y: sy + Math.sin(angle) * (42 + (i % 3) * 9),
+        alpha: 0,
+        scale: 1.35,
+        duration: 700 + i * 40,
+        ease: 'Quad.easeOut',
+        onComplete: () => star.destroy(),
+      })
     }
   }
 
@@ -282,7 +370,7 @@ export default class MapScene extends Phaser.Scene {
 
     const btn = this.add.graphics()
     btn.fillStyle(0x173248, 0.12)
-    btn.fillRoundedRect(x + w - 138 + 2, y + 121 + 3, 116, 54, 16)
+    btn.fillRoundedRect(x + w - 136, y + 124, 116, 54, 16)
     btn.fillStyle(unlock.unlocked ? 0xffd95a : 0xdff5ff, 1)
     btn.lineStyle(2, 0x173248, 0.82)
     btn.fillRoundedRect(x + w - 138, y + 121, 116, 54, 16)
