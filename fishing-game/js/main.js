@@ -15,9 +15,11 @@ import MenuScene from './scenes/MenuScene.js'
 import ChallengeScene from './scenes/ChallengeScene.js'
 import { installPlayerAnimations } from './game/installPlayerAnimations.js'
 import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
+import { installRetrievePolish } from './game/installRetrievePolish.js'
 
 installPlayerAnimations(GameScene)
 installRetrieveGameplay(GameScene)
+installRetrievePolish(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
