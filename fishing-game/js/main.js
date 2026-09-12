@@ -13,6 +13,9 @@ import TownScene from './scenes/TownScene.js'
 import HelpScene from './scenes/HelpScene.js'
 import MenuScene from './scenes/MenuScene.js'
 import ChallengeScene from './scenes/ChallengeScene.js'
+import { installPlayerAnimations } from './game/installPlayerAnimations.js'
+
+installPlayerAnimations(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
