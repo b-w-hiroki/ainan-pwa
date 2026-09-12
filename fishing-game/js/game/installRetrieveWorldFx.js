@@ -62,7 +62,9 @@ function spookFish(scene, runtime) {
   // 通常遊泳と逃走が同じ座標を同時に更新しないようにする。
   scene.bg?._fishTweens?.[runtime.index]?.stop()
   scene.bg?._fishTweens?.[runtime.index]?.destroy()
-  if (scene.bg?._fishTweens) scene.bg._fishTweens[runtime.index] = null
+  // 配列に null を残すと startFishTweens()/destroy() の forEach で例外になる。
+  // hole にしておけば forEach は安全にスキップし、_resumeFishCruise も再生成できる。
+  if (scene.bg?._fishTweens) delete scene.bg._fishTweens[runtime.index]
 
   runtime._spookTween = scene.tweens.add({
     targets: gfx,
