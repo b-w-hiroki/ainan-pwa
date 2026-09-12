@@ -144,7 +144,7 @@ export function installPlayerAnimations(GameScene) {
     const result = originalEnterCast.apply(this, args)
     this._playerCelebrating = false
     if (this._playerSprite) {
-      this._playerSprite.setY(this._playerBaseY).setDepth(41).setScale(1)
+      this._playerSprite.setY(this._playerBaseY).setDepth(41)
       setSheetFrame(this, 'cast', 0)
     }
     return result
