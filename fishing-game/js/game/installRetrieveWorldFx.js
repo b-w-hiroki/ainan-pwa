@@ -59,6 +59,11 @@ function spookFish(scene, runtime) {
   const ty = gfx.y + (dy / len) * distance * 0.52
   gfx.setScale(dx >= 0 ? 1 : -1, 1)
 
+  // 通常遊泳と逃走が同じ座標を同時に更新しないようにする。
+  scene.bg?._fishTweens?.[runtime.index]?.stop()
+  scene.bg?._fishTweens?.[runtime.index]?.destroy()
+  if (scene.bg?._fishTweens) scene.bg._fishTweens[runtime.index] = null
+
   runtime._spookTween = scene.tweens.add({
     targets: gfx,
     x: tx,
@@ -72,6 +77,11 @@ function spookFish(scene, runtime) {
     onComplete: () => {
       runtime._spookTween = null
       runtime.stimulation = Math.min(runtime.stimulation ?? 0, 0.45)
+      runtime._lastFxX = gfx.x
+      runtime._lastFxY = gfx.y
+      if (scene.phase === 'retrieve' && runtime.state === FISH_INTEREST_STATE.CRUISE) {
+        scene._resumeFishCruise?.(runtime)
+      }
     },
   })
 }
@@ -84,8 +94,10 @@ export function installRetrieveWorldFx(GameScene) {
   GameScene.prototype._twitchRetrieve = function (...args) {
     const beforeX = this.bobber?.x
     const beforeY = this.bobber?.y
+    const wasTweening = Boolean(this._retrieveTween)
     const result = originalTwitch.apply(this, args)
-    if (this.phase === 'retrieve' && this.bobber && beforeX != null) {
+    const started = !wasTweening && Boolean(this._retrieveTween)
+    if (started && this.phase === 'retrieve' && this.bobber && beforeX != null) {
       ripple(this, beforeX, beforeY, 0xffffff, 0.92)
       this.time.delayedCall(150, () => {
         if (this.phase === 'retrieve' && this.bobber?.visible) ripple(this, this.bobber.x, this.bobber.y, 0x9ee8ff, 0.62)
@@ -96,8 +108,9 @@ export function installRetrieveWorldFx(GameScene) {
 
   const originalStartSlow = GameScene.prototype._startSlowRetrieve
   GameScene.prototype._startSlowRetrieve = function (...args) {
+    const wasSlow = Boolean(this.retrieveState?.slowHeld)
     const result = originalStartSlow.apply(this, args)
-    if (this.phase === 'retrieve' && this.bobber?.visible) ripple(this, this.bobber.x, this.bobber.y, 0x9ee8ff, 0.65)
+    if (!wasSlow && this.phase === 'retrieve' && this.bobber?.visible) ripple(this, this.bobber.x, this.bobber.y, 0x9ee8ff, 0.65)
     return result
   }
 
