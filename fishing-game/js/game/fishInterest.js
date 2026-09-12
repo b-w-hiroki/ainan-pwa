@@ -22,19 +22,19 @@ function actionPreference(prefer, action) {
     return 0.94
   }
   if (prefer === 'stop') {
-    if (action === 'idle') return 1.52
-    if (action === 'slowReel') return 0.78
-    return 0.58
+    if (action === 'idle') return 1.58
+    if (action === 'slowReel') return 0.70
+    return 0.42
   }
   if (prefer === 'twitch') {
-    if (action === 'twitch') return 1.60
-    if (action === 'slowReel') return 0.78
-    return 0.50
+    if (action === 'twitch') return 1.66
+    if (action === 'slowReel') return 0.68
+    return 0.38
   }
   if (prefer === 'slow') {
-    if (action === 'slowReel') return 1.52
-    if (action === 'twitch') return 0.92
-    return 0.58
+    if (action === 'slowReel') return 1.58
+    if (action === 'twitch') return 0.82
+    return 0.44
   }
   return 1
 }
@@ -96,8 +96,13 @@ export function updateFishInterest(runtime, ctx) {
     const appealMod = appealFactor(profile, ctx.appeal)
     const townMod = clamp(ctx.townAttractMod ?? 1, 0.8, 1.6)
     const cautionPenalty = caution * Math.max(0, ctx.appeal - 0.78) * 8
+
+    // 好みと逆の操作を続けても時間経過だけで食わないよう、近距離では明確な見切りを入れる。
+    const mismatchPenalty = dist <= 120 && actionMod < 0.72
+      ? (0.72 - actionMod) * (7.5 + caution * 5)
+      : 0
     const gain = 4.6 * distFactor * actionMod * baitMod * envMod * appealMod * townMod
-    runtime.interest = clamp(runtime.interest + gain - cautionPenalty, 0, 100)
+    runtime.interest = clamp(runtime.interest + gain - cautionPenalty - mismatchPenalty, 0, 100)
   }
 
   const biteThreshold = profile.biteThreshold ?? 82
