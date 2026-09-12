@@ -36,6 +36,7 @@ const setSheetFrame = (scene, sheet, frame = 0) => {
   sprite.setTexture(SHEETS[sheet].key, frame)
   sprite.setVisible(true)
   sprite.setAlpha(1)
+  sprite.anims.timeScale = 1
 }
 
 const createAnimations = scene => {
@@ -51,7 +52,7 @@ const createAnimations = scene => {
     scene.anims.create({
       key: ANIM.castRelease,
       frames: scene.anims.generateFrameNumbers(SHEETS.cast.key, { frames: [4, 5] }),
-      frameRate: 8,
+      frameRate: 9,
       repeat: 0,
     })
   }
@@ -59,7 +60,7 @@ const createAnimations = scene => {
     scene.anims.create({
       key: ANIM.fightHit,
       frames: scene.anims.generateFrameNumbers(SHEETS.fight.key, { frames: [0, 1, 2] }),
-      frameRate: 8,
+      frameRate: 9,
       repeat: 0,
     })
   }
@@ -82,8 +83,9 @@ const createAnimations = scene => {
 }
 
 /**
- * GameScene に生成画像ベースの釣り人アニメーションを後付けする。
- * 既存の釣りロジックは触らず、描画とフェーズ遷移だけをラップする。
+ * Generated fisherman sprites are layered onto GameScene without changing the
+ * fishing/battle rules. The player's feet sit on the beach area, leaving the
+ * sea readable in front of him and the bottom controls unobstructed.
  */
 export function installPlayerAnimations(GameScene) {
   if (GameScene.prototype.__ainanPlayerAnimationInstalled) return
@@ -110,13 +112,15 @@ export function installPlayerAnimations(GameScene) {
     }
 
     const cx = W * 0.50
-    const by = H * 0.842
-    const displayH = Math.min(H * 0.225, 190)
+    // Sand starts around 88.8% of the fishing background. Put the soles just
+    // inside that area so the character feels planted instead of floating on water.
+    const by = H * 0.885
+    const displayH = Math.min(H * 0.25, 210)
     const displayW = displayH * (FRAME_W / FRAME_H)
 
     const shadow = scene.add.graphics().setDepth(40)
-    shadow.fillStyle(0x102b42, 0.16)
-    shadow.fillEllipse(cx, by + 3, displayW * 0.48, 13)
+    shadow.fillStyle(0x102b42, 0.15)
+    shadow.fillEllipse(cx, by + 2, displayW * 0.50, 12)
 
     const sprite = scene.add.sprite(cx, by, SHEETS.cast.key, 0)
       .setOrigin(0.5, 1)
@@ -125,15 +129,14 @@ export function installPlayerAnimations(GameScene) {
 
     scene._playerSprite = sprite
     scene._playerShadow = shadow
+    scene._playerBaseX = cx
     scene._playerBaseY = by
     scene._playerDisplayH = displayH
     createAnimations(scene)
 
-    // 既存の糸・軌道計算は固定アンカーを前提としているため、
-    // 立ち姿の竿先付近を自然な基準点として使う。
     return {
-      anchorX: cx + displayW * 0.30,
-      anchorY: by - displayH * 0.78,
+      anchorX: cx + displayW * 0.42,
+      anchorY: by - displayH * 0.77,
       castRangePx: H * 0.65,
       shaftDisplayPx: Math.min(H * 0.17, 120),
     }
@@ -144,7 +147,11 @@ export function installPlayerAnimations(GameScene) {
     const result = originalEnterCast.apply(this, args)
     this._playerCelebrating = false
     if (this._playerSprite) {
-      this._playerSprite.setY(this._playerBaseY).setDepth(41)
+      this._playerSprite
+        .setPosition(this._playerBaseX, this._playerBaseY)
+        .setScale(1)
+        .setDepth(41)
+      this._playerShadow?.setVisible(true)
       setSheetFrame(this, 'cast', 0)
     }
     return result
@@ -172,8 +179,12 @@ export function installPlayerAnimations(GameScene) {
   const originalEnterWait = GameScene.prototype._enterWait
   GameScene.prototype._enterWait = function (...args) {
     const result = originalEnterWait.apply(this, args)
+    // Keep the follow-through pose while the lure settles; it reads more
+    // naturally than snapping immediately back to the idle pose.
     this.time.delayedCall(180, () => {
-      if (this.phase === 'wait') setSheetFrame(this, 'cast', 0)
+      if (this.phase === 'wait' && this._playerSprite) {
+        setSheetFrame(this, 'cast', 5)
+      }
     })
     return result
   }
@@ -190,11 +201,22 @@ export function installPlayerAnimations(GameScene) {
     const result = originalEnterBattle.apply(this, args)
     if (this._playerSprite) {
       this._playerSprite.setTexture(SHEETS.fight.key, 0).play(ANIM.fightHit, true)
-      this.time.delayedCall(360, () => {
+      this.time.delayedCall(330, () => {
         if (this.phase === 'battle' && this._playerSprite) {
           this._playerSprite.play(ANIM.fightLoop, true)
         }
       })
+    }
+    return result
+  }
+
+  const originalUpdate = GameScene.prototype.update
+  GameScene.prototype.update = function (...args) {
+    const result = originalUpdate?.apply(this, args)
+    if (this.phase === 'battle' && this._playerSprite?.anims) {
+      // Large/raging fish make the same pose loop feel more frantic without
+      // introducing another visual asset set.
+      this._playerSprite.anims.timeScale = this.battleState?.isRaging ? 1.35 : 1
     }
     return result
   }
@@ -206,32 +228,31 @@ export function installPlayerAnimations(GameScene) {
     if (!this._playerSprite) return result
 
     if (outcome !== 'caught') {
-      setSheetFrame(this, 'cast', 0)
+      setSheetFrame(this, 'fight', 5)
       return result
     }
 
-    // リザルトカードを一瞬遅らせ、釣り上げ → 喜び → 正面決めポーズを先に見せる。
+    // Show the physical payoff first: surface → lift → rear victory → jump →
+    // front-facing hero pose. The result card then arrives on the final pose.
     this._playerCelebrating = true
     this.resultOverlay?.setVisible(false)
+    this._playerShadow?.setAlpha(0.10)
     this._playerSprite
+      .setPosition(this._playerBaseX, this._playerBaseY)
       .setTexture(SHEETS.catch.key, 0)
       .setDepth(70)
       .play(ANIM.catchSuccess, true)
 
-    this.tweens.add({
-      targets: this._playerSprite,
-      y: this._playerBaseY - 5,
-      duration: 220,
-      yoyo: true,
-      repeat: 1,
-      ease: 'Sine.easeInOut',
-    })
-
-    this.time.delayedCall(1040, () => {
-      if (this.phase !== 'result') return
+    this.time.delayedCall(1010, () => {
+      if (this.phase !== 'result' || !this._playerSprite) return
       this._playerCelebrating = false
-      this._playerSprite?.setY(this._playerBaseY).setDepth(58)
+      this._playerSprite
+        .setPosition(this._playerBaseX, this._playerBaseY)
+        .setDepth(58)
+        .setScale(1.06)
+      this._playerShadow?.setAlpha(0.15)
       this.resultOverlay?.setVisible(true)
+      this.cameras.main.flash(140, 255, 245, 190, true)
     })
 
     return result
