@@ -59,6 +59,17 @@ function appealFactor(profile, appeal) {
   return clamp(1 - gap * 1.35, 0.48, 1)
 }
 
+function updateStimulation(runtime, action, appeal) {
+  const current = runtime.stimulation ?? 0
+  let next = current
+  if (action === 'twitch') next += 0.11
+  else if (action === 'slowReel') next += 0.025
+  else next -= 0.075
+  if (appeal > 0.82) next += (appeal - 0.82) * 0.20
+  runtime.stimulation = clamp(next, 0, 1.35)
+  return runtime.stimulation
+}
+
 export function updateFishInterest(runtime, ctx) {
   const fish = runtime.fishDef
   const profile = fish.retrieve ?? {
@@ -66,16 +77,25 @@ export function updateFishInterest(runtime, ctx) {
   }
   const dist = ctx.distance
   const distFactor = distanceFactor(dist)
+  const caution = profile.caution ?? 0.2
+  const stimulation = updateStimulation(runtime, ctx.action, ctx.appeal)
+  const spookThreshold = 1.15 - caution * 0.45
+  runtime.spooked = false
 
   if (distFactor <= 0) {
     runtime.interest = clamp(runtime.interest - 4.2, 0, 100)
+    runtime.stimulation = clamp(stimulation - 0.05, 0, 1.35)
+  } else if (dist <= 155 && stimulation >= spookThreshold) {
+    // 近距離でルアーを動かし過ぎると、警戒心の強い魚ほど見切りやすい。
+    runtime.interest = clamp(runtime.interest - (10 + caution * 16), 0, 100)
+    runtime.spooked = true
   } else {
     const actionMod = actionPreference(profile.prefer, ctx.action)
     const baitMod = baitFactor(fish, ctx.baitType)
     const envMod = environmentFactor(fish, ctx.env)
     const appealMod = appealFactor(profile, ctx.appeal)
     const townMod = clamp(ctx.townAttractMod ?? 1, 0.8, 1.6)
-    const cautionPenalty = (profile.caution ?? 0.2) * Math.max(0, ctx.appeal - 0.78) * 8
+    const cautionPenalty = caution * Math.max(0, ctx.appeal - 0.78) * 8
     const gain = 4.6 * distFactor * actionMod * baitMod * envMod * appealMod * townMod
     runtime.interest = clamp(runtime.interest + gain - cautionPenalty, 0, 100)
   }
