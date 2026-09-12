@@ -16,10 +16,12 @@ import ChallengeScene from './scenes/ChallengeScene.js'
 import { installPlayerAnimations } from './game/installPlayerAnimations.js'
 import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
 import { installRetrievePolish } from './game/installRetrievePolish.js'
+import { installRetrieveFeedback } from './game/installRetrieveFeedback.js'
 
 installPlayerAnimations(GameScene)
 installRetrieveGameplay(GameScene)
 installRetrievePolish(GameScene)
+installRetrieveFeedback(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
