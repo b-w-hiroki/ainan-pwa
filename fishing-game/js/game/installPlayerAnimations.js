@@ -29,11 +29,20 @@ const ANIM = {
   catchSuccess: 'ainan-player-catch-success',
 }
 
+const setPlayerDisplaySize = (scene, scale = 1) => {
+  if (!scene._playerSprite || !scene._playerDisplayW || !scene._playerDisplayH) return
+  scene._playerSprite.setDisplaySize(
+    scene._playerDisplayW * scale,
+    scene._playerDisplayH * scale,
+  )
+}
+
 const setSheetFrame = (scene, sheet, frame = 0) => {
   const sprite = scene._playerSprite
   if (!sprite || !scene.textures.exists(SHEETS[sheet].key)) return
   sprite.stop()
   sprite.setTexture(SHEETS[sheet].key, frame)
+  setPlayerDisplaySize(scene)
   sprite.setVisible(true)
   sprite.setAlpha(1)
   sprite.anims.timeScale = 1
@@ -131,6 +140,7 @@ export function installPlayerAnimations(GameScene) {
     scene._playerShadow = shadow
     scene._playerBaseX = cx
     scene._playerBaseY = by
+    scene._playerDisplayW = displayW
     scene._playerDisplayH = displayH
     createAnimations(scene)
 
@@ -149,8 +159,8 @@ export function installPlayerAnimations(GameScene) {
     if (this._playerSprite) {
       this._playerSprite
         .setPosition(this._playerBaseX, this._playerBaseY)
-        .setScale(1)
         .setDepth(41)
+      setPlayerDisplaySize(this)
       this._playerShadow?.setVisible(true)
       setSheetFrame(this, 'cast', 0)
     }
@@ -163,6 +173,7 @@ export function installPlayerAnimations(GameScene) {
     const wasCast = this.phase === 'cast' && !this.isCharging
     const result = originalOnDown.call(this, pointer)
     if (wasCast && this.phase === 'cast' && this.isCharging && this._playerSprite) {
+      setPlayerDisplaySize(this)
       this._playerSprite.play(ANIM.castCharge, true)
     }
     return result
@@ -171,7 +182,9 @@ export function installPlayerAnimations(GameScene) {
   const originalFireCast = GameScene.prototype._fireCast
   GameScene.prototype._fireCast = function (...args) {
     if (this._playerSprite) {
-      this._playerSprite.setTexture(SHEETS.cast.key, 4).play(ANIM.castRelease, true)
+      this._playerSprite.setTexture(SHEETS.cast.key, 4)
+      setPlayerDisplaySize(this)
+      this._playerSprite.play(ANIM.castRelease, true)
     }
     return originalFireCast.apply(this, args)
   }
@@ -200,7 +213,9 @@ export function installPlayerAnimations(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     if (this._playerSprite) {
-      this._playerSprite.setTexture(SHEETS.fight.key, 0).play(ANIM.fightHit, true)
+      this._playerSprite.setTexture(SHEETS.fight.key, 0)
+      setPlayerDisplaySize(this)
+      this._playerSprite.play(ANIM.fightHit, true)
       this.time.delayedCall(330, () => {
         if (this.phase === 'battle' && this._playerSprite) {
           this._playerSprite.play(ANIM.fightLoop, true)
@@ -241,7 +256,8 @@ export function installPlayerAnimations(GameScene) {
       .setPosition(this._playerBaseX, this._playerBaseY)
       .setTexture(SHEETS.catch.key, 0)
       .setDepth(70)
-      .play(ANIM.catchSuccess, true)
+    setPlayerDisplaySize(this)
+    this._playerSprite.play(ANIM.catchSuccess, true)
 
     this.time.delayedCall(1010, () => {
       if (this.phase !== 'result' || !this._playerSprite) return
@@ -249,7 +265,7 @@ export function installPlayerAnimations(GameScene) {
       this._playerSprite
         .setPosition(this._playerBaseX, this._playerBaseY)
         .setDepth(58)
-        .setScale(1.06)
+      setPlayerDisplaySize(this, 1.06)
       this._playerShadow?.setAlpha(0.15)
       this.resultOverlay?.setVisible(true)
       this.cameras.main.flash(140, 255, 245, 190, true)
