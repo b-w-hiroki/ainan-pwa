@@ -9,6 +9,8 @@ export class RetrieveUI {
     this.container = null
     this.appealFill = null
     this.hintText = null
+    this.senseFill = null
+    this.senseText = null
     this._slowPressed = false
   }
 
@@ -32,6 +34,25 @@ export class RetrieveUI {
     this.appealFill = this.scene.add.graphics().setScrollFactor(0)
     this.appealTrack = { x: 34, y: panelY + 37, w: W - 68, h: 16 }
 
+    const senseX = W - 56
+    const senseY = H - 274
+    const senseBg = this.scene.add.graphics().setScrollFactor(0)
+    senseBg.fillStyle(0x173248, 0.82)
+    senseBg.lineStyle(2, 0x9bcfe5, 0.88)
+    senseBg.fillCircle(senseX, senseY, 38)
+    senseBg.strokeCircle(senseX, senseY, 38)
+    senseBg.fillStyle(0xf8fdff, 0.10)
+    senseBg.fillCircle(senseX - 9, senseY - 9, 19)
+
+    this.senseFill = this.scene.add.graphics().setScrollFactor(0)
+    const senseTitle = this.scene.add.text(senseX, senseY - 3, '気配', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: '#ffffff',
+    }).setOrigin(0.5).setScrollFactor(0)
+    this.senseText = this.scene.add.text(senseX, senseY + 48, 'まだ遠い', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#ffffff',
+      backgroundColor: 'rgba(23,50,72,0.82)', padding: { x: 7, y: 4 },
+    }).setOrigin(0.5).setScrollFactor(0)
+
     const btnY = H - 94
     const gap = 8
     const sideW = 104
@@ -50,6 +71,7 @@ export class RetrieveUI {
         this.scene._startSlowRetrieve?.()
       })
       .on('pointerup', () => this._releaseSlow())
+      .on('pointerupoutside', () => this._releaseSlow())
       .on('pointerout', () => this._releaseSlow())
 
     const hintBg = this.scene.add.graphics().setScrollFactor(0)
@@ -61,10 +83,12 @@ export class RetrieveUI {
 
     this.container.add([
       panel, title, this.appealFill,
+      senseBg, this.senseFill, senseTitle, this.senseText,
       waitBtn.container, twitchBtn.container, slowBtn.container,
       hintBg, this.hintText,
     ])
     this.syncAppeal(0.35)
+    this.syncFishSense('cruise')
   }
 
   _releaseSlow() {
@@ -109,6 +133,11 @@ export class RetrieveUI {
     this.appealFill.clear()
     this.appealFill.fillStyle(0xe8f4f8, 1)
     this.appealFill.fillRoundedRect(x, y, w, h, h / 2)
+
+    // GOOD帯を薄く常時表示し、今どこを狙うかを一目で分かるようにする。
+    this.appealFill.fillStyle(0x71d6a2, 0.24)
+    this.appealFill.fillRoundedRect(x + w * 0.34, y + 2, w * 0.34, h - 4, (h - 4) / 2)
+
     const fw = Math.max(5, w * v)
     const color = v < 0.32 ? 0x58b8df : v < 0.72 ? 0x71d6a2 : v < 0.88 ? 0xffd95a : 0xff765a
     this.appealFill.fillStyle(color, 1)
@@ -117,6 +146,37 @@ export class RetrieveUI {
     this.appealFill.fillRoundedRect(x + 4, y + 3, Math.max(0, fw - 8), 4, 2)
     this.appealFill.lineStyle(1.6, 0xffffff, 0.72)
     this.appealFill.strokeRoundedRect(x, y, w, h, h / 2)
+
+    const markerX = x + w * v
+    this.appealFill.lineStyle(3, 0xffffff, 0.96)
+    this.appealFill.lineBetween(markerX, y - 3, markerX, y + h + 3)
+  }
+
+  syncFishSense(state = 'cruise', spooked = false) {
+    if (!this.senseFill || !this.senseText) return
+    const states = {
+      cruise: { level: 0, label: 'まだ遠い' },
+      noticed: { level: 1, label: '気づいた' },
+      follow: { level: 2, label: '追ってる' },
+      inspect: { level: 3, label: 'すぐ近く' },
+      biteReady: { level: 4, label: '食いそう！' },
+    }
+    const data = states[state] ?? states.cruise
+    const level = spooked ? 1 : data.level
+    const color = spooked ? 0xff765a : level >= 4 ? 0xffd95a : level >= 2 ? 0x71d6a2 : 0x58b8df
+    const cx = this.scene.scale.width - 56
+    const cy = this.scene.scale.height - 274
+
+    this.senseFill.clear()
+    this.senseFill.lineStyle(5, 0xffffff, 0.18)
+    this.senseFill.strokeCircle(cx, cy, 29)
+    if (level > 0) {
+      this.senseFill.lineStyle(6, color, 0.96)
+      this.senseFill.beginPath()
+      this.senseFill.arc(cx, cy, 29, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (level / 4), false)
+      this.senseFill.strokePath()
+    }
+    this.senseText.setText(spooked ? '警戒した' : data.label)
   }
 
   setHint(text) {
