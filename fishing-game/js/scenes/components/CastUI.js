@@ -1,7 +1,13 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
-import { buildTrajectory } from '../../game/cast.js'
+import { buildTrajectory, clampLanding } from '../../game/cast.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+
+function zoneLabel(meters) {
+  if (meters < 23) return '近場'
+  if (meters < 35) return '中距離'
+  return '遠距離'
+}
 
 export class CastUI {
   constructor(scene) {
@@ -11,6 +17,14 @@ export class CastUI {
   drawPreview(angleDeg, power01) {
     const scene = this.scene
     const pts = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, power01, scene.castRangePx)
+    const world = scene.fishingCamera?.world
+    if (world?.waterBounds?.minX != null) clampLanding(pts, world.waterBounds)
+
+    const end = pts[pts.length - 1]
+    const pxPerMeter = world?.pxPerMeter ?? 18
+    const meters = Math.hypot(end.x - scene.anchorX, end.y - scene.anchorY) / pxPerMeter
+    scene.powerLabel?.setText(`${meters.toFixed(0)}m・${zoneLabel(meters)}`)
+
     const rad = (angleDeg * Math.PI) / 180
     const tip = {
       x: scene.anchorX + Math.sin(rad) * scene.shaftDisplayPx,
@@ -99,7 +113,7 @@ export class CastUI {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900',
       color: UI_COLORS.ink,
       stroke: '#ffffff', strokeThickness: 3,
-      letterSpacing: 2,
+      letterSpacing: 1,
       shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(37).setVisible(false)
   }
