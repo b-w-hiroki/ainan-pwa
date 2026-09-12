@@ -7,16 +7,17 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const LOOP_STEPS = [
-  { no: '1', title: '釣る', desc: '海へ出て魚を釣る', accent: 0x5bb5d8 },
+  { no: '1', title: '釣る', desc: '遠投して魚影を誘う', accent: 0x5bb5d8 },
   { no: '2', title: '持ち帰る', desc: '釣果とポイントを集める', accent: 0x71d6a2 },
   { no: '3', title: '町を育てる', desc: '施設を発展させる', accent: 0xffb45d },
   { no: '4', title: '海が広がる', desc: '新しい釣り場と魚が開く', accent: 0x8f80e8 },
 ]
 
 const CONTROL_STEPS = [
-  { title: 'キャスト', key: 'HOLD → RELEASE', desc: '長押しでパワーをため、離して浮きを投げる。' },
-  { title: 'ヒット', key: 'TAP', desc: '浮きが大きく沈んだ瞬間にタップする。' },
-  { title: 'ファイト', key: 'SWIPE', desc: '魚が落ち着いている時に下へスワイプ。暴れている時は待つ。' },
+  { title: 'キャスト', key: 'HOLD → RELEASE', desc: '長押しで距離を狙って投げる。遠投ほど沖の魚影に届く。' },
+  { title: '誘う', key: 'TAP / HOLD', desc: 'ちょい巻き・ゆっくり巻き・待つを使い分け、魚影をルアーへ寄せる。' },
+  { title: '食わせる', key: 'TAP', desc: '魚が追ってきたら巻きすぎない。ぐんっと食った瞬間にタップ。' },
+  { title: 'ファイト', key: 'SWIPE', desc: '落ち着いている時に下へスワイプ。暴れている時は待つ。' },
 ]
 
 export default class HelpScene extends Phaser.Scene {
@@ -59,7 +60,7 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(W / 2, 56, 'AINANの遊び方', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, 82, '釣るほど町が育ち、町が育つほど海が広がる', {
+    this.add.text(W / 2, 82, '投げて、誘って、食わせて、町へ持ち帰る', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -116,20 +117,23 @@ export default class HelpScene extends Phaser.Scene {
   }
 
   _controls(W) {
-    const x = 18, y = 390, w = W - 36, h = 238
+    const x = 18, y = 390, w = W - 36, h = 284
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
     panel.fillRoundedRect(x, y, w, h, 22)
     panel.strokeRoundedRect(x, y, w, h, 22)
-    this.add.text(x + 18, y + 24, '釣りの操作', {
+    this.add.text(x + 18, y + 22, '釣りの操作', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '17px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
+    this.add.text(x + w - 18, y + 22, 'CAST → RETRIEVE → BITE → BATTLE', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+    }).setOrigin(1, 0.5).setDepth(5)
 
-    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 52 + i * 58, w - 32, 48, item))
+    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * 50, w - 32, 44, item))
 
-    this.add.text(W / 2, y + h - 18, '釣れたらリザルトの「町へ」で、そのまま町おこしへ戻れる', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.success,
+    this.add.text(W / 2, y + h - 20, '近場・中距離・遠距離で魚の層が変わる。大物ほど沖を狙おう。', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5).setDepth(5)
   }
 
@@ -140,15 +144,15 @@ export default class HelpScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, h, 14)
     g.strokeRoundedRect(x, y, w, h, 14)
     g.fillStyle(0x173248, 0.92)
-    g.fillRoundedRect(x + 10, y + 10, 92, 28, 10)
-    this.add.text(x + 56, y + 24, item.key, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#ffffff',
+    g.fillRoundedRect(x + 8, y + 8, 96, 28, 10)
+    this.add.text(x + 56, y + 22, item.key, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(x + 116, y + 16, item.title, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
+    this.add.text(x + 116, y + 13, item.title, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + 116, y + 33, item.desc, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.inkSoft,
+    this.add.text(x + 116, y + 29, item.desc, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft,
       wordWrap: { width: w - 128 },
     }).setOrigin(0, 0.5).setDepth(5)
   }
