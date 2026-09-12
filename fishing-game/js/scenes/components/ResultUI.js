@@ -11,7 +11,7 @@ export class ResultUI {
 
   buildResultOverlay(W, H) {
     const scene = this.scene
-    scene.resultOverlay = scene.add.container(W / 2, H * 0.42).setDepth(120).setVisible(false)
+    scene.resultOverlay = scene.add.container(W / 2, H * 0.42).setDepth(120).setVisible(false).setScrollFactor(0)
 
     const glow = scene.add.graphics()
     glow.fillStyle(0xffffff, 0.20)
@@ -119,7 +119,7 @@ export class ResultUI {
       scene.cameras.main.flash(360, 255, 219, 90, true)
       scene.cameras.main.shake(420, 0.012)
 
-      const c = scene.add.container(W / 2, H * 0.38).setDepth(190).setAlpha(0).setScale(0.88)
+      const c = scene.add.container(W / 2, H * 0.38).setDepth(190).setAlpha(0).setScale(0.88).setScrollFactor(0)
       const shade = scene.add.rectangle(0, 0, W, H, 0x071520, 0.70)
       const halo = scene.add.graphics()
       halo.fillStyle(0xffd95a, 0.18)
@@ -168,18 +168,18 @@ export class ResultUI {
 
   toast(msg) {
     const { width: W, height: H } = this.scene.scale
-    const bg = this.scene.add.graphics().setDepth(99)
+    const bg = this.scene.add.graphics().setDepth(99).setScrollFactor(0)
     bg.fillStyle(0x173248, 0.92)
     bg.fillRoundedRect(W / 2 - 128, H * 0.38 - 24, 256, 48, 18)
     const t = this.scene.add.text(W / 2, H * 0.38, msg, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
-    }).setOrigin(0.5).setDepth(100)
+    }).setOrigin(0.5).setDepth(100).setScrollFactor(0)
     this.scene.tweens.add({ targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() } })
   }
 
   buildBackBtn(W, H) {
     const scene = this.scene
-    const c = scene.add.container(18, H - 18).setDepth(200)
+    const c = scene.add.container(18, H - 18).setDepth(200).setScrollFactor(0)
     const bg = scene.add.graphics()
     const draw = (hover = false) => {
       bg.clear()
