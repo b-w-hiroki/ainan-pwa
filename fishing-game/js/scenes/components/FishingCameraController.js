@@ -1,8 +1,19 @@
+const WATER_BOUNDS = {
+  left: 70,
+  right: 830,
+  top: 120,
+  bottom: 1020,
+  minX: 70,
+  maxX: 830,
+  minY: 120,
+  maxY: 1020,
+}
+
 export const FISHING_WORLD = {
   width: 900,
   height: 1400,
   player: { x: 138, y: 1160 },
-  waterBounds: { left: 70, right: 830, top: 120, bottom: 1020 },
+  waterBounds: WATER_BOUNDS,
   pxPerMeter: 18,
 }
 
