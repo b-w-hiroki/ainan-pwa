@@ -21,6 +21,7 @@ import { installRetrieveTutorial } from './game/installRetrieveTutorial.js'
 import { installCastZoneFish } from './game/installCastZoneFish.js'
 import { installRetrieveWorldFx } from './game/installRetrieveWorldFx.js'
 import { installBiteCameraFeedback } from './game/installBiteCameraFeedback.js'
+import { installTackleSync } from './game/installTackleSync.js'
 
 installPlayerAnimations(GameScene)
 installRetrieveGameplay(GameScene)
@@ -30,6 +31,7 @@ installRetrieveTutorial(GameScene)
 installCastZoneFish(GameScene)
 installRetrieveWorldFx(GameScene)
 installBiteCameraFeedback(GameScene)
+installTackleSync(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
