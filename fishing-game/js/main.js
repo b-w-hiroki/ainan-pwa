@@ -18,12 +18,14 @@ import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
 import { installRetrievePolish } from './game/installRetrievePolish.js'
 import { installRetrieveFeedback } from './game/installRetrieveFeedback.js'
 import { installRetrieveTutorial } from './game/installRetrieveTutorial.js'
+import { installCastZoneFish } from './game/installCastZoneFish.js'
 
 installPlayerAnimations(GameScene)
 installRetrieveGameplay(GameScene)
 installRetrievePolish(GameScene)
 installRetrieveFeedback(GameScene)
 installRetrieveTutorial(GameScene)
+installCastZoneFish(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
