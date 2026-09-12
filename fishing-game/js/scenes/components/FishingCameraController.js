@@ -46,8 +46,6 @@ export class FishingCameraController {
       return
     }
 
-    // 1回だけ lerp すると遠投後に中途半端な位置で止まるため、
-    // player が自然に下側へ見える構図まで明示的にパンして戻す。
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
     this.camera.pan(centerX, centerY, 360, 'Sine.easeInOut', true)
@@ -68,6 +66,17 @@ export class FishingCameraController {
   holdLure(x, y) {
     this.state = 'lureFocus'
     this._followSafePoint(x, y, 0.14)
+  }
+
+  focusBite(lureX, lureY, fishX = lureX, fishY = lureY) {
+    this.state = 'biteFocus'
+    const focusX = lerp(lureX, fishX, 0.42)
+    const focusY = lerp(lureY, fishY, 0.42)
+    const desiredX = clamp(focusX - this.camera.width * 0.55, 0, this.world.width - this.camera.width)
+    const desiredY = clamp(focusY - this.camera.height * 0.38, 0, this.world.height - this.camera.height)
+    const centerX = desiredX + this.camera.width / 2
+    const centerY = desiredY + this.camera.height / 2
+    this.camera.pan(centerX, centerY, 220, 'Sine.easeOut', true)
   }
 
   composeBattle(fishX, fishY) {
