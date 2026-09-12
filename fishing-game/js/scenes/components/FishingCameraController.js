@@ -34,7 +34,12 @@ export class FishingCameraController {
       this.camera.setScroll(desiredX, desiredY)
       return
     }
-    this._moveToward(desiredX, desiredY, 0.16)
+
+    // 1回だけ lerp すると遠投後に中途半端な位置で止まるため、
+    // player が自然に下側へ見える構図まで明示的にパンして戻す。
+    const centerX = desiredX + this.camera.width / 2
+    const centerY = desiredY + this.camera.height / 2
+    this.camera.pan(centerX, centerY, 360, 'Sine.easeInOut', true)
   }
 
   updateCastFollow(x, y) {
