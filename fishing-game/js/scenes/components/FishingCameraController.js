@@ -26,7 +26,8 @@ export class FishingCameraController {
     this.camera = scene.cameras.main
     this.world = world
     this.state = 'playerFocus'
-    this.safeZone = { left: 88, right: 306, top: 135, bottom: 585 }
+    // ルアーが画面中央を横切るたびにカメラが動かないよう、かなり広めの安全域にする。
+    this.safeZone = { left: 58, right: 332, top: 112, bottom: 620 }
     this.player = { ...world.player }
   }
 
@@ -39,7 +40,7 @@ export class FishingCameraController {
 
   focusPlayer(immediate = false) {
     this.state = 'playerFocus'
-    const desiredX = clamp(this.player.x - 125, 0, this.world.width - this.camera.width)
+    const desiredX = clamp(this.player.x - 118, 0, this.world.width - this.camera.width)
     const desiredY = clamp(this.player.y - 650, 0, this.world.height - this.camera.height)
     if (immediate) {
       this.camera.setScroll(desiredX, desiredY)
@@ -48,49 +49,50 @@ export class FishingCameraController {
 
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
-    this.camera.pan(centerX, centerY, 360, 'Sine.easeInOut', true)
+    this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
   }
 
   updateCastFollow(x, y) {
     this.state = 'castFollow'
-    this._followSafePoint(x, y, 0.18)
+    this._followSafePoint(x, y, 0.12)
   }
 
   updateRetrieveFollow(lureX, lureY) {
     this.state = 'retrieveFollow'
-    const focusX = lerp(lureX, this.player.x, 0.18)
-    const focusY = lerp(lureY, this.player.y, 0.12)
-    this._followSafePoint(focusX, focusY, 0.10)
+    // プレイヤー側へ少し重心を戻し、巻いている最中の背景移動量を抑える。
+    const focusX = lerp(lureX, this.player.x, 0.24)
+    const focusY = lerp(lureY, this.player.y, 0.18)
+    this._followSafePoint(focusX, focusY, 0.07)
   }
 
   holdLure(x, y) {
     this.state = 'lureFocus'
-    this._followSafePoint(x, y, 0.14)
+    this._followSafePoint(x, y, 0.10)
   }
 
   focusBite(lureX, lureY, fishX = lureX, fishY = lureY) {
     this.state = 'biteFocus'
     const focusX = lerp(lureX, fishX, 0.42)
     const focusY = lerp(lureY, fishY, 0.42)
-    const desiredX = clamp(focusX - this.camera.width * 0.55, 0, this.world.width - this.camera.width)
-    const desiredY = clamp(focusY - this.camera.height * 0.38, 0, this.world.height - this.camera.height)
+    const desiredX = clamp(focusX - this.camera.width * 0.54, 0, this.world.width - this.camera.width)
+    const desiredY = clamp(focusY - this.camera.height * 0.40, 0, this.world.height - this.camera.height)
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
-    this.camera.pan(centerX, centerY, 220, 'Sine.easeOut', true)
+    this.camera.pan(centerX, centerY, 180, 'Sine.easeOut', true)
   }
 
   composeBattle(fishX, fishY) {
     this.state = 'battleCompose'
-    const centerX = lerp(this.player.x, fishX ?? this.player.x + 180, 0.48)
-    const centerY = lerp(this.player.y - 170, fishY ?? this.player.y - 360, 0.48)
-    this.camera.pan(centerX, centerY, 360, 'Sine.easeInOut', true)
+    const centerX = lerp(this.player.x, fishX ?? this.player.x + 180, 0.42)
+    const centerY = lerp(this.player.y - 160, fishY ?? this.player.y - 360, 0.42)
+    this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
   }
 
   focusCatch() {
     this.state = 'catchFocus'
-    const centerX = this.player.x + 75
-    const centerY = this.player.y - 300
-    this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
+    const centerX = this.player.x + 70
+    const centerY = this.player.y - 292
+    this.camera.pan(centerX, centerY, 280, 'Sine.easeInOut', true)
   }
 
   _followSafePoint(worldX, worldY, amount) {
