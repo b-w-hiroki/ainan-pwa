@@ -15,13 +15,19 @@ QA mode is opt-in only and does not appear in normal play. A fixed strip shows:
 - target fish / interest state
 - battle calm/rage state and escape/reel values
 
-The `近 / 中 / 遠` buttons restart the fishing scene with:
+The first-row `近 / 中 / 遠` buttons restart the fishing scene with:
 
 - 近: 汐風港 + 初心者竿 + standard bait
 - 中: 汐風港 + カーボン竿 + standard bait
 - 遠: 汐風港 + 高級竿 + standard bait
 
-These presets do not write equipment selection to persistent progress.
+The second row accelerates failure/success routing checks:
+
+- `HITミス`: while in RETRIEVE/WAIT, force the hook-miss recovery path and verify it returns to CAST.
+- `逃走`: while in BATTLE, force the escaped result and verify only the retry CTA is available.
+- `釣果GET`: force a caught result, then use the real `町へ持ち帰る` CTA to verify Town arrival.
+
+These QA controls do not appear in normal play. Range presets do not write equipment selection to persistent progress.
 
 ## Run 1 — near cast
 
@@ -68,10 +74,18 @@ Pass when:
 
 ## Run 4 — hook miss / retry
 
+Natural path:
+
 1. Reach `ぐんっ！ / HIT`.
 2. Intentionally do not tap within the hook window.
 3. Confirm the miss resolves cleanly.
 4. Confirm the scene returns to CAST and accepts the very next press.
+
+Fast QA path:
+
+1. Reach RETRIEVE.
+2. Press `HITミス`.
+3. Confirm the same recovery path returns to CAST.
 
 Pass when:
 
@@ -82,20 +96,37 @@ Pass when:
 
 ## Run 5 — catch / result / Town
 
+Natural path:
+
 1. Hook a fish successfully.
 2. In Battle, swipe only while calm.
 3. When the fish rages, stop and wait.
 4. Catch the fish.
-5. Confirm the catch animation finishes before the result card.
-6. Confirm the result screen only moves through explicit buttons.
-7. Press `町へ持ち帰る`.
-8. Confirm Town receives fish name, size, points and rarity reaction.
+
+Fast QA path:
+
+1. Press `釣果GET` to force a successful catch result.
+2. Wait for the catch animation/result handoff.
+
+Then for either path:
+
+1. Confirm the catch animation finishes before the result card.
+2. Confirm the result screen only moves through explicit buttons.
+3. Press `町へ持ち帰る`.
+4. Confirm Town receives fish name, size, points and rarity reaction.
+
+Also verify failure routing once:
+
+1. Enter BATTLE.
+2. Press `逃走`.
+3. Confirm success-only `町へ持ち帰る / 図鑑` controls are hidden and only explicit retry remains.
 
 Pass when:
 
 - Battle feels like continuation of the same water scene
 - result does not silently reset on background tap
-- `町へ持ち帰る` is the clear primary route
+- escaped result cannot accidentally route to Town
+- `町へ持ち帰る` is the clear primary success route
 - Town arrival feels like payoff for the catch
 
 ## Vertical Slice 1.0 completion gate
