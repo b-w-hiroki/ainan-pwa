@@ -45,8 +45,8 @@ Acceptance:
 Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
 - Prevent immediate/automatic bite after landing.
-- Typical common fish should require at least 2 meaningful retrieve decisions before bite readiness.
-- `待つ`, `ちょい巻き`, `ゆっくり巻く` must create different interest changes.
+- Typical common fish require meaningful retrieve decisions before bite readiness.
+- `待つ`, `ちょい巻き`, `ゆっくり巻く` create different interest changes.
 - Overworking the lure can cause hesitation or flee behavior.
 
 Acceptance:
@@ -55,22 +55,27 @@ Acceptance:
 
 ### P0-03 Fish behavior readability
 
-Status: **PARTIAL**
+Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
-- Cruise → noticed → follow → inspect → biteReady is readable primarily from motion.
-- Use turn, pursuit, wake, orbit, pause, and flee before adding more numeric UI.
-- Reaction text/symbols are secondary support only.
+- Cruise → noticed → follow → inspect → biteReady is communicated primarily through motion.
+- `noticed`: fish stops, faces the lure, and creeps closer.
+- `follow`: fish visibly pursues the lure with wake feedback.
+- `inspect`: fish orbits/searches around the lure.
+- `biteReady`: fish briefly hesitates before the bite sequence.
+- Spooked fish turns away and flees.
+- Reaction symbols are now secondary emphasis only.
 
 Acceptance:
 - A player can point to the fish currently interested in the lure without reading a meter.
 
 ### P0-04 Bite / hook transition
 
-Status: **PARTIAL — LARGE OVERLAY REMOVED**
+Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
 - Retrieve remains visually continuous into bite.
 - Fish approaches lure → brief hesitation → water/bobber cue → `ちょん` → `ぐんっ！` → hook input.
-- Remove any large overlay that obscures the lure/fish relationship.
+- Large explanatory overlay is removed during the bite prelude.
+- Small world-space cue near the lure is used instead.
 
 Acceptance:
 - It is obvious what just caused the bite.
@@ -78,26 +83,32 @@ Acceptance:
 
 ### P0-05 Battle continuity
 
-Status: TODO
+Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
-- Keep the same water/character scene rather than feeling like a separate minigame screen.
-- Only escape/tension, reel action, and immediate instructions stay prominent.
-- Ensure failure and success both resolve cleanly.
+- Battle stays on the same water/character scene.
+- Rod line remains physically connected to the hooked fish.
+- Fish continues to create water feedback during the fight.
+- Numeric battle values are de-emphasized; bars carry the state.
+- Normal rule: `↓ スワイプで巻く`.
+- Rage rule: `魚が暴れてる！ 今は待つ`.
 
 Acceptance:
 - Battle can be completed without hidden rules.
+- Battle does not feel like a separate minigame screen.
 
 ### P0-06 Catch → Town payoff
 
-Status: PARTIAL
+Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
-- Catch animation → result → `町へ持ち帰る` → town catch arrival.
-- Town arrival reacts to fish rarity and catch details.
+- Catch animation → result → `町へ持ち帰る` → Town catch arrival is connected.
+- `町へ持ち帰る` is the primary result CTA.
+- Fish id/name/rarity/size/score are carried into Town.
+- Town arrival presentation changes with rarity and catch details.
 - Do not add more Town systems until the fishing loop passes P0 QA.
 
 ### P0-07 Five-run QA
 
-Status: TODO
+Status: **NEXT**
 
 Run five consecutive catches covering:
 
@@ -106,6 +117,17 @@ Run five consecutive catches covering:
 3. long cast
 4. bite miss / retry
 5. successful catch → Town
+
+For each run confirm:
+
+- lure is always visible/readable
+- interested fish is identifiable from motion
+- controls respond on first input
+- camera never zooms out for long casts
+- bite transition does not cover the fish/lure relationship
+- battle has no dead-end
+- retry returns to CAST correctly
+- Town transition receives the catch correctly
 
 Record any blocker, unreadable interaction, or dead-end as P0.
 
