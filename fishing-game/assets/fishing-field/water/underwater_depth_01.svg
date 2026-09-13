@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1400" viewBox="0 0 900 1400">
+  <defs>
+    <linearGradient id="depth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#043F69" stop-opacity="0"/>
+      <stop offset=".42" stop-color="#043F69" stop-opacity=".04"/>
+      <stop offset=".72" stop-color="#043452" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#021F38" stop-opacity=".34"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1400" fill="url(#depth)"/>
+</svg>

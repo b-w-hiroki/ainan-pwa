@@ -38,6 +38,17 @@ export const ASSETS = {
     buriIcon: { key: 'fish_buri_icon', path: assetPath('fishing-game/assets/fish/fish_buri_icon.svg'), status: 'ready' },
     kueIcon: { key: 'fish_kue_icon', path: assetPath('fishing-game/assets/fish/fish_kue_icon.svg'), status: 'ready' },
   },
+  fishingField: {
+    waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
+    waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
+    waterHighlight: { key: 'ff_water_highlight_01', path: assetPath('fishing-game/assets/fishing-field/water/water_highlight_01.svg'), status: 'ready' },
+    underwaterDepth: { key: 'ff_underwater_depth_01', path: assetPath('fishing-game/assets/fishing-field/water/underwater_depth_01.svg'), status: 'ready' },
+    fishShadowMediumIdle: { key: 'ff_fish_shadow_m_idle_01', path: assetPath('fishing-game/assets/fishing-field/fish_shadow/fish_shadow_m_idle_01.svg'), status: 'ready' },
+    fishShadowMediumTurn: { key: 'ff_fish_shadow_m_turn_01', path: assetPath('fishing-game/assets/fishing-field/fish_shadow/fish_shadow_m_turn_01.svg'), status: 'ready' },
+    lureIdle: { key: 'ff_lure_idle_01', path: assetPath('fishing-game/assets/fishing-field/lure/lure_idle_01.svg'), status: 'ready' },
+    rippleSmall: { key: 'ff_ripple_small_01', path: assetPath('fishing-game/assets/fishing-field/fx/fx_ripple_small_01.svg'), status: 'ready' },
+    retrieveButtonShortReel: { key: 'ff_retrieve_button_short_reel_01', path: assetPath('fishing-game/assets/fishing-field/ui/retrieve_button_short_reel_01.svg'), status: 'ready' },
+  },
   rewards: {
     sticker: { key: 'reward_sticker', path: assetPath('fishing-game/assets/rewards/reward_sticker.svg'), status: 'ready' },
     ticket: { key: 'reward_ticket', path: assetPath('fishing-game/assets/rewards/reward_ticket.svg'), status: 'ready' },
