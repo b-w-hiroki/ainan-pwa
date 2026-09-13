@@ -23,7 +23,9 @@ import { installRetrieveWorldFx } from './game/installRetrieveWorldFx.js'
 import { installBiteCameraFeedback } from './game/installBiteCameraFeedback.js'
 import { installTackleSync } from './game/installTackleSync.js'
 import { installRetrieveCompletion } from './game/installRetrieveCompletion.js'
+import { installFishingVisualTuning } from './game/installFishingVisualTuning.js'
 
+installFishingVisualTuning()
 installPlayerAnimations(GameScene)
 installRetrieveGameplay(GameScene)
 installRetrievePolish(GameScene)
