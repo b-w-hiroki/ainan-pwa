@@ -38,6 +38,7 @@ import { installVerticalSliceResultRouting } from './game/installVerticalSliceRe
 import { installVerticalSliceHookInput } from './game/installVerticalSliceHookInput.js'
 import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
 import { installMobileFishingShell } from './game/installMobileFishingShell.js'
+import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -63,12 +64,15 @@ installVerticalSliceResultRouting(GameScene)
 installVerticalSliceHookInput(GameScene)
 installVerticalSliceQaMode(GameScene)
 installMobileFishingShell(GameScene)
+// Final presentation layer: intentionally last so the canonical blueprint wins
+// over legacy scenic/player composition wrappers.
+installBlueprintFishingField(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  backgroundColor: '#ffe0a0',
+  backgroundColor: '#073754',
   render: {
     pixelArt: false,
     antialias: true,
