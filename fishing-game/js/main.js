@@ -26,6 +26,7 @@ import { installRetrieveCompletion } from './game/installRetrieveCompletion.js'
 import { installFishingVisualTuning } from './game/installFishingVisualTuning.js'
 import { installFishFieldDensity } from './game/installFishFieldDensity.js'
 import { installRetrieveLandingBeat } from './game/installRetrieveLandingBeat.js'
+import { installMinimalFishingHud } from './game/installMinimalFishingHud.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -39,6 +40,7 @@ installBiteCameraFeedback(GameScene)
 installTackleSync(GameScene)
 installRetrieveCompletion(GameScene)
 installRetrieveLandingBeat(GameScene)
+installMinimalFishingHud(GameScene)
 installFishFieldDensity()
 
 /** @type {Phaser.Types.Core.GameConfig} */
