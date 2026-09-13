@@ -4,6 +4,14 @@ This folder is the visual/design anchor for the current AINAN fishing game. When
 
 ![Canonical fishing direction](./fishing-game-direction.jpg)
 
+## Mobile fishing UI blueprint
+
+Use this screen-flow / layout blueprint as the implementation target for the fishing vertical slice:
+
+![Mobile fishing UI blueprint](./mobile-fishing-ui-blueprint.jpg)
+
+The blueprint is intentionally stronger on **screen composition and interaction hierarchy** than on final art direction. Keep the water as the dominant playfield, keep the character secondary during active fishing, and keep all important interaction inside a single portrait phone screen.
+
 ## Core interaction
 
 `CAST → RETRIEVE → BITE → BATTLE → CATCH → TOWN`
@@ -100,4 +108,4 @@ Town should visibly acknowledge the fish that was just caught before presenting 
 
 ## Reference status
 
-The image in this folder is a compact archive reference derived from the fishing concept-art exploration. The interaction and layout rules in this README are authoritative when the older panels differ from the current implementation.
+The images in this folder are design references. The interaction and layout rules in this README are authoritative when older artwork differs from the current implementation.
