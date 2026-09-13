@@ -1,3 +1,4 @@
+import { cp, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
@@ -16,6 +17,21 @@ const base =
       ? rawBase
       : `${rawBase}/`
 
+// Phaser 側は実行時に文字列パスで画像を読むため、Vite の通常の
+// import 解析だけでは fishing-game/assets が dist にコピーされない。
+// writeBundle で明示的にコピーし、GitHub Pages でも同じパスを維持する。
+const copyFishingAssets = () => ({
+  name: 'copy-fishing-game-assets',
+  apply: 'build' as const,
+  async writeBundle(outputOptions: { dir?: string }) {
+    const outputDir = path.resolve(__dirname, outputOptions.dir ?? 'dist')
+    const source = path.resolve(__dirname, 'fishing-game/assets')
+    const target = path.join(outputDir, 'fishing-game/assets')
+    await mkdir(path.dirname(target), { recursive: true })
+    await cp(source, target, { recursive: true, force: true })
+  },
+})
+
 export default defineConfig({
   base,
   build: {
@@ -28,6 +44,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    copyFishingAssets(),
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
