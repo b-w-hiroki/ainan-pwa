@@ -1,3 +1,9 @@
+import { applySwipe, battleOutcome } from './battle.js'
+
+const REEL_INPUT_COOLDOWN_MS = 220
+const REEL_GESTURE_PX = 34
+const FIRST_RAGE_MAX_DELAY_MS = 1800
+
 function setTextInContainer(container, matcher, text) {
   if (!container?.list) return
   const target = container.list.find(obj => obj?.text && matcher(obj.text))
@@ -24,6 +30,7 @@ function battleSplash(scene, x, y, strong = false) {
 function clearBattleContinuity(scene) {
   scene._battleWorldLine?.clear()
   scene._battleNextSplashAt = 0
+  scene._battleNextReelInputAt = 0
   scene._battleIntroLabel?.destroy()
   scene._battleIntroLabel = null
 }
@@ -44,6 +51,7 @@ export function installVerticalSliceBattleContinuity(GameScene) {
     const result = originalCreate.apply(this, args)
     this._battleWorldLine = this.add.graphics().setDepth(35)
     this._battleNextSplashAt = 0
+    this._battleNextReelInputAt = 0
     return result
   }
 
@@ -51,6 +59,15 @@ export function installVerticalSliceBattleContinuity(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     clearBattleContinuity(this)
+
+    // Guarantee that even an easy/common fish demonstrates the core Battle
+    // rule once before it can be brute-forced by rapid swipes.
+    if (this.battleState) {
+      const tutorialRageAt = this.time.now + FIRST_RAGE_MAX_DELAY_MS
+      if (!this.battleState.nextRageAt || this.battleState.nextRageAt > tutorialRageAt) {
+        this.battleState.nextRageAt = tutorialRageAt
+      }
+    }
 
     // Numerical values are secondary; bar movement is quicker to read while
     // watching the fish. Keep the numbers hidden in the Vertical Slice.
@@ -102,6 +119,27 @@ export function installVerticalSliceBattleContinuity(GameScene) {
     this.reelValText?.setVisible(false)
     this.rageTag?.setText('魚が暴れてる！ 今は待つ')
     return result
+  }
+
+  // One physical swipe should feel like one reel decision. The legacy input
+  // fired every 28px of the same drag, allowing a single long gesture to add
+  // many reel steps before the player ever saw a rage state.
+  const originalOnMove = GameScene.prototype._onMove
+  GameScene.prototype._onMove = function (pointer) {
+    if (this.phase !== 'battle') return originalOnMove.call(this, pointer)
+    if (!pointer?.isDown || !this.battleState) return
+
+    const dy = pointer.y - this._swipeBaseY
+    if (dy <= REEL_GESTURE_PX) return
+    if (this.time.now < (this._battleNextReelInputAt ?? 0)) return
+
+    this._battleNextReelInputAt = this.time.now + REEL_INPUT_COOLDOWN_MS
+    this._swipeBaseY = pointer.y
+    applySwipe(this.battleState, this.battleState.isRaging)
+    this._syncBattleUI()
+
+    const out = battleOutcome(this.battleState)
+    if (out) this._finishBattle(out)
   }
 
   const originalUpdate = GameScene.prototype.update
