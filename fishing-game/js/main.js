@@ -30,6 +30,7 @@ import { installMinimalFishingHud } from './game/installMinimalFishingHud.js'
 import { installTownCatchArrival } from './game/installTownCatchArrival.js'
 import { installVerticalSliceLayout } from './game/installVerticalSliceLayout.js'
 import { installVerticalSliceAgency } from './game/installVerticalSliceAgency.js'
+import { installVerticalSliceBitePresentation } from './game/installVerticalSliceBitePresentation.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -48,6 +49,7 @@ installMinimalFishingHud(GameScene)
 installTownCatchArrival(TownScene)
 installVerticalSliceLayout(GameScene)
 installVerticalSliceAgency(GameScene)
+installVerticalSliceBitePresentation(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
