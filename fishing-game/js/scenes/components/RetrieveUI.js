@@ -1,4 +1,5 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
+import { MOBILE_FRAME } from '../../config/mobileFrame.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
@@ -17,8 +18,8 @@ export class RetrieveUI {
   build(W, H) {
     this.container = this.scene.add.container(0, 0).setDepth(82).setScrollFactor(0).setVisible(false)
 
-    // 水面を主役にするため、Retrieve HUDは画面下部だけに圧縮する。
-    const panelY = H - 174
+    const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
+    const panelY = controlsTop + 4
     const panelH = 52
     const panel = this.scene.add.graphics()
     panel.fillStyle(0x173248, 0.78)
@@ -36,7 +37,6 @@ export class RetrieveUI {
     this.appealFill = this.scene.add.graphics().setScrollFactor(0)
     this.appealTrack = { x: 32, y: panelY + 30, w: W - 158, h: 11 }
 
-    // 独立した大きな「気配」円をやめ、同じパネル内の小さな状態チップに統合。
     const senseX = W - 75
     const senseY = panelY + 27
     const senseBg = this.scene.add.graphics().setScrollFactor(0)
@@ -160,7 +160,7 @@ export class RetrieveUI {
     const data = states[state] ?? states.cruise
     const level = spooked ? 1 : data.level
     const color = spooked ? 0xff765a : level >= 4 ? 0xffd95a : level >= 2 ? 0x71d6a2 : 0x58b8df
-    const panelY = this.scene.scale.height - 174
+    const panelY = this.scene.scale.height - MOBILE_FRAME.bottomControlsHeight + 4
     const cx = this.scene.scale.width - 112
     const cy = panelY + 27
 
