@@ -31,7 +31,7 @@ Status: **IMPLEMENTED — SCREEN QA REQUIRED**
 - Cast phase: character can be large enough for the throw to feel good.
 - Retrieve phase: character shrinks to roughly 50–60% of cast size.
 - Water, lure, and fish shadows become the main visual hierarchy.
-- Bite prelude keeps the character secondary.
+- Bite prelude keeps the character secondary, including the HIT window.
 - Battle increases character presence again.
 - Catch restores a large hero presentation.
 - Retrieve distance label means **remaining line distance**, not initial cast distance.
@@ -63,7 +63,7 @@ Status: **IMPLEMENTED — PLAY QA REQUIRED**
 - `inspect`: fish orbits/searches around the lure.
 - `biteReady`: fish briefly hesitates before the bite sequence.
 - Spooked fish turns away and flees.
-- Reaction symbols are now secondary emphasis only.
+- Reaction symbols are secondary emphasis only.
 
 Acceptance:
 - A player can point to the fish currently interested in the lure without reading a meter.
@@ -76,10 +76,12 @@ Status: **IMPLEMENTED — PLAY QA REQUIRED**
 - Fish approaches lure → brief hesitation → water/bobber cue → `ちょん` → `ぐんっ！` → hook input.
 - Large explanatory overlay is removed during the bite prelude.
 - Small world-space cue near the lure is used instead.
+- Once the visible HIT window opens, a tap inside the window deterministically hooks the fish; missing the window fails.
+- Species difficulty remains in the bite buildup, HIT-window duration, and following Battle instead of a hidden post-tap RNG roll.
 
 Acceptance:
 - It is obvious what just caused the bite.
-- Hook timing is understandable on the first session.
+- Hook timing is understandable and reliable on the first session.
 
 ### P0-05 Battle continuity
 
@@ -91,10 +93,13 @@ Status: **IMPLEMENTED — PLAY QA REQUIRED**
 - Numeric battle values are de-emphasized; bars carry the state.
 - Normal rule: `↓ スワイプで巻く`.
 - Rage rule: `魚が暴れてる！ 今は待つ`.
+- Reel input has a short decision cooldown so one long drag cannot instantly resolve the fight.
+- The first rage is scheduled early enough that the player experiences the reel/wait rule even on an easy fish.
 
 Acceptance:
 - Battle can be completed without hidden rules.
 - Battle does not feel like a separate minigame screen.
+- An easy fish still demonstrates both `巻く` and `待つ` at least once in a normal fight.
 
 ### P0-06 Catch → Town payoff
 
@@ -104,17 +109,30 @@ Status: **IMPLEMENTED — PLAY QA REQUIRED**
 - `町へ持ち帰る` is the primary result CTA.
 - Fish id/name/rarity/size/score are carried into Town.
 - Town arrival presentation changes with rarity and catch details.
+- Result background taps no longer silently reset the fishing scene.
+- Escape uses an explicit `もう一度挑戦` route.
 - Do not add more Town systems until the fishing loop passes P0 QA.
 
 ### P0-07 Five-run QA
 
-Status: **NEXT**
+Status: **AUTOMATED SMOKE QA GREEN — MANUAL 5-RUN QA REQUIRED**
 
-Run five consecutive catches covering:
+Automated build gate currently verifies:
+
+- near / mid / far cast reach (`13.4m / 26.8m / 47.3m` reference cases)
+- range bands have configured fish
+- species-specific retrieve preferences produce different results
+- overworking a cautious fish can spook it
+- visible HIT-window input deterministically enters Battle
+- Battle has both success and escape paths
+- Vertical Slice installers remain wired
+- required character animation assets exist
+
+Manual QA still requires five consecutive runs:
 
 1. near cast
 2. mid cast
-3. long cast
+3. long cast + camera follow
 4. bite miss / retry
 5. successful catch → Town
 
@@ -125,9 +143,12 @@ For each run confirm:
 - controls respond on first input
 - camera never zooms out for long casts
 - bite transition does not cover the fish/lure relationship
-- battle has no dead-end
+- Battle clearly teaches `巻く / 待つ`
+- Battle has no dead-end
 - retry returns to CAST correctly
 - Town transition receives the catch correctly
+
+Use `docs/VERTICAL_SLICE_QA.md` and the opt-in `?qa=1` HUD for this pass.
 
 Record any blocker, unreadable interaction, or dead-end as P0.
 
