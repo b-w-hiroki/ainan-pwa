@@ -8,11 +8,11 @@ The fishing field is managed as small replaceable parts, not as one finished ill
 2. `water_pattern`
 3. `water_highlight`
 4. `underwater_depth`
-5. field objects
-6. fish shadows
-7. lure
+5. field objects (`rock`, `seaweed`)
+6. fish shadows (`small`, `medium`, `large`, turn state)
+7. lure + trail
 8. line
-9. ripple / wake / bite FX
+9. ripple / follow wake / bite / HIT FX
 10. fixed mobile UI
 
 ## Rules
@@ -23,7 +23,16 @@ The fishing field is managed as small replaceable parts, not as one finished ill
 - Fish behavior is primarily expressed through position, speed, direction, wake and short asset swaps.
 - Text stays code-rendered where possible.
 - Every production part is registered in `asset-definitions.json` and `assetManifest.js`.
+- Every generated source concept is tracked in `GENERATED_ASSET_PROVENANCE.md`.
 
-## Status
+## Integrated set
 
-The initial integrated set contains layered water, medium fish idle/turn, lure and small ripple. Small/large fish, rocks, seaweed, follow wake, bite ripple and HIT flash remain the next asset batch.
+- layered animated water
+- small / medium / large fish shadows
+- medium turning pose
+- lure + movement trail
+- idle ripple + follow wake + bite ripple + HIT flash
+- rock + swaying seaweed field objects
+- primary short-reel button skin
+
+The next visual pass should tune density, scale, alpha and timing from actual 390×844 captures rather than adding more decorative asset categories.

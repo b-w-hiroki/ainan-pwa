@@ -39,6 +39,7 @@ import { installVerticalSliceHookInput } from './game/installVerticalSliceHookIn
 import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
 import { installMobileFishingShell } from './game/installMobileFishingShell.js'
 import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
+import { installFishingFieldMotionFx } from './game/installFishingFieldMotionFx.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 
 installFishingVisualTuning()
@@ -68,6 +69,7 @@ installMobileFishingShell(GameScene)
 // Canonical presentation layers are intentionally last so legacy wrappers
 // cannot reclaim fishing playfield space.
 installBlueprintFishingField(GameScene)
+installFishingFieldMotionFx(GameScene)
 installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
