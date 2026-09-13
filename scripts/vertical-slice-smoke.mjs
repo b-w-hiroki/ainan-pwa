@@ -5,6 +5,7 @@ import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 import { updateFishInterest, FISH_INTEREST_STATE } from '../fishing-game/js/game/fishInterest.js'
 import { createBattleState, applySwipe, battleOutcome } from '../fishing-game/js/game/battle.js'
 import { ROD_STATS } from '../fishing-game/js/game/params.js'
+import { installVerticalSliceHookInput } from '../fishing-game/js/game/installVerticalSliceHookInput.js'
 
 const WORLD = {
   player: { x: 138, y: 1160 },
@@ -106,7 +107,33 @@ for (let i = 0; i < 14; i++) {
 }
 assert.ok(spooked, 'overworking the lure should be able to spook a cautious fish')
 
-// 4) Battle rules must support both clear success and clear failure paths.
+// 4) Hook input must be deterministic once the visible HIT window is active.
+class HookSceneMock {
+  constructor() {
+    this.phase = 'wait'
+    this.waitTapActive = true
+    this.killed = false
+    this.enteredBattle = false
+    this.originalDownCalls = 0
+  }
+  _onDown() { this.originalDownCalls += 1 }
+  _killWaitTimers() { this.killed = true; this.waitTapActive = false }
+  _enterBattle() { this.enteredBattle = true; this.phase = 'battle' }
+}
+installVerticalSliceHookInput(HookSceneMock)
+const hookScene = new HookSceneMock()
+hookScene._onDown({})
+assert.ok(hookScene.killed, 'HIT tap should close wait timers')
+assert.ok(hookScene.enteredBattle, 'HIT tap inside the active window should always enter battle')
+assert.equal(hookScene.originalDownCalls, 0, 'HIT tap must not fall through to legacy random hook logic')
+
+const ordinaryInputScene = new HookSceneMock()
+ordinaryInputScene.phase = 'cast'
+ordinaryInputScene.waitTapActive = false
+ordinaryInputScene._onDown({})
+assert.equal(ordinaryInputScene.originalDownCalls, 1, 'non-HIT input must still use the normal input path')
+
+// 5) Battle rules must support both clear success and clear failure paths.
 const calmBattle = createBattleState(byId.aji, { pullPower: 1.2 })
 for (let i = 0; i < 12 && !battleOutcome(calmBattle); i++) applySwipe(calmBattle, false)
 assert.equal(battleOutcome(calmBattle), 'caught', 'calm repeated reel input should be able to catch a common fish')
@@ -115,7 +142,7 @@ const recklessBattle = createBattleState(byId.aji, { pullPower: 1.2 })
 for (let i = 0; i < 6 && !battleOutcome(recklessBattle); i++) applySwipe(recklessBattle, true)
 assert.equal(battleOutcome(recklessBattle), 'escaped', 'reeling repeatedly while raging should allow the fish to escape')
 
-// 5) Integration guards: the Vertical Slice installers and core visual assets must stay wired.
+// 6) Integration guards: the Vertical Slice installers and core visual assets must stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
 for (const installer of [
   'installVerticalSliceLayout',
@@ -124,6 +151,8 @@ for (const installer of [
   'installVerticalSliceBitePresentation',
   'installVerticalSliceBattleContinuity',
   'installVerticalSliceResultRouting',
+  'installVerticalSliceHookInput',
+  'installVerticalSliceQaMode',
   'installTownCatchArrival',
 ]) {
   assert.ok(mainSource.includes(`${installer}(`), `${installer} is not wired in main.js`)
@@ -140,5 +169,6 @@ for (const asset of [
 console.log('Vertical Slice smoke QA passed')
 console.log(`  near: ${nearM.toFixed(1)}m / mid: ${midM.toFixed(1)}m / far: ${farM.toFixed(1)}m`)
 console.log('  retrieve preferences: OK')
+console.log('  deterministic hook input: OK')
 console.log('  battle success/failure paths: OK')
 console.log('  integration/assets: OK')
