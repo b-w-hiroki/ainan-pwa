@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "logicalFrame": { "width": 390, "height": 844 },
   "world": { "width": 900, "height": 1400 },
   "statuses": ["planned", "prompt_ready", "generated", "approved", "integrated"],
@@ -15,11 +15,15 @@
     "rock_01": { "category": "field_object", "path": "fishing-game/assets/fishing-field/field_objects/rock_01.svg", "status": "integrated", "usage": ["cast", "retrieve", "bite", "battle"], "animation": "static" },
     "seaweed_01": { "category": "field_object", "path": "fishing-game/assets/fishing-field/field_objects/seaweed_01.svg", "status": "integrated", "usage": ["cast", "retrieve", "bite", "battle"], "animation": "slow-sway" },
     "lure_idle_01": { "category": "lure", "path": "fishing-game/assets/fishing-field/lure/lure_idle_01.svg", "status": "integrated", "usage": ["cast", "retrieve", "bite"], "displaySize": [42, 42], "animation": "position-rotation" },
+    "lure_pull_01": { "category": "lure", "path": "fishing-game/assets/fishing-field/lure/lure_pull_01.svg", "status": "integrated", "usage": ["retrieve"], "displaySize": [42, 42], "states": ["twitch", "slowReel"], "animation": "state-swap" },
+    "lure_splash_01": { "category": "lure", "path": "fishing-game/assets/fishing-field/lure/lure_splash_01.svg", "status": "integrated", "usage": ["cast", "bite"], "animation": "spawn-scale-alpha" },
     "lure_trail_01": { "category": "lure", "path": "fishing-game/assets/fishing-field/lure/lure_trail_01.svg", "status": "integrated", "usage": ["retrieve"], "animation": "spawn-scale-alpha" },
     "fx_ripple_small_01": { "category": "fx", "path": "fishing-game/assets/fishing-field/fx/fx_ripple_small_01.svg", "status": "integrated", "usage": ["retrieve", "bite"], "animation": "scale-alpha" },
     "fx_follow_wave_01": { "category": "fx", "path": "fishing-game/assets/fishing-field/fx/fx_follow_wave_01.svg", "status": "integrated", "usage": ["retrieve"], "states": ["follow", "inspect", "biteReady"], "animation": "state-alpha" },
     "fx_ripple_bite_01": { "category": "fx", "path": "fishing-game/assets/fishing-field/fx/fx_ripple_bite_01.svg", "status": "integrated", "usage": ["bite"], "animation": "scale-alpha" },
     "fx_hit_flash_01": { "category": "fx", "path": "fishing-game/assets/fishing-field/fx/fx_hit_flash_01.svg", "status": "integrated", "usage": ["bite", "battle"], "animation": "short-flash" },
-    "retrieve_button_short_reel_01": { "category": "ui", "path": "fishing-game/assets/fishing-field/ui/retrieve_button_short_reel_01.svg", "status": "integrated", "usage": ["retrieve"], "animation": "static-background-plus-code-text" }
+    "retrieve_button_wait_01": { "category": "ui", "path": "fishing-game/assets/fishing-field/ui/retrieve_button_wait_01.svg", "status": "integrated", "usage": ["retrieve"], "animation": "static-background-plus-code-text" },
+    "retrieve_button_short_reel_01": { "category": "ui", "path": "fishing-game/assets/fishing-field/ui/retrieve_button_short_reel_01.svg", "status": "integrated", "usage": ["retrieve"], "animation": "static-background-plus-code-text" },
+    "retrieve_button_slow_reel_01": { "category": "ui", "path": "fishing-game/assets/fishing-field/ui/retrieve_button_slow_reel_01.svg", "status": "integrated", "usage": ["retrieve"], "animation": "static-background-plus-code-text" }
   }
 }
