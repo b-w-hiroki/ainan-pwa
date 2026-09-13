@@ -18,11 +18,11 @@ export function installRetrievePolish(GameScene) {
 
     this._castDistanceBadge = this.add.text(0, 0, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif',
-      fontSize: '14px',
+      fontSize: '12px',
       fontStyle: 'bold',
       color: '#ffffff',
-      backgroundColor: 'rgba(23,50,72,0.90)',
-      padding: { x: 10, y: 6 },
+      backgroundColor: 'rgba(23,50,72,0.84)',
+      padding: { x: 8, y: 4 },
     }).setOrigin(0.5, 1).setDepth(44).setVisible(false)
 
     if (this.fishingCamera) {
@@ -32,8 +32,8 @@ export function installRetrievePolish(GameScene) {
         const meters = Phaser.Math.Distance.Between(this.anchorX, this.anchorY, x, y) / FISHING_WORLD.pxPerMeter
         this._castDistanceBadge
           ?.setVisible(true)
-          .setPosition(x, y - 26)
-          .setText(`飛距離 ${meters.toFixed(1)}m`)
+          .setPosition(x, y - 20)
+          .setText(`${meters.toFixed(1)}m`)
       }
     }
 
@@ -85,7 +85,8 @@ export function installRetrievePolish(GameScene) {
     const sy = this._playerSprite.y - cam.scrollY
     const W = this.scale.width
     const H = this.scale.height
-    const comfortablyVisible = sx > 16 && sx < W - 16 && sy > 120 && sy < H - 220
+    // 下部HUDが小さくなったので、キャラ本体が少しでも自然に見える間は小窓を出さない。
+    const comfortablyVisible = sx > 8 && sx < W - 8 && sy > 86 && sy < H - 178
 
     let action = this.retrieveState?.action ?? 'idle'
     const targetState = this._retrieveTargetFish?.state
