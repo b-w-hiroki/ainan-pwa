@@ -39,6 +39,7 @@ import { installVerticalSliceHookInput } from './game/installVerticalSliceHookIn
 import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
 import { installMobileFishingShell } from './game/installMobileFishingShell.js'
 import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
+import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -64,9 +65,10 @@ installVerticalSliceResultRouting(GameScene)
 installVerticalSliceHookInput(GameScene)
 installVerticalSliceQaMode(GameScene)
 installMobileFishingShell(GameScene)
-// Final presentation layer: intentionally last so the canonical blueprint wins
-// over legacy scenic/player composition wrappers.
+// Canonical presentation layers are intentionally last so legacy wrappers
+// cannot reclaim fishing playfield space.
 installBlueprintFishingField(GameScene)
+installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
