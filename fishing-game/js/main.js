@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { MOBILE_FRAME } from './config/mobileFrame.js'
 import TitleScene from './scenes/TitleScene.js'
 import HomeScene from './scenes/HomeScene.js'
 import MapScene from './scenes/MapScene.js'
@@ -75,8 +76,8 @@ const config = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 390,
-    height: 844,
+    width: MOBILE_FRAME.width,
+    height: MOBILE_FRAME.height,
   },
   scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene, TownScene, HelpScene, MenuScene, ChallengeScene],
 }
