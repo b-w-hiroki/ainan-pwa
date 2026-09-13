@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "qa:vertical-slice": "node scripts/vertical-slice-smoke.mjs",
+    "build": "npm run qa:vertical-slice && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
