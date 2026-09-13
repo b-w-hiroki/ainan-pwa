@@ -14,6 +14,7 @@
     <style>
       :root {
         --game-ratio: 390 / 844;
+        --game-ratio-number: 0.4620853081;
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-right: env(safe-area-inset-right, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -30,6 +31,8 @@
         background: #ffe0a0;
         font-family: Nunito, 'M PLUS Rounded 1c', system-ui, sans-serif;
         touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
 
       body {
@@ -52,19 +55,20 @@
       }
 
       /*
-       * Phaser owns the internal 390x844 logical canvas. The browser only
-       * scales that canvas down to the largest rectangle that fits entirely
-       * inside the current mobile visual viewport. Never force width and
-       * height independently: doing so can crop/distort tall iPhone screens.
+       * Phaser owns the internal 390x844 logical canvas. Browser scaling is
+       * width-driven, capped by the visible mobile height. That makes the full
+       * portrait frame fill the phone as much as possible without ever cropping
+       * or stretching it.
        */
       #game-container canvas {
         display: block;
-        width: auto !important;
+        width: min(
+          100%,
+          calc((100dvh - var(--safe-top) - var(--safe-bottom)) * var(--game-ratio-number))
+        ) !important;
         height: auto !important;
-        max-width: 100% !important;
         max-height: 100% !important;
         aspect-ratio: var(--game-ratio);
-        object-fit: contain;
         touch-action: none;
       }
 
@@ -72,6 +76,13 @@
         body,
         #game-container {
           height: 100vh;
+        }
+
+        #game-container canvas {
+          width: min(
+            100%,
+            calc((100vh - var(--safe-top) - var(--safe-bottom)) * var(--game-ratio-number))
+          ) !important;
         }
       }
     </style>
