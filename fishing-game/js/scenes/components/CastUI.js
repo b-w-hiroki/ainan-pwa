@@ -1,4 +1,5 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
+import { MOBILE_FRAME } from '../../config/mobileFrame.js'
 import { buildTrajectory, clampLanding } from '../../game/cast.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -43,7 +44,7 @@ export class CastUI {
     const fishText = signal.count > 0 ? `魚影 ${Math.min(signal.count, 3)}${signal.count > 3 ? '+' : ''}` : '魚影なし'
 
     scene.powerLabel?.setText(`${meters.toFixed(0)}m・${zone}・${fishText}`)
-    scene.hintText?.setText(signal.count > 0 ? `${zone}を狙う　魚影あり` : `${zone}　方向を少しずらして魚影を探そう`)
+    scene.hintText?.setText(signal.count > 0 ? `${zone}を狙う　魚影あり` : `${zone}　方向をずらして魚影を探す`)
 
     const rad = (angleDeg * Math.PI) / 180
     const tip = {
@@ -52,8 +53,6 @@ export class CastUI {
     }
 
     scene.castGfx.clear()
-
-    // 竿の方向ガイド
     scene.castGfx.lineStyle(18, 0xffffff, 0.45)
     scene.castGfx.lineBetween(scene.anchorX, scene.anchorY, tip.x, tip.y)
     scene.castGfx.lineStyle(9, 0xff765a, 1)
@@ -75,7 +74,6 @@ export class CastUI {
       headTip.x - perpX, headTip.y - perpY,
     )
 
-    // 飛翔軌道。点を減らし、着水地点へ視線が抜けるようにする。
     for (let i = 14; i < pts.length; i += 6) {
       const p = pts[i]
       const r = Math.max(2, 5 - Math.floor((i - 14) / 9))
@@ -85,7 +83,6 @@ export class CastUI {
       scene.castGfx.strokeCircle(p.x, p.y, r)
     }
 
-    // 着水予定地点。魚影が近ければ黄色、いなければ水色。
     const targetColor = signal.count > 0 ? 0xffd95a : 0x8edfff
     scene.castGfx.fillStyle(targetColor, 0.13)
     scene.castGfx.fillEllipse(end.x, end.y, 58, 27)
@@ -97,7 +94,6 @@ export class CastUI {
     scene.castGfx.lineBetween(end.x - 10, end.y, end.x + 10, end.y)
     scene.castGfx.lineBetween(end.x, end.y - 6, end.x, end.y + 6)
 
-    // 一番近い魚影だけを薄く囲み、狙いと魚の位置関係を読めるようにする。
     const targetFish = signal.nearest?.gfx
     if (targetFish) {
       scene.castGfx.lineStyle(2, 0xffe998, 0.72)
@@ -107,9 +103,9 @@ export class CastUI {
 
   drawPowerBar(power01) {
     const scene = this.scene
-    const { width: W, height: H } = scene.scale
+    const { width: W } = scene.scale
     const bx = W / 2 - 101
-    const by = H * 0.77
+    const by = MOBILE_FRAME.playBottom - 48
     const innerX = bx + 5
     const innerY = by + 5
     const maxW = 192
@@ -127,7 +123,6 @@ export class CastUI {
     scene.powerGfx.fillRoundedRect(bx, by, 202, 28, 14)
     scene.powerGfx.strokeRoundedRect(bx, by, 202, 28, 14)
 
-    // 距離帯を背景で示す。竿が強くなるほど中・遠距離帯が実際に開いて見える。
     scene.powerGfx.fillStyle(0x71d6a2, 0.22)
     scene.powerGfx.fillRoundedRect(innerX, innerY, maxW * nearEnd, 18, 9)
     if (midEnd > nearEnd) {
@@ -163,25 +158,26 @@ export class CastUI {
     scene.powerLabel.setVisible(true)
   }
 
-  buildHUD(W, H) {
+  buildHUD(W, _H) {
     const scene = this.scene
+    const guideY = MOBILE_FRAME.topHudHeight + 24
 
     const hintBg = scene.add.graphics().setDepth(54)
-    hintBg.fillStyle(0x173248, 0.13)
-    hintBg.fillRoundedRect(W / 2 - 132, H * 0.19 - 18, 264, 40, 16)
+    hintBg.fillStyle(0x173248, 0.12)
+    hintBg.fillRoundedRect(W / 2 - 126, guideY - 15, 252, 34, 14)
     hintBg.fillStyle(0xf8fdff, 0.94)
-    hintBg.lineStyle(2, 0x9bcfe5, 0.88)
-    hintBg.fillRoundedRect(W / 2 - 132, H * 0.19 - 22, 264, 40, 16)
-    hintBg.strokeRoundedRect(W / 2 - 132, H * 0.19 - 22, 264, 40, 16)
+    hintBg.lineStyle(1.8, 0x9bcfe5, 0.88)
+    hintBg.fillRoundedRect(W / 2 - 126, guideY - 19, 252, 34, 14)
+    hintBg.strokeRoundedRect(W / 2 - 126, guideY - 19, 252, 34, 14)
     scene.castHintBg = hintBg
 
-    scene.hintText = scene.add.text(W / 2, H * 0.19 - 2, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900',
+    scene.hintText = scene.add.text(W / 2, guideY - 2, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900',
       color: UI_COLORS.ink,
     }).setOrigin(0.5).setDepth(55)
 
-    scene.powerLabel = scene.add.text(W / 2, H * 0.74, 'CAST POWER', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900',
+    scene.powerLabel = scene.add.text(W / 2, MOBILE_FRAME.playBottom - 72, 'CAST POWER', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
       color: UI_COLORS.ink,
       stroke: '#ffffff', strokeThickness: 3,
       letterSpacing: 0.5,
