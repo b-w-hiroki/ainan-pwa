@@ -1,7 +1,9 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
+import { ASSETS } from '../../config/assetManifest.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+const FIELD = ASSETS.fishingField
 
 export class RetrieveUI {
   constructor(scene) {
@@ -55,11 +57,11 @@ export class RetrieveUI {
 
     const waitBtn = this._button(16 + sideW / 2, btnY, sideW, 68, 'Ⅱ', '待つ', '動かさず見る', 0x0e557b, () => {
       this.scene._setRetrieveIdle?.()
-    })
+    }, false, FIELD.retrieveButtonWait)
     const twitchBtn = this._button(W / 2, btnY, mainW, 74, '↻', 'ちょい巻き', '少しだけ引く', 0xffd95a, () => {
       this.scene._twitchRetrieve?.()
-    }, true)
-    const slowBtn = this._button(W - 16 - sideW / 2, btnY, sideW, 68, '≫', 'ゆっくり', '長押し', 0x0e557b, null)
+    }, true, FIELD.retrieveButtonShortReel)
+    const slowBtn = this._button(W - 16 - sideW / 2, btnY, sideW, 68, '≫', 'ゆっくり', '長押し', 0x0e557b, null, false, FIELD.retrieveButtonSlowReel)
 
     slowBtn.hit
       .on('pointerdown', () => {
@@ -84,9 +86,10 @@ export class RetrieveUI {
     this.scene._stopSlowRetrieve?.()
   }
 
-  _button(x, y, w, h, mark, label, sub, fill, onTap, primary = false) {
+  _button(x, y, w, h, mark, label, sub, fill, onTap, primary = false, asset = null) {
     const c = this.scene.add.container(x, y).setScrollFactor(0)
-    const bg = this.scene.add.graphics().setScrollFactor(0)
+    const hasAsset = Boolean(asset?.key && this.scene.textures.exists(asset.key))
+    const bg = this.scene.add.graphics().setScrollFactor(0).setVisible(!hasAsset)
     bg.fillStyle(0x071a28, 0.24)
     bg.fillRoundedRect(-w / 2 + 2, -h / 2 + 4, w, h, 20)
     bg.fillStyle(fill, primary ? 1 : 0.96)
@@ -95,6 +98,10 @@ export class RetrieveUI {
     bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 20)
     bg.fillStyle(0xffffff, primary ? 0.26 : 0.12)
     bg.fillRoundedRect(-w / 2 + 10, -h / 2 + 8, w - 20, 7, 4)
+
+    const assetBg = hasAsset
+      ? this.scene.add.image(0, 0, asset.key).setDisplaySize(w, h).setScrollFactor(0)
+      : null
 
     const icon = this.scene.add.text(0, -19, mark, {
       fontFamily: FONT,
@@ -126,7 +133,7 @@ export class RetrieveUI {
       .setInteractive({ useHandCursor: true })
       .setScrollFactor(0)
     if (onTap) hit.on('pointerdown', onTap)
-    c.add([bg, icon, t, s, hit])
+    c.add([bg, ...(assetBg ? [assetBg] : []), icon, t, s, hit])
     return { container: c, hit }
   }
 
