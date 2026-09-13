@@ -1,4 +1,5 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
+import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
@@ -219,8 +220,10 @@ export function installBlueprintFishingField(GameScene) {
   GameScene.prototype.__ainanBlueprintFishingFieldInstalled = true
 
   // Replace scenic harbor backgrounds with a continuous readable water world.
-  BackgroundManager.prototype.buildBackground = function (W, H, pointId = 'pointA') {
-    return drawWaterWorld(this, W, H, pointId)
+  // GameScene calls this with the 390x844 logical viewport, so explicitly draw
+  // the full Fishing World used by the camera.
+  BackgroundManager.prototype.buildBackground = function (_W, _H, pointId = 'pointA') {
+    return drawWaterWorld(this, FISHING_WORLD.width, FISHING_WORLD.height, pointId)
   }
 
   BackgroundManager.prototype._drawFish = function (g, type, sc) {
