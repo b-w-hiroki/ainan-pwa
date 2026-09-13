@@ -141,7 +141,7 @@ const recklessBattle = createBattleState(byId.aji, { pullPower: 1.2 })
 for (let i = 0; i < 6 && !battleOutcome(recklessBattle); i++) applySwipe(recklessBattle, true)
 assert.equal(battleOutcome(recklessBattle), 'escaped', 'reeling repeatedly while raging should allow the fish to escape')
 
-// 6) Integration guards: installers, explicit result routing and QA controls must stay wired.
+// 6) Integration guards: gameplay + canonical mobile composition stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
 for (const installer of [
   'installVerticalSliceLayout',
@@ -153,6 +153,8 @@ for (const installer of [
   'installVerticalSliceHookInput',
   'installVerticalSliceQaMode',
   'installTownCatchArrival',
+  'installMobileFishingShell',
+  'installBlueprintFishingField',
 ]) {
   assert.ok(mainSource.includes(`${installer}(`), `${installer} is not wired in main.js`)
 }
@@ -160,11 +162,22 @@ for (const installer of [
 const resultUiSource = readFileSync(new URL('../fishing-game/js/scenes/components/ResultUI.js', import.meta.url), 'utf8')
 const resultRoutingSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceResultRouting.js', import.meta.url), 'utf8')
 const qaSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceQaMode.js', import.meta.url), 'utf8')
+const blueprintSource = readFileSync(new URL('../fishing-game/js/game/installBlueprintFishingField.js', import.meta.url), 'utf8')
+const mobileShellSource = readFileSync(new URL('../fishing-game/js/game/installMobileFishingShell.js', import.meta.url), 'utf8')
+
 assert.ok(resultUiSource.includes('resultSuccessActions'), 'success result controls must be grouped for explicit routing')
 assert.ok(resultRoutingSource.includes('resultSuccessActions?.setVisible(!escaped)'), 'escaped result must hide success-only actions')
 for (const label of ['HITミス', '逃走', '釣果GET']) {
   assert.ok(qaSource.includes(label), `QA shortcut missing: ${label}`)
 }
+
+// Canonical blueprint constraints: the world is larger than the viewport,
+// active fishing prioritizes the water field, and the mobile HUD is fixed.
+assert.ok(blueprintSource.includes('FISHING_WORLD.width'), 'blueprint ocean must span the full fishing world')
+assert.ok(blueprintSource.includes('setPlayer(this, false)'), 'retrieve/battle must be able to remove the fisherman from the playfield')
+assert.ok(blueprintSource.includes('playerActionInset?.destroy'), 'legacy character inset must stay disabled in blueprint mode')
+assert.ok(blueprintSource.includes('hideTackle(this)'), 'tackle controls must not permanently occupy the active fishing field')
+assert.ok(mobileShellSource.includes('setScrollFactor(0)'), 'mobile HUD must remain screen-fixed')
 
 for (const asset of [
   'fishing-game/assets/characters/player_cast_anim.webp',
@@ -180,4 +193,5 @@ console.log('  retrieve preferences: OK')
 console.log('  deterministic hook input: OK')
 console.log('  battle success/failure paths: OK')
 console.log('  result routing / QA shortcuts: OK')
+console.log('  canonical blueprint composition: OK')
 console.log('  integration/assets: OK')
