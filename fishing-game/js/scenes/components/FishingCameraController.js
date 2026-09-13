@@ -1,3 +1,5 @@
+import { MOBILE_FRAME } from '../../config/mobileFrame.js'
+
 const WATER_BOUNDS = {
   left: 70,
   right: 830,
@@ -26,8 +28,16 @@ export class FishingCameraController {
     this.camera = scene.cameras.main
     this.world = world
     this.state = 'playerFocus'
-    // ルアーが画面中央を横切るたびにカメラが動かないよう、かなり広めの安全域にする。
-    this.safeZone = { left: 58, right: 332, top: 112, bottom: 620 }
+
+    // The camera only moves the fishing world behind the fixed phone HUD.
+    // Keep lure/fish inside the center play band so top info and bottom controls
+    // never need to move or scale with the camera.
+    this.safeZone = {
+      left: 58,
+      right: MOBILE_FRAME.width - 58,
+      top: MOBILE_FRAME.playTop + 28,
+      bottom: MOBILE_FRAME.playBottom - 40,
+    }
     this.player = { ...world.player }
   }
 
@@ -59,7 +69,6 @@ export class FishingCameraController {
 
   updateRetrieveFollow(lureX, lureY) {
     this.state = 'retrieveFollow'
-    // プレイヤー側へ少し重心を戻し、巻いている最中の背景移動量を抑える。
     const focusX = lerp(lureX, this.player.x, 0.24)
     const focusY = lerp(lureY, this.player.y, 0.18)
     this._followSafePoint(focusX, focusY, 0.07)
