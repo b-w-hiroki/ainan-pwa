@@ -22,6 +22,31 @@ function resizePlayer(scene, scale, { shadow = false, depth = 41 } = {}) {
   scene._playerShadow?.setVisible(shadow)
 }
 
+function alignPlayerToFishingWorld(scene) {
+  const sprite = scene._playerSprite
+  if (!sprite || !scene._playerDisplayW || !scene._playerDisplayH) return
+
+  const oldX = scene._playerBaseX ?? sprite.x
+  const oldY = scene._playerBaseY ?? sprite.y
+  const targetX = FISHING_WORLD.player.x
+  const targetY = FISHING_WORLD.player.y
+  const dx = targetX - oldX
+  const dy = targetY - oldY
+
+  scene._playerBaseX = targetX
+  scene._playerBaseY = targetY
+  sprite.setPosition(targetX, targetY)
+
+  // Player shadow is a Graphics object whose ellipse was drawn in world
+  // coordinates, so shift the whole graphics object by the same delta.
+  scene._playerShadow?.setPosition(dx, dy)
+
+  // Keep fishing-line origin attached to the rod after correcting the player
+  // world position. These ratios match installPlayerAnimations.js.
+  scene.anchorX = targetX + scene._playerDisplayW * 0.42
+  scene.anchorY = targetY - scene._playerDisplayH * 0.77
+}
+
 /**
  * Vertical Slice 1.0 composition rules.
  *
@@ -34,6 +59,14 @@ function resizePlayer(scene, scale, { shadow = false, depth = 41 } = {}) {
 export function installVerticalSliceLayout(GameScene) {
   if (GameScene.prototype.__ainanVerticalSliceLayoutInstalled) return
   GameScene.prototype.__ainanVerticalSliceLayoutInstalled = true
+
+  const originalCreate = GameScene.prototype.create
+  GameScene.prototype.create = function (...args) {
+    const result = originalCreate.apply(this, args)
+    alignPlayerToFishingWorld(this)
+    resizePlayer(this, PLAYER_SCALE.cast, { shadow: true, depth: 41 })
+    return result
+  }
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
