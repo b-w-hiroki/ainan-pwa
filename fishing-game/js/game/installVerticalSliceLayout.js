@@ -96,6 +96,16 @@ export function installVerticalSliceLayout(GameScene) {
     return result
   }
 
+  // installPlayerAnimations switches to the fight sheet at the HIT window and
+  // restores the sprite to its full base display size. Re-apply the bite scale
+  // here so the character does not suddenly cover the lure/fish relationship.
+  const originalOpenHitWindow = GameScene.prototype._openHitWindow
+  GameScene.prototype._openHitWindow = function (...args) {
+    const result = originalOpenHitWindow.apply(this, args)
+    resizePlayer(this, PLAYER_SCALE.bite, { shadow: false, depth: 36 })
+    return result
+  }
+
   const originalEnterBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
