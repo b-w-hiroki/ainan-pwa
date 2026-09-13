@@ -1,6 +1,7 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { MOBILE_FRAME } from '../config/mobileFrame.js'
 
 const FIELD = ASSETS.fishingField
 
@@ -25,6 +26,42 @@ function setFishingPlayerVisible(scene, visible) {
     scene._playerShadow,
   ])
   objects.forEach(obj => obj?.setVisible?.(resolvedVisible))
+}
+
+function drawRetrieveLineToPlayfieldEdge(scene) {
+  if (scene.phase !== 'retrieve' || !scene.bobber?.visible || !scene.lineGfx) return
+
+  const cam = scene.cameras.main
+  const lureScreenX = scene.bobber.x - cam.scrollX
+  const lureScreenY = scene.bobber.y - cam.scrollY
+  const anchorScreenX = scene.anchorX - cam.scrollX
+  const anchorScreenY = scene.anchorY - cam.scrollY
+  const dx = anchorScreenX - lureScreenX
+  const dy = anchorScreenY - lureScreenY
+  if (Math.hypot(dx, dy) < 1) return
+
+  // The fisherman is intentionally absent during Retrieve. Continue the line
+  // in the same direction until it exits the playable water band instead of
+  // letting it terminate at an invisible rod tip in the middle of the screen.
+  const bounds = {
+    left: -12,
+    right: scene.scale.width + 12,
+    top: MOBILE_FRAME.playTop - 12,
+    bottom: MOBILE_FRAME.playBottom + 12,
+  }
+  const candidates = []
+  if (dx > 0) candidates.push((bounds.right - lureScreenX) / dx)
+  if (dx < 0) candidates.push((bounds.left - lureScreenX) / dx)
+  if (dy > 0) candidates.push((bounds.bottom - lureScreenY) / dy)
+  if (dy < 0) candidates.push((bounds.top - lureScreenY) / dy)
+  const t = candidates.filter(value => Number.isFinite(value) && value > 0).sort((a, b) => a - b)[0]
+  if (!t) return
+
+  const endWorldX = scene.bobber.x + dx * t
+  const endWorldY = scene.bobber.y + dy * t
+  scene.lineGfx.clear()
+  scene.lineGfx.lineStyle(1.7, 0xffffff, 0.82)
+  scene.lineGfx.lineBetween(scene.bobber.x, scene.bobber.y, endWorldX, endWorldY)
 }
 
 /**
@@ -89,6 +126,14 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
     setFishingPlayerVisible(this, false)
+    drawRetrieveLineToPlayfieldEdge(this)
+    return result
+  }
+
+  const originalSyncRetrieveWorldUI = GameScene.prototype._syncRetrieveWorldUI
+  GameScene.prototype._syncRetrieveWorldUI = function (...args) {
+    const result = originalSyncRetrieveWorldUI.apply(this, args)
+    drawRetrieveLineToPlayfieldEdge(this)
     return result
   }
 
