@@ -40,6 +40,7 @@ import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js
 import { installMobileFishingShell } from './game/installMobileFishingShell.js'
 import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
 import { installFishingFieldMotionFx } from './game/installFishingFieldMotionFx.js'
+import { installFishingBattlePresentation } from './game/installFishingBattlePresentation.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 
 installFishingVisualTuning()
@@ -70,6 +71,7 @@ installMobileFishingShell(GameScene)
 // cannot reclaim fishing playfield space.
 installBlueprintFishingField(GameScene)
 installFishingFieldMotionFx(GameScene)
+installFishingBattlePresentation(GameScene)
 installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
