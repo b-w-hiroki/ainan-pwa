@@ -1,5 +1,6 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
+import { MOBILE_FRAME } from '../../config/mobileFrame.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -10,87 +11,104 @@ export class BattleUI {
 
   buildEscapeBar(W) {
     const scene = this.scene
-    scene.escapeBar = scene.add.container(0, 0).setDepth(65).setVisible(false)
+    scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x173248, 0.13)
-    bg.fillRoundedRect(18, 10, W - 36, 54, 18)
-    bg.fillStyle(0xf8fdff, 0.95)
-    bg.lineStyle(2, 0x9bcfe5, 0.88)
-    bg.fillRoundedRect(18, 6, W - 36, 54, 18)
-    bg.strokeRoundedRect(18, 6, W - 36, 54, 18)
+    bg.fillStyle(0x073754, 0.92)
+    bg.fillRoundedRect(8, 7, W - 16, 48, 15)
+    bg.lineStyle(1.5, 0x8edfff, 0.48)
+    bg.strokeRoundedRect(8, 7, W - 16, 48, 15)
+    bg.fillStyle(0xffffff, 0.08)
+    bg.fillRoundedRect(18, 13, W - 36, 8, 4)
 
-    const title = scene.add.text(30, 23, '魚の逃走', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
-      color: UI_COLORS.inkSoft,
+    const title = scene.add.text(22, 31, 'テンション', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '11px',
+      fontWeight: '900',
+      color: '#ffffff',
     }).setOrigin(0, 0.5)
 
     scene.ebarFill = scene.add.graphics()
-    scene.ebarNum = scene.add.text(W - 30, 23, '0', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900',
-      color: UI_COLORS.coral,
-    }).setOrigin(1, 0.5)
+    scene.ebarNum = scene.add.text(W - 31, 31, '', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '10px',
+      fontWeight: '900',
+      color: '#dff5ff',
+    }).setOrigin(1, 0.5).setVisible(false)
 
-    scene.ebarFishIcon = scene.add.text(30, 45, '🐟', {
-      fontSize: '15px', resolution: TEXT_RES,
+    scene.ebarFishIcon = scene.add.text(W - 33, 31, '🐟', {
+      fontSize: '16px', resolution: TEXT_RES,
     }).setOrigin(0.5)
 
     scene.escapeBar.add([bg, title, scene.ebarFill, scene.ebarNum, scene.ebarFishIcon])
-    scene._ebarW = W - 60
+    scene._ebarW = W - 168
   }
 
   buildBattlePanel(W, H) {
     const scene = this.scene
-    scene.battlePanel = scene.add.container(0, 0).setDepth(60).setVisible(false)
+    scene.battlePanel = scene.add.container(0, 0).setDepth(66).setVisible(false).setScrollFactor(0)
 
-    const panW = Math.min(330, W * 0.88)
-    const px = (W - panW) / 2
-    const py = H * 0.80
+    const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
+    const trackX = 38
+    const trackY = controlsTop + 129
+    const trackW = W - 76
 
-    const bg = scene.add.graphics()
-    bg.fillStyle(0x173248, 0.12)
-    bg.fillRoundedRect(px + 2, py + 4, panW, 54, 18)
-    bg.fillStyle(0xf8fdff, 0.94)
-    bg.lineStyle(2, 0x9bcfe5, 0.88)
-    bg.fillRoundedRect(px, py, panW, 54, 18)
-    bg.strokeRoundedRect(px, py, panW, 54, 18)
-
-    const lbl = scene.add.text(px + 16, py + 17, `${ICONS.REEL} 巻き取り`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.inkSoft,
+    const lbl = scene.add.text(trackX, trackY - 12, `${ICONS.REEL} 巻き取り`, {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '9px',
+      fontWeight: '900',
+      color: '#dff5ff',
+      backgroundColor: 'rgba(7,26,40,0.62)',
+      padding: { x: 7, y: 3 },
     }).setOrigin(0, 0.5)
 
     scene.reelFill = scene.add.graphics()
-    scene.reelValText = scene.add.text(px + panW - 14, py + 17, '0', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
-    }).setOrigin(1, 0.5)
+    scene.reelValText = scene.add.text(W - 38, trackY - 12, '', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '9px',
+      fontWeight: '900',
+      color: '#ffffff',
+    }).setOrigin(1, 0.5).setVisible(false)
 
-    scene.battlePanel.add([bg, lbl, scene.reelFill, scene.reelValText])
-    scene._reel = { x: px + 16, y: py + 30, w: panW - 32, h: 14 }
+    scene.battlePanel.add([lbl, scene.reelFill, scene.reelValText])
+    scene._reel = { x: trackX, y: trackY, w: trackW, h: 10 }
   }
 
   buildReelCTA(W, H) {
     const scene = this.scene
-    scene.reelCTA = scene.add.container(W / 2, H * 0.70).setDepth(67).setVisible(false)
+    const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
+    scene.reelCTA = scene.add.container(W / 2, controlsTop + 62).setDepth(92).setVisible(false).setScrollFactor(0)
 
     const shadow = scene.add.graphics()
-    shadow.fillStyle(0x173248, 0.16)
-    shadow.fillRoundedRect(-102, -19, 204, 42, 17)
+    shadow.fillStyle(0x071a28, 0.24)
+    shadow.fillRoundedRect(-132, -22, 264, 50, 21)
 
     const pill = scene.add.graphics()
-    pill.fillStyle(0xffd95a, 0.96)
-    pill.lineStyle(2, 0x173248, 0.82)
-    pill.fillRoundedRect(-102, -23, 204, 42, 17)
-    pill.strokeRoundedRect(-102, -23, 204, 42, 17)
-    pill.fillStyle(0xffffff, 0.28)
-    pill.fillRoundedRect(-88, -17, 176, 7, 4)
+    pill.fillStyle(0x0e557b, 0.96)
+    pill.lineStyle(2, 0x8edfff, 0.58)
+    pill.fillRoundedRect(-132, -26, 264, 50, 21)
+    pill.strokeRoundedRect(-132, -26, 264, 50, 21)
+    pill.fillStyle(0xffffff, 0.12)
+    pill.fillRoundedRect(-116, -18, 232, 7, 4)
 
-    const arrow = scene.add.text(-70, -2, ICONS.SWIPE_DN, {
-      fontSize: '20px', resolution: TEXT_RES,
+    const arrow = scene.add.text(-88, -1, '↓', {
+      fontFamily: FONT,
+      fontSize: '27px',
+      fontWeight: '900',
+      color: '#ffffff',
+      resolution: TEXT_RES,
     }).setOrigin(0.5)
 
-    const text = scene.add.text(16, -2, '下へスワイプで巻く', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900',
-      color: UI_COLORS.ink,
+    const text = scene.add.text(25, -1, '下へスワイプで巻く', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '14px',
+      fontWeight: '900',
+      color: '#ffffff',
     }).setOrigin(0.5)
 
     scene.reelCTA.add([shadow, pill, arrow, text])
@@ -101,33 +119,32 @@ export class BattleUI {
     const scene = this.scene
     const st = battleState
     if (!st) return
-    const tw = ebarW
 
+    const tensionX = 102
+    const tensionY = 24
+    const tw = ebarW
     scene.ebarFill.clear()
-    scene.ebarFill.fillStyle(0xe8f6fb, 1)
-    scene.ebarFill.fillRoundedRect(30, 38, tw, 12, 6)
-    const escapeColor = st.escape >= 72 ? 0xff765a : st.escape >= 42 ? 0xffc857 : 0x71d6a2
+    scene.ebarFill.fillStyle(0xdff5ff, 0.28)
+    scene.ebarFill.fillRoundedRect(tensionX, tensionY, tw, 14, 7)
+    const escapeColor = st.escape >= 72 ? 0xff765a : st.escape >= 42 ? 0xffc857 : 0x58b8df
     scene.ebarFill.fillStyle(escapeColor, 1)
-    scene.ebarFill.fillRoundedRect(30, 38, tw * (st.escape / 100), 12, 6)
+    scene.ebarFill.fillRoundedRect(tensionX, tensionY, Math.max(5, tw * (st.escape / 100)), 14, 7)
     scene.ebarFill.fillStyle(0xffffff, 0.32)
-    scene.ebarFill.fillRoundedRect(34, 40, Math.max(0, tw * (st.escape / 100) - 8), 3, 2)
-    scene.ebarFill.fillStyle(0x173248, 0.16)
-    scene.ebarFill.fillRect(30 + tw * 0.70, 36, 2, 16)
-    scene.ebarNum.setText(String(Math.round(st.escape)))
-    const fishX = 30 + Math.max(8, tw * (st.escape / 100))
-    scene.ebarFishIcon?.setX(fishX)
+    scene.ebarFill.fillRoundedRect(tensionX + 4, tensionY + 3, Math.max(0, tw * (st.escape / 100) - 8), 3, 2)
+    scene.ebarFill.lineStyle(1.2, 0xffffff, 0.38)
+    scene.ebarFill.strokeRoundedRect(tensionX, tensionY, tw, 14, 7)
+
+    const fishX = tensionX + Math.max(7, tw * (st.escape / 100))
+    scene.ebarFishIcon?.setX(Math.min(scene.scale.width - 34, fishX))
 
     const rw = Math.max(4, reel.w * (st.reel / 100))
     scene.reelFill.clear()
-    scene.reelFill.fillStyle(0xe8f6fb, 1)
-    scene.reelFill.fillRoundedRect(reel.x, reel.y, reel.w, reel.h, 7)
-    scene.reelFill.fillStyle(0x2f9ed4, 1)
-    scene.reelFill.fillRoundedRect(reel.x, reel.y, rw, reel.h, 7)
-    scene.reelFill.fillStyle(0xffffff, 0.33)
-    scene.reelFill.fillRoundedRect(reel.x + 4, reel.y + 3, Math.max(0, rw - 8), 3, 2)
-    scene.reelFill.lineStyle(1.3, 0x1f6f9f, 0.72)
-    scene.reelFill.strokeRoundedRect(reel.x, reel.y, reel.w, reel.h, 7)
-    scene.reelValText.setText(String(Math.round(st.reel)))
+    scene.reelFill.fillStyle(0x071a28, 0.56)
+    scene.reelFill.fillRoundedRect(reel.x, reel.y, reel.w, reel.h, 5)
+    scene.reelFill.fillStyle(0x58b8df, 1)
+    scene.reelFill.fillRoundedRect(reel.x, reel.y, rw, reel.h, 5)
+    scene.reelFill.fillStyle(0xffffff, 0.30)
+    scene.reelFill.fillRoundedRect(reel.x + 3, reel.y + 2, Math.max(0, rw - 6), 3, 2)
 
     const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
@@ -151,15 +168,11 @@ export class BattleUI {
       const shadow = scene.add.graphics()
       shadow.fillStyle(0x173248, 0.13)
       shadow.fillRoundedRect(x + 2, 4, CHIP_W, CHIP_H, 14)
-
       const bg = scene.add.graphics()
       bg.fillStyle(0xf8fdff, 0.96)
       bg.lineStyle(2, 0x9bcfe5, 0.9)
       bg.fillRoundedRect(x, 0, CHIP_W, CHIP_H, 14)
       bg.strokeRoundedRect(x, 0, CHIP_W, CHIP_H, 14)
-      bg.fillStyle(0xdff5ff, 0.52)
-      bg.fillRoundedRect(x + 7, 6, CHIP_W - 14, 9, 5)
-
       const ic = scene.add.text(x + 9, CHIP_CY - 5, icon, { fontSize: '17px', resolution: TEXT_RES }).setOrigin(0, 0.5)
       const v = scene.add.text(x + 34, CHIP_CY - 6, val, {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '17px', fontWeight: '900', color: valColor,
@@ -172,7 +185,6 @@ export class BattleUI {
 
     const sc = chip(SCORE_X, ICONS.SCORE, String(initialScore), 'SCORE', UI_COLORS.warning)
     const ti = chip(TIME_X, ICONS.TIMER, '00:00', 'TIME', UI_COLORS.oceanDeep)
-
     scene.scoreValText = sc.valText
     scene.timeValText = ti.valText
     scene.scoreBar.add([...sc.els, ...ti.els])
@@ -192,21 +204,31 @@ export class BattleUI {
   buildHitHUD(W, H) {
     const scene = this.scene
 
-    scene.hitHint = scene.add.text(W / 2, H * 0.36, `${ICONS.ROD} HIT! タップ！`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '31px', fontWeight: '900',
-      color: UI_COLORS.coral,
-      stroke: '#ffffff', strokeThickness: 6,
+    scene.hitHint = scene.add.text(W / 2, H * 0.39, 'HIT!  タップ！', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '30px',
+      fontWeight: '900',
+      color: '#ffd95a',
+      stroke: '#073754',
+      strokeThickness: 6,
       shadow: SHADOW.soft,
-    }).setOrigin(0.5).setDepth(50).setVisible(false)
+    }).setOrigin(0.5).setDepth(95).setVisible(false).setScrollFactor(0)
 
     scene._hitHintBaseY = scene.hitHint.y
 
-    scene.rageTag = scene.add.text(W / 2, 78, `${ICONS.RAGE} 魚が暴れている！ 待て`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
-      color: '#ffffff', backgroundColor: UI_COLORS.coral,
-      padding: { x: 10, y: 5 },
-      stroke: '#173248', strokeThickness: 1,
-    }).setOrigin(0.5).setDepth(68).setVisible(false)
+    const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
+    scene.rageTag = scene.add.text(W / 2, controlsTop + 62, '暴れてる… 今は待つ', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '14px',
+      fontWeight: '900',
+      color: '#ffffff',
+      backgroundColor: 'rgba(255,82,74,0.94)',
+      padding: { x: 26, y: 14 },
+      stroke: '#7a251f',
+      strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(93).setVisible(false).setScrollFactor(0)
   }
 
   destroy() {
