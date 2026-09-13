@@ -40,6 +40,7 @@ import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js
 import { installMobileFishingShell } from './game/installMobileFishingShell.js'
 import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
 import { installFishingFieldMotionFx } from './game/installFishingFieldMotionFx.js'
+import { installCastFishStaging } from './game/installCastFishStaging.js'
 import { installFishingBiteHitPresentation } from './game/installFishingBiteHitPresentation.js'
 import { installFishingBattlePresentation } from './game/installFishingBattlePresentation.js'
 import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
@@ -73,6 +74,7 @@ installMobileFishingShell(GameScene)
 // cannot reclaim fishing playfield space.
 installBlueprintFishingField(GameScene)
 installFishingFieldMotionFx(GameScene)
+installCastFishStaging(GameScene)
 installFishingBiteHitPresentation(GameScene)
 installFishingBattlePresentation(GameScene)
 installFishingResultPresentation(GameScene)
@@ -106,7 +108,7 @@ function startGame() {
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
-      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800,900'],
+      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:wght@700;800;900'],
     },
     active: startGame,
     inactive: startGame,
