@@ -1,127 +1,94 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
-import { ICONS } from '../../config/icons.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const KUE_CLEAR_SEEN_KEY = 'ainan_kue_first_clear_seen'
 
 export class ResultUI {
-  constructor(scene) {
-    this.scene = scene
-  }
+  constructor(scene) { this.scene = scene }
 
   buildResultOverlay(W, H) {
     const scene = this.scene
-    scene.resultOverlay = scene.add.container(W / 2, H * 0.41).setDepth(120).setVisible(false).setScrollFactor(0)
+    scene.resultOverlay = scene.add.container(W / 2, H / 2).setDepth(120).setVisible(false).setScrollFactor(0)
 
-    const glow = scene.add.graphics()
-    glow.fillStyle(0xffffff, 0.20)
-    glow.fillCircle(0, 0, 184)
-    glow.fillStyle(0xdff5ff, 0.22)
-    glow.fillCircle(0, 0, 156)
-
+    const scrim = scene.add.rectangle(0, 0, W, H, 0x03243a, 0.72)
     const card = scene.add.graphics()
-    card.fillStyle(0x173248, 0.16)
-    card.fillRoundedRect(-157, -105, 314, 306, 26)
-    card.fillStyle(0xf8fdff, 0.99)
-    card.lineStyle(3, 0x9bcfe5, 1)
-    card.fillRoundedRect(-154, -110, 308, 306, 26)
-    card.strokeRoundedRect(-154, -110, 308, 306, 26)
-    card.fillStyle(0xdff5ff, 0.92)
-    card.fillRoundedRect(-142, -98, 284, 42, 18)
-    card.fillStyle(0xffffff, 0.56)
-    card.fillRoundedRect(-132, -91, 264, 10, 6)
+    card.fillStyle(0x073754, 0.96)
+    card.lineStyle(2, 0x8edfff, 0.55)
+    card.fillRoundedRect(-168, -250, 336, 500, 28)
+    card.strokeRoundedRect(-168, -250, 336, 500, 28)
+    card.fillStyle(0xffffff, 0.08)
+    card.fillRoundedRect(-154, -236, 308, 9, 5)
 
     scene.resStripe = scene.add.graphics()
-    scene.resLabel = scene.add.text(0, -76, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
+    scene.resLabel = scene.add.text(0, -218, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
-    const catchBadge = scene.add.graphics()
-    catchBadge.fillStyle(0xffffff, 0.96)
-    catchBadge.lineStyle(2, 0x9bcfe5, 0.75)
-    catchBadge.fillCircle(0, -21, 43)
-    catchBadge.strokeCircle(0, -21, 43)
+    const halo = scene.add.graphics()
+    halo.fillStyle(0x58b8df, 0.16)
+    halo.fillCircle(0, -116, 78)
+    halo.lineStyle(2, 0x8edfff, 0.38)
+    halo.strokeCircle(0, -116, 70)
 
-    scene.resEmoji = scene.add.text(0, -21, '', { fontSize: '58px', resolution: TEXT_RES }).setOrigin(0.5)
-    scene.resName = scene.add.text(0, 34, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: UI_COLORS.ink,
-    }).setOrigin(0.5)
-    scene.resPts = scene.add.text(0, 65, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.success,
-    }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 91, '釣果を町へ持ち帰ろう', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.inkSoft,
+    scene.resEmoji = scene.add.text(0, -116, '', { fontSize: '82px', resolution: TEXT_RES }).setOrigin(0.5)
+    scene.resName = scene.add.text(0, -38, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
-    const makeNavBtn = (x, y, w, h, mark, label, action, primary = false) => {
+    const stats = scene.add.graphics()
+    stats.fillStyle(0xffffff, 0.10)
+    stats.lineStyle(1.5, 0x8edfff, 0.34)
+    stats.fillRoundedRect(-132, -4, 264, 52, 16)
+    stats.strokeRoundedRect(-132, -4, 264, 52, 16)
+
+    scene.resPts = scene.add.text(0, 22, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffd95a',
+    }).setOrigin(0.5)
+    scene.resHint = scene.add.text(0, 68, '釣果を町へ持ち帰ろう', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
+    }).setOrigin(0.5)
+
+    const makeBtn = (x, y, w, h, label, action, primary = false) => {
       const bg = scene.add.graphics()
-      const drawBg = (mode = 'idle') => {
-        const pressed = mode === 'press'
-        const hover = mode === 'hover'
+      const draw = pressed => {
         bg.clear()
-        bg.fillStyle(0x173248, pressed ? 0.08 : 0.13)
-        bg.fillRoundedRect(x + 2, y + (pressed ? 3 : 5), w, h, primary ? 16 : 13)
-        bg.fillStyle(primary ? (hover ? 0xffe78d : 0xffd95a) : (hover ? 0xdff5ff : 0xffffff), 0.99)
-        bg.lineStyle(primary ? 2.5 : 1.8, primary ? 0x173248 : 0x9bcfe5, 0.90)
-        bg.fillRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 16 : 13)
-        bg.strokeRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 16 : 13)
-        if (primary) {
-          bg.fillStyle(0xffffff, 0.25)
-          bg.fillRoundedRect(x + 12, y + 8 + (pressed ? 2 : 0), w - 24, 8, 4)
-        }
+        bg.fillStyle(primary ? 0x2f9ed4 : 0x0e425f, pressed ? 0.82 : 0.98)
+        bg.lineStyle(primary ? 2 : 1.5, primary ? 0xbcecff : 0x8edfff, primary ? 0.72 : 0.36)
+        bg.fillRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 20 : 15)
+        bg.strokeRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 20 : 15)
       }
-      drawBg()
-      const txt = scene.add.text(x + w / 2, y + h / 2, `${mark} ${label}`, {
-        fontFamily: FONT,
-        resolution: TEXT_RES,
-        fontSize: primary ? '15px' : '11px',
-        fontWeight: '900',
-        color: UI_COLORS.ink,
-        align: 'center',
+      draw(false)
+      const txt = scene.add.text(x + w / 2, y + h / 2, label, {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: primary ? '15px' : '11px', fontWeight: '900', color: '#ffffff',
       }).setOrigin(0.5)
       const hit = scene.add.rectangle(x + w / 2, y + h / 2, w + 4, h + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => drawBg('press'))
+        .on('pointerdown', () => draw(true))
         .on('pointerup', () => { scene._skipNextDown = true; action() })
-        .on('pointerover', () => drawBg('hover'))
-        .on('pointerout', () => drawBg())
+        .on('pointerout', () => draw(false))
       return [bg, txt, hit]
     }
 
-    // Success-only actions. Escaped results hide this whole group so an
-    // underlying Town/Collection hit target can never leak through retry UI.
-    const town = makeNavBtn(-106, 111, 212, 48, '→', '町へ持ち帰る', () => {
+    const town = makeBtn(-126, 102, 252, 56, '町へ持ち帰る', () => {
       const lastCatch = scene.catches?.[scene.catches.length - 1]
-      const catchArrival = lastCatch && scene.fish
-        ? {
-            fishId: scene.fish.id,
-            name: scene.fish.name,
-            emoji: scene.fish.emoji,
-            rarity: scene.fish.rarity,
-            sizeCm: lastCatch.sizeCm,
-            score: lastCatch.score,
-          }
-        : null
+      const catchArrival = lastCatch && scene.fish ? {
+        fishId: scene.fish.id, name: scene.fish.name, emoji: scene.fish.emoji,
+        rarity: scene.fish.rarity, sizeCm: lastCatch.sizeCm, score: lastCatch.score,
+      } : null
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, true)
-
-    const retry = makeNavBtn(-92, 168, 86, 38, '↻', 'もう一度', () => {
+    const retry = makeBtn(-126, 170, 120, 42, '↻ もう一度', () => {
       scene.resultOverlay.setVisible(false)
       scene._enterCast()
     })
-    const book = makeNavBtn(6, 168, 86, 38, '□', '図鑑', () => {
+    const book = makeBtn(6, 170, 120, 42, '□ 図鑑', () => {
       scene._cleanup()
       scene.scene.start('CollectionScene')
     })
 
     scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, ...book])
-
-    scene.resultOverlay.add([
-      glow, card, scene.resStripe, scene.resLabel,
-      catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint,
-      scene.resultSuccessActions,
-    ])
+    scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, scene.resultSuccessActions])
   }
 
   drawResultStripe(outcome) {
@@ -129,80 +96,37 @@ export class ResultUI {
     const g = scene.resStripe
     if (!g) return
     g.clear()
-    const isKueClear = outcome === 'caught' && scene.fish?.id === 'kue'
-    const color = isKueClear ? 0xe6a800 : outcome === 'caught' ? 0x2caf72 : 0xff765a
-    g.fillStyle(color, 1)
-    g.fillRoundedRect(-142, -98, 284, 42, 18)
-    g.fillStyle(0xffffff, 0.28)
-    g.fillRoundedRect(-130, -91, 260, 9, 5)
-
-    if (isKueClear) this._showKueClearCutin()
+    const isKue = outcome === 'caught' && scene.fish?.id === 'kue'
+    const color = isKue ? 0xffd95a : outcome === 'caught' ? 0x2f9ed4 : 0xff765a
+    g.fillStyle(color, 0.96)
+    g.fillRoundedRect(-92, -236, 184, 34, 15)
+    if (isKue) this._showKueClearCutin()
   }
 
   _showKueClearCutin() {
     const scene = this.scene
     if (scene._kueClearCutinActive) return
     scene._kueClearCutinActive = true
-
-    const { width: W, height: H } = scene.scale
-    const firstClear = localStorage.getItem(KUE_CLEAR_SEEN_KEY) !== '1'
+    const first = localStorage.getItem(KUE_CLEAR_SEEN_KEY) !== '1'
     localStorage.setItem(KUE_CLEAR_SEEN_KEY, '1')
-
-    scene.time.delayedCall(90, () => {
-      scene.cameras.main.flash(360, 255, 219, 90, true)
-      scene.cameras.main.shake(420, 0.012)
-
-      const c = scene.add.container(W / 2, H * 0.38).setDepth(190).setAlpha(0).setScale(0.88).setScrollFactor(0)
-      const shade = scene.add.rectangle(0, 0, W, H, 0x071520, 0.70)
-      const halo = scene.add.graphics()
-      halo.fillStyle(0xffd95a, 0.18)
-      halo.fillCircle(0, 0, 178)
-      halo.lineStyle(5, 0xffd95a, 0.92)
-      halo.strokeCircle(0, 0, 146)
-      halo.lineStyle(2, 0xffffff, 0.50)
-      halo.strokeCircle(0, 0, 166)
-
-      const plate = scene.add.graphics()
-      plate.fillStyle(0x102b42, 0.97)
-      plate.lineStyle(3, 0xffd95a, 1)
-      plate.fillRoundedRect(-156, -78, 312, 156, 24)
-      plate.strokeRoundedRect(-156, -78, 312, 156, 24)
-      plate.fillStyle(0xffd95a, 0.16)
-      plate.fillRoundedRect(-144, -66, 288, 38, 14)
-
-      const top = scene.add.text(0, -48, firstClear ? 'MISSION CLEAR' : 'LEGEND CATCH', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: '#ffd95a', letterSpacing: 2,
-      }).setOrigin(0.5)
-      const title = scene.add.text(0, -4, '黒潮の主　クエ', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '28px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.medium,
-      }).setOrigin(0.5)
-      const sub = scene.add.text(0, 38, firstClear ? '大物挑戦を達成した' : '伝説魚を再び釣り上げた', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: '#dff5ff',
-      }).setOrigin(0.5)
-
-      c.add([shade, halo, plate, top, title, sub])
-      scene.tweens.add({ targets: c, alpha: 1, scaleX: 1, scaleY: 1, duration: 260, ease: 'Back.easeOut' })
-      scene.tweens.add({ targets: halo, angle: 16, scaleX: 1.08, scaleY: 1.08, duration: 900, yoyo: true, repeat: 0, ease: 'Sine.easeInOut' })
-      scene.time.delayedCall(1350, () => {
-        scene.tweens.add({
-          targets: c,
-          alpha: 0,
-          y: c.y - 24,
-          duration: 320,
-          ease: 'Sine.easeIn',
-          onComplete: () => {
-            c.destroy(true)
-            scene._kueClearCutinActive = false
-          },
-        })
-      })
-    })
+    const { width: W, height: H } = scene.scale
+    const c = scene.add.container(W / 2, H * 0.38).setDepth(190).setAlpha(0).setScrollFactor(0)
+    const bg = scene.add.rectangle(0, 0, 320, 130, 0x102b42, 0.97).setStrokeStyle(3, 0xffd95a, 1)
+    const top = scene.add.text(0, -34, first ? 'MISSION CLEAR' : 'LEGEND CATCH', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffd95a',
+    }).setOrigin(0.5)
+    const title = scene.add.text(0, 4, '黒潮の主　クエ', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: '#ffffff',
+    }).setOrigin(0.5)
+    c.add([bg, top, title])
+    scene.tweens.add({ targets: c, alpha: 1, duration: 220 })
+    scene.time.delayedCall(1200, () => scene.tweens.add({ targets: c, alpha: 0, duration: 280, onComplete: () => { c.destroy(true); scene._kueClearCutinActive = false } }))
   }
 
   toast(msg) {
     const { width: W, height: H } = this.scene.scale
     const bg = this.scene.add.graphics().setDepth(99).setScrollFactor(0)
-    bg.fillStyle(0x173248, 0.92)
+    bg.fillStyle(0x073754, 0.94)
     bg.fillRoundedRect(W / 2 - 128, H * 0.38 - 24, 256, 48, 18)
     const t = this.scene.add.text(W / 2, H * 0.38, msg, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
@@ -210,37 +134,6 @@ export class ResultUI {
     this.scene.tweens.add({ targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() } })
   }
 
-  buildBackBtn(W, H) {
-    const scene = this.scene
-    const c = scene.add.container(18, H - 18).setDepth(200).setScrollFactor(0)
-    const bg = scene.add.graphics()
-    const draw = (hover = false) => {
-      bg.clear()
-      bg.fillStyle(0x173248, 0.12)
-      bg.fillRoundedRect(2, -40, 120, 40, 14)
-      bg.fillStyle(hover ? 0xdff5ff : 0xf8fdff, 0.98)
-      bg.lineStyle(2, 0x9bcfe5, 0.92)
-      bg.fillRoundedRect(0, -43, 120, 40, 14)
-      bg.strokeRoundedRect(0, -43, 120, 40, 14)
-    }
-    draw()
-    const txt = scene.add.text(60, -23, `${ICONS.BACK} マップへ`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
-    }).setOrigin(0.5)
-    const hit = scene.add.rectangle(60, -23, 124, 44, 0x000000, 0)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', (p) => {
-        p.event.stopPropagation()
-        scene._cleanup()
-        scene.scene.start('MapScene')
-      })
-      .on('pointerover', () => draw(true))
-      .on('pointerout', () => draw(false))
-    c.add([bg, txt, hit])
-    this._backBtn = c
-  }
-
-  destroy() {
-    this._backBtn?.destroy()
-  }
+  buildBackBtn() { this._backBtn = null }
+  destroy() { this._backBtn?.destroy() }
 }
