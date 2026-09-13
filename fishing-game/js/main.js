@@ -32,6 +32,7 @@ import { installVerticalSliceLayout } from './game/installVerticalSliceLayout.js
 import { installVerticalSliceAgency } from './game/installVerticalSliceAgency.js'
 import { installVerticalSliceBitePresentation } from './game/installVerticalSliceBitePresentation.js'
 import { installVerticalSliceFishReadability } from './game/installVerticalSliceFishReadability.js'
+import { installVerticalSliceBattleContinuity } from './game/installVerticalSliceBattleContinuity.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -52,6 +53,7 @@ installVerticalSliceLayout(GameScene)
 installVerticalSliceAgency(GameScene)
 installVerticalSliceFishReadability(GameScene)
 installVerticalSliceBitePresentation(GameScene)
+installVerticalSliceBattleContinuity(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
