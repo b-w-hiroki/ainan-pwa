@@ -11,7 +11,7 @@ export class ResultUI {
 
   buildResultOverlay(W, H) {
     const scene = this.scene
-    scene.resultOverlay = scene.add.container(W / 2, H * 0.42).setDepth(120).setVisible(false).setScrollFactor(0)
+    scene.resultOverlay = scene.add.container(W / 2, H * 0.41).setDepth(120).setVisible(false).setScrollFactor(0)
 
     const glow = scene.add.graphics()
     glow.fillStyle(0xffffff, 0.20)
@@ -21,11 +21,11 @@ export class ResultUI {
 
     const card = scene.add.graphics()
     card.fillStyle(0x173248, 0.16)
-    card.fillRoundedRect(-157, -105, 314, 258, 26)
+    card.fillRoundedRect(-157, -105, 314, 306, 26)
     card.fillStyle(0xf8fdff, 0.99)
     card.lineStyle(3, 0x9bcfe5, 1)
-    card.fillRoundedRect(-154, -110, 308, 258, 26)
-    card.strokeRoundedRect(-154, -110, 308, 258, 26)
+    card.fillRoundedRect(-154, -110, 308, 306, 26)
+    card.strokeRoundedRect(-154, -110, 308, 306, 26)
     card.fillStyle(0xdff5ff, 0.92)
     card.fillRoundedRect(-142, -98, 284, 42, 18)
     card.fillStyle(0xffffff, 0.56)
@@ -49,33 +49,37 @@ export class ResultUI {
     scene.resPts = scene.add.text(0, 65, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 91, '次の行き先を選ぼう', {
+    scene.resHint = scene.add.text(0, 91, '釣果を町へ持ち帰ろう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5)
 
-    const BTN_W = 86, BTN_H = 42, BTN_GAP = 8
-    const totalBtnW = BTN_W * 3 + BTN_GAP * 2
-    const btnStartX = -totalBtnW / 2
-    const btnY = 116
-
-    const makeNavBtn = (x, mark, label, action, primary = false) => {
+    const makeNavBtn = (x, y, w, h, mark, label, action, primary = false) => {
       const bg = scene.add.graphics()
       const drawBg = (mode = 'idle') => {
         const pressed = mode === 'press'
         const hover = mode === 'hover'
         bg.clear()
         bg.fillStyle(0x173248, pressed ? 0.08 : 0.13)
-        bg.fillRoundedRect(x + 2, btnY + (pressed ? 3 : 5), BTN_W, BTN_H, 14)
+        bg.fillRoundedRect(x + 2, y + (pressed ? 3 : 5), w, h, primary ? 16 : 13)
         bg.fillStyle(primary ? (hover ? 0xffe78d : 0xffd95a) : (hover ? 0xdff5ff : 0xffffff), 0.99)
-        bg.lineStyle(2, primary ? 0x173248 : 0x9bcfe5, 0.9)
-        bg.fillRoundedRect(x, btnY + (pressed ? 2 : 0), BTN_W, BTN_H, 14)
-        bg.strokeRoundedRect(x, btnY + (pressed ? 2 : 0), BTN_W, BTN_H, 14)
+        bg.lineStyle(primary ? 2.5 : 1.8, primary ? 0x173248 : 0x9bcfe5, 0.90)
+        bg.fillRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 16 : 13)
+        bg.strokeRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 16 : 13)
+        if (primary) {
+          bg.fillStyle(0xffffff, 0.25)
+          bg.fillRoundedRect(x + 12, y + 8 + (pressed ? 2 : 0), w - 24, 8, 4)
+        }
       }
       drawBg()
-      const txt = scene.add.text(x + BTN_W / 2, btnY + BTN_H / 2, `${mark} ${label}`, {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink, align: 'center',
+      const txt = scene.add.text(x + w / 2, y + h / 2, `${mark} ${label}`, {
+        fontFamily: FONT,
+        resolution: TEXT_RES,
+        fontSize: primary ? '15px' : '11px',
+        fontWeight: '900',
+        color: UI_COLORS.ink,
+        align: 'center',
       }).setOrigin(0.5)
-      const hit = scene.add.rectangle(x + BTN_W / 2, btnY + BTN_H / 2, BTN_W + 4, BTN_H + 4, 0x000000, 0)
+      const hit = scene.add.rectangle(x + w / 2, y + h / 2, w + 4, h + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => drawBg('press'))
         .on('pointerup', () => { scene._skipNextDown = true; action() })
@@ -84,11 +88,26 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const b1 = makeNavBtn(btnStartX, '↻', 'もう一度', () => { scene.resultOverlay.setVisible(false); scene._enterCast() }, true)
-    const b2 = makeNavBtn(btnStartX + BTN_W + BTN_GAP, '□', '図鑑', () => { scene._cleanup(); scene.scene.start('CollectionScene') })
-    const b3 = makeNavBtn(btnStartX + (BTN_W + BTN_GAP) * 2, '→', '町へ', () => { scene._cleanup(); scene.scene.start('TownScene') })
+    // ゲームの主ループに合わせて「町へ」を唯一の主CTAにする。
+    const town = makeNavBtn(-106, 111, 212, 48, '→', '町へ持ち帰る', () => {
+      scene._cleanup()
+      scene.scene.start('TownScene')
+    }, true)
 
-    scene.resultOverlay.add([glow, card, scene.resStripe, scene.resLabel, catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint, ...b1, ...b2, ...b3])
+    const retry = makeNavBtn(-92, 168, 86, 38, '↻', 'もう一度', () => {
+      scene.resultOverlay.setVisible(false)
+      scene._enterCast()
+    })
+    const book = makeNavBtn(6, 168, 86, 38, '□', '図鑑', () => {
+      scene._cleanup()
+      scene.scene.start('CollectionScene')
+    })
+
+    scene.resultOverlay.add([
+      glow, card, scene.resStripe, scene.resLabel,
+      catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint,
+      ...town, ...retry, ...book,
+    ])
   }
 
   drawResultStripe(outcome) {
