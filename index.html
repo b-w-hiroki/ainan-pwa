@@ -48,6 +48,13 @@
         window.caches?.keys?.().then((keys) => {
           keys.forEach((key) => window.caches.delete(key))
         })
+      } else if ('serviceWorker' in navigator) {
+        let refreshing = false
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return
+          refreshing = true
+          location.reload()
+        })
       }
     </script>
     <!-- WebFont Loader keeps the first Phaser text render crisp and stable. -->
