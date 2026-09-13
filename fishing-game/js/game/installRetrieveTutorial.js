@@ -1,7 +1,9 @@
 import { RetrieveCoach } from '../scenes/components/RetrieveCoach.js'
 import { FISH_INTEREST_STATE } from './fishInterest.js'
 
-const TUTORIAL_KEY = 'ainan_retrieve_tutorial_v1'
+// v2 intentionally resets the one-time coach for devices that already saw the
+// old cast-and-wait prototype. Retrieve rules changed for Vertical Slice 1.0.
+const TUTORIAL_KEY = 'ainan_retrieve_tutorial_v2'
 
 export function installRetrieveTutorial(GameScene) {
   if (GameScene.prototype.__ainanRetrieveTutorialInstalled) return
