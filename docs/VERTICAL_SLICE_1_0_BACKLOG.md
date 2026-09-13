@@ -26,7 +26,7 @@ Vertical Slice 1.0 is complete when all of the following are true:
 
 ### P0-01 Retrieve playfield composition
 
-Status: **IN PROGRESS**
+Status: **IMPLEMENTED — SCREEN QA REQUIRED**
 
 - Cast phase: character can be large enough for the throw to feel good.
 - Retrieve phase: character shrinks to roughly 50–60% of cast size.
@@ -42,7 +42,7 @@ Acceptance:
 
 ### P0-02 Retrieve must require player decisions
 
-Status: TODO
+Status: **IMPLEMENTED — PLAY QA REQUIRED**
 
 - Prevent immediate/automatic bite after landing.
 - Typical common fish should require at least 2 meaningful retrieve decisions before bite readiness.
@@ -55,7 +55,7 @@ Acceptance:
 
 ### P0-03 Fish behavior readability
 
-Status: TODO
+Status: **PARTIAL**
 
 - Cruise → noticed → follow → inspect → biteReady is readable primarily from motion.
 - Use turn, pursuit, wake, orbit, pause, and flee before adding more numeric UI.
@@ -66,7 +66,7 @@ Acceptance:
 
 ### P0-04 Bite / hook transition
 
-Status: TODO
+Status: **PARTIAL — LARGE OVERLAY REMOVED**
 
 - Retrieve remains visually continuous into bite.
 - Fish approaches lure → brief hesitation → water/bobber cue → `ちょん` → `ぐんっ！` → hook input.
