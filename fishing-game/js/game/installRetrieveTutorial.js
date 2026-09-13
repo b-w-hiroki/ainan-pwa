@@ -35,8 +35,13 @@ export function installRetrieveTutorial(GameScene) {
 
   const originalTwitchRetrieve = GameScene.prototype._twitchRetrieve
   GameScene.prototype._twitchRetrieve = function (...args) {
+    const beforeUntil = this.retrieveState?.twitchUntil ?? 0
     const result = originalTwitchRetrieve.apply(this, args)
-    if (!this._retrieveTutorialDone && this._retrieveTutorialStep === 1) {
+    const accepted = this.phase === 'retrieve'
+      && this.retrieveState?.action === 'twitch'
+      && (this.retrieveState?.twitchUntil ?? 0) > beforeUntil
+
+    if (!this._retrieveTutorialDone && this._retrieveTutorialStep === 1 && accepted) {
       this._retrieveTutorialStep = 2
       this.retrieveCoach?.show(2, 'いい感じ。魚影の向きが変わるか見てみよう')
       this.retrieveCoach?.pulse()
