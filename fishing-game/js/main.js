@@ -37,6 +37,7 @@ import { installVerticalSliceBattleContinuity } from './game/installVerticalSlic
 import { installVerticalSliceResultRouting } from './game/installVerticalSliceResultRouting.js'
 import { installVerticalSliceHookInput } from './game/installVerticalSliceHookInput.js'
 import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
+import { installMobileFishingShell } from './game/installMobileFishingShell.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -61,6 +62,7 @@ installVerticalSliceBattleContinuity(GameScene)
 installVerticalSliceResultRouting(GameScene)
 installVerticalSliceHookInput(GameScene)
 installVerticalSliceQaMode(GameScene)
+installMobileFishingShell(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
@@ -87,7 +89,6 @@ function startGame() {
   window.__game = game
 }
 
-// Start after web fonts are ready so the first Phaser text render is stable.
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
