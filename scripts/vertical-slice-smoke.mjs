@@ -91,7 +91,6 @@ assert.ok(runInterest(byId.bass, 'twitch').interest > runInterest(byId.bass, 'id
 assert.ok(runInterest(byId.buri, 'slowReel').interest > runInterest(byId.buri, 'idle').interest, 'buri should prefer slow retrieve')
 assert.ok(runInterest(byId.kue, 'idle', 8, 80, 0.35, 'special').interest > runInterest(byId.kue, 'slowReel', 8, 80, 0.55, 'special').interest, 'kue should reward cautious stopping')
 
-// Overworking a cautious fish at close range must eventually spook it.
 const cautious = makeRuntime(byId.kue)
 let spooked = false
 for (let i = 0; i < 14; i++) {
@@ -142,7 +141,7 @@ const recklessBattle = createBattleState(byId.aji, { pullPower: 1.2 })
 for (let i = 0; i < 6 && !battleOutcome(recklessBattle); i++) applySwipe(recklessBattle, true)
 assert.equal(battleOutcome(recklessBattle), 'escaped', 'reeling repeatedly while raging should allow the fish to escape')
 
-// 6) Integration guards: the Vertical Slice installers and core visual assets must stay wired.
+// 6) Integration guards: installers, explicit result routing and QA controls must stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
 for (const installer of [
   'installVerticalSliceLayout',
@@ -158,6 +157,15 @@ for (const installer of [
   assert.ok(mainSource.includes(`${installer}(`), `${installer} is not wired in main.js`)
 }
 
+const resultUiSource = readFileSync(new URL('../fishing-game/js/scenes/components/ResultUI.js', import.meta.url), 'utf8')
+const resultRoutingSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceResultRouting.js', import.meta.url), 'utf8')
+const qaSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceQaMode.js', import.meta.url), 'utf8')
+assert.ok(resultUiSource.includes('resultSuccessActions'), 'success result controls must be grouped for explicit routing')
+assert.ok(resultRoutingSource.includes('resultSuccessActions?.setVisible(!escaped)'), 'escaped result must hide success-only actions')
+for (const label of ['HITミス', '逃走', '釣果GET']) {
+  assert.ok(qaSource.includes(label), `QA shortcut missing: ${label}`)
+}
+
 for (const asset of [
   'fishing-game/assets/characters/player_cast_anim.webp',
   'fishing-game/assets/characters/player_fight_anim.webp',
@@ -171,4 +179,5 @@ console.log(`  near: ${nearM.toFixed(1)}m / mid: ${midM.toFixed(1)}m / far: ${fa
 console.log('  retrieve preferences: OK')
 console.log('  deterministic hook input: OK')
 console.log('  battle success/failure paths: OK')
+console.log('  result routing / QA shortcuts: OK')
 console.log('  integration/assets: OK')
