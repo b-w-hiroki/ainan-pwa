@@ -1,4 +1,5 @@
 const QA_QUERY_KEY = 'qa'
+const BUILD_SHA = String(import.meta.env?.VITE_BUILD_SHA ?? 'dev').slice(0, 7)
 
 function qaEnabled() {
   if (typeof window === 'undefined') return false
@@ -84,7 +85,7 @@ function buildQaHud(scene) {
     .setDepth(1000)
   items.push(bg)
 
-  const title = scene.add.text(10, 7, 'VS QA', {
+  const title = scene.add.text(10, 7, `VS QA ${BUILD_SHA}`, {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
