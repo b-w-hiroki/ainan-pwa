@@ -90,8 +90,19 @@ export class ResultUI {
 
     // ゲームの主ループに合わせて「町へ」を唯一の主CTAにする。
     const town = makeNavBtn(-106, 111, 212, 48, '→', '町へ持ち帰る', () => {
+      const lastCatch = scene.catches?.[scene.catches.length - 1]
+      const catchArrival = lastCatch && scene.fish
+        ? {
+            fishId: scene.fish.id,
+            name: scene.fish.name,
+            emoji: scene.fish.emoji,
+            rarity: scene.fish.rarity,
+            sizeCm: lastCatch.sizeCm,
+            score: lastCatch.score,
+          }
+        : null
       scene._cleanup()
-      scene.scene.start('TownScene')
+      scene.scene.start('TownScene', { catchArrival })
     }, true)
 
     const retry = makeNavBtn(-92, 168, 86, 38, '↻', 'もう一度', () => {
