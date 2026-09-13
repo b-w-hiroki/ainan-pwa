@@ -28,6 +28,7 @@ import { installFishFieldDensity } from './game/installFishFieldDensity.js'
 import { installRetrieveLandingBeat } from './game/installRetrieveLandingBeat.js'
 import { installMinimalFishingHud } from './game/installMinimalFishingHud.js'
 import { installTownCatchArrival } from './game/installTownCatchArrival.js'
+import { installVerticalSliceLayout } from './game/installVerticalSliceLayout.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -44,6 +45,7 @@ installRetrieveLandingBeat(GameScene)
 installFishFieldDensity()
 installMinimalFishingHud(GameScene)
 installTownCatchArrival(TownScene)
+installVerticalSliceLayout(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
