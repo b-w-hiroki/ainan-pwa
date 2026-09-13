@@ -6,6 +6,7 @@ import { Button } from '../ui/Button.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+const BUILD_ID = (import.meta.env.VITE_BUILD_SHA ?? 'local').slice(0, 8)
 
 export default class TitleScene extends Phaser.Scene {
   constructor() {
@@ -154,6 +155,12 @@ export default class TitleScene extends Phaser.Scene {
       fontSize: '12px', fontWeight: '700',
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
+
+    this.add.text(W - 8, H - 7, `build ${BUILD_ID}`, {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '8px', fontWeight: '800',
+      color: '#173248',
+    }).setOrigin(1, 1).setDepth(6).setAlpha(0.58)
   }
 
   _drawCloud(g, cx, cy, sc) {
