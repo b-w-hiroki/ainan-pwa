@@ -1,5 +1,4 @@
 function buildEscapeRetry(scene) {
-  const W = scene.scale.width
   const container = scene.add.container(0, 0).setVisible(false)
   const x = -106
   const y = 111
@@ -42,10 +41,8 @@ function buildEscapeRetry(scene) {
 /**
  * Result routing for the Vertical Slice.
  *
- * Result is now a deliberate navigation state, not a "tap anywhere to reset"
- * screen. Caught fish should strongly route to Town; escaped fish should route
- * to an explicit retry CTA. This also prevents button pointer-up handling from
- * causing the next CAST pointer-down to be swallowed.
+ * Caught fish expose the Town/retry/book success actions. Escaped fish hide
+ * those hit targets completely and expose only one explicit retry CTA.
  */
 export function installVerticalSliceResultRouting(GameScene) {
   if (GameScene.prototype.__ainanVerticalSliceResultRoutingInstalled) return
@@ -55,6 +52,7 @@ export function installVerticalSliceResultRouting(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     this._escapeRetryOverlay = buildEscapeRetry(this)
+    this.resultSuccessActions?.setVisible(true)
     return result
   }
 
@@ -71,6 +69,7 @@ export function installVerticalSliceResultRouting(GameScene) {
     const result = originalFinishBattle.call(this, outcome, ...args)
     const escaped = outcome !== 'caught'
     this._escapeRetryOverlay?.setVisible(escaped)
+    this.resultSuccessActions?.setVisible(!escaped)
     if (escaped) {
       this.resHint?.setText('もう一度挑戦して、魚の動きを読もう')
     } else {
@@ -81,10 +80,9 @@ export function installVerticalSliceResultRouting(GameScene) {
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
-    // Button pointer-up used to leave this flag set until the *next* cast tap,
-    // making the first interaction feel broken.
     this._skipNextDown = false
     this._escapeRetryOverlay?.setVisible(false)
+    this.resultSuccessActions?.setVisible(true)
     return originalEnterCast.apply(this, args)
   }
 
