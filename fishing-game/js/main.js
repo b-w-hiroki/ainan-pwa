@@ -108,7 +108,7 @@ function startGame() {
 if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
-      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:wght@700;800;900'],
+      families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800,900'],
     },
     active: startGame,
     inactive: startGame,
