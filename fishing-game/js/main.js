@@ -34,6 +34,7 @@ import { installVerticalSliceBitePresentation } from './game/installVerticalSlic
 import { installVerticalSliceFishReadability } from './game/installVerticalSliceFishReadability.js'
 import { installVerticalSliceBattleContinuity } from './game/installVerticalSliceBattleContinuity.js'
 import { installVerticalSliceResultRouting } from './game/installVerticalSliceResultRouting.js'
+import { installVerticalSliceHookInput } from './game/installVerticalSliceHookInput.js'
 import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
 
 installFishingVisualTuning()
@@ -57,6 +58,7 @@ installVerticalSliceFishReadability(GameScene)
 installVerticalSliceBitePresentation(GameScene)
 installVerticalSliceBattleContinuity(GameScene)
 installVerticalSliceResultRouting(GameScene)
+installVerticalSliceHookInput(GameScene)
 installVerticalSliceQaMode(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
