@@ -8,27 +8,29 @@ function findBattleTarget(scene) {
   return runtime.gfx
 }
 
-function moveBattleFishIntoPlayfield(scene, fish) {
-  if (!fish) return
-  const cam = scene.cameras.main
-  const screenX = scene.scale.width * 0.30
-  const screenY = 238
-  fish.setPosition(cam.scrollX + screenX, cam.scrollY + screenY)
+function dimBackgroundFish(scene, target) {
+  if (!scene._battleFishAlphaRestore) {
+    scene._battleFishAlphaRestore = (scene.bg?._fishGfx ?? []).map(fish => ({ fish, alpha: fish?.alpha ?? 1 }))
+  }
+  scene._battleFishAlphaRestore.forEach(({ fish }) => {
+    if (!fish?.active) return
+    fish.setAlpha(fish === target ? 1 : 0.16)
+  })
 }
 
-function keepBattleFishOnScreen(scene, fish) {
+function restoreBackgroundFish(scene) {
+  scene._battleFishAlphaRestore?.forEach(({ fish, alpha }) => fish?.active && fish.setAlpha(alpha))
+  scene._battleFishAlphaRestore = null
+}
+
+function anchorBattleFish(scene, fish) {
   if (!fish?.active || scene.phase !== 'battle') return
   const cam = scene.cameras.main
-  const sx = fish.x - cam.scrollX
-  const sy = fish.y - cam.scrollY
-  const minX = 58
-  const maxX = scene.scale.width - 58
-  const minY = 102
-  const maxY = 470
-  if (sx < minX) fish.x += minX - sx
-  if (sx > maxX) fish.x -= sx - maxX
-  if (sy < minY) fish.y += minY - sy
-  if (sy > maxY) fish.y -= sy - maxY
+  const t = scene.time.now / 1000
+  const screenX = scene.scale.width * 0.31 + Math.sin(t * 2.7) * 12
+  const screenY = 300 + Math.sin(t * 3.6) * 7
+  fish.setPosition(cam.scrollX + screenX, cam.scrollY + screenY)
+  fish.setAngle(Math.sin(t * 3.2) * 4 * (fish.scaleX < 0 ? -1 : 1))
 }
 
 function emphasizeBattleFish(scene, fish) {
@@ -44,36 +46,21 @@ function emphasizeBattleFish(scene, fish) {
     }
   }
 
-  moveBattleFishIntoPlayfield(scene, fish)
-
   const rarity = scene.fish?.rarity ?? 'common'
-  const width = rarity === 'legendary' ? 150 : rarity === 'rare' ? 132 : rarity === 'uncommon' ? 112 : 96
+  const width = rarity === 'legendary' ? 164 : rarity === 'rare' ? 148 : rarity === 'uncommon' ? 132 : 120
   if (image) image.setDisplaySize(width, width * 0.5)
-  fish.setDepth(33)
+  fish.setDepth(33).setAlpha(1)
   fish._followWake?.setAlpha?.(0)
-
-  scene._battleFishMotion?.stop?.()
-  scene._battleFishMotion?.destroy?.()
-  scene._battleFishMotion = scene.tweens.add({
-    targets: fish,
-    x: fish.x + 14,
-    y: fish.y - 7,
-    angle: fish.scaleX < 0 ? -5 : 5,
-    duration: 620,
-    yoyo: true,
-    repeat: -1,
-    ease: 'Sine.easeInOut',
-  })
+  dimBackgroundFish(scene, fish)
+  anchorBattleFish(scene, fish)
 }
 
 function restoreBattleFish(scene) {
-  scene._battleFishMotion?.stop?.()
-  scene._battleFishMotion?.destroy?.()
-  scene._battleFishMotion = null
   const restore = scene._battleFishRestore
   if (restore?.image?.active) restore.image.setDisplaySize(restore.width, restore.height)
   if (restore?.fish?.active) restore.fish.setDepth(restore.depth ?? 22).setAngle(0)
   scene._battleFishRestore = null
+  restoreBackgroundFish(scene)
 }
 
 function enforceBattleComposition(scene) {
@@ -82,12 +69,13 @@ function enforceBattleComposition(scene) {
   scene.lineGfx?.clear?.()
   scene.bobber?.setVisible?.(false)
   scene._assetLureRipple?.setVisible?.(false)
-  keepBattleFishOnScreen(scene, scene._targetFishGfx)
+  anchorBattleFish(scene, scene._targetFishGfx)
+  dimBackgroundFish(scene, scene._targetFishGfx)
 }
 
 /**
  * Battle uses the same water world as Retrieve, but removes the lure-as-subject
- * composition. One enlarged fish shadow and one physical line own the field.
+ * composition. One enlarged hooked fish and one physical line own the field.
  */
 export function installFishingBattlePresentation(GameScene) {
   if (GameScene.prototype.__ainanFishingBattlePresentationInstalled) return
@@ -95,18 +83,19 @@ export function installFishingBattlePresentation(GameScene) {
 
   const originalEnterBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
-    // QA/direct Battle entry still gets a visible fish target. Normal play
-    // already has _targetFishGfx from the bite sequence.
     const targetBefore = findBattleTarget(this)
     const result = originalEnterBattle.apply(this, args)
     const target = this._targetFishGfx?.active ? this._targetFishGfx : targetBefore
-    enforceBattleComposition(this)
     emphasizeBattleFish(this, target)
+    enforceBattleComposition(this)
     return result
   }
 
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
+    // Anchor before the legacy Battle continuity line is drawn so the line and
+    // fish read as one interaction in the same frame.
+    if (this.phase === 'battle') anchorBattleFish(this, this._targetFishGfx)
     const result = originalUpdate?.apply(this, args)
     enforceBattleComposition(this)
     return result
