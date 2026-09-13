@@ -39,7 +39,12 @@ export default defineConfig({
         start_url: base,
         // icons は public/ に icon-192.png, icon-512.png を置くとインストール可能に
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,ico,png,svg}'] }
-    })
-  ]
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+      },
+    }),
+  ],
 })
