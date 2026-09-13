@@ -20,7 +20,7 @@ export class BobberManager {
   }
 
   create(W, H) {
-    const g = this.scene.add.graphics().setDepth(30).setVisible(false)
+    const g = this.scene.add.graphics().setDepth(33).setVisible(false)
     this.gfx = g
     this.setBaitType(this.scene.env?.player?.baitType ?? 'worm')
     return g
@@ -33,46 +33,71 @@ export class BobberManager {
     const style = LURE_STYLE[baitType] ?? LURE_STYLE.worm
     g.clear()
 
-    // 水面で見失わないための薄いハロー。
-    g.fillStyle(0xffffff, 0.20)
-    g.fillEllipse(0, 2, 30, 17)
+    // The lure is a core gameplay cursor. Give it a strong halo/ring so it
+    // remains readable against moving water and nearby fish shadows.
+    g.fillStyle(0xffffff, 0.14)
+    g.fillEllipse(0, 2, 42, 24)
+    g.lineStyle(1.5, 0xdff8ff, 0.64)
+    g.strokeEllipse(0, 2, 34, 18)
 
-    // ミノー型の小さな仕掛け。遠距離でも輪郭が読めるよう少し太め。
+    // Slightly larger minnow body than the legacy version. This is still small
+    // enough to read as tackle rather than a UI icon.
     g.fillStyle(style.body, 1)
-    g.lineStyle(2, C.OUTLINE, 0.95)
-    g.fillEllipse(0, 0, 20, 9)
-    g.strokeEllipse(0, 0, 20, 9)
+    g.lineStyle(2.4, C.OUTLINE, 0.98)
+    g.fillEllipse(0, 0, 25, 11)
+    g.strokeEllipse(0, 0, 25, 11)
     g.fillStyle(style.top, 1)
-    g.fillEllipse(-1, -2, 17, 4)
+    g.fillEllipse(-1, -2.5, 21, 5)
     g.fillStyle(style.accent, 1)
-    g.fillTriangle(9, 0, 15, -6, 15, 6)
+    g.fillTriangle(11, 0, 18, -7, 18, 7)
 
     g.fillStyle(C.OUTLINE, 1)
-    g.fillCircle(-6, -1, 1.8)
+    g.fillCircle(-7, -1, 2.1)
     g.fillStyle(0xffffff, 1)
-    g.fillCircle(-6.5, -1.5, 0.7)
+    g.fillCircle(-7.5, -1.5, 0.8)
 
-    // 針。小画面でも「仕掛けを巻いている」ことが伝わる程度に簡略化。
-    g.lineStyle(1.6, 0x173248, 0.90)
-    g.lineBetween(1, 4, 1, 10)
+    // Hook and tiny connection point make line → lure continuity clear.
+    g.lineStyle(1.8, 0x173248, 0.94)
+    g.lineBetween(2, 5, 2, 12)
     g.beginPath()
-    g.arc(4, 10, 3, Math.PI, Math.PI * 0.1, false)
+    g.arc(5, 12, 3.5, Math.PI, Math.PI * 0.1, false)
     g.strokePath()
+    g.fillStyle(0xffffff, 0.92)
+    g.fillCircle(-13, 0, 2.2)
 
     if (baitType === 'special') {
-      g.fillStyle(0xffffff, 0.88)
-      g.fillCircle(-12, -8, 2)
-      g.fillCircle(11, -10, 1.5)
+      g.fillStyle(0xffffff, 0.92)
+      g.fillCircle(-14, -10, 2.2)
+      g.fillCircle(13, -12, 1.8)
     }
   }
 
   /** 水しぶきエフェクト（円を広げてフェードアウト） */
   showSplash(x, y) {
-    const splash = this.scene.add.circle(x, y, 4, 0xffffff, 0.8).setDepth(45)
+    const ring = this.scene.add.ellipse(x, y, 20, 9, 0xffffff, 0)
+      .setStrokeStyle(2.2, 0xffffff, 0.90)
+      .setDepth(45)
+    const inner = this.scene.add.ellipse(x, y, 10, 5, 0xffffff, 0)
+      .setStrokeStyle(1.5, 0xbfefff, 0.72)
+      .setDepth(45)
+
     this.scene.tweens.add({
-      targets: splash, scaleX: 5, scaleY: 2.5, alpha: 0,
-      duration: 300, ease: 'Sine.easeOut',
-      onComplete: () => splash.destroy(),
+      targets: ring,
+      scaleX: 3.2,
+      scaleY: 2.6,
+      alpha: 0,
+      duration: 430,
+      ease: 'Sine.easeOut',
+      onComplete: () => ring.destroy(),
+    })
+    this.scene.tweens.add({
+      targets: inner,
+      scaleX: 2.2,
+      scaleY: 2,
+      alpha: 0,
+      duration: 320,
+      ease: 'Sine.easeOut',
+      onComplete: () => inner.destroy(),
     })
   }
 
