@@ -88,7 +88,8 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    // ゲームの主ループに合わせて「町へ」を唯一の主CTAにする。
+    // Success-only actions. Escaped results hide this whole group so an
+    // underlying Town/Collection hit target can never leak through retry UI.
     const town = makeNavBtn(-106, 111, 212, 48, '→', '町へ持ち帰る', () => {
       const lastCatch = scene.catches?.[scene.catches.length - 1]
       const catchArrival = lastCatch && scene.fish
@@ -114,10 +115,12 @@ export class ResultUI {
       scene.scene.start('CollectionScene')
     })
 
+    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, ...book])
+
     scene.resultOverlay.add([
       glow, card, scene.resStripe, scene.resLabel,
       catchBadge, scene.resEmoji, scene.resName, scene.resPts, scene.resHint,
-      ...town, ...retry, ...book,
+      scene.resultSuccessActions,
     ])
   }
 
