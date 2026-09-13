@@ -42,6 +42,7 @@ import { installBlueprintFishingField } from './game/installBlueprintFishingFiel
 import { installFishingFieldMotionFx } from './game/installFishingFieldMotionFx.js'
 import { installFishingBiteHitPresentation } from './game/installFishingBiteHitPresentation.js'
 import { installFishingBattlePresentation } from './game/installFishingBattlePresentation.js'
+import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 
 installFishingVisualTuning()
@@ -74,6 +75,7 @@ installBlueprintFishingField(GameScene)
 installFishingFieldMotionFx(GameScene)
 installFishingBiteHitPresentation(GameScene)
 installFishingBattlePresentation(GameScene)
+installFishingResultPresentation(GameScene)
 installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
