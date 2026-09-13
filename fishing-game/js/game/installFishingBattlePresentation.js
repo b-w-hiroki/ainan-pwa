@@ -3,10 +3,32 @@ function findBattleTarget(scene) {
   const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
   if (!runtime) return null
   scene.bg?._fishTweens?.[runtime.index]?.stop?.()
-  runtime.gfx.setPosition((scene.bobber?.x ?? scene.anchorX) + 78, (scene.bobber?.y ?? scene.anchorY - 260) + 24)
   scene._targetFishIndex = runtime.index
   scene._targetFishGfx = runtime.gfx
   return runtime.gfx
+}
+
+function moveBattleFishIntoPlayfield(scene, fish) {
+  if (!fish) return
+  const cam = scene.cameras.main
+  const screenX = scene.scale.width * 0.30
+  const screenY = 238
+  fish.setPosition(cam.scrollX + screenX, cam.scrollY + screenY)
+}
+
+function keepBattleFishOnScreen(scene, fish) {
+  if (!fish?.active || scene.phase !== 'battle') return
+  const cam = scene.cameras.main
+  const sx = fish.x - cam.scrollX
+  const sy = fish.y - cam.scrollY
+  const minX = 58
+  const maxX = scene.scale.width - 58
+  const minY = 102
+  const maxY = 470
+  if (sx < minX) fish.x += minX - sx
+  if (sx > maxX) fish.x -= sx - maxX
+  if (sy < minY) fish.y += minY - sy
+  if (sy > maxY) fish.y -= sy - maxY
 }
 
 function emphasizeBattleFish(scene, fish) {
@@ -22,8 +44,10 @@ function emphasizeBattleFish(scene, fish) {
     }
   }
 
+  moveBattleFishIntoPlayfield(scene, fish)
+
   const rarity = scene.fish?.rarity ?? 'common'
-  const width = rarity === 'legendary' ? 142 : rarity === 'rare' ? 124 : rarity === 'uncommon' ? 104 : 88
+  const width = rarity === 'legendary' ? 150 : rarity === 'rare' ? 132 : rarity === 'uncommon' ? 112 : 96
   if (image) image.setDisplaySize(width, width * 0.5)
   fish.setDepth(33)
   fish._followWake?.setAlpha?.(0)
@@ -32,9 +56,9 @@ function emphasizeBattleFish(scene, fish) {
   scene._battleFishMotion?.destroy?.()
   scene._battleFishMotion = scene.tweens.add({
     targets: fish,
-    x: fish.x + 10,
-    y: fish.y - 5,
-    angle: fish.scaleX < 0 ? -4 : 4,
+    x: fish.x + 14,
+    y: fish.y - 7,
+    angle: fish.scaleX < 0 ? -5 : 5,
     duration: 620,
     yoyo: true,
     repeat: -1,
@@ -58,6 +82,7 @@ function enforceBattleComposition(scene) {
   scene.lineGfx?.clear?.()
   scene.bobber?.setVisible?.(false)
   scene._assetLureRipple?.setVisible?.(false)
+  keepBattleFishOnScreen(scene, scene._targetFishGfx)
 }
 
 /**
