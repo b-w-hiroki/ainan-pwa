@@ -5,15 +5,15 @@ function qaEnabled() {
   return new URLSearchParams(window.location.search).get(QA_QUERY_KEY) === '1'
 }
 
-function makeButton(scene, x, label, onTap) {
-  const bg = scene.add.rectangle(x, 30, 46, 30, 0xf8fdff, 0.94)
+function makeButton(scene, x, y, w, label, onTap) {
+  const bg = scene.add.rectangle(x, y, w, 26, 0xf8fdff, 0.94)
     .setStrokeStyle(1.5, 0x9bcfe5, 0.95)
     .setScrollFactor(0)
     .setDepth(1002)
     .setInteractive({ useHandCursor: true })
-  const text = scene.add.text(x, 30, label, {
+  const text = scene.add.text(x, y, label, {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
-    fontSize: '10px',
+    fontSize: '9px',
     fontStyle: 'bold',
     color: '#173248',
   }).setOrigin(0.5).setScrollFactor(0).setDepth(1003)
@@ -39,17 +39,52 @@ function zoneFromDistance(meters) {
   return '遠'
 }
 
+function forceHookMiss(scene) {
+  if (!['retrieve', 'wait'].includes(scene.phase)) {
+    scene.resultUI?.toast('QA: 先にキャストして着水させる')
+    return
+  }
+  scene._killWaitTimers?.()
+  scene._stopRetrieveRuntime?.()
+  scene.phase = 'wait'
+  scene._bobberBaseY = scene.bobber?.y ?? scene.anchorY
+  scene.waitTapActive = false
+  scene._onMiss?.()
+}
+
+function forceBattleEscape(scene) {
+  if (scene.phase !== 'battle') {
+    scene.resultUI?.toast('QA: 先にBattleへ入る')
+    return
+  }
+  scene.battleState.escape = 100
+  scene._syncBattleUI?.()
+  scene._finishBattle?.('escaped')
+}
+
+function forceCatch(scene) {
+  if (scene.phase === 'result') return
+  if (scene.phase !== 'battle') {
+    scene._killWaitTimers?.()
+    scene._stopRetrieveRuntime?.()
+    scene._enterBattle?.()
+  }
+  scene.time.delayedCall(40, () => {
+    if (scene.phase === 'battle') scene._finishBattle?.('caught')
+  })
+}
+
 function buildQaHud(scene) {
   const W = scene.scale.width
   const items = []
 
-  const bg = scene.add.rectangle(W / 2, 30, W - 8, 56, 0x071a28, 0.88)
+  const bg = scene.add.rectangle(W / 2, 47, W - 8, 90, 0x071a28, 0.88)
     .setStrokeStyle(1, 0xffffff, 0.22)
     .setScrollFactor(0)
     .setDepth(1000)
   items.push(bg)
 
-  const title = scene.add.text(10, 9, 'VS QA', {
+  const title = scene.add.text(10, 7, 'VS QA', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
@@ -57,7 +92,7 @@ function buildQaHud(scene) {
   }).setScrollFactor(0).setDepth(1003)
   items.push(title)
 
-  scene._qaStatusText = scene.add.text(10, 27, '', {
+  scene._qaStatusText = scene.add.text(10, 23, '', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
@@ -65,13 +100,17 @@ function buildQaHud(scene) {
   }).setScrollFactor(0).setDepth(1003)
   items.push(scene._qaStatusText)
 
-  const near = makeButton(scene, W - 122, '近', () => restartPreset(scene, { point: 'pointA', rodType: 'basic' }))
-  const mid = makeButton(scene, W - 72, '中', () => restartPreset(scene, { point: 'pointA', rodType: 'carbon' }))
-  const far = makeButton(scene, W - 22, '遠', () => restartPreset(scene, { point: 'pointA', rodType: 'premium' }))
-  items.push(...near, ...mid, ...far)
+  const near = makeButton(scene, W - 122, 26, 44, '近', () => restartPreset(scene, { point: 'pointA', rodType: 'basic' }))
+  const mid = makeButton(scene, W - 72, 26, 44, '中', () => restartPreset(scene, { point: 'pointA', rodType: 'carbon' }))
+  const far = makeButton(scene, W - 22, 26, 44, '遠', () => restartPreset(scene, { point: 'pointA', rodType: 'premium' }))
+
+  const miss = makeButton(scene, W - 174, 69, 64, 'HITミス', () => forceHookMiss(scene))
+  const escape = makeButton(scene, W - 104, 69, 64, '逃走', () => forceBattleEscape(scene))
+  const caught = makeButton(scene, W - 34, 69, 64, '釣果GET', () => forceCatch(scene))
+  items.push(...near, ...mid, ...far, ...miss, ...escape, ...caught)
 
   scene._qaHudObjects = items
-  scene._qaPanelHeight = 58
+  scene._qaPanelHeight = 92
 }
 
 function syncQaHud(scene) {
@@ -81,6 +120,7 @@ function syncQaHud(scene) {
   const decisions = scene.retrieveState?.decisionCount ?? 0
   const fish = scene._retrieveTargetFish?.fishDef?.name
     ?? scene._retrieveTargetFish?.fishDef?.id
+    ?? scene.fish?.name
     ?? '-'
   const fishState = scene._retrieveTargetFish?.state ?? '-'
 
@@ -117,7 +157,7 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
-    if (this._qaEnabled && pointer?.y <= (this._qaPanelHeight ?? 58)) return
+    if (this._qaEnabled && pointer?.y <= (this._qaPanelHeight ?? 92)) return
     return originalOnDown.call(this, pointer)
   }
 
