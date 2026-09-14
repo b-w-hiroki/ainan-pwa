@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'fishing-game/assets/fishing-field/**/*.svg'
-      - 'docs/concept-art/canonical/mobile-fishing-ui-blueprint.jpg'
       - '.github/workflows/extract-generated-source-images.yml'
 
 permissions:
@@ -61,13 +60,6 @@ jobs:
                   im.save(dest, optimize=True)
               rendered.append(dest)
 
-          ref = Path('docs/concept-art/canonical/mobile-fishing-ui-blueprint.jpg')
-          if ref.exists():
-              with Image.open(ref).convert('RGB') as im:
-                  im.thumbnail((720, 1200), Image.Resampling.LANCZOS)
-                  im.save(out / 'retrieve_reference_generated.png', optimize=True)
-
-          # Browsable contact sheet of every archived production part.
           thumbs = []
           for p in rendered:
               with Image.open(p).convert('RGBA') as im:
