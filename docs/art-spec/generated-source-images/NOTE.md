@@ -1,0 +1,1 @@
+Generated source images are archived in this folder. Runtime uses the normalized lightweight assets under `fishing-game/assets/fishing-field/`. The generated-source archive is kept for visual reference, regeneration, and handoff to other implementation tools.
