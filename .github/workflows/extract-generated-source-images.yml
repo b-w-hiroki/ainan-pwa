@@ -3,7 +3,9 @@ name: Extract generated source images
 on:
   push:
     paths:
-      - 'docs/art-spec/generated-source-images/source-images.zip'
+      - 'docs/art-spec/generated-source-images/source-images.base64.txt'
+      - 'docs/art-spec/generated-source-images/source-images.part*.txt'
+      - '.github/workflows/extract-generated-source-images.yml'
 
 permissions:
   contents: write
@@ -13,10 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Rebuild source image archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT='docs/art-spec/generated-source-images'
+          if compgen -G "$ROOT/source-images.part*.txt" > /dev/null; then
+            cat "$ROOT"/source-images.part*.txt > /tmp/source-images.b64
+          else
+            cp "$ROOT/source-images.base64.txt" /tmp/source-images.b64
+          fi
+          base64 --decode /tmp/source-images.b64 > /tmp/source-images.zip
+          unzip -t /tmp/source-images.zip
       - name: Extract source images
         run: |
+          rm -rf docs/art-spec/generated-source-images/files
           mkdir -p docs/art-spec/generated-source-images/files
-          unzip -o docs/art-spec/generated-source-images/source-images.zip -d docs/art-spec/generated-source-images/files
+          unzip -o /tmp/source-images.zip -d docs/art-spec/generated-source-images/files
       - name: Commit extracted images
         run: |
           git config user.name 'github-actions[bot]'
