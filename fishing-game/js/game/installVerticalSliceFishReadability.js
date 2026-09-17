@@ -23,7 +23,7 @@ function pulseFish(scene, runtime, amount = 1.08) {
     ease: 'Sine.easeOut',
     onUpdate: () => {
       // Keep horizontal facing while only pulsing the silhouette vertically.
-      if (Math.sign(gfx.scaleX || 1) !== sign) gfx.setScaleX(Math.abs(gfx.scaleX || 1) * sign)
+      if (Math.sign(gfx.scaleX || 1) !== sign) gfx.scaleX = Math.abs(gfx.scaleX || 1) * sign
     },
   })
 }
