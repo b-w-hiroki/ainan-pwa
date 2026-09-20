@@ -24,7 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { consumeStamina, getEquipment, getInventory, getRankBonuses, getStaminaState, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
+import { consumeStamina, getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
 import { ASSETS } from '../config/assetManifest.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -65,12 +65,6 @@ export default class GameScene extends Phaser.Scene {
 
   create(data = {}) {
     const { width: W, height: H } = this.scale
-
-    // スタミナ0では新しい釣りセッションを開始しない。
-    if (getStaminaState().current <= 0) {
-      this.scene.start('HomeScene', { staminaEmpty: true })
-      return
-    }
 
     // 環境パラメータ（Phase2 で MapScene からのデータで上書き）
     this.env = {
