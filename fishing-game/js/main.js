@@ -17,6 +17,7 @@ import ChallengeScene from './scenes/ChallengeScene.js'
 import WorkshopScene from './scenes/WorkshopScene.js'
 import HarborServicesScene from './scenes/HarborServicesScene.js'
 import SettingsScene from './scenes/SettingsScene.js'
+import ProfileScene from './scenes/ProfileScene.js'
 import { installPlayerAnimations } from './game/installPlayerAnimations.js'
 import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
 import { installRetrievePolish } from './game/installRetrievePolish.js'
@@ -111,7 +112,7 @@ const config = {
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, ProfileScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
 }
 
 function startGame() {

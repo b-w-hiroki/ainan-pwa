@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 384">
+<rect width="512" height="384" rx="28" fill="#eaf8ff"/>
+<g stroke="#173248" stroke-width="8" stroke-linejoin="round">
+<path d="M70 138 L442 138 L410 310 L102 310 Z" fill="#f8fdff"/>
+<path d="M86 138 L116 74 H396 L426 138 Z" fill="#5bb5d8"/>
+<path d="M98 138 H414 V182 H98 Z" fill="#fff3c9"/>
+<path d="M122 138 V182 M174 138 V182 M226 138 V182 M278 138 V182 M330 138 V182 M382 138 V182" fill="none"/>
+<rect x="134" y="202" width="244" height="78" rx="16" fill="#dff5ff"/>
+<path d="M202 241 Q232 212 274 225 Q304 235 324 241 Q303 259 272 260 Q232 263 202 241 Z" fill="#66c9ed"/>
+<path d="M323 241 L352 221 L347 241 L352 261 Z" fill="#66c9ed"/>
+<circle cx="224" cy="235" r="5" fill="#173248" stroke="none"/>
+</g>
+<text x="256" y="112" text-anchor="middle" font-size="34" font-weight="900" font-family="sans-serif" fill="#173248">魚屋</text>
+</svg>

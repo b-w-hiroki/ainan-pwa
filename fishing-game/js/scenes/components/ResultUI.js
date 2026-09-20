@@ -1,4 +1,5 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
+import { ASSETS } from '../../config/assetManifest.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const KUE_CLEAR_SEEN_KEY = 'ainan_kue_first_clear_seen'
@@ -11,13 +12,18 @@ export class ResultUI {
     scene.resultOverlay = scene.add.container(W / 2, H / 2).setDepth(120).setVisible(false).setScrollFactor(0)
 
     const scrim = scene.add.rectangle(0, 0, W, H, 0x03243a, 0.72)
-    const card = scene.add.graphics()
-    card.fillStyle(0x073754, 0.96)
-    card.lineStyle(2, 0x8edfff, 0.55)
-    card.fillRoundedRect(-168, -250, 336, 500, 28)
-    card.strokeRoundedRect(-168, -250, 336, 500, 28)
-    card.fillStyle(0xffffff, 0.08)
-    card.fillRoundedRect(-154, -236, 308, 9, 5)
+    let card
+    if (scene.textures.exists(ASSETS.ui.resultFrame.key)) {
+      card = scene.add.image(0, 0, ASSETS.ui.resultFrame.key).setDisplaySize(336, 500)
+    } else {
+      card = scene.add.graphics()
+      card.fillStyle(0x073754, 0.96)
+      card.lineStyle(2, 0x8edfff, 0.55)
+      card.fillRoundedRect(-168, -250, 336, 500, 28)
+      card.strokeRoundedRect(-168, -250, 336, 500, 28)
+      card.fillStyle(0xffffff, 0.08)
+      card.fillRoundedRect(-154, -236, 308, 9, 5)
+    }
 
     scene.resStripe = scene.add.graphics()
     scene.resLabel = scene.add.text(0, -218, '', {
@@ -49,8 +55,15 @@ export class ResultUI {
     }).setOrigin(0.5)
 
     const makeBtn = (x, y, w, h, label, action, primary = false) => {
-      const bg = scene.add.graphics()
+      const useArt = primary && scene.textures.exists(ASSETS.ui.buttonPrimary.key)
+      const bg = useArt
+        ? scene.add.image(x + w / 2, y + h / 2, ASSETS.ui.buttonPrimary.key).setDisplaySize(w, h)
+        : scene.add.graphics()
       const draw = pressed => {
+        if (useArt) {
+          bg.setY(y + h / 2 + (pressed ? 2 : 0)).setAlpha(pressed ? 0.88 : 1)
+          return
+        }
         bg.clear()
         bg.fillStyle(primary ? 0x2f9ed4 : 0x0e425f, pressed ? 0.82 : 0.98)
         bg.lineStyle(primary ? 2 : 1.5, primary ? 0xbcecff : 0x8edfff, primary ? 0.72 : 0.36)
@@ -59,12 +72,13 @@ export class ResultUI {
       }
       draw(false)
       const txt = scene.add.text(x + w / 2, y + h / 2, label, {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: primary ? '15px' : '11px', fontWeight: '900', color: '#ffffff',
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: primary ? '15px' : '11px', fontWeight: '900',
+        color: useArt ? '#173248' : '#ffffff',
       }).setOrigin(0.5)
       const hit = scene.add.rectangle(x + w / 2, y + h / 2, w + 4, h + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => draw(true))
-        .on('pointerup', () => { scene._skipNextDown = true; action() })
+        .on('pointerup', () => { draw(false); scene._skipNextDown = true; action() })
         .on('pointerout', () => draw(false))
       return [bg, txt, hit]
     }

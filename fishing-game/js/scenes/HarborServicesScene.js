@@ -13,8 +13,10 @@ export default class HarborServicesScene extends Phaser.Scene {
   constructor() { super({ key: 'HarborServicesScene' }) }
 
   preload() {
-    const bg = ASSETS.backgrounds.townGrowing
-    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    const wanted = [ASSETS.backgrounds.townGrowing, ASSETS.facilities.fishShop, ASSETS.facilities.diner, ASSETS.characters.dinerOwner, ASSETS.ui.panelHarbor]
+    wanted.forEach(asset => {
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+    })
   }
 
   create() {
@@ -29,8 +31,11 @@ export default class HarborServicesScene extends Phaser.Scene {
   }
 
   _header(W) {
+    if (this.textures.exists(ASSETS.ui.panelHarbor.key)) {
+      this.add.image(W / 2, 53, ASSETS.ui.panelHarbor.key).setDisplaySize(W - 32, 88).setDepth(3)
+    }
     const g = this.add.graphics().setDepth(4)
-    g.fillStyle(0xffffff, 0.97); g.lineStyle(2, 0x9bcfe5, 0.9)
+    g.fillStyle(0xffffff, this.textures.exists(ASSETS.ui.panelHarbor.key) ? 0.72 : 0.97); g.lineStyle(2, 0x9bcfe5, 0.9)
     g.fillRoundedRect(16, 12, W - 32, 78, 22); g.strokeRoundedRect(16, 12, W - 32, 78, 22)
     this.add.text(30, 39, '港のお店', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(30, 67, '釣果を売る・料理で次の釣りに備える', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft }).setDepth(5)
@@ -45,6 +50,11 @@ export default class HarborServicesScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, h, 20); g.strokeRoundedRect(x, y, w, h, 20)
     this.add.text(x + 18, y + 22, unlocked ? '魚屋　営業中' : '魚屋　準備中', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(x + w - 18, y + 23, unlocked ? '魚市場 Lv.2' : '魚市場 Lv.2で開業', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: unlocked ? UI_COLORS.success : UI_COLORS.muted }).setOrigin(1, 0).setDepth(5)
+    if (this.textures.exists(ASSETS.facilities.fishShop.key)) {
+      const art = this.add.image(x + w - 52, y + 72, ASSETS.facilities.fishShop.key).setDisplaySize(82, 62).setDepth(5)
+      if (!unlocked) art.setTint(0x9aaab3).setAlpha(0.35)
+      else art.setAlpha(0.82)
+    }
     if (!unlocked) return
 
     const stock = getCatchStock()
@@ -74,6 +84,14 @@ export default class HarborServicesScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, h, 20); g.strokeRoundedRect(x, y, w, h, 20)
     this.add.text(x + 18, y + 22, unlocked ? '港食堂　営業中' : '港食堂　準備中', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(x + w - 18, y + 23, unlocked ? '広場 Lv.2' : '港まつり広場 Lv.2で開業', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: unlocked ? UI_COLORS.success : UI_COLORS.muted }).setOrigin(1, 0).setDepth(5)
+    if (this.textures.exists(ASSETS.facilities.diner.key)) {
+      const art = this.add.image(x + w - 57, y + 70, ASSETS.facilities.diner.key).setDisplaySize(84, 63).setDepth(5)
+      if (!unlocked) art.setTint(0x9aaab3).setAlpha(0.35)
+      else art.setAlpha(0.76)
+    }
+    if (unlocked && this.textures.exists(ASSETS.characters.dinerOwner.key)) {
+      this.add.image(x + 34, y + 72, ASSETS.characters.dinerOwner.key).setDisplaySize(34, 52).setDepth(6)
+    }
     if (!unlocked) return
 
     const active = getActiveMeal()

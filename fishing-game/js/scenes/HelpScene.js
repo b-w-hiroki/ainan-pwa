@@ -7,10 +7,10 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
 const LOOP_STEPS = [
-  { no: '1', title: '釣る', desc: '遠投して魚影を誘う', accent: 0x5bb5d8 },
-  { no: '2', title: '持ち帰る', desc: '釣果とポイントを集める', accent: 0x71d6a2 },
-  { no: '3', title: '町を育てる', desc: '施設を発展させる', accent: 0xffb45d },
-  { no: '4', title: '海が広がる', desc: '新しい釣り場と魚が開く', accent: 0x8f80e8 },
+  { no: '1', title: '釣る', desc: '天候と時間を見て魚を狙う', accent: 0x5bb5d8 },
+  { no: '2', title: '活かす', desc: '魚を売る・料理・素材に使う', accent: 0x71d6a2 },
+  { no: '3', title: '育てる', desc: '工房で竿・帽子・バッグを強化', accent: 0xffb45d },
+  { no: '4', title: '挑む', desc: '町を育て新しい海とボスへ', accent: 0x8f80e8 },
 ]
 
 const CONTROL_STEPS = [
@@ -60,7 +60,7 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(W / 2, 56, 'AINANの遊び方', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, 82, '投げて、誘って、食わせて、町へ持ち帰る', {
+    this.add.text(W / 2, 82, '釣る → 活かす → 育てる → 新しい海と大物へ', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -75,7 +75,7 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(x + 18, y + 22, '基本ループ', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '17px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + w - 18, y + 22, 'FISHING → TOWN → FISHING', {
+    this.add.text(x + w - 18, y + 22, 'FISH → SHOP → UPGRADE → BOSS', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.oceanDeep,
     }).setOrigin(1, 0.5).setDepth(5)
 
@@ -92,7 +92,7 @@ export default class HelpScene extends Phaser.Scene {
     foot.lineStyle(1.5, 0xffb45d, 0.72)
     foot.fillRoundedRect(x + 18, y + h - 42, w - 36, 28, 12)
     foot.strokeRoundedRect(x + 18, y + h - 42, w - 36, 28, 12)
-    this.add.text(W / 2, y + h - 28, '魚市場 Lv.1 → 蒼海湾 / 桟橋 Lv.2 → 黒潮崎', {
+    this.add.text(W / 2, y + h - 28, '魚市場Lv.2で魚屋 / 広場Lv.2で食堂 / 桟橋Lv.2で黒潮崎', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#b45d32',
     }).setOrigin(0.5).setDepth(5)
   }
@@ -132,7 +132,7 @@ export default class HelpScene extends Phaser.Scene {
 
     CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * 50, w - 32, 44, item))
 
-    this.add.text(W / 2, y + h - 20, '近場・中距離・遠距離で魚の層が変わる。大物ほど沖を狙おう。', {
+    this.add.text(W / 2, y + h - 20, '季節・時間帯・日替わり天候で魚の出やすさも変化。大物ほど沖を狙おう。', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5).setDepth(5)
   }

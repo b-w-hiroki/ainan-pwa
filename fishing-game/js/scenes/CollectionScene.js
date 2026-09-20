@@ -29,6 +29,10 @@ const FISH_ART = {
   bass: ASSETS.fish.blackBassIcon,
   buri: ASSETS.fish.buriIcon,
   kue: ASSETS.fish.kueIcon,
+  saba: ASSETS.fish.sabaIcon,
+  isaki: ASSETS.fish.isakiIcon,
+  hirame: ASSETS.fish.hirameIcon,
+  kanpachi: ASSETS.fish.kanpachiIcon,
 }
 
 export default class CollectionScene extends Phaser.Scene {

@@ -28,11 +28,21 @@ export function backupSave() {
   }
 }
 
+function initializeV2Defaults() {
+  localStorage.setItem('ainan_materials', localStorage.getItem('ainan_materials') ?? JSON.stringify({ scale: 0, shell: 0, ticket: 0, crystal: 0 }))
+  localStorage.setItem('ainan_rod_levels', localStorage.getItem('ainan_rod_levels') ?? JSON.stringify({ basic: 1, carbon: 1, premium: 1 }))
+  localStorage.setItem('ainan_accessories', localStorage.getItem('ainan_accessories') ?? JSON.stringify({ owned: { cap: false, bag: false }, equipped: { hat: null, bag: null } }))
+  localStorage.setItem('ainan_catch_stock', localStorage.getItem('ainan_catch_stock') ?? JSON.stringify({}))
+  localStorage.setItem('ainan_boss_trophies', localStorage.getItem('ainan_boss_trophies') ?? JSON.stringify({}))
+  localStorage.setItem('ainan_collection_rewards', localStorage.getItem('ainan_collection_rewards') ?? JSON.stringify({}))
+}
+
 export function restoreLatestBackup() {
   try {
     const backup = JSON.parse(localStorage.getItem('ainan_save_backup') ?? 'null')
     if (!backup?.data) return false
     Object.entries(backup.data).forEach(([key, value]) => localStorage.setItem(key, String(value)))
+    initializeV2Defaults()
     localStorage.setItem('ainan_save_version', String(SAVE_VERSION))
     return true
   } catch {
@@ -42,13 +52,8 @@ export function restoreLatestBackup() {
 
 export function ensureSaveVersion() {
   const current = parseInt(localStorage.getItem('ainan_save_version') ?? '1', 10)
-  if (!Number.isFinite(current) || current < SAVE_VERSION) {
-    backupSave()
-    localStorage.setItem('ainan_materials', localStorage.getItem('ainan_materials') ?? JSON.stringify({ scale: 0, shell: 0, ticket: 0, crystal: 0 }))
-    localStorage.setItem('ainan_rod_levels', localStorage.getItem('ainan_rod_levels') ?? JSON.stringify({ basic: 1, carbon: 1, premium: 1 }))
-    localStorage.setItem('ainan_accessories', localStorage.getItem('ainan_accessories') ?? JSON.stringify({ owned: { cap: false, bag: false }, equipped: { hat: null, bag: null } }))
-    localStorage.setItem('ainan_catch_stock', localStorage.getItem('ainan_catch_stock') ?? JSON.stringify({}))
-  }
+  if (!Number.isFinite(current) || current < SAVE_VERSION) backupSave()
+  initializeV2Defaults()
   localStorage.setItem('ainan_save_version', String(SAVE_VERSION))
   return SAVE_VERSION
 }

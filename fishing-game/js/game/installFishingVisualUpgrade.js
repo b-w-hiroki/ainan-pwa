@@ -1,3 +1,4 @@
+import { isReducedMotion } from './feedback.js'
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 
 const SPOT_THEMES = {
@@ -38,6 +39,7 @@ function buildFieldAtmosphere(scene) {
   const theme = spotTheme(scene)
   const objects = []
   const tweens = []
+  const reduced = isReducedMotion()
 
   const veil = scene.add.graphics().setDepth(5).setScrollFactor(0)
   veil.fillGradientStyle(theme.glow, theme.glow, theme.deep, theme.deep, 0.12, 0.12, 0.01, 0.01)
@@ -55,7 +57,7 @@ function buildFieldAtmosphere(scene) {
     const light = scene.add.ellipse(x, y, w, h, theme.glow, alpha).setDepth(5).setScrollFactor(0)
     light.setAngle(index % 2 ? -11 : 9)
     objects.push(light)
-    tweens.push(scene.tweens.add({
+    if (!reduced) tweens.push(scene.tweens.add({
       targets: light,
       x: x + (index % 2 ? -22 : 24),
       alpha: alpha * 1.65,
@@ -75,7 +77,7 @@ function buildFieldAtmosphere(scene) {
   ].forEach(([x, y, radius], index) => {
     const glint = scene.add.circle(x, y, radius, theme.glow, 0.15).setDepth(8).setScrollFactor(0)
     objects.push(glint)
-    tweens.push(scene.tweens.add({
+    if (!reduced) tweens.push(scene.tweens.add({
       targets: glint,
       alpha: 0.52,
       scaleX: 1.8,
@@ -102,7 +104,7 @@ function addRareFishAuras(scene) {
       .setStrokeStyle(2, theme.glow, 0.22)
     fish.addAt(aura, 0)
     fish._visualUpgradeAura = aura
-    fish._visualUpgradeAuraTween = scene.tweens.add({
+    fish._visualUpgradeAuraTween = isReducedMotion() ? null : scene.tweens.add({
       targets: aura,
       alpha: 0.20,
       scaleX: 1.18,
