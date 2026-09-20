@@ -12,6 +12,7 @@ export const FISH_LIST = [
     timeBonus:    { morning: 1.5, noon: 0.8, evening: 1.3, night: 0.7 },
     weatherBonus: { sunny: 1.2, rainy: 0.8, snowy: 0.4, cloudy: 1.0 },
     retrieve: { prefer: 'mixed', idealAppeal: [0.30, 0.66], followSpeed: 58, caution: 0.15, biteThreshold: 72 },
+    feel: { hitPrompt: 'コツン！ タップ', hitShake: 0.0035, battleWaveX: 7, battleWaveY: 4, battleSpeed: 4.2, battleScale: 0.96 },
   },
   {
     id: 'tai', name: 'マダイ', emoji: '🐠',
@@ -26,6 +27,7 @@ export const FISH_LIST = [
     timeBonus:    { morning: 1.2, noon: 1.0, evening: 1.5, night: 0.8 },
     weatherBonus: { sunny: 1.0, rainy: 1.2, snowy: 0.5, cloudy: 1.1 },
     retrieve: { prefer: 'stop', idealAppeal: [0.20, 0.50], followSpeed: 48, caution: 0.35, biteThreshold: 82 },
+    feel: { hitPrompt: 'グッ！ タップ', hitShake: 0.0045, battleWaveX: 9, battleWaveY: 5, battleSpeed: 2.4, battleScale: 1.02 },
   },
   {
     id: 'bass', name: 'ブラックバス', emoji: '🐟',
@@ -40,6 +42,7 @@ export const FISH_LIST = [
     timeBonus:    { morning: 0.8, noon: 1.5, evening: 1.8, night: 0.6 },
     weatherBonus: { sunny: 1.5, rainy: 0.8, snowy: 0.2, cloudy: 1.0 },
     retrieve: { prefer: 'twitch', idealAppeal: [0.55, 0.85], followSpeed: 70, caution: 0.30, biteThreshold: 80 },
+    feel: { hitPrompt: 'ガツン！ タップ', hitShake: 0.0060, battleWaveX: 16, battleWaveY: 8, battleSpeed: 5.4, battleScale: 1.08 },
   },
   {
     id: 'buri', name: 'ブリ', emoji: '🐟',
@@ -54,6 +57,7 @@ export const FISH_LIST = [
     timeBonus:    { morning: 1.3, noon: 0.7, evening: 1.0, night: 1.5 },
     weatherBonus: { sunny: 0.8, rainy: 1.3, snowy: 1.0, cloudy: 1.0 },
     retrieve: { prefer: 'slow', idealAppeal: [0.48, 0.78], followSpeed: 76, caution: 0.25, biteThreshold: 85 },
+    feel: { hitPrompt: '走る！ タップ', hitShake: 0.0070, battleWaveX: 20, battleWaveY: 7, battleSpeed: 4.5, battleScale: 1.10 },
   },
   {
     id: 'kue', name: 'クエ', emoji: '🐡',
@@ -68,6 +72,7 @@ export const FISH_LIST = [
     timeBonus:    { morning: 0.5, noon: 0.3, evening: 1.0, night: 2.0 },
     weatherBonus: { sunny: 0.8, rainy: 1.5, snowy: 0.5, cloudy: 1.1 },
     retrieve: { prefer: 'stop', idealAppeal: [0.20, 0.45], followSpeed: 42, caution: 0.55, biteThreshold: 92 },
+    feel: { hitPrompt: '大物！ タップ', hitShake: 0.0100, battleWaveX: 26, battleWaveY: 10, battleSpeed: 1.9, battleScale: 1.18 },
   },
 ]
 

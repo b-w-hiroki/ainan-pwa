@@ -49,13 +49,13 @@ export const FISH_META = {
 export const ROD_META = {
   basic:   { name: '初心者竿', desc: '扱いやすい標準の竿', cost: 0 },
   carbon:  { name: 'カーボン竿', desc: '飛距離と引きが安定する竿', cost: 0 },
-  premium: { name: '高級竿', desc: '大物狙いの上位モデル', cost: 800 },
+  premium: { name: '高級竿', desc: '大物狙いの上位モデル', cost: 1400 },
 }
 
 export const BAIT_META = {
   worm:    { name: 'ふつうのえさ', desc: '外しても自動で付く基本エサ', cost: 0, amount: 1 },
-  shrimp:  { name: 'エビ', desc: 'レア魚を少し狙いやすいエサ', cost: 180, amount: 5 },
-  special: { name: '特製まき餌', desc: '遠くの魚を引き寄せるエサ', cost: 360, amount: 3 },
+  shrimp:  { name: 'エビ', desc: 'レア魚を少し狙いやすいエサ', cost: 220, amount: 5 },
+  special: { name: '特製まき餌', desc: '遠くの魚を引き寄せるエサ', cost: 480, amount: 3 },
 }
 
 export const REWARD_META = [
@@ -306,7 +306,7 @@ export const TOWN_FACILITY_META = [
     icon: '🐟',
     desc: '釣果を町のにぎわいに変える拠点',
     effect: '釣果ポイントの価値アップ',
-    baseCost: 120,
+    baseCost: 180,
   },
   {
     id: 'pier',
@@ -314,7 +314,7 @@ export const TOWN_FACILITY_META = [
     icon: '⚓',
     desc: '釣り人が集まる港のシンボル',
     effect: '魚影チャンスの演出強化',
-    baseCost: 180,
+    baseCost: 260,
   },
   {
     id: 'guide',
@@ -322,7 +322,7 @@ export const TOWN_FACILITY_META = [
     icon: '📋',
     desc: '初心者にもわかりやすい案内拠点',
     effect: 'ミッション報酬の見通しアップ',
-    baseCost: 220,
+    baseCost: 320,
   },
   {
     id: 'festival',
@@ -330,7 +330,7 @@ export const TOWN_FACILITY_META = [
     icon: '🎪',
     desc: '町おこしイベントの中心になる広場',
     effect: '交換所アイテムの魅力アップ',
-    baseCost: 320,
+    baseCost: 440,
   },
 ]
 
@@ -349,6 +349,7 @@ export function getScore() {
 // ─── スタミナ（時間回復式）──────────────────────────────────────
 export const STAMINA_MAX = 10
 export const STAMINA_REGEN_MS = 5 * 60 * 1000  // 1回復あたり5分
+export const STAMINA_REFILL_GEM_COST = 3
 
 /** @returns {{ current: number, max: number, nextRegenMs: number }} */
 export function getStaminaState() {
@@ -375,6 +376,22 @@ export function setScore(score) {
   localStorage.setItem('ainan_score', String(Math.max(0, score)))
 }
 
+export function getGems() {
+  return Math.max(0, parseInt(localStorage.getItem('ainan_gems') ?? '0', 10) || 0)
+}
+
+export function setGems(gems) {
+  localStorage.setItem('ainan_gems', String(Math.max(0, Math.floor(gems))))
+}
+
+export function refillStaminaWithGems(cost = STAMINA_REFILL_GEM_COST) {
+  const gems = getGems()
+  if (gems < cost) return { ok: false, reason: 'gems', gems, cost }
+  setGems(gems - cost)
+  localStorage.setItem('ainan_stamina', JSON.stringify({ value: STAMINA_MAX, updatedAt: Date.now() }))
+  return { ok: true, current: STAMINA_MAX, max: STAMINA_MAX, gems: gems - cost, cost }
+}
+
 function todayKey() {
   const d = new Date()
   const y = d.getFullYear()
@@ -388,7 +405,8 @@ export function getDailyBonusState() {
   const streak = parseInt(localStorage.getItem('ainan_daily_bonus_streak') ?? '0', 10)
   const canClaim = lastClaimed !== todayKey()
   const reward = 100 + Math.min(6, streak) * 20
-  return { canClaim, lastClaimed, streak, reward }
+  const gemReward = (streak + 1) % 3 === 0 ? 1 : 0
+  return { canClaim, lastClaimed, streak, reward, gemReward }
 }
 
 export function claimDailyBonus() {
@@ -396,6 +414,7 @@ export function claimDailyBonus() {
   if (!state.canClaim) return { ok: false, ...state }
   const nextStreak = state.streak + 1
   setScore(getScore() + state.reward)
+  if (state.gemReward > 0) setGems(getGems() + state.gemReward)
   localStorage.setItem('ainan_daily_bonus_date', todayKey())
   localStorage.setItem('ainan_daily_bonus_streak', String(nextStreak))
   return { ok: true, ...state, streak: nextStreak }
@@ -461,7 +480,7 @@ export function saveTownFacilities(facilities) {
 export function getTownFacilityCost(id) {
   const meta = TOWN_FACILITY_META.find(f => f.id === id)
   const lv = getTownFacilities()[id] ?? 0
-  return Math.round((meta?.baseCost ?? 100) * (1 + lv * 0.75))
+  return Math.round((meta?.baseCost ?? 100) * (1 + lv * 0.90))
 }
 
 export function upgradeTownFacility(id) {

@@ -27,10 +27,14 @@ function anchorBattleFish(scene, fish) {
   if (!fish?.active || scene.phase !== 'battle') return
   const cam = scene.cameras.main
   const t = scene.time.now / 1000
-  const screenX = scene.scale.width * 0.31 + Math.sin(t * 2.7) * 12
-  const screenY = 300 + Math.sin(t * 3.6) * 7
+  const feel = scene.fish?.feel ?? {}
+  const speed = feel.battleSpeed ?? 3.2
+  const waveX = feel.battleWaveX ?? 12
+  const waveY = feel.battleWaveY ?? 7
+  const screenX = scene.scale.width * 0.31 + Math.sin(t * speed) * waveX
+  const screenY = 300 + Math.sin(t * (speed + 0.9)) * waveY
   fish.setPosition(cam.scrollX + screenX, cam.scrollY + screenY)
-  fish.setAngle(Math.sin(t * 3.2) * 4 * (fish.scaleX < 0 ? -1 : 1))
+  fish.setAngle(Math.sin(t * (speed + 0.5)) * Math.min(8, 3 + waveX * 0.16) * (fish.scaleX < 0 ? -1 : 1))
 }
 
 function emphasizeBattleFish(scene, fish) {
@@ -48,7 +52,8 @@ function emphasizeBattleFish(scene, fish) {
 
   const rarity = scene.fish?.rarity ?? 'common'
   const width = rarity === 'legendary' ? 164 : rarity === 'rare' ? 148 : rarity === 'uncommon' ? 132 : 120
-  if (image) image.setDisplaySize(width, width * 0.5)
+  const scale = scene.fish?.feel?.battleScale ?? 1
+  if (image) image.setDisplaySize(width * scale, width * 0.5 * scale)
   fish.setDepth(33).setAlpha(1)
   fish._followWake?.setAlpha?.(0)
   dimBackgroundFish(scene, fish)

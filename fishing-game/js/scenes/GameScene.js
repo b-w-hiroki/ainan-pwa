@@ -82,7 +82,7 @@ export default class GameScene extends Phaser.Scene {
     this.rod  = DEFAULT_ROD
     this.bait = DEFAULT_BAIT
 
-    // 釣りセッション開始でスタミナ1消費（0でもプレイは可能・ソフト制限）
+    // 釣りセッション開始でスタミナ1消費
     consumeStamina(1)
 
     // スコア・釣果（localStorage から復元、シーン再起動時は引き継ぐ）
