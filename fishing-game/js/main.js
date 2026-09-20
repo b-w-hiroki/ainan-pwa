@@ -44,6 +44,7 @@ import { installCastFishStaging } from './game/installCastFishStaging.js'
 import { installFishingBiteHitPresentation } from './game/installFishingBiteHitPresentation.js'
 import { installFishingBattlePresentation } from './game/installFishingBattlePresentation.js'
 import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
+import { installFishingVisualUpgrade } from './game/installFishingVisualUpgrade.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 
 installFishingVisualTuning()
@@ -78,6 +79,7 @@ installCastFishStaging(GameScene)
 installFishingBiteHitPresentation(GameScene)
 installFishingBattlePresentation(GameScene)
 installFishingResultPresentation(GameScene)
+installFishingVisualUpgrade(GameScene)
 installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
