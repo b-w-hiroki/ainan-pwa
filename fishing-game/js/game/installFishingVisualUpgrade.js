@@ -140,7 +140,7 @@ function spawnHitBurst(scene) {
     fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
     resolution: TEXT_RES,
     fontSize: '18px',
-    fontStyle: '900',
+    fontStyle: 'bold',
     color: '#ffffff',
     stroke: '#073754',
     strokeThickness: 5,
@@ -249,7 +249,7 @@ function buildResultAccent(scene) {
     fontFamily: 'Nunito, sans-serif',
     resolution: TEXT_RES,
     fontSize: '11px',
-    fontStyle: '900',
+    fontStyle: 'bold',
     color: '#ffffff',
     letterSpacing: 1.2,
   }).setOrigin(0.5).setDepth(135).setScrollFactor(0)
