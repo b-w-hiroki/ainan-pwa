@@ -44,7 +44,7 @@ function styleHitPrompt(scene) {
   if (!scene.hitHint) return
   const controlsTop = scene.scale.height - 176
   scene.hitHint
-    .setText('今！ タップ')
+    .setText(scene.fish?.feel?.hitPrompt ?? '今！ タップ')
     .setPosition(scene.scale.width / 2, controlsTop - 76)
     .setFontSize(28)
     .setDepth(99)
@@ -73,7 +73,7 @@ export function installFishingBiteHitPresentation(GameScene) {
   GameScene.prototype._startGoon = function (...args) {
     if (this.phase === 'wait') {
       emphasizeBiteFish(this)
-      this.cameras.main.shake(120, 0.004)
+      this.cameras.main.shake(120, this.fish?.feel?.hitShake ?? 0.004)
     }
     return originalStartGoon.apply(this, args)
   }
