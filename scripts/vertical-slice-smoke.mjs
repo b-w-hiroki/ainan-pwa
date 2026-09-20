@@ -168,6 +168,7 @@ const mobileShellSource = readFileSync(new URL('../fishing-game/js/game/installM
 const homeSource = readFileSync(new URL('../fishing-game/js/scenes/HomeScene.js', import.meta.url), 'utf8')
 const townSource = readFileSync(new URL('../fishing-game/js/scenes/TownScene.js', import.meta.url), 'utf8')
 const progressSource = readFileSync(new URL('../fishing-game/js/game/progress.js', import.meta.url), 'utf8')
+const gameSceneSource = readFileSync(new URL('../fishing-game/js/scenes/GameScene.js', import.meta.url), 'utf8')
 
 assert.ok(resultUiSource.includes('resultSuccessActions'), 'success result controls must be grouped for explicit routing')
 assert.ok(resultRoutingSource.includes('resultSuccessActions?.setVisible(!escaped)'), 'escaped result must hide success-only actions')
@@ -195,6 +196,7 @@ assert.ok(progressSource.includes('refillStaminaWithGems'), 'stamina recovery ac
 assert.ok(progressSource.includes("baseCost: 440"), 'late town progression should keep a meaningful score sink')
 assert.ok(homeSource.includes('スタミナ回復待ち'), 'home must explain the zero-stamina state')
 assert.ok(homeSource.includes('_showStaminaModal'), 'home must expose the stamina recovery modal')
+assert.ok(gameSceneSource.includes("getStaminaState().current <= 0"), 'GameScene must block new sessions at zero stamina')
 assert.ok(townSource.includes('_ambientGrowth'), 'town must visually react to growth')
 
 for (const asset of [
