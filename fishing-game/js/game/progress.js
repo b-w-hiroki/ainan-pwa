@@ -306,7 +306,7 @@ export const TOWN_FACILITY_META = [
     icon: '🐟',
     desc: '釣果を町のにぎわいに変える拠点',
     effect: '釣果ポイントの価値アップ',
-    baseCost: 260,
+    baseCost: 180,
   },
   {
     id: 'pier',
@@ -314,7 +314,7 @@ export const TOWN_FACILITY_META = [
     icon: '⚓',
     desc: '釣り人が集まる港のシンボル',
     effect: '魚影チャンスの演出強化',
-    baseCost: 180,
+    baseCost: 260,
   },
   {
     id: 'guide',
@@ -322,7 +322,7 @@ export const TOWN_FACILITY_META = [
     icon: '📋',
     desc: '初心者にもわかりやすい案内拠点',
     effect: 'ミッション報酬の見通しアップ',
-    baseCost: 440,
+    baseCost: 320,
   },
   {
     id: 'festival',
@@ -330,7 +330,7 @@ export const TOWN_FACILITY_META = [
     icon: '🎪',
     desc: '町おこしイベントの中心になる広場',
     effect: '交換所アイテムの魅力アップ',
-    baseCost: 320,
+    baseCost: 440,
   },
 ]
 
