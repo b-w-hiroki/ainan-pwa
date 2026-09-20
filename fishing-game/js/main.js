@@ -59,6 +59,8 @@ import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { installRetentionProgress } from './game/installRetentionProgress.js'
 import { installBossBattlePhases } from './game/installBossBattlePhases.js'
 import { prepareQaState } from './game/qaBootstrap.js'
+import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
+import { installResultPayoffVisuals } from './game/installResultPayoffVisuals.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -98,7 +100,9 @@ installMidgameProgression(GameScene)
 installEnvironmentPresentation(GameScene)
 installRetentionProgress(GameScene)
 installBossBattlePhases(GameScene)
+installResultPayoffVisuals(GameScene)
 installTownSensoryFeedback(TownScene, HomeScene)
+installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
 installStaminaSessionGate(GameScene)
 
