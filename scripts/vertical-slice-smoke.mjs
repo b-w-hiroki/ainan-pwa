@@ -155,6 +155,7 @@ for (const installer of [
   'installTownCatchArrival',
   'installMobileFishingShell',
   'installBlueprintFishingField',
+  'installFishingVisualUpgrade',
 ]) {
   assert.ok(mainSource.includes(`${installer}(`), `${installer} is not wired in main.js`)
 }
@@ -164,6 +165,9 @@ const resultRoutingSource = readFileSync(new URL('../fishing-game/js/game/instal
 const qaSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceQaMode.js', import.meta.url), 'utf8')
 const blueprintSource = readFileSync(new URL('../fishing-game/js/game/installBlueprintFishingField.js', import.meta.url), 'utf8')
 const mobileShellSource = readFileSync(new URL('../fishing-game/js/game/installMobileFishingShell.js', import.meta.url), 'utf8')
+const homeSource = readFileSync(new URL('../fishing-game/js/scenes/HomeScene.js', import.meta.url), 'utf8')
+const townSource = readFileSync(new URL('../fishing-game/js/scenes/TownScene.js', import.meta.url), 'utf8')
+const progressSource = readFileSync(new URL('../fishing-game/js/game/progress.js', import.meta.url), 'utf8')
 
 assert.ok(resultUiSource.includes('resultSuccessActions'), 'success result controls must be grouped for explicit routing')
 assert.ok(resultRoutingSource.includes('resultSuccessActions?.setVisible(!escaped)'), 'escaped result must hide success-only actions')
@@ -178,6 +182,20 @@ assert.ok(blueprintSource.includes('setPlayer(this, false)'), 'retrieve/battle m
 assert.ok(blueprintSource.includes('playerActionInset?.destroy'), 'legacy character inset must stay disabled in blueprint mode')
 assert.ok(blueprintSource.includes('hideTackle(this)'), 'tackle controls must not permanently occupy the active fishing field')
 assert.ok(mobileShellSource.includes('setScrollFactor(0)'), 'mobile HUD must remain screen-fixed')
+
+// 7) Polish-pass guards: species feel, stamina recovery and visible town growth.
+const prompts = new Set(FISH_LIST.map(fish => fish.feel?.hitPrompt).filter(Boolean))
+assert.equal(prompts.size, FISH_LIST.length, 'each fish species should have a distinct hook prompt')
+for (const fish of FISH_LIST) {
+  assert.ok((fish.feel?.battleWaveX ?? 0) > 0, `${fish.id}: missing battleWaveX feel tuning`)
+  assert.ok((fish.feel?.battleSpeed ?? 0) > 0, `${fish.id}: missing battleSpeed feel tuning`)
+}
+assert.ok(progressSource.includes('STAMINA_REFILL_GEM_COST = 3'), 'stamina gem refill cost must stay explicit')
+assert.ok(progressSource.includes('refillStaminaWithGems'), 'stamina recovery action must stay available')
+assert.ok(progressSource.includes("baseCost: 440"), 'late town progression should keep a meaningful score sink')
+assert.ok(homeSource.includes('スタミナ回復待ち'), 'home must explain the zero-stamina state')
+assert.ok(homeSource.includes('_showStaminaModal'), 'home must expose the stamina recovery modal')
+assert.ok(townSource.includes('_ambientGrowth'), 'town must visually react to growth')
 
 for (const asset of [
   'fishing-game/assets/characters/player_cast_anim.webp',
@@ -194,4 +212,5 @@ console.log('  deterministic hook input: OK')
 console.log('  battle success/failure paths: OK')
 console.log('  result routing / QA shortcuts: OK')
 console.log('  canonical blueprint composition: OK')
+console.log('  species feel / stamina / town polish: OK')
 console.log('  integration/assets: OK')
