@@ -31,3 +31,6 @@ Target viewport: **390 × 844**. Run once per fishing spot after a visual/gamepl
 - [ ] localStorageの既存進行が保持される
 - [ ] コンソールエラー0
 - [ ] 目立つフレーム落ち・入力遅延なし
+
+## CI
+- [ ] PRの `CI / build` が成功している
