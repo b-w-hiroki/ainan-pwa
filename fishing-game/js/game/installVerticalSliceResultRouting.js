@@ -30,7 +30,9 @@ function buildEscapeRetry(scene) {
       scene._skipNextDown = false
       scene.resultOverlay?.setVisible(false)
       container.setVisible(false)
-      scene._enterCast()
+      const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
+      scene._cleanup()
+      scene.scene.restart(env)
     })
 
   container.add([shadow, bg, text, hit])

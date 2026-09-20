@@ -14,6 +14,9 @@ import TownScene from './scenes/TownScene.js'
 import HelpScene from './scenes/HelpScene.js'
 import MenuScene from './scenes/MenuScene.js'
 import ChallengeScene from './scenes/ChallengeScene.js'
+import WorkshopScene from './scenes/WorkshopScene.js'
+import HarborServicesScene from './scenes/HarborServicesScene.js'
+import SettingsScene from './scenes/SettingsScene.js'
 import { installPlayerAnimations } from './game/installPlayerAnimations.js'
 import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
 import { installRetrievePolish } from './game/installRetrievePolish.js'
@@ -47,6 +50,9 @@ import { installFishingResultPresentation } from './game/installFishingResultPre
 import { installFishingVisualUpgrade } from './game/installFishingVisualUpgrade.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
 import { installStaminaSessionGate } from './game/installStaminaSessionGate.js'
+import { installMidgameProgression, installTownSensoryFeedback } from './game/installMidgameProgression.js'
+import { installEnvironmentPresentation } from './game/installEnvironmentPresentation.js'
+import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -82,6 +88,9 @@ installFishingBattlePresentation(GameScene)
 installFishingResultPresentation(GameScene)
 installFishingVisualUpgrade(GameScene)
 installFishingPresentationGuard(GameScene)
+installMidgameProgression(GameScene)
+installEnvironmentPresentation(GameScene)
+installTownSensoryFeedback(TownScene, HomeScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
 installStaminaSessionGate(GameScene)
 
@@ -102,12 +111,14 @@ const config = {
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, ExchangeScene, MissionScene, LicenseScene, RankScene, TownScene, HelpScene, MenuScene, ChallengeScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
 }
 
 function startGame() {
+  ensureSaveVersion()
   const game = new Phaser.Game(config)
   window.__game = game
+  document.addEventListener('visibilitychange', () => { if (document.hidden) backupSave() })
 }
 
 if (typeof WebFont !== 'undefined') {

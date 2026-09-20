@@ -5,6 +5,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
+import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
 import {
   BAIT_META,
   ROD_META,
@@ -50,7 +51,7 @@ const MATERIAL_ITEMS = [
   { id: 'scale', name: 'きらめく鱗', desc: '強化素材。今後の育成に使用予定', mark: '鱗', qty: 12, rank: { label: 'R', color: 0x5ebcff, glow: 0xe7f7ff } },
   { id: 'shell', name: '貝殻パーツ', desc: '港町のショップ素材', mark: '貝', qty: 8, rank: { label: 'N', color: 0x8bcf52, glow: 0xecf8df } },
   { id: 'ticket', name: '交換チケット', desc: 'ショップで使える補助券', mark: '券', qty: 3, rank: { label: 'SR', color: 0xffc447, glow: 0xfff2cc } },
-  { id: 'gem', name: '青い宝石', desc: 'イベント報酬素材', mark: '晶', qty: 1, rank: { label: 'SR', color: 0x6c7cff, glow: 0xe8e9ff } },
+  { id: 'crystal', name: '青い宝石', desc: 'イベント報酬素材', mark: '晶', qty: 1, rank: { label: 'SR', color: 0x6c7cff, glow: 0xe8e9ff } },
 ]
 
 export default class UpgradeScene extends Phaser.Scene {
@@ -140,8 +141,9 @@ export default class UpgradeScene extends Phaser.Scene {
     this._character(W / 2, y + 142)
     this._equipSlot(70, y + 89, '竿', rodType, ROD_META[rodType], ROD_RANK[rodType], inventory.rods?.[rodType] ?? 0, 'rod', ROD_ART[rodType])
     this._equipSlot(320, y + 89, 'エサ', baitType, BAIT_META[baitType], BAIT_RANK[baitType], inventory.baits?.[baitType] ?? 0, 'bait', BAIT_ART[baitType])
-    this._emptySlot(70, y + 188, '帽子')
-    this._emptySlot(320, y + 188, 'バッグ')
+    const accessoryState = getAccessoryState()
+    this._accessorySlot(70, y + 188, '帽子', accessoryState.equipped.hat)
+    this._accessorySlot(320, y + 188, 'バッグ', accessoryState.equipped.bag)
   }
 
   _calcPower(equipment) {
@@ -208,6 +210,18 @@ export default class UpgradeScene extends Phaser.Scene {
       .on('pointerdown', () => this._showModal(id, item, type, art, true, qty, true, rank))
   }
 
+  _accessorySlot(x, y, label, accessoryId) {
+    const meta = accessoryId ? ACCESSORY_META[accessoryId] : null
+    const size = 62
+    const g = this.add.graphics().setDepth(5)
+    g.fillStyle(meta ? 0xfff5d9 : 0x173248, meta ? 1 : 0.05)
+    g.lineStyle(meta ? 2 : 1.5, meta ? 0xffd95a : 0x9bb3c0, meta ? 0.92 : 0.40)
+    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    this.add.text(x, y - 7, meta?.mark ?? '＋', { fontFamily: FONT, resolution: TEXT_RES, fontSize: meta ? '16px' : '20px', fontWeight: '900', color: meta ? UI_COLORS.oceanDeep : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
+    this.add.text(x, y + 18, meta?.name ?? label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: meta ? UI_COLORS.ink : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
+    this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('WorkshopScene'))
+  }
   _emptySlot(x, y, label) {
     const size = 62
     const g = this.add.graphics().setDepth(5)
@@ -237,6 +251,7 @@ export default class UpgradeScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(5)
 
     const tabs = [{ id: 'rod', label: '竿' }, { id: 'bait', label: 'エサ' }, { id: 'material', label: '素材' }]
+    this.add.text(x + w - 18, y + 24, '工房 ›', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep }).setOrigin(1, 0.5).setDepth(6).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('WorkshopScene'))
     tabs.forEach((tab, i) => this._tabButton(x + 94 + i * 70, y + 24, 60, 28, tab))
     this._inventoryGrid(x + 18, y + 56, w - 36, h - 76)
   }
@@ -258,7 +273,8 @@ export default class UpgradeScene extends Phaser.Scene {
   _inventoryItems() {
     if (this._tab === 'rod') return Object.entries(ROD_META).map(([id, item]) => ({ id, item, type: 'rod', art: ROD_ART[id], rank: ROD_RANK[id] }))
     if (this._tab === 'bait') return Object.entries(BAIT_META).map(([id, item]) => ({ id, item, type: 'bait', art: BAIT_ART[id], rank: BAIT_RANK[id] }))
-    return MATERIAL_ITEMS.map(item => ({ id: item.id, item, type: 'material', mark: item.mark, rank: item.rank, fixedQty: item.qty }))
+    const materials = getMaterials()
+    return MATERIAL_ITEMS.map(item => ({ id: item.id, item, type: 'material', mark: item.mark, rank: item.rank, fixedQty: materials[item.id] ?? 0 }))
   }
 
   _inventoryGrid(x, y, w, viewH) {

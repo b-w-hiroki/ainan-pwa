@@ -3,7 +3,7 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
-import { getKueChallengeState } from '../game/townUnlocks.js'
+import { getBossStates } from '../game/midgameProgression.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -17,15 +17,19 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
     const { width: W, height: H } = this.scale
-    const challenge = getKueChallengeState()
-    const challengeDesc = challenge.completed ? 'クエ討伐達成。専用報酬を確認' : challenge.unlocked ? '黒潮崎で伝説のクエに挑戦' : '桟橋を育てて黒潮崎を解放'
+    const bosses = Object.values(getBossStates())
+    const clearedBosses = bosses.filter(item => item.cleared).length
+    const claimableBoss = bosses.some(item => item.cleared && !item.claimed)
+    const challengeDesc = 'エリアボス ' + clearedBosses + '/' + bosses.length + '　記録サイズに挑戦'
     const menuItems = [
       { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', mark: '魚', color: 0x5bb5d8, scene: 'CollectionScene' },
-      { title: '大物挑戦', desc: challengeDesc, mark: '主', color: 0x173248, scene: 'ChallengeScene', badge: challenge.completed ? 'CLEAR' : challenge.unlocked ? 'NEW' : 'LOCK' },
+      { title: '大物挑戦', desc: challengeDesc, mark: '主', color: 0x173248, scene: 'ChallengeScene', badge: claimableBoss ? 'GET' : clearedBosses === bosses.length ? 'CLEAR' : 'NEW' },
       { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
+      { title: '魚屋・食堂', desc: '釣果を売って料理バフを受ける', mark: '店', color: 0xff9b5e, scene: 'HarborServicesScene' },
       { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
       { title: 'プロフィール', desc: 'これまでの釣果と実績を見る', mark: '人', color: 0x71d6a2, scene: 'RankScene' },
       { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
+      { title: '設定・データ', desc: 'サウンド・バックアップ・復旧', mark: '設', color: 0x5bb5d8, scene: 'SettingsScene' },
     ]
 
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
@@ -34,7 +38,7 @@ export default class MenuScene extends Phaser.Scene {
     veil.fillRect(0, 0, W, H)
 
     this._header(W)
-    menuItems.forEach((item, i) => this._menuCard(22, 104 + i * 88, W - 44, 72, item, i))
+    menuItems.forEach((item, i) => this._menuCard(22, 100 + i * 78, W - 44, 64, item, i))
     buildFooterNav(this, W, H, 'menu')
   }
 

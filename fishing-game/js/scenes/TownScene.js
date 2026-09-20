@@ -715,16 +715,19 @@ export default class TownScene extends Phaser.Scene {
       localStorage.removeItem('ainan_pending_growth')
       growthContainer?.destroy(true)
     }
-    const primary = rewards.find(r => r.type === 'challenge') ?? rewards.find(r => r.type === 'point') ?? rewards.find(r => r.type === 'bait')
+    const primary = rewards.find(r => r.type === 'challenge') ?? rewards.find(r => r.type === 'service') ?? rewards.find(r => r.type === 'point') ?? rewards.find(r => r.type === 'bait')
     const action = primary?.type === 'challenge'
       ? () => { clearGrowth(); this.scene.start('ChallengeScene') }
-      : primary?.type === 'point'
+      : primary?.type === 'service'
+        ? () => { clearGrowth(); this.scene.start('HarborServicesScene') }
+        : primary?.type === 'point'
         ? () => { clearGrowth(); this.scene.start('MapScene') }
         : primary?.type === 'bait'
           ? () => { clearGrowth(); this.scene.start('UpgradeScene', { tab: 'bait' }) }
           : () => clearGrowth()
     const label = primary?.type === 'challenge' ? '大物挑戦を見る'
-      : primary?.type === 'point' ? '新しい海を見る'
+      : primary?.type === 'service' ? '新しいお店を見る'
+        : primary?.type === 'point' ? '新しい海を見る'
         : primary?.type === 'bait' ? '新しいエサを見る'
           : '町の変化を見る'
 

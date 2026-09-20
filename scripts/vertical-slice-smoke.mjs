@@ -6,6 +6,9 @@ import { updateFishInterest, FISH_INTEREST_STATE } from '../fishing-game/js/game
 import { createBattleState, applySwipe, battleOutcome } from '../fishing-game/js/game/battle.js'
 import { ROD_STATS } from '../fishing-game/js/game/params.js'
 import { installVerticalSliceHookInput } from '../fishing-game/js/game/installVerticalSliceHookInput.js'
+import { ACCESSORY_META, BOSS_META, MEAL_META } from '../fishing-game/js/game/midgameProgression.js'
+import { SAVE_VERSION } from '../fishing-game/js/game/saveSystem.js'
+import { getWorldConditions } from '../fishing-game/js/game/worldConditions.js'
 
 const WORLD = {
   player: { x: 138, y: 1160 },
@@ -77,6 +80,15 @@ assert.equal(zoneForMeters(nearM), 'near', `expected near cast, got ${nearM.toFi
 assert.equal(zoneForMeters(midM), 'mid', `expected mid cast, got ${midM.toFixed(1)}m`)
 assert.equal(zoneForMeters(farM), 'far', `expected far cast, got ${farM.toFixed(1)}m`)
 assert.ok(nearM < midM && midM < farM, 'rod/power progression must increase cast reach')
+
+assert.equal(FISH_LIST.length, 9, 'expanded roster should contain nine fish species')
+assert.equal(Object.keys(BOSS_META).length, 3, 'each fishing area should have one boss target')
+assert.equal(Object.keys(ACCESSORY_META).length, 2, 'hat and bag accessory slots should be active')
+assert.equal(Object.keys(MEAL_META).length, 3, 'harbor diner should expose three meal buffs')
+assert.equal(SAVE_VERSION, 2, 'save schema version must be 2')
+const conditionSample = getWorldConditions(new Date(2026, 8, 20, 12, 0, 0))
+assert.equal(conditionSample.season, 'autumn', 'September should resolve to autumn')
+assert.ok(['sunny', 'cloudy', 'rainy'].includes(conditionSample.weather), 'weather should resolve to a visible supported state')
 
 // 2) Every range band used by the Vertical Slice must have at least one fish.
 for (const zone of ['near', 'mid', 'far']) {
@@ -170,6 +182,8 @@ const homeSource = readFileSync(new URL('../fishing-game/js/scenes/HomeScene.js'
 const townSource = readFileSync(new URL('../fishing-game/js/scenes/TownScene.js', import.meta.url), 'utf8')
 const progressSource = readFileSync(new URL('../fishing-game/js/game/progress.js', import.meta.url), 'utf8')
 const staminaGateSource = readFileSync(new URL('../fishing-game/js/game/installStaminaSessionGate.js', import.meta.url), 'utf8')
+const midgameSource = readFileSync(new URL('../fishing-game/js/game/installMidgameProgression.js', import.meta.url), 'utf8')
+const resultUiSource2 = readFileSync(new URL('../fishing-game/js/scenes/components/ResultUI.js', import.meta.url), 'utf8')
 
 assert.ok(resultUiSource.includes('resultSuccessActions'), 'success result controls must be grouped for explicit routing')
 assert.ok(resultRoutingSource.includes('resultSuccessActions?.setVisible(!escaped)'), 'escaped result must hide success-only actions')
@@ -199,6 +213,13 @@ assert.ok(homeSource.includes('スタミナ回復待ち'), 'home must explain th
 assert.ok(homeSource.includes('_showStaminaModal'), 'home must expose the stamina recovery modal')
 assert.ok(staminaGateSource.includes("getStaminaState().current <= 0"), 'stamina gate must block new sessions at zero stamina')
 assert.ok(townSource.includes('_ambientGrowth'), 'town must visually react to growth')
+assert.ok(mainSource.includes('WorkshopScene'), 'workshop scene must be registered')
+assert.ok(mainSource.includes('HarborServicesScene'), 'harbor services scene must be registered')
+assert.ok(mainSource.includes('SettingsScene'), 'settings scene must be registered')
+assert.ok(mainSource.includes('installMidgameProgression(GameScene)'), 'midgame progression must be wired')
+assert.ok(mainSource.includes('installEnvironmentPresentation(GameScene)'), 'environment presentation must be wired')
+assert.ok(midgameSource.includes('grantCatchLoot'), 'caught fish must feed materials and town inventory')
+assert.ok(resultUiSource2.includes('scene.scene.restart(env)'), 'result retry must start a new stamina session')
 
 for (const asset of [
   'fishing-game/assets/characters/player_cast_anim.webp',
@@ -216,4 +237,5 @@ console.log('  battle success/failure paths: OK')
 console.log('  result routing / QA shortcuts: OK')
 console.log('  canonical blueprint composition: OK')
 console.log('  species feel / stamina / town polish: OK')
+console.log('  midgame progression / shops / bosses / conditions / save v2: OK')
 console.log('  integration/assets: OK')

@@ -79,8 +79,9 @@ export class ResultUI {
       scene.scene.start('TownScene', { catchArrival })
     }, true)
     const retry = makeBtn(-126, 170, 120, 42, '↻ もう一度', () => {
-      scene.resultOverlay.setVisible(false)
-      scene._enterCast()
+      const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
+      scene._cleanup()
+      scene.scene.restart(env)
     })
     const book = makeBtn(6, 170, 120, 42, '□ 図鑑', () => {
       scene._cleanup()

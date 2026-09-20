@@ -5,6 +5,7 @@ import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { FISH_META, getCatches, markBookSeen } from '../game/progress.js'
+import { claimCollectionReward, getCollectionRewardState } from '../game/midgameProgression.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -47,6 +48,7 @@ export default class CollectionScene extends Phaser.Scene {
     markBookSeen()
     this._background(W, H)
     this._header(W)
+    this._collectionRewardBar(W)
     this._grid(W)
     buildFooterNav(this, W, H, 'menu')
   }
@@ -86,6 +88,30 @@ export default class CollectionScene extends Phaser.Scene {
     }).setOrigin(1, 0.5).setDepth(5)
   }
 
+  _collectionRewardBar(W) {
+    const states = getCollectionRewardState()
+    const next = states.find(item => !item.claimed) ?? states[states.length - 1]
+    if (!next) return
+    const x = 28, y = 104, w = W - 56, h = 38
+    const g = this.add.graphics().setDepth(4)
+    g.fillStyle(0xffffff, 0.96)
+    g.lineStyle(1.5, next.available ? 0xffb45d : 0x9bcfe5, 0.86)
+    g.fillRoundedRect(x, y, w, h, 13)
+    g.strokeRoundedRect(x, y, w, h, 13)
+    const reward = `${next.score ? next.score + 'pt' : ''}${next.gems ? ' ◆' + next.gems : ''}`
+    this.add.text(x + 12, y + h / 2, `図鑑報酬  ${next.label}  ${reward}`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.ink,
+    }).setOrigin(0, 0.5).setDepth(5)
+    const label = next.claimed ? '受取済' : next.available ? '受け取る' : `${next.found}/${next.count}`
+    const t = this.add.text(x + w - 12, y + h / 2, label, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900',
+      color: next.available ? UI_COLORS.warning : UI_COLORS.inkSoft,
+    }).setOrigin(1, 0.5).setDepth(5)
+    if (next.available) t.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+      if (claimCollectionReward(next.id)) this.scene.restart()
+    })
+  }
+
   _grid(W) {
     const catches = getCatches()
     const counts = catches.reduce((acc, c) => {
@@ -111,7 +137,7 @@ export default class CollectionScene extends Phaser.Scene {
       const col = i % cols
       const row = Math.floor(i / cols)
       const x = startX + col * (size + gap)
-      const y = 116 + row * 130
+      const y = 158 + row * 130
       const caught = (counts[id] ?? 0) > 0
       this._fishTile(x, y, size, id, fish, counts[id] ?? 0, bestScore[id] ?? 0, bestSize[id] ?? 0, caught)
     })
@@ -133,7 +159,7 @@ export default class CollectionScene extends Phaser.Scene {
     if (caught && art?.key && this.textures.exists(art.key)) {
       this.add.image(x + size / 2, y + 36, art.key).setDisplaySize(58, 58).setDepth(5)
     } else {
-      this.add.text(x + size / 2, y + 36, '?', {
+      this.add.text(x + size / 2, y + 36, caught ? fish.icon : '?', {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '28px', fontWeight: '900', color: '#7b8794',
       }).setOrigin(0.5).setDepth(5)
     }
@@ -181,7 +207,7 @@ export default class CollectionScene extends Phaser.Scene {
     if (caught && art?.key && this.textures.exists(art.key)) {
       items.push(this.add.image(W / 2, y + 78, art.key).setDisplaySize(104, 104))
     } else {
-      items.push(this.add.text(W / 2, y + 78, '?', {
+      items.push(this.add.text(W / 2, y + 78, caught ? fish.icon : '?', {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '44px', fontWeight: '900', color: UI_COLORS.muted,
       }).setOrigin(0.5))
     }
