@@ -634,7 +634,7 @@ export default class GameScene extends Phaser.Scene {
 
       // 累積
       this.totalScore += score
-      this.catches.push({ fishId: this.fish.id, score, sizeCm, timestamp: Date.now() })
+      this.catches.push({ fishId: this.fish.id, score, sizeCm, point: this.env?.point ?? 'pointA', timestamp: Date.now() })
 
       // 表示更新
       this.scoreValText?.setText(String(this.totalScore))

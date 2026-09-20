@@ -161,5 +161,8 @@ export function getFacilityMilestoneRewards(facilityId, nextLevel) {
     rewards.push({ type: 'challenge', id: 'kue', label: '「黒潮の主を追え」解放', detail: 'クエ挑戦' })
   }
 
+  if (facilityId === 'market' && nextLevel === 2) rewards.push({ type: 'service', id: 'fishShop', label: '魚屋 開業', detail: '釣果販売' })
+  if (facilityId === 'festival' && nextLevel === 2) rewards.push({ type: 'service', id: 'diner', label: '港食堂 開業', detail: '料理バフ' })
+
   return rewards
 }

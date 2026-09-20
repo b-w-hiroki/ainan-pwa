@@ -2,9 +2,10 @@ import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
-import { getCatches, markLicenseFlag } from '../game/progress.js'
+import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -26,19 +27,19 @@ const FISHING_POINTS = [
   {
     id: 'pointA', name: '汐風港', description: 'アジ・マダイが狙える港の定番ポイント',
     trait: '港', summary: '港の定番スポット', difficulty: 1,
-    fish: ['アジ', 'マダイ', 'ブリ'], fishIds: ['aji', 'tai', 'buri'], fishShadows: 12,
+    fish: ['アジ', 'マダイ', 'サバ', 'ブリ', 'カンパチ'], fishIds: ['aji', 'tai', 'saba', 'buri', 'kanpachi'], fishShadows: 12,
     env: '昼は見通し良好 / 魚影多め', accent: 0x5bb5d8, pos: { x: 0.35, y: 0.32 },
   },
   {
     id: 'pointB', name: '蒼海湾', description: '穏やかな入り江に潜む穴場スポット',
     trait: '入り江', summary: '静かな入り江', difficulty: 2,
-    fish: ['アジ', 'ブラックバス'], fishIds: ['aji', 'bass'], fishShadows: 8,
+    fish: ['アジ', 'ブラックバス', 'イサキ', 'ヒラメ'], fishIds: ['aji', 'bass', 'isaki', 'hirame'], fishShadows: 8,
     env: '入り江で静か / レア魚の気配', accent: 0x8f80e8, pos: { x: 0.62, y: 0.51 },
   },
   {
     id: 'pointC', name: '黒潮崎', description: '伝説のクエが眠る激流の激難ポイント',
     trait: '沖磯', summary: '激流の難所', difficulty: 3,
-    fish: ['マダイ', 'ブリ', 'クエ'], fishIds: ['tai', 'buri', 'kue'], fishShadows: 5,
+    fish: ['マダイ', 'ブリ', 'カンパチ', 'クエ', 'サバ', 'イサキ'], fishIds: ['tai', 'buri', 'kanpachi', 'kue', 'saba', 'isaki'], fishShadows: 5,
     env: '流れが速い / 大物チャンス', accent: 0xff765a, pos: { x: 0.38, y: 0.70 },
   },
 ]
@@ -59,6 +60,7 @@ export default class MapScene extends Phaser.Scene {
     this._dismissLayer = null
     this._pointMarkers = {}
     this._unlocks = getTownUnlockState()
+    this._conditions = getWorldConditions()
     this._buildMapBackground(W, H)
     this._buildHeader(W)
     this._buildRouteLine(W, H)
@@ -80,7 +82,7 @@ export default class MapScene extends Phaser.Scene {
     this.add.text(W / 2 + 18, 70, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2 + 18, 99, `町を育てて海を広げる  ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
+    this.add.text(W / 2 + 18, 99, `${getConditionSummary()}  ・  海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -351,7 +353,7 @@ export default class MapScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
     }))
 
-    point.fishIds.forEach((id, i) => {
+    point.fishIds.slice(0, 4).forEach((id, i) => {
       const cx = x + 32 + i * 52
       const cy = y + 142
       const chip = this.add.graphics()
@@ -365,6 +367,11 @@ export default class MapScene extends Phaser.Scene {
         const fishImage = this.add.image(cx, cy, art.key).setDisplaySize(38, 38)
         if (!unlock.unlocked) fishImage.setTint(0x748087).setAlpha(0.25)
         items.push(fishImage)
+      } else {
+        items.push(this.add.text(cx, cy, unlock.unlocked ? (FISH_META[id]?.icon ?? '魚') : '?', {
+          fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900',
+          color: unlock.unlocked ? UI_COLORS.ink : UI_COLORS.muted,
+        }).setOrigin(0.5))
       }
     })
 
@@ -424,11 +431,12 @@ export default class MapScene extends Phaser.Scene {
       return
     }
     markLicenseFlag('ainan_went_fishing')
+    const conditions = this._conditions ?? getWorldConditions()
     this.scene.start('GameScene', {
       point: pointId,
-      season: this._getCurrentSeason(),
-      weather: 'sunny',
-      timeOfDay: this._getCurrentTimeOfDay(),
+      season: conditions.season,
+      weather: conditions.weather,
+      timeOfDay: conditions.timeOfDay,
     })
   }
 
