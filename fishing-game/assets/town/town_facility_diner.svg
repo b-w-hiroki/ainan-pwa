@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 384">
+<rect width="512" height="384" rx="28" fill="#fff8e8"/>
+<g stroke="#173248" stroke-width="8" stroke-linejoin="round">
+<path d="M78 142 L434 142 L406 310 L106 310 Z" fill="#fffdf6"/>
+<path d="M92 142 L124 78 H388 L420 142 Z" fill="#ffb45d"/>
+<path d="M112 142 H400 V184 H112 Z" fill="#fff1bd"/>
+<path d="M128 142 V184 M182 142 V184 M236 142 V184 M290 142 V184 M344 142 V184 M398 142 V184" fill="none"/>
+<rect x="148" y="206" width="216" height="76" rx="16" fill="#ffe8bd"/>
+<ellipse cx="256" cy="250" rx="70" ry="22" fill="#f8fdff"/>
+<path d="M204 245 Q252 210 310 244 Q280 268 228 264 Z" fill="#e67e55"/>
+<path d="M302 244 L332 228 L328 245 L332 262 Z" fill="#e67e55"/>
+</g>
+<text x="256" y="116" text-anchor="middle" font-size="32" font-weight="900" font-family="sans-serif" fill="#173248">港食堂</text>
+</svg>

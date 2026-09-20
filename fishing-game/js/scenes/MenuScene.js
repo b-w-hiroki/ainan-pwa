@@ -27,7 +27,7 @@ export default class MenuScene extends Phaser.Scene {
       { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
       { title: '魚屋・食堂', desc: '釣果を売って料理バフを受ける', mark: '店', color: 0xff9b5e, scene: 'HarborServicesScene' },
       { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
-      { title: 'プロフィール', desc: 'これまでの釣果と実績を見る', mark: '人', color: 0x71d6a2, scene: 'RankScene' },
+      { title: 'プロフィール', desc: '釣果・実績・育成状況をまとめて確認', mark: '人', color: 0x71d6a2, scene: 'ProfileScene' },
       { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
       { title: '設定・データ', desc: 'サウンド・バックアップ・復旧', mark: '設', color: 0x5bb5d8, scene: 'SettingsScene' },
     ]

@@ -42,6 +42,10 @@ const FISH_ICON_KEYS = {
   bass: 'fish_black_bass_icon',
   buri: 'fish_buri_icon',
   kue:  'fish_kue_icon',
+  saba: 'fish_saba_icon',
+  isaki: 'fish_isaki_icon',
+  hirame: 'fish_hirame_icon',
+  kanpachi: 'fish_kanpachi_icon',
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -55,6 +59,9 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.backgrounds.fishingBay,
       ASSETS.backgrounds.fishingCape,
       ...Object.values(ASSETS.fish),
+      ASSETS.ui.resultFrame,
+      ASSETS.ui.buttonPrimary,
+      ASSETS.ui.panelHarbor,
     ]
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {

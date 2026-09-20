@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "qa:vertical-slice": "node scripts/vertical-slice-smoke.mjs",
-    "build": "npm run qa:vertical-slice && tsc -b && vite build",
+    "qa:final-polish": "node scripts/final-polish-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

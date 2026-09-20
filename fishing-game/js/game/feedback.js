@@ -8,6 +8,22 @@ export function setSoundEnabled(enabled) {
   return enabled
 }
 
+export function isHapticsEnabled() { return localStorage.getItem('ainan_haptics_enabled') !== '0' }
+export function setHapticsEnabled(enabled) {
+  localStorage.setItem('ainan_haptics_enabled', enabled ? '1' : '0')
+  return enabled
+}
+
+export function isReducedMotion() {
+  if (localStorage.getItem('ainan_reduced_motion') === '1') return true
+  if (localStorage.getItem('ainan_reduced_motion') === '0') return false
+  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true
+}
+export function setReducedMotion(enabled) {
+  localStorage.setItem('ainan_reduced_motion', enabled ? '1' : '0')
+  return enabled
+}
+
 function getContext() {
   if (typeof window === 'undefined') return null
   const AudioCtx = window.AudioContext || window.webkitAudioContext
@@ -64,6 +80,7 @@ export function playSfx(kind) {
 }
 
 export function haptic(pattern = 20) {
+  if (!isHapticsEnabled()) return
   if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(pattern)
 }
 

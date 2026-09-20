@@ -1,3 +1,4 @@
+import { isReducedMotion } from './feedback.js'
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 
 const LABEL = {
@@ -30,11 +31,12 @@ function buildConditionPresentation(scene) {
   if (env.weather === 'rainy') {
     overlay.fillStyle(0x3e6680, 0.11)
     overlay.fillRect(0, 0, W, H)
-    for (let i = 0; i < 18; i++) {
+    const reduced = isReducedMotion()
+    for (let i = 0; i < (reduced ? 8 : 18); i++) {
       const x = (i * 29) % W
       const y = 90 + ((i * 47) % Math.max(120, H - 180))
-      const drop = scene.add.line(0, 0, x, y, x - 8, y + 22, 0xd9f4ff, 0.34).setOrigin(0).setDepth(18).setScrollFactor(0)
-      scene.tweens.add({ targets: drop, y: 30, x: -10, duration: 620 + (i % 4) * 90, repeat: -1, ease: 'Linear' })
+      const drop = scene.add.line(0, 0, x, y, x - 8, y + 22, 0xd9f4ff, reduced ? 0.24 : 0.34).setOrigin(0).setDepth(18).setScrollFactor(0)
+      if (!reduced) scene.tweens.add({ targets: drop, y: 30, x: -10, duration: 620 + (i % 4) * 90, repeat: -1, ease: 'Linear' })
     }
   }
 
