@@ -81,6 +81,7 @@ export default class TownScene extends Phaser.Scene {
     localStorage.setItem('ainan_seen_town', '1')
 
     this._background(W, H)
+    this._ambientGrowth(W, H)
     this._header(W)
     this._livingTown(W)
     this._facilityGrid(W)
@@ -117,6 +118,43 @@ export default class TownScene extends Phaser.Scene {
     veil.fillStyle(0x173248, 0.08)
     veil.fillRect(0, H * 0.72, W, H * 0.18)
     if (this._hasKue) this._legendFestivalBackdrop(W)
+  }
+
+  _ambientGrowth(W, H) {
+    const bustle = this._summary?.bustle ?? 0
+    if (bustle < 12) return
+
+    const depth = 2
+    const glowCount = bustle >= 70 ? 6 : bustle >= 48 ? 4 : 2
+    for (let i = 0; i < glowCount; i++) {
+      const x = 34 + ((i * 73) % Math.max(80, W - 68))
+      const y = H * (0.20 + (i % 3) * 0.12)
+      const light = this.add.circle(x, y, 3 + (i % 2), bustle >= 70 ? 0xffd95a : 0xdff7ff, 0.18).setDepth(depth)
+      this.tweens.add({
+        targets: light,
+        alpha: bustle >= 70 ? 0.68 : 0.46,
+        scaleX: 1.8,
+        scaleY: 1.8,
+        duration: 1150 + i * 180,
+        delay: i * 120,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    }
+
+    if (bustle >= 28) {
+      const wake = this.add.ellipse(W * 0.5, H * 0.33, W * 0.72, 38, 0xffffff, 0.045).setDepth(depth)
+      this.tweens.add({
+        targets: wake,
+        x: W * 0.53,
+        alpha: bustle >= 70 ? 0.12 : 0.075,
+        duration: 3600,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      })
+    }
   }
 
   _legendFestivalBackdrop(W) {
