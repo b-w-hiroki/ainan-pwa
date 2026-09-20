@@ -46,6 +46,7 @@ import { installFishingBattlePresentation } from './game/installFishingBattlePre
 import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
 import { installFishingVisualUpgrade } from './game/installFishingVisualUpgrade.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
+import { installStaminaSessionGate } from './game/installStaminaSessionGate.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -81,6 +82,8 @@ installFishingBattlePresentation(GameScene)
 installFishingResultPresentation(GameScene)
 installFishingVisualUpgrade(GameScene)
 installFishingPresentationGuard(GameScene)
+// Install last so zero stamina short-circuits every older create() wrapper safely.
+installStaminaSessionGate(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
