@@ -5,6 +5,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { FISH_META, getCatches, getPlayerRank, getScore, getTownSummary } from '../game/progress.js'
 import { getAccessoryState, getBossStates, getMaterials, getRodLevels } from '../game/midgameProgression.js'
+import { getAchievementStates, getSelectedTitle } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -37,7 +38,8 @@ export default class ProfileScene extends Phaser.Scene {
     if (this.textures.exists(ASSETS.characters.playerDefaultUi.key)) {
       this.add.image(62, 58, ASSETS.characters.playerDefaultUi.key).setDisplaySize(44, 86).setDepth(5)
     }
-    this.add.text(98, 38, rank.title, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
+    const selectedTitle = getSelectedTitle()
+    this.add.text(98, 38, selectedTitle || rank.title, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(98, 66, 'RANK ' + rank.rank + '　' + getScore().toLocaleString() + ' pt', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.warning }).setDepth(5)
   }
 
@@ -88,6 +90,10 @@ export default class ProfileScene extends Phaser.Scene {
     this.add.text(x + 16, y + 50, '竿Lv　初心者 ' + levels.basic + ' / カーボン ' + levels.carbon + ' / 高級 ' + levels.premium, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
     this.add.text(x + 16, y + 78, '帽子　' + (accessories.equipped.hat ? '装備中' : 'なし') + '　　バッグ　' + (accessories.equipped.bag ? '装備中' : 'なし'), { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
     this.add.text(x + 16, y + 108, '素材　鱗' + (mats.scale ?? 0) + '　貝' + (mats.shell ?? 0) + '　券' + (mats.ticket ?? 0) + '　晶' + (mats.crystal ?? 0), { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep }).setDepth(5)
+    const achievements = getAchievementStates()
+    const doneAchievements = achievements.filter(item => item.done).length
+    const achievementLink = this.add.text(x + 16, y + 139, '実績 ' + doneAchievements + '/' + achievements.length + ' ›', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.oceanDeep }).setOrigin(0, 0.5).setDepth(6)
+    achievementLink.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('AchievementScene'))
     const workshop = this.add.text(x + w - 16, y + 139, '工房へ ›', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.warning }).setOrigin(1, 0.5).setDepth(6)
     workshop.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('WorkshopScene'))
   }

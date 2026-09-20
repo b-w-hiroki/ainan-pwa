@@ -10,6 +10,21 @@ export function installStaminaSessionGate(GameScene) {
       this.scene.start('HomeScene', { staminaEmpty: true })
       return
     }
-    return originalCreate.apply(this, args)
+    const result = originalCreate.apply(this, args)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const action = params.get('qa') === '1' ? params.get('qaAction') : null
+      if (action === 'battle' || action === 'caught') {
+        this.time.delayedCall(120, () => {
+          if (this.phase !== 'battle' && this.phase !== 'result') {
+            this._killWaitTimers?.()
+            this._stopRetrieveRuntime?.()
+            this._enterBattle?.()
+          }
+          if (action === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
+        })
+      }
+    }
+    return result
   }
 }

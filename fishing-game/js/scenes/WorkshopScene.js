@@ -6,6 +6,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { ROD_META, getEquipment, getInventory, getScore } from '../game/progress.js'
 import { ACCESSORY_META, MATERIAL_META, equipAccessory, getAccessoryState, getMaterials, getRodLevels, getRodUpgradeCost, purchaseAccessory, upgradeRodLevel } from '../game/midgameProgression.js'
+import { markWorkshopSeen } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const ROD_ART = { basic: ASSETS.equipment.rodBasic, carbon: ASSETS.equipment.rodCarbon, premium: ASSETS.equipment.rodPremium }
@@ -21,6 +22,7 @@ export default class WorkshopScene extends Phaser.Scene {
   }
 
   create() {
+    markWorkshopSeen()
     const W = this.scale.width, H = this.scale.height
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
     const veil = this.add.rectangle(W / 2, H / 2, W, H, 0xf4fbff, 0.9).setDepth(1)
