@@ -10,11 +10,14 @@ import {
   claimDailyBonus,
   getCatches,
   getDailyBonusState,
+  getGems,
   getLicenseProgress,
   getMissionProgress,
   getScore,
   getStaminaState,
   getTownSummary,
+  refillStaminaWithGems,
+  STAMINA_REFILL_GEM_COST,
 } from '../game/progress.js'
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 
@@ -82,6 +85,12 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildTownAtmosphere(W, H) {
     const g = this.add.graphics().setDepth(2)
+    const glow = this.add.ellipse(W * 0.72, H * 0.44, W * 0.64, H * 0.34, 0xdff7ff, 0.10).setDepth(2)
+    this.tweens.add({ targets: glow, alpha: 0.18, scaleX: 1.06, scaleY: 1.06, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    ;[[0.14, 0.33], [0.84, 0.41], [0.25, 0.58], [0.76, 0.62]].forEach(([fx, fy], i) => {
+      const glint = this.add.circle(W * fx, H * fy, i % 2 ? 2 : 2.6, 0xffffff, 0.18).setDepth(3)
+      this.tweens.add({ targets: glint, alpha: 0.55, scaleX: 1.8, scaleY: 1.8, duration: 1100 + i * 230, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    })
     if (this._hasKue) {
       const colors = [0xff765a, 0xffd95a, 0x71d6a2, 0x5bb5d8]
       g.lineStyle(1.8, 0xffd95a, 0.58)
@@ -143,7 +152,7 @@ export default class HomeScene extends Phaser.Scene {
   _buildResourceBar(W) {
     const { current: stamina, max: staminaMax, nextRegenMs } = getStaminaState()
     const coins = getScore()
-    const gems = parseInt(localStorage.getItem('ainan_gems') ?? '0', 10)
+    const gems = getGems()
     const bar = this.add.graphics().setDepth(21)
     bar.fillStyle(0xffffff, 0.76)
     bar.fillRoundedRect(22, 73, W - 44, 18, 9)
@@ -301,6 +310,8 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildMainCTA(W, H) {
+    const stamina = getStaminaState()
+    const waiting = stamina.current <= 0
     const x = W / 2, y = H * 0.805, w = 286, h = 66
     const c = this.add.container(x, y).setDepth(18)
     const g = this.add.graphics()
@@ -309,28 +320,76 @@ export default class HomeScene extends Phaser.Scene {
       const dy = press ? 2 : 0
       g.fillStyle(0x173248, 0.2)
       g.fillRoundedRect(-w / 2 + 3, -h / 2 + 6, w, h, 22)
-      g.fillGradientStyle(0xffeb84, 0xffdf5c, 0xffcf31, 0xffc421, 1)
+      if (waiting) {
+        g.fillGradientStyle(0xdff5ff, 0xcdefff, 0xb7e3f4, 0x9fd3e8, 1)
+      } else {
+        g.fillGradientStyle(0xffeb84, 0xffdf5c, 0xffcf31, 0xffc421, 1)
+      }
       g.lineStyle(2.5, 0x173248, 0.78)
       g.fillRoundedRect(-w / 2, -h / 2 + dy, w, h, 22)
       g.strokeRoundedRect(-w / 2, -h / 2 + dy, w, h, 22)
       g.fillStyle(0xffffff, 0.34)
       g.fillRoundedRect(-w / 2 + 14, -h / 2 + 8 + dy, w - 28, 12, 6)
-      g.fillStyle(0x1f6f9f, 1)
+      g.fillStyle(waiting ? 0x5bb5d8 : 0x1f6f9f, 1)
       g.fillCircle(-w / 2 + 38, dy, 23)
       g.lineStyle(2, 0xffffff, 0.76)
       g.strokeCircle(-w / 2 + 38, dy, 23)
     }
     draw(false)
-    const rod = this.add.text(-w / 2 + 38, 0, ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
-    const title = this.add.text(18, -7, T.goFishing, uiText('button', { fontSize: '24px', color: UI_COLORS.ink })).setOrigin(0.5)
-    const sub = this.add.text(18, 16, `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} ・ 町 ${this._town.bustle}/100`, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
+    const rod = this.add.text(-w / 2 + 38, 0, waiting ? '⚡' : ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
+    const title = this.add.text(18, -7, waiting ? 'スタミナ回復待ち' : T.goFishing, uiText('button', { fontSize: waiting ? '19px' : '24px', color: UI_COLORS.ink })).setOrigin(0.5)
+    const waitMin = Math.max(1, Math.ceil(stamina.nextRegenMs / 60000))
+    const subText = waiting
+      ? `あと約${waitMin}分 ・ ◆${STAMINA_REFILL_GEM_COST}で全回復`
+      : `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} ・ 町 ${this._town.bustle}/100`
+    const sub = this.add.text(18, 16, subText, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
     const arrow = this.add.text(w / 2 - 28, 0, '›', uiText('button', { fontSize: '32px', color: UI_COLORS.ink })).setOrigin(0.5)
     const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { draw(true); c.setScale(0.985) })
-      .on('pointerup', () => this.scene.start('MapScene'))
+      .on('pointerup', () => waiting ? this._showStaminaModal(W, H) : this.scene.start('MapScene'))
       .on('pointerout', () => { draw(false); c.setScale(1) })
     c.add([g, rod, title, sub, arrow, hit])
     this.tweens.add({ targets: c, scaleX: 1.014, scaleY: 1.014, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+  }
+
+  _showStaminaModal(W, H) {
+    this._staminaModal?.destroy(true)
+    const state = getStaminaState()
+    const gems = getGems()
+    const waitMin = Math.max(1, Math.ceil(state.nextRegenMs / 60000))
+    const items = []
+    items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.44).setInteractive().on('pointerdown', () => this._dismissStaminaModal()))
+
+    const x = 34, y = 248, w = W - 68, h = 240
+    const bg = this.add.graphics()
+    bg.fillStyle(0x173248, 0.14)
+    bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
+    bg.fillStyle(0xf8fdff, 0.99)
+    bg.lineStyle(2.2, 0x9bcfe5, 0.94)
+    bg.fillRoundedRect(x, y, w, h, 24)
+    bg.strokeRoundedRect(x, y, w, h, 24)
+    bg.fillStyle(0xdff5ff, 1)
+    bg.fillCircle(W / 2, y + 55, 38)
+    items.push(bg)
+
+    items.push(this.add.text(W / 2, y + 55, '⚡', { fontSize: '34px', resolution: TEXT_RES }).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 105, 'スタミナがありません', uiText('panelTitle', { fontSize: '20px' })).setOrigin(0.5))
+    items.push(this.add.text(W / 2, y + 136, `約${waitMin}分で1回復　現在 ◆${gems}`, uiText('chip', { fontSize: '13px', color: UI_COLORS.oceanDeep })).setOrigin(0.5))
+
+    const canRefill = gems >= STAMINA_REFILL_GEM_COST
+    items.push(this._smallActionButton(W / 2, y + 180, canRefill ? `◆${STAMINA_REFILL_GEM_COST}で全回復` : `◆${STAMINA_REFILL_GEM_COST} 必要`, () => {
+      const result = refillStaminaWithGems()
+      if (result.ok) this.scene.restart()
+    }))
+    items.push(this.add.text(W / 2, y + h - 20, '閉じる', uiText('chip', { fontSize: '12px', color: UI_COLORS.inkSoft })).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._dismissStaminaModal()))
+
+    this._staminaModal = this.add.container(0, 16, items).setDepth(125).setAlpha(0)
+    this.tweens.add({ targets: this._staminaModal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
+  }
+
+  _dismissStaminaModal() {
+    this._staminaModal?.destroy(true)
+    this._staminaModal = null
   }
 
   _maybeShowDailyBonus(W, H) {
@@ -358,7 +417,8 @@ export default class HomeScene extends Phaser.Scene {
     items.push(bg)
     items.push(this.add.text(W / 2, y + 62, ICONS.BONUS, { fontSize: '40px', resolution: TEXT_RES }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 118, T.daily, uiText('panelTitle', { fontSize: '22px' })).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 150, `連続${state.streak}${T.day} / ${state.reward}pt`, uiText('chip', { fontSize: '14px', color: UI_COLORS.warning })).setOrigin(0.5))
+    const gemText = state.gemReward > 0 ? ` + ◆${state.gemReward}` : ''
+    items.push(this.add.text(W / 2, y + 150, `連続${state.streak}${T.day} / ${state.reward}pt${gemText}`, uiText('chip', { fontSize: '14px', color: UI_COLORS.warning })).setOrigin(0.5))
     items.push(this._smallActionButton(W / 2, y + 196, T.claim, () => { claimDailyBonus(); this.scene.restart() }))
     items.push(this.add.text(W / 2, y + h - 24, T.later, uiText('chip', { fontSize: '13px', color: UI_COLORS.inkSoft })).setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._dismissDailyBonus()))
     this._dailyModal = this.add.container(0, 18, items).setDepth(120).setAlpha(0)
