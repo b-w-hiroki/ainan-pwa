@@ -18,6 +18,8 @@ import WorkshopScene from './scenes/WorkshopScene.js'
 import HarborServicesScene from './scenes/HarborServicesScene.js'
 import SettingsScene from './scenes/SettingsScene.js'
 import ProfileScene from './scenes/ProfileScene.js'
+import DailyScene from './scenes/DailyScene.js'
+import AchievementScene from './scenes/AchievementScene.js'
 import { installPlayerAnimations } from './game/installPlayerAnimations.js'
 import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
 import { installRetrievePolish } from './game/installRetrievePolish.js'
@@ -54,6 +56,9 @@ import { installStaminaSessionGate } from './game/installStaminaSessionGate.js'
 import { installMidgameProgression, installTownSensoryFeedback } from './game/installMidgameProgression.js'
 import { installEnvironmentPresentation } from './game/installEnvironmentPresentation.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
+import { installRetentionProgress } from './game/installRetentionProgress.js'
+import { installBossBattlePhases } from './game/installBossBattlePhases.js'
+import { prepareQaState } from './game/qaBootstrap.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -91,6 +96,8 @@ installFishingVisualUpgrade(GameScene)
 installFishingPresentationGuard(GameScene)
 installMidgameProgression(GameScene)
 installEnvironmentPresentation(GameScene)
+installRetentionProgress(GameScene)
+installBossBattlePhases(GameScene)
 installTownSensoryFeedback(TownScene, HomeScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
 installStaminaSessionGate(GameScene)
@@ -112,10 +119,11 @@ const config = {
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, ProfileScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, ProfileScene, DailyScene, AchievementScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
 }
 
 function startGame() {
+  prepareQaState()
   ensureSaveVersion()
   const game = new Phaser.Game(config)
   window.__game = game

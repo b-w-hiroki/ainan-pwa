@@ -65,6 +65,9 @@ export default class TownScene extends Phaser.Scene {
       ASSETS.backgrounds.townBustling,
       ...Object.values(FACILITY_ART),
       ...Object.values(FACILITY_NPC),
+      ASSETS.facilities.fishShop,
+      ASSETS.facilities.diner,
+      ASSETS.characters.dinerOwner,
     ]
     assets.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
@@ -84,6 +87,7 @@ export default class TownScene extends Phaser.Scene {
     this._ambientGrowth(W, H)
     this._header(W)
     this._livingTown(W)
+    this._serviceDistrict(W, H)
     this._facilityGrid(W)
     buildFooterNav(this, W, H, 'town')
 
@@ -264,6 +268,33 @@ export default class TownScene extends Phaser.Scene {
     this._nextMilestoneCard(W, y + h + 10, s)
   }
 
+  _serviceDistrict(W, H) {
+    const facilities = this._summary?.facilities ?? {}
+    const total = this._summary?.totalLevel ?? 0
+    const y = H * 0.39
+    if ((facilities.market ?? 0) >= 2 && this.textures.exists(ASSETS.facilities.fishShop.key)) {
+      this.add.image(58, y, ASSETS.facilities.fishShop.key).setDisplaySize(82, 62).setDepth(4).setAlpha(0.92)
+      this.add.text(58, y + 38, '魚屋', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.ink }).setOrigin(0.5).setDepth(5)
+    }
+    if ((facilities.festival ?? 0) >= 2 && this.textures.exists(ASSETS.facilities.diner.key)) {
+      this.add.image(W - 58, y, ASSETS.facilities.diner.key).setDisplaySize(82, 62).setDepth(4).setAlpha(0.92)
+      if (this.textures.exists(ASSETS.characters.dinerOwner.key)) this.add.image(W - 93, y + 20, ASSETS.characters.dinerOwner.key).setDisplaySize(28, 44).setDepth(5)
+      this.add.text(W - 58, y + 38, '港食堂', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.ink }).setOrigin(0.5).setDepth(5)
+    }
+    const crowd = Math.min(8, Math.floor(total / 2))
+    for (let i = 0; i < crowd; i++) {
+      const px = 105 + ((i * 37) % Math.max(80, W - 210))
+      const py = y + 10 + (i % 2) * 15
+      const g = this.add.graphics().setDepth(4)
+      g.fillStyle(i % 3 === 0 ? 0xff765a : i % 3 === 1 ? 0x5bb5d8 : 0x71d6a2, 0.82)
+      g.fillCircle(px, py - 5, 3.5); g.fillRoundedRect(px - 3, py, 6, 10, 3)
+    }
+    if (total >= 12) {
+      const boat = this.add.graphics().setDepth(3)
+      boat.fillStyle(0xffffff, 0.72); boat.fillRoundedRect(W * 0.40, y - 42, 48, 10, 4)
+      boat.fillStyle(0x2f86b6, 0.82); boat.fillTriangle(W * 0.42, y - 43, W * 0.46, y - 66, W * 0.46, y - 43)
+    }
+  }
   _legendPlaque(cx, y) {
     const g = this.add.graphics().setDepth(7)
     g.fillStyle(0x173248, 0.16)
