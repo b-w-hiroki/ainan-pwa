@@ -14,8 +14,10 @@ export default class ChallengeScene extends Phaser.Scene {
   constructor() { super({ key: 'ChallengeScene' }) }
 
   preload() {
-    const bg = ASSETS.backgrounds.fishingCape
-    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    const wanted = [ASSETS.backgrounds.fishingCape, ...Object.values(ASSETS.bosses)]
+    wanted.forEach(asset => {
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+    })
   }
 
   create() {
@@ -42,8 +44,15 @@ export default class ChallengeScene extends Phaser.Scene {
     g.lineStyle(2.4, cleared ? 0xffd95a : unlock.unlocked ? 0xff765a : 0x9aaab3, 0.92)
     g.fillRoundedRect(x, y, w, h, 20); g.strokeRoundedRect(x, y, w, h, 20)
     g.fillStyle(cleared ? 0xffd95a : 0x173248, cleared ? 0.18 : 0.08)
-    g.fillCircle(x + 51, y + 58, 39)
-    this.add.text(x + 51, y + 58, fish.icon, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: cleared ? '#a97700' : UI_COLORS.oceanDeep }).setOrigin(0.5).setDepth(5)
+    g.fillCircle(x + 58, y + 62, 48)
+    const bossArt = ASSETS.bosses[state.id]
+    if (bossArt?.key && this.textures.exists(bossArt.key)) {
+      const image = this.add.image(x + 59, y + 62, bossArt.key).setDisplaySize(state.id === 'kue' ? 116 : 108, state.id === 'kue' ? 72 : 66).setDepth(5)
+      if (!unlock.unlocked) image.setTint(0x87939a).setAlpha(0.42)
+    } else {
+      this.add.text(x + 58, y + 62, fish.icon, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: cleared ? '#a97700' : UI_COLORS.oceanDeep }).setOrigin(0.5).setDepth(5)
+    }
+    this.add.text(x + 18, y + 16, 'BOSS', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: cleared ? '#a97700' : '#d65d47' }).setDepth(6)
     this.add.text(x + 100, y + 25, state.title, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(x + 100, y + 51, fish.name + '  ' + state.minSize + 'cm以上', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.warning }).setDepth(5)
     this.add.text(x + 100, y + 76, cleared ? 'BEST ' + state.sizeCm + 'cm' : unlock.unlocked ? '挑戦可能' : '未解放: ' + unlock.unlockedBy, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: cleared ? UI_COLORS.success : UI_COLORS.inkSoft }).setDepth(5)
