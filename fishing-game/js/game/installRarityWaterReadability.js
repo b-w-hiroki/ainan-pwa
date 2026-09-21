@@ -1,4 +1,3 @@
-import { FISH_LIST } from './fish.js'
 import { isReducedMotion } from './feedback.js'
 
 const STYLE = {
@@ -7,19 +6,12 @@ const STYLE = {
   legendary: { color: 0xffd95a, fill: 0.24, ring: 0.58, scale: 1.18 },
 }
 
-const QA_FISH = {
-  common: 'aji',
-  uncommon: 'tai',
-  rare: 'hirame',
-  legendary: 'kue',
-}
-
 function qaRarity() {
   if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
   if (params.get('qa') !== '1') return null
   const rarity = params.get('qaRarity')
-  return QA_FISH[rarity] ? rarity : null
+  return ['common', 'uncommon', 'rare', 'legendary'].includes(rarity) ? rarity : null
 }
 
 function clearAura(scene) {
@@ -81,17 +73,28 @@ function applyAura(scene) {
   }
 }
 
-function forceQaFish(scene) {
-  const rarity = qaRarity()
-  if (!rarity) return null
-  const fish = FISH_LIST.find(item => item.id === QA_FISH[rarity])
-  if (!fish) return null
-  scene.fish = fish
-  scene.env ??= {}
-  // Kue is used only as a legendary visual sample here; keep it away from
-  // pointC so boss systems cannot classify this comparison as a boss fight.
-  scene.env.point = rarity === 'legendary' ? 'pointA' : (fish.habitat?.[0] ?? scene.env.point)
-  return fish
+function applyQaVisual(scene, rarity) {
+  const target = scene._targetFishGfx
+  const image = target?._assetImage
+  if (!target?.active || !image?.active) return
+  clearAura(scene)
+  scene._rarityWaterTarget = target
+
+  const style = STYLE[rarity]
+  if (style) {
+    target._rarityRestore = { width: image.displayWidth, height: image.displayHeight }
+    const aura = scene.add.graphics()
+    aura.fillStyle(style.color, style.fill)
+    aura.fillEllipse(0, 0, image.displayWidth * 1.55, image.displayHeight * 2.05)
+    aura.lineStyle(rarity === 'legendary' ? 3 : 2, style.color, style.ring)
+    aura.strokeEllipse(0, 0, image.displayWidth * 1.36, image.displayHeight * 1.75)
+    target.addAt?.(aura, 0)
+    target._rarityAura = aura
+    image.setDisplaySize(target._rarityRestore.width * style.scale, target._rarityRestore.height * style.scale)
+    if (rarity === 'uncommon') image.setTint(0xcff7df)
+    if (rarity === 'rare') image.setTint(0xe1d4ff)
+    if (rarity === 'legendary') image.setTint(0xffefad)
+  }
 }
 
 function buildQaPreview(scene) {
@@ -122,13 +125,13 @@ export function installRarityWaterReadability(GameScene) {
   const originalBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     clearAura(this)
-    const forced = forceQaFish(this)
+    const rarity = qaRarity()
     const result = originalBattle.apply(this, args)
-    if (forced) {
-      // The forced Battle path is used only by visual QA. Apply the same
-      // rarity treatment to the on-screen target after Battle composition.
+    if (rarity) {
+      // QA reuses the known-good normal Battle composition and changes only
+      // the rarity treatment. This keeps visual regression screenshots stable.
       this.time.delayedCall(0, () => {
-        applyAura(this)
+        applyQaVisual(this, rarity)
         buildQaPreview(this)
       })
     }
