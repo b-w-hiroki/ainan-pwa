@@ -14,7 +14,7 @@ export default class HarborServicesScene extends Phaser.Scene {
   constructor() { super({ key: 'HarborServicesScene' }) }
 
   preload() {
-    const wanted = [ASSETS.backgrounds.townGrowing, ASSETS.facilities.fishShop, ASSETS.facilities.diner, ASSETS.characters.dinerOwner, ASSETS.ui.panelHarbor]
+    const wanted = [ASSETS.backgrounds.townGrowing, ASSETS.facilities.fishShop, ASSETS.facilities.diner, ASSETS.characters.fishmonger, ASSETS.characters.dinerOwner, ASSETS.ui.panelHarbor]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
     })
@@ -57,6 +57,9 @@ export default class HarborServicesScene extends Phaser.Scene {
       if (!unlocked) art.setTint(0x9aaab3).setAlpha(0.35)
       else art.setAlpha(0.82)
     }
+    if (unlocked && this.textures.exists(ASSETS.characters.fishmonger.key)) {
+      this.add.image(x + 35, y + 76, ASSETS.characters.fishmonger.key).setDisplaySize(42, 62).setDepth(6)
+    }
     if (!unlocked) return
 
     const stock = getCatchStock()
@@ -92,7 +95,7 @@ export default class HarborServicesScene extends Phaser.Scene {
       else art.setAlpha(0.76)
     }
     if (unlocked && this.textures.exists(ASSETS.characters.dinerOwner.key)) {
-      this.add.image(x + 34, y + 72, ASSETS.characters.dinerOwner.key).setDisplaySize(34, 52).setDepth(6)
+      this.add.image(x + 35, y + 72, ASSETS.characters.dinerOwner.key).setDisplaySize(42, 62).setDepth(6)
     }
     if (!unlocked) return
 
