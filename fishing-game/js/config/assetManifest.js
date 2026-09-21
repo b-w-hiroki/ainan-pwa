@@ -83,8 +83,8 @@ export const ASSETS = {
     locationCape: { key: 'ff_location_cape', path: assetPath('fishing-game/assets/fishing-field/location/location_cape_overlay.svg'), status: 'ready' },
   },
   bosses: {
-    harborRunner: { key: 'boss_harbor_runner', path: assetPath('fishing-game/assets/boss/boss_harbor_runner.svg'), status: 'ready' },
-    bayHunter: { key: 'boss_bay_hunter', path: assetPath('fishing-game/assets/boss/boss_bay_hunter.svg'), status: 'ready' },
+    harborRunner: { key: 'boss_harbor_runner', path: assetPath('fishing-game/assets/boss/boss_buri.svg'), status: 'ready' },
+    bayHunter: { key: 'boss_bay_hunter', path: assetPath('fishing-game/assets/boss/boss_bass.svg'), status: 'ready' },
     kue: { key: 'boss_kue', path: assetPath('fishing-game/assets/boss/boss_kue.svg'), status: 'ready' },
   },
   rewards: {
