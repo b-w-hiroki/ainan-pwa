@@ -105,6 +105,7 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1600 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaPlayer=battle" artifacts/e2e/37-player-battle.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue&qaPlayer=boss" artifacts/e2e/38-player-boss.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3600 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=rare&qaPlayer=result" artifacts/e2e/39-player-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=AchievementScene&qaRewardBanner=achievement" artifacts/e2e/40-achievement-reward-banner.png
 
       - name: Upload E2E screenshots
         uses: actions/upload-artifact@v4
