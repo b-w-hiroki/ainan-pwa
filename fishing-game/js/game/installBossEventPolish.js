@@ -1,4 +1,5 @@
 import { BOSS_META, getBossStates } from './midgameProgression.js'
+import { FISH_LIST } from './fish.js'
 import { getBossMetaForScene, getBossVisual } from './bossVisuals.js'
 import { haptic, isReducedMotion, playSfx } from './feedback.js'
 
@@ -6,6 +7,23 @@ const PERSONALITY = {
   harborRunner: { label: 'SPEED', sub: '高速で海面を切り裂く', motion: 'runner' },
   bayHunter: { label: 'HUNTER', sub: '急な切り返しで揺さぶる', motion: 'hunter' },
   kue: { label: 'HEAVY', sub: '深場から重量で押し返す', motion: 'heavy' },
+}
+
+function forcedBossId(scene) {
+  if (scene?.env?.bossId && BOSS_META[scene.env.bossId]) return scene.env.bossId
+  if (typeof window === 'undefined') return null
+  const p = new URLSearchParams(window.location.search)
+  return p.get('qa') === '1' && BOSS_META[p.get('qaBoss')] ? p.get('qaBoss') : null
+}
+
+function forceBossFish(scene) {
+  const id = forcedBossId(scene)
+  const meta = id ? BOSS_META[id] : null
+  if (!meta) return null
+  const fish = scene?.fish?.id === meta.fishId
+    ? scene.fish
+    : (scene.constructor ? null : null)
+  return meta
 }
 
 function qaPersistentEncounter() {
@@ -117,8 +135,7 @@ function applyPersonality(scene) {
     target.x += Math.sin(t * 1.5) * 4
     target.y += Math.sin(t * 1.15) * 9 * intensity
     target.setAngle(Math.sin(t * 1.2) * 2.2)
-    const pulse = 1 + Math.sin(t * 1.4) * 0.018
-    target.setScale((target.scaleX < 0 ? -1 : 1) * Math.abs(target.scaleX) * pulse, target.scaleY * pulse)
+    // Keep the heavy boss visually stable; weight comes from slow vertical motion, not scale drift.
   }
 }
 
@@ -160,10 +177,42 @@ export function installBossEventPolish(GameScene) {
   if (GameScene.prototype.__ainanBossEventPolishInstalled) return
   GameScene.prototype.__ainanBossEventPolishInstalled = true
 
+  const originalEnterWait = GameScene.prototype._enterWait
+  GameScene.prototype._enterWait = function (...args) {
+    const result = originalEnterWait.apply(this, args)
+    const id = forcedBossId(this)
+    const meta = id ? BOSS_META[id] : null
+    if (meta) {
+      const fish = FISH_LIST.find(item => item.id === meta.fishId)
+      if (fish) this.fish = fish
+      this.env.bossId = id
+    }
+    return result
+  }
+
+  const originalRollFishSize = GameScene.prototype._rollFishSize
+  GameScene.prototype._rollFishSize = function (fish, ...args) {
+    const id = forcedBossId(this)
+    const meta = id ? BOSS_META[id] : null
+    if (meta && fish?.id === meta.fishId && typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search)
+      if (p.get('qa') === '1' && p.get('qaFreshBoss') === '1') return meta.minSize + 12
+    }
+    return originalRollFishSize.call(this, fish, ...args)
+  }
+
   const originalEnter = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
+    const id = forcedBossId(this)
+    const forcedMeta = id ? BOSS_META[id] : null
+    if (forcedMeta) {
+      const fish = FISH_LIST.find(item => item.id === forcedMeta.fishId)
+      if (fish) this.fish = fish
+      this.env.point = forcedMeta.pointId
+      this.env.bossId = id
+    }
     const result = originalEnter.apply(this, args)
-    const meta = getBossMetaForScene(this)
+    const meta = forcedMeta ?? getBossMetaForScene(this)
     this._bossEventMeta = meta
     if (meta) showEncounter(this, meta)
     return result
