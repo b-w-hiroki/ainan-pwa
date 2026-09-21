@@ -65,6 +65,7 @@ import { installBossArtPresentation } from './game/installBossArtPresentation.js
 import { installBossEventPolish } from './game/installBossEventPolish.js'
 import { installRarityWaterReadability } from './game/installRarityWaterReadability.js'
 import { installCatchRewardPolish } from './game/installCatchRewardPolish.js'
+import { installLocationAtmosphere } from './game/installLocationAtmosphere.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -109,6 +110,7 @@ installBossArtPresentation(GameScene)
 installBossEventPolish(GameScene)
 installRarityWaterReadability(GameScene)
 installCatchRewardPolish(GameScene)
+installLocationAtmosphere(GameScene)
 installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
