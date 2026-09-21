@@ -138,7 +138,7 @@ export function installPlayerFishingPolish(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     const qa = qaPlayerState()
-    if (qa === 'hit') this.time.delayedCall(250, () => showHit(this))
+    if (qa === 'hit') this.time.delayedCall(250, () => panel(this, { label: 'HIT!', accent: 0x5bb5d8, persistent: true }))
     if (qa === 'battle') this.time.delayedCall(250, () => showBattle(this))
     if (qa === 'boss') this.time.delayedCall(250, () => showBattle(this))
     return result
