@@ -1,13 +1,7 @@
 import { FISH_LIST } from './fish.js'
 import { BOSS_META } from './midgameProgression.js'
-import { getBossArt, getBossMetaForScene } from './bossArt.js'
+import { getBossMetaForScene, getBossVisual } from './bossVisuals.js'
 import { isReducedMotion } from './feedback.js'
-
-const SIZE = {
-  harborRunner: { battle: [236, 132], result: [246, 138], accent: 0x5bb5d8 },
-  bayHunter: { battle: [232, 132], result: [242, 138], accent: 0x8f80e8 },
-  kue: { battle: [260, 160], result: [270, 166], accent: 0xff765a },
-}
 
 function clearBossResult(scene) {
   scene._bossResultVisuals?.forEach(obj => obj?.destroy?.())
@@ -29,13 +23,14 @@ function clearBossBattleArt(scene) {
 
 function applyBossBattleArt(scene) {
   const meta = getBossMetaForScene(scene)
-  const art = meta ? getBossArt(meta.id) : null
+  const visual = meta ? getBossVisual(meta.id) : null
+  const art = visual?.asset
   const target = scene._targetFishGfx
   const image = target?._assetImage
   if (!meta || !art?.key || !image?.active || !scene.textures.exists(art.key)) return
 
   clearBossBattleArt(scene)
-  const size = SIZE[meta.id] ?? SIZE.harborRunner
+  const size = visual
   scene._bossArtRestore = {
     image,
     textureKey: image.texture?.key,
@@ -43,39 +38,40 @@ function applyBossBattleArt(scene) {
     height: image.displayHeight,
   }
 
-  image.setTexture(art.key).setDisplaySize(...size.battle).setAlpha(1)
+  image.setTexture(art.key).setDisplaySize(...size.battleSize).setAlpha(1)
   target.setAlpha(1).setDepth(34)
 
   const aura = scene.add.graphics()
-  aura.fillStyle(size.accent, 0.13)
-  aura.fillEllipse(0, 0, size.battle[0] * 1.12, size.battle[1] * 1.32)
-  aura.lineStyle(3, size.accent, 0.32)
-  aura.strokeEllipse(0, 0, size.battle[0] * 1.03, size.battle[1] * 1.18)
+  aura.fillStyle(visual.accent, 0.13)
+  aura.fillEllipse(0, 0, size.battleSize[0] * 1.12, size.battleSize[1] * 1.32)
+  aura.lineStyle(3, visual.accent, 0.32)
+  aura.strokeEllipse(0, 0, size.battleSize[0] * 1.03, size.battleSize[1] * 1.18)
   target.addAt?.(aura, 0)
   scene._bossArtAura = aura
 }
 
 function buildBossResult(scene, meta) {
   clearBossResult(scene)
-  const art = getBossArt(meta.id)
+  const visual = getBossVisual(meta.id)
+  const art = visual?.asset
   if (!art?.key || !scene.textures.exists(art.key)) return
   const { width: W, height: H } = scene.scale
-  const size = SIZE[meta.id] ?? SIZE.harborRunner
+  const size = visual
   const objects = []
   const tweens = []
 
   if (scene._resultHeroFish?.active) {
-    scene._resultHeroFish.setTexture(art.key).setDisplaySize(...size.result)
+    scene._resultHeroFish.setTexture(art.key).setDisplaySize(...size.resultSize)
     scene._resultHeroFish.setY(H / 2 - 122)
   }
 
-  const glow = scene.add.ellipse(W / 2, H / 2 - 122, size.result[0] * 1.2, size.result[1] * 1.55, size.accent, 0.12)
+  const glow = scene.add.ellipse(W / 2, H / 2 - 122, size.resultSize[0] * 1.2, size.resultSize[1] * 1.55, visual.accent, 0.12)
     .setDepth(128).setScrollFactor(0)
   objects.push(glow)
 
   const bannerBg = scene.add.graphics().setDepth(141).setScrollFactor(0)
   bannerBg.fillStyle(0x071a28, 0.94)
-  bannerBg.lineStyle(2.5, size.accent, 0.9)
+  bannerBg.lineStyle(2.5, visual.accent, 0.9)
   bannerBg.fillRoundedRect(W / 2 - 126, H / 2 - 264, 252, 48, 16)
   bannerBg.strokeRoundedRect(W / 2 - 126, H / 2 - 264, 252, 48, 16)
   objects.push(bannerBg)
