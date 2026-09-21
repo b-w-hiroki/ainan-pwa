@@ -94,13 +94,13 @@ function showEncounter(scene, meta) {
   }
 
   if (!qaPersistentEncounter()) {
-    scene.time.delayedCall(950, () => {
-      if (!scene._bossEncounterCutin) return
+    window.setTimeout(() => {
+      if (!scene?._bossEncounterCutin?.active) return
       scene.tweens.add({
         targets: c, alpha: 0, y: c.y - 18, duration: 260,
         onComplete: () => clearEncounter(scene),
       })
-    })
+    }, 1200)
   }
 }
 
