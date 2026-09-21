@@ -21,6 +21,7 @@ export function installStaminaSessionGate(GameScene) {
             this._stopRetrieveRuntime?.()
             this._enterBattle?.()
           }
+          if (action === 'battle' && this.phase === 'battle' && this._battleTimer) this._battleTimer.paused = true
           if (action === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
         })
       }
