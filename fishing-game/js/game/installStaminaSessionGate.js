@@ -15,14 +15,27 @@ export function installStaminaSessionGate(GameScene) {
       const params = new URLSearchParams(window.location.search)
       const action = params.get('qa') === '1' ? params.get('qaAction') : null
       if (action === 'battle' || action === 'caught') {
-        this.time.delayedCall(120, () => {
+        window.setTimeout(() => {
           if (this.phase !== 'battle' && this.phase !== 'result') {
             this._killWaitTimers?.()
             this._stopRetrieveRuntime?.()
             this._enterBattle?.()
           }
+          if (action === 'battle' && this.phase === 'battle') {
+            this._battleTimer?.remove?.(false)
+            this._battleTimer = undefined
+            if (this.battleState) {
+              this.battleState.escape = 42
+              this.battleState.reel = 58
+              this.battleState.isRaging = false
+              this.battleState.nextRageAt = Number.POSITIVE_INFINITY
+            }
+            this._syncBattleUI?.()
+            this.escapeBar?.setVisible?.(true)
+            this.battlePanel?.setVisible?.(true)
+          }
           if (action === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
-        })
+        }, 220)
       }
     }
     return result

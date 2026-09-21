@@ -6,6 +6,7 @@ import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
+import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -52,7 +53,7 @@ export default class MapScene extends Phaser.Scene {
   constructor() { super({ key: 'MapScene' }) }
 
   preload() {
-    const wanted = [ASSETS.backgrounds.mapTown, ...Object.values(POINT_PIN), ...Object.values(FISH_ART)]
+    const wanted = [ASSETS.backgrounds.mapTown, ...Object.values(POINT_PIN), ...Object.values(FISH_ART), ...Object.values(ASSETS.bosses)]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
     })
@@ -65,6 +66,7 @@ export default class MapScene extends Phaser.Scene {
     this._pointMarkers = {}
     this._unlocks = getTownUnlockState()
     this._conditions = getWorldConditions()
+    this._bossStates = getBossStates()
     this._buildMapBackground(W, H)
     this._buildHeader(W)
     this._buildRouteLine(W, H)
@@ -224,6 +226,25 @@ export default class MapScene extends Phaser.Scene {
       .on('pointerover', () => marker.setScale(1.07))
       .on('pointerout', () => marker.setScale(1))
 
+    const bossMeta = Object.values(BOSS_META).find(meta => meta.pointId === point.id)
+    const bossState = bossMeta ? this._bossStates?.[bossMeta.id] : null
+    if (bossMeta && unlock.unlocked) {
+      const badge = this.add.graphics()
+      const cleared = !!bossState?.cleared
+      badge.fillStyle(cleared ? 0xffd95a : 0xff765a, 0.96)
+      badge.lineStyle(1.5, 0xffffff, 0.82)
+      badge.fillRoundedRect(-41, -48, 82, 22, 9)
+      badge.strokeRoundedRect(-41, -48, 82, 22, 9)
+      const bossLabel = this.add.text(0, -37, cleared ? '★ TROPHY' : 'BOSS!', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900',
+        color: cleared ? UI_COLORS.ink : '#ffffff',
+      }).setOrigin(0.5)
+      marker.add([badge, bossLabel])
+      if (!cleared) {
+        this.tweens.add({ targets: badge, alpha: 0.48, duration: 720 + index * 120, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+      }
+    }
+
     marker.add([pulse, pin, numBg, num, nameBg, name, status, hit])
     marker._pulse = pulse
     marker._pin = pin
@@ -351,6 +372,32 @@ export default class MapScene extends Phaser.Scene {
     }))
 
     this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty, unlock.unlocked)
+
+    const bossMeta = Object.values(BOSS_META).find(meta => meta.pointId === point.id)
+    const bossState = bossMeta ? this._bossStates?.[bossMeta.id] : null
+    if (bossMeta && unlock.unlocked) {
+      const bossArt = ASSETS.bosses[bossMeta.id]
+      if (bossArt?.key && this.textures.exists(bossArt.key)) {
+        items.push(this.add.image(x + w - 44, y + 82, bossArt.key)
+          .setDisplaySize(bossMeta.id === 'kue' ? 82 : 74, bossMeta.id === 'kue' ? 51 : 45)
+          .setAlpha(bossState?.cleared ? 0.92 : 0.78))
+      }
+      items.push(this.add.text(x + 88, y + 76,
+        bossState?.cleared ? '★ ' + bossMeta.title + ' / BEST ' + bossState.sizeCm + 'cm' : 'BOSSの気配  ' + bossMeta.title,
+        {
+          fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+          color: bossState?.cleared ? '#a97700' : '#d65d47',
+        }))
+      const challenge = this.add.text(x + w - 22, y + 105, bossState?.cleared ? '大物挑戦 / 再戦 ›' : '大物挑戦 ›', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+        color: bossState?.cleared ? '#a97700' : '#d65d47',
+        backgroundColor: bossState?.cleared ? '#fff2c7' : '#ffe1d8',
+        padding: { x: 7, y: 4 },
+      }).setOrigin(1, 0.5)
+      challenge.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ChallengeScene'))
+      items.push(challenge)
+    }
+
     items.push(this.add.text(x + 18, y + 96, unlock.unlocked
       ? `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`
       : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
