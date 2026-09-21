@@ -388,6 +388,14 @@ export default class MapScene extends Phaser.Scene {
           fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
           color: bossState?.cleared ? '#a97700' : '#d65d47',
         }))
+      const challenge = this.add.text(x + w - 22, y + 105, bossState?.cleared ? '大物挑戦 / 再戦 ›' : '大物挑戦 ›', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+        color: bossState?.cleared ? '#a97700' : '#d65d47',
+        backgroundColor: bossState?.cleared ? '#fff2c7' : '#ffe1d8',
+        padding: { x: 7, y: 4 },
+      }).setOrigin(1, 0.5)
+      challenge.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ChallengeScene'))
+      items.push(challenge)
     }
 
     items.push(this.add.text(x + 18, y + 96, unlock.unlocked
