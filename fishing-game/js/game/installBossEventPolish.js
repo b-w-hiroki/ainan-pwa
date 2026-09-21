@@ -72,7 +72,7 @@ function showEncounter(scene, meta) {
   if (artImg) c.add(artImg)
   scene._bossEncounterCutin = c
   scene._bossEncounterTweens = []
-  scene.cameras.main.flash(180, 255, 230, 170, true)
+  if (!qaPersistentEncounter()) scene.cameras.main.flash(180, 255, 230, 170, true)
   scene.cameras.main.shake(180, meta.id === 'kue' ? 0.010 : 0.006)
   playSfx('boss')
   haptic(meta.id === 'kue' ? [45, 35, 80] : [30, 25, 45])
