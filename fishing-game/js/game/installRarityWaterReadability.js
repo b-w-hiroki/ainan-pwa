@@ -1,4 +1,3 @@
-import { FISH_LIST } from './fish.js'
 import { isReducedMotion } from './feedback.js'
 
 const STYLE = {
@@ -7,19 +6,12 @@ const STYLE = {
   legendary: { color: 0xffd95a, fill: 0.24, ring: 0.58, scale: 1.18 },
 }
 
-const QA_FISH = {
-  common: 'aji',
-  uncommon: 'tai',
-  rare: 'hirame',
-  legendary: 'kue',
-}
-
 function qaRarity() {
   if (typeof window === 'undefined') return null
   const params = new URLSearchParams(window.location.search)
   if (params.get('qa') !== '1') return null
   const rarity = params.get('qaRarity')
-  return QA_FISH[rarity] ? rarity : null
+  return ['common', 'uncommon', 'rare', 'legendary'].includes(rarity) ? rarity : null
 }
 
 function clearAura(scene) {
@@ -81,40 +73,46 @@ function applyAura(scene) {
   }
 }
 
-function stageQaFish(scene) {
+function applyQaVisual(scene, rarity) {
+  const target = scene._targetFishGfx
+  const image = target?._assetImage
+  if (!target?.active || !image?.active) return
+  clearAura(scene)
+  scene._rarityWaterTarget = target
+
+  const style = STYLE[rarity]
+  if (style) {
+    target._rarityRestore = { width: image.displayWidth, height: image.displayHeight }
+    const aura = scene.add.graphics()
+    aura.fillStyle(style.color, style.fill)
+    aura.fillEllipse(0, 0, image.displayWidth * 1.55, image.displayHeight * 2.05)
+    aura.lineStyle(rarity === 'legendary' ? 3 : 2, style.color, style.ring)
+    aura.strokeEllipse(0, 0, image.displayWidth * 1.36, image.displayHeight * 1.75)
+    target.addAt?.(aura, 0)
+    target._rarityAura = aura
+    image.setDisplaySize(target._rarityRestore.width * style.scale, target._rarityRestore.height * style.scale)
+    if (rarity === 'uncommon') image.setTint(0xcff7df)
+    if (rarity === 'rare') image.setTint(0xe1d4ff)
+    if (rarity === 'legendary') image.setTint(0xffefad)
+  }
+}
+
+function buildQaPreview(scene) {
   const rarity = qaRarity()
   if (!rarity) return
-  const fish = FISH_LIST.find(item => item.id === QA_FISH[rarity])
-  const target = scene.bg?._fishGfx?.[0]
-  if (!fish || !target?.active) return
-  scene.fish = fish
-  scene.env.point = rarity === 'legendary' ? 'pointC' : fish.habitat?.[0] ?? scene.env.point
-  scene.bg?._fishTweens?.[0]?.stop?.()
-  scene._targetFishIndex = 0
-  scene._targetFishGfx = target
-  target.setPosition(scene.cameras.main.scrollX + scene.scale.width * 0.50, scene.cameras.main.scrollY + 330)
-  target.setScale(1, 1).setAlpha(1).setDepth(28)
-  applyAura(scene)
-
-  const label = scene.add.text(scene.scale.width / 2, 214, rarity.toUpperCase(), {
+  scene._rarityQaLabel?.destroy?.()
+  const label = scene.add.text(scene.scale.width / 2, 128, rarity.toUpperCase(), {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
-    backgroundColor: 'rgba(7,55,84,.78)',
+    backgroundColor: 'rgba(7,55,84,.82)',
     padding: { x: 10, y: 5 },
-  }).setOrigin(0.5).setDepth(96).setScrollFactor(0)
+  }).setOrigin(0.5).setDepth(196).setScrollFactor(0)
   scene._rarityQaLabel = label
 }
 
 export function installRarityWaterReadability(GameScene) {
   if (GameScene.prototype.__ainanRarityWaterReadabilityInstalled) return
   GameScene.prototype.__ainanRarityWaterReadabilityInstalled = true
-
-  const originalCreate = GameScene.prototype.create
-  GameScene.prototype.create = function (...args) {
-    const result = originalCreate.apply(this, args)
-    if (qaRarity()) this.time.delayedCall(220, () => stageQaFish(this))
-    return result
-  }
 
   const originalApproach = GameScene.prototype._startFishApproach
   GameScene.prototype._startFishApproach = function (...args) {
@@ -127,7 +125,17 @@ export function installRarityWaterReadability(GameScene) {
   const originalBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     clearAura(this)
-    return originalBattle.apply(this, args)
+    const rarity = qaRarity()
+    const result = originalBattle.apply(this, args)
+    if (rarity) {
+      // QA reuses the known-good normal Battle composition and changes only
+      // the rarity treatment. This keeps visual regression screenshots stable.
+      this.time.delayedCall(0, () => {
+        applyQaVisual(this, rarity)
+        buildQaPreview(this)
+      })
+    }
+    return result
   }
 
   const originalCast = GameScene.prototype._enterCast
