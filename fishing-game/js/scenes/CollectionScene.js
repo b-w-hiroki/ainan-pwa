@@ -6,6 +6,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { FISH_META, getCatches, markBookSeen } from '../game/progress.js'
 import { claimCollectionReward, getCollectionRewardState } from '../game/midgameProgression.js'
+import { getFishRecord } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -229,7 +230,10 @@ export default class CollectionScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '13px', fontWeight: '900', color: UI_COLORS.warning,
     }).setOrigin(0.5))
-    items.push(this.add.text(W / 2, y + 272, caught ? fish.encounter : `ヒント: ${fish.habitat}にいるらしい`, {
+    const record = caught ? getFishRecord(id) : null
+    const placeLabel = { pointA: '汐風港', pointB: '蒼海湾', pointC: '黒潮崎' }
+    const detail = record?.best ? `BEST ${record.best.sizeCm}cm / ${placeLabel[record.best.point] ?? '-'} / ${record.best.season ?? '-'}・${record.best.timeOfDay ?? '-'}・${record.best.weather ?? '-'}` : (caught ? fish.encounter : `ヒント: ${fish.habitat}にいるらしい`)
+    items.push(this.add.text(W / 2, y + 272, detail, {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '14px', fontWeight: '800', color: UI_COLORS.ink,
       align: 'center', wordWrap: { width: w - 48 },

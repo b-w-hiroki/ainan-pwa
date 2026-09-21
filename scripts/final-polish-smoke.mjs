@@ -16,11 +16,11 @@ const save = await import('../fishing-game/js/game/saveSystem.js')
 const fishModule = await import('../fishing-game/js/game/fish.js')
 const conditions = await import('../fishing-game/js/game/worldConditions.js')
 
-// Save v1 -> v2 migration must preserve old progress and create new domains.
+// Save v1 -> current migration must preserve old progress and create new domains.
 localStorage.setItem('ainan_score', '1234')
 localStorage.setItem('ainan_catches', JSON.stringify([{ fishId: 'aji', score: 80, sizeCm: 24.1, timestamp: 1 }]))
 localStorage.setItem('ainan_save_version', '1')
-assert.equal(save.ensureSaveVersion(), 2)
+assert.equal(save.ensureSaveVersion(), save.SAVE_VERSION)
 assert.equal(localStorage.getItem('ainan_score'), '1234')
 assert.equal(JSON.parse(localStorage.getItem('ainan_catches')).length, 1)
 for (const key of ['ainan_materials', 'ainan_rod_levels', 'ainan_accessories', 'ainan_catch_stock', 'ainan_boss_trophies', 'ainan_collection_rewards']) {
@@ -36,13 +36,16 @@ localStorage.setItem('ainan_save_backup', JSON.stringify({
   data: { ainan_score: '777', ainan_catches: '[]' },
 }))
 localStorage.setItem('ainan_score', '999')
+localStorage.removeItem('ainan_save_backup_1')
+localStorage.removeItem('ainan_save_backup_2')
+localStorage.removeItem('ainan_save_backup_3')
 localStorage.removeItem('ainan_materials')
 localStorage.removeItem('ainan_rod_levels')
 assert.equal(save.restoreLatestBackup(), true)
 assert.equal(progress.getScore(), 777)
 assert.ok(localStorage.getItem('ainan_materials'))
 assert.ok(localStorage.getItem('ainan_rod_levels'))
-assert.equal(localStorage.getItem('ainan_save_version'), '2')
+assert.equal(localStorage.getItem('ainan_save_version'), String(save.SAVE_VERSION))
 
 // Expanded content contract.
 assert.equal(fishModule.FISH_LIST.length, 9)

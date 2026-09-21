@@ -21,6 +21,14 @@ export default class TitleScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale
 
+    // Deterministic CI screenshot routing. Normal play is unaffected.
+    const qaParams = new URLSearchParams(window.location.search)
+    const qaScene = qaParams.get('qa') === '1' ? qaParams.get('scene') : null
+    if (qaScene && qaScene !== 'TitleScene') {
+      this.scene.start(qaScene)
+      return
+    }
+
     const artBg = addCoverImage(this, ASSETS.backgrounds.titleHarborMorning.key, W, H, 0)
     if (artBg) {
       addReadableOverlay(this, W, H, 1)

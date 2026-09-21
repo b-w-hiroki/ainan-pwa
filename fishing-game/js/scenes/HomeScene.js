@@ -20,6 +20,7 @@ import {
   STAMINA_REFILL_GEM_COST,
 } from '../game/progress.js'
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
+import { getDailyChallengeState, getOnboardingState } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -58,6 +59,7 @@ export default class HomeScene extends Phaser.Scene {
     this._buildHeader(W)
     this._buildGrowthBanner(W)
     this._buildTopShortcuts(W)
+    this._buildRetentionStrip(W)
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
     this._buildMainCTA(W, H)
@@ -142,7 +144,7 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(42, 45, ICONS.ROD, { fontSize: '18px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
     this.add.text(64, 38, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
     this.add.text(64, 55, this._hasKue ? `RANK ${String(rank).padStart(2, '0')}  LEGEND` : `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
-    this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('RankScene'))
+    this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ProfileScene'))
 
     this._buildResourceChip(W - 116, 26, ICONS.SCORE, this._shortNum(totalScore), 0xfff5d9)
     this._buildResourceChip(W - 62, 26, ICONS.FISH, this._shortNum(catches.length), 0xdff5ff)
@@ -267,6 +269,29 @@ export default class HomeScene extends Phaser.Scene {
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', item.action)
   }
 
+  _buildRetentionStrip(W) {
+    const onboarding = getOnboardingState()
+    const daily = getDailyChallengeState()
+    const y = 232, gap = 8, x = 22, totalW = W - 44, cardW = (totalW - gap) / 2, h = 54
+    const current = onboarding.current
+    const left = this.add.graphics().setDepth(13)
+    left.fillStyle(0xffffff, 0.96); left.lineStyle(1.5, 0x71d6a2, 0.78)
+    left.fillRoundedRect(x, y, cardW, h, 15); left.strokeRoundedRect(x, y, cardW, h, 15)
+    this.add.text(x + 12, y + 15, onboarding.completed ? 'GUIDE COMPLETE' : 'NEXT STEP', uiText('micro', { fontSize: '8px', color: UI_COLORS.success })).setDepth(14)
+    this.add.text(x + 12, y + 34, onboarding.completed ? '基本ループ習得済み' : current.title, uiText('cardTitle', { fontSize: '10px' })).setDepth(14)
+    this.add.text(x + cardW - 12, y + 34, onboarding.completed ? '✓' : (onboarding.doneCount + '/5'), uiText('chip', { fontSize: '10px', color: UI_COLORS.success })).setOrigin(1, 0).setDepth(14)
+    if (!onboarding.completed && !onboarding.skipped) this.add.rectangle(x + cardW / 2, y + h / 2, cardW, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(current.scene))
+
+    const dx = x + cardW + gap
+    const right = this.add.graphics().setDepth(13)
+    right.fillStyle(0xffffff, 0.96); right.lineStyle(1.5, 0xffb45d, 0.82)
+    right.fillRoundedRect(dx, y, cardW, h, 15); right.strokeRoundedRect(dx, y, cardW, h, 15)
+    this.add.text(dx + 12, y + 15, 'TODAY +15%', uiText('micro', { fontSize: '8px', color: UI_COLORS.warning })).setDepth(14)
+    this.add.text(dx + 12, y + 34, daily.focus.fishName + 'を狙う', uiText('cardTitle', { fontSize: '10px' })).setDepth(14)
+    const claimable = (daily.focusTask.done && !daily.focusTask.claimed) || (daily.bigTask.done && !daily.bigTask.claimed)
+    this.add.text(dx + cardW - 12, y + 34, claimable ? '受取！' : daily.focusTask.progress + '/2', uiText('chip', { fontSize: '10px', color: claimable ? UI_COLORS.warning : UI_COLORS.oceanDeep })).setOrigin(1, 0).setDepth(14)
+    this.add.rectangle(dx + cardW / 2, y + h / 2, cardW, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('DailyScene'))
+  }
   _buildGuideCharacter(W, H) {
     const c = this.add.container(W / 2 + 28, H * 0.57).setDepth(7)
     const aura = this.add.graphics()

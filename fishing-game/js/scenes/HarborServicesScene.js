@@ -6,6 +6,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { FISH_META, getScore, getTownFacilities } from '../game/progress.js'
 import { MEAL_META, cookMeal, getActiveMeal, getCatchStock, sellAllCatches, sellCatch } from '../game/midgameProgression.js'
+import { markServicesSeen } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -20,6 +21,7 @@ export default class HarborServicesScene extends Phaser.Scene {
   }
 
   create() {
+    markServicesSeen()
     const W = this.scale.width, H = this.scale.height
     this._facilities = getTownFacilities()
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)

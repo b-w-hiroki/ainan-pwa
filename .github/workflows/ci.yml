@@ -27,5 +27,61 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Vertical slice QA and build
+      - name: QA and production build
         run: npm run build
+
+  mobile-e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ainan-preview.log
+          exit 1
+
+      - name: Capture iPhone QA flows
+        run: |
+          mkdir -p artifacts/e2e
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/01-home.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene" artifacts/e2e/02-map.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2400 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle" artifacts/e2e/03-battle.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught" artifacts/e2e/04-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene" artifacts/e2e/05-town.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=ProfileScene" artifacts/e2e/06-profile.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=DailyScene" artifacts/e2e/07-daily.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=AchievementScene" artifacts/e2e/08-achievements.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=CollectionScene" artifacts/e2e/09-collection.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=WorkshopScene" artifacts/e2e/10-workshop.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HarborServicesScene" artifacts/e2e/11-services.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=SettingsScene" artifacts/e2e/12-settings.png
+
+      - name: Upload E2E screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: ainan-mobile-e2e
+          path: artifacts/e2e
+          retention-days: 14
