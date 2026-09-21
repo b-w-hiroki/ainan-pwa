@@ -55,5 +55,5 @@ assert.ok(challenge.includes('ASSETS.bosses[state.id]'), 'challenge cards must s
 
 console.log('Visual Art Pack 2 smoke QA passed')
 console.log('  fishing locations: 3 distinct v2 backgrounds + overlays')
-console.log('  boss art: 3 dedicated large assets (buri / bass / kue)')
+console.log('  boss art: 3 dedicated large assets (harborRunner / bayHunter / kue)')
 console.log('  Challenge / Battle / Result integration: OK')
