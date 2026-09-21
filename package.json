@@ -12,7 +12,8 @@
     "qa:art-pack2": "node scripts/art-pack2-smoke.mjs",
     "qa:boss-event": "node scripts/boss-event-polish-smoke.mjs",
     "qa:rarity-reward": "node scripts/rarity-reward-smoke.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && tsc -b && vite build",
+    "qa:location-atmosphere": "node scripts/location-atmosphere-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
