@@ -87,6 +87,7 @@ function forceQaFish(scene) {
   const fish = FISH_LIST.find(item => item.id === QA_FISH[rarity])
   if (!fish) return null
   scene.fish = fish
+  scene.env ??= {}
   // Kue is used only as a legendary visual sample here; keep it away from
   // pointC so boss systems cannot classify this comparison as a boss fight.
   scene.env.point = rarity === 'legendary' ? 'pointA' : (fish.habitat?.[0] ?? scene.env.point)
