@@ -70,11 +70,11 @@ export default class ChallengeScene extends Phaser.Scene {
     this.add.text(x + 154, y + 100, style.sub, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft }).setDepth(5)
     this.add.text(x + 18, y + 133, '報酬  ' + state.rewardScore + 'pt' + (state.rewardGems ? ' + ◆' + state.rewardGems : ''), { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
 
-    let label = '釣り場へ'
-    let action = () => this.scene.start('MapScene')
+    let label = '挑戦する'
+    let action = () => this.scene.start('GameScene', { point: state.pointId, bossId: state.id })
     if (!unlock.unlocked) { label = '町を育てる'; action = () => this.scene.start('TownScene') }
     if (cleared && !state.claimed) { label = '報酬を受け取る'; action = () => { if (claimBossReward(state.id)) this.scene.restart() } }
-    if (cleared && state.claimed) { label = 'TROPHY 獲得済み'; action = null }
+    if (cleared && state.claimed) { label = 'もう一度挑戦'; action = () => this.scene.start('GameScene', { point: state.pointId, bossId: state.id }) }
 
     const btn = this.add.text(x + w - 18, y + 139, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: action ? UI_COLORS.ink : UI_COLORS.muted, backgroundColor: action ? '#ffd95a' : '#edf2f4', padding: { x: 10, y: 6 } }).setOrigin(1, 0.5).setDepth(6)
     if (action) btn.setInteractive({ useHandCursor: true }).on('pointerdown', action)
