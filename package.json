@@ -10,7 +10,8 @@
     "qa:retention": "node scripts/retention-smoke.mjs",
     "qa:art-pack": "node scripts/art-pack-smoke.mjs",
     "qa:art-pack2": "node scripts/art-pack2-smoke.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && tsc -b && vite build",
+    "qa:boss-event": "node scripts/boss-event-polish-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
