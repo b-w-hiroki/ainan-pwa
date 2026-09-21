@@ -70,14 +70,16 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene" artifacts/e2e/02-map.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2400 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle" artifacts/e2e/03-battle.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught" artifacts/e2e/04-result.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene" artifacts/e2e/05-town.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=ProfileScene" artifacts/e2e/06-profile.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=DailyScene" artifacts/e2e/07-daily.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=AchievementScene" artifacts/e2e/08-achievements.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=CollectionScene" artifacts/e2e/09-collection.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=WorkshopScene" artifacts/e2e/10-workshop.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HarborServicesScene" artifacts/e2e/11-services.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=SettingsScene" artifacts/e2e/12-settings.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2600 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=1" artifacts/e2e/05-town-lv1.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2600 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=3" artifacts/e2e/06-town-lv3.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=5" artifacts/e2e/07-town-lv5.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=ProfileScene" artifacts/e2e/08-profile.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=DailyScene" artifacts/e2e/09-daily.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=AchievementScene" artifacts/e2e/10-achievements.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=CollectionScene" artifacts/e2e/11-collection.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=WorkshopScene" artifacts/e2e/12-workshop.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HarborServicesScene" artifacts/e2e/13-services.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=SettingsScene" artifacts/e2e/14-settings.png
 
       - name: Upload E2E screenshots
         uses: actions/upload-artifact@v4

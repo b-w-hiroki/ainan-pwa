@@ -16,15 +16,9 @@ import {
   getNextTownUnlock,
   getTownUnlockState,
 } from '../game/townUnlocks.js'
+import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
-
-const FACILITY_ART = {
-  market: ASSETS.facilities.market,
-  pier: ASSETS.facilities.pier,
-  guide: ASSETS.facilities.guide,
-  festival: ASSETS.facilities.festival,
-}
 
 const FACILITY_NPC = {
   market: ASSETS.characters.fishmonger,
@@ -63,7 +57,7 @@ export default class TownScene extends Phaser.Scene {
       ASSETS.backgrounds.townQuiet,
       ASSETS.backgrounds.townGrowing,
       ASSETS.backgrounds.townBustling,
-      ...Object.values(FACILITY_ART),
+      ...getTownFacilityArtSet(),
       ...Object.values(FACILITY_NPC),
       ASSETS.facilities.fishShop,
       ASSETS.facilities.diner,
@@ -321,14 +315,15 @@ export default class TownScene extends Phaser.Scene {
     items.forEach((item, i) => {
       const cx = startX + gap * i
       const lv = summary.facilities[item.id] ?? 0
-      const art = FACILITY_ART[item.id]
+      const art = getTownFacilityArt(item.id, lv)
       const meta = TOWN_FACILITY_META.find(f => f.id === item.id)
       const cy = y + (this._hasKue ? 113 : 110)
 
       this._drawFacilityGrowth(cx, cy, item.id, lv)
 
-      const baseW = lv > 0 ? 68 + lv * 3 : 68
-      const baseH = lv > 0 ? 53 + lv * 2 : 53
+      const artTier = lv >= 5 ? 5 : lv >= 3 ? 3 : 1
+      const baseW = lv <= 0 ? 68 : artTier === 5 ? 94 : artTier === 3 ? 82 : 72
+      const baseH = lv <= 0 ? 53 : artTier === 5 ? 73 : artTier === 3 ? 64 : 56
       const img = this.add.image(cx, cy, art.key)
         .setDisplaySize(baseW, baseH)
         .setDepth(6)
@@ -524,9 +519,10 @@ export default class TownScene extends Phaser.Scene {
       g.fillStyle(accent, 0.13)
       g.fillCircle(x + 31, y + 29, 25)
     }
-    const art = FACILITY_ART[item.id]
+    const art = getTownFacilityArt(item.id, lv)
     if (art?.key && this.textures.exists(art.key)) {
-      const size = 44 + Math.min(5, lv) * 1.8
+      const artTier = lv >= 5 ? 5 : lv >= 3 ? 3 : 1
+      const size = artTier === 5 ? 60 : artTier === 3 ? 54 : 48
       const image = this.add.image(x + 30, y + 29, art.key).setDisplaySize(size + 8, size * 0.80).setDepth(5)
       if (lv === 0) image.setTint(0x9aaab3).setAlpha(0.48)
     }
@@ -575,7 +571,7 @@ export default class TownScene extends Phaser.Scene {
     bg.fillRoundedRect(x + 20, y + 22, w - 40, 108, 20)
     items.push(bg)
 
-    const art = FACILITY_ART[item.id]
+    const art = getTownFacilityArt(item.id, lv)
     const npc = FACILITY_NPC[item.id]
     if (art?.key && this.textures.exists(art.key)) items.push(this.add.image(W / 2 - 34, y + 74, art.key).setDisplaySize(106 + lv * 3, 82 + lv * 2))
     if (npc?.key && this.textures.exists(npc.key)) items.push(this.add.image(W / 2 + 74, y + 78, npc.key).setDisplaySize(53, 82))
@@ -639,8 +635,9 @@ export default class TownScene extends Phaser.Scene {
     if (!growth?.facilityId || typeof growth.toLevel !== 'number') return false
 
     const meta = TOWN_FACILITY_META.find(item => item.id === growth.facilityId)
-    const art = FACILITY_ART[growth.facilityId]
-    if (!meta || !art?.key || !this.textures.exists(art.key)) {
+    const beforeArt = getTownFacilityArt(growth.facilityId, growth.fromLevel)
+    const afterArt = getTownFacilityArt(growth.facilityId, growth.toLevel)
+    if (!meta || !beforeArt?.key || !afterArt?.key || !this.textures.exists(beforeArt.key) || !this.textures.exists(afterArt.key)) {
       localStorage.removeItem('ainan_pending_growth')
       return false
     }
@@ -692,12 +689,12 @@ export default class TownScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.warning,
     }).setOrigin(0.5))
 
-    const beforeImg = this.add.image(beforeX, previewY + 4, art.key).setDisplaySize(88 + growth.fromLevel * 3, 68 + growth.fromLevel * 2)
+    const beforeImg = this.add.image(beforeX, previewY + 4, beforeArt.key).setDisplaySize(92, 72)
     beforeImg.setAlpha(growth.fromLevel === 0 ? 0.38 : 0.64)
     if (growth.fromLevel === 0) beforeImg.setTint(0x87939a)
     items.push(beforeImg)
 
-    const afterImg = this.add.image(afterX, previewY + 4, art.key).setDisplaySize(92 + growth.toLevel * 4, 72 + growth.toLevel * 2)
+    const afterImg = this.add.image(afterX, previewY + 4, afterArt.key).setDisplaySize(104, 82)
     const targetScaleX = afterImg.scaleX
     const targetScaleY = afterImg.scaleY
     afterImg.setScale(targetScaleX * 0.68, targetScaleY * 0.68).setAlpha(0)

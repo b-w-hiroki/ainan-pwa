@@ -1,4 +1,4 @@
-const BASE = import.meta.env.BASE_URL ?? '/'
+const BASE = import.meta.env?.BASE_URL ?? '/'
 const assetPath = (path) => `${BASE}${path.replace(/^\/+/, '')}`
 
 export const ASSETS = {
@@ -17,11 +17,11 @@ export const ASSETS = {
     guideDefault: { key: 'ch_guide_default', path: assetPath('fishing-game/assets/characters/ch_guide_default.png'), status: 'ready' },
     playerDefault: { key: 'ch_player_default', path: assetPath('fishing-game/assets/characters/ch_player_default.png'), status: 'ready' },
     playerDefaultUi: { key: 'ch_player_default_ui', path: assetPath('fishing-game/assets/characters/ch_player_default_ui.png'), status: 'ready' },
-    fishmonger: { key: 'ch_npc_fishmonger', path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger.svg'), status: 'ready' },
-    guideStaff: { key: 'ch_npc_guide_staff', path: assetPath('fishing-game/assets/characters/ch_npc_guide_staff.svg'), status: 'ready' },
-    youngFisher: { key: 'ch_npc_young_fisher', path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher.svg'), status: 'ready' },
-    harborCaptain: { key: 'ch_npc_harbor_captain', path: assetPath('fishing-game/assets/characters/ch_npc_harbor_captain.svg'), status: 'ready' },
-    dinerOwner: { key: 'ch_npc_diner_owner', path: assetPath('fishing-game/assets/characters/ch_npc_diner_owner.svg'), status: 'ready' },
+    fishmonger: { key: 'ch_npc_fishmonger', path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger_v2.svg'), status: 'ready' },
+    guideStaff: { key: 'ch_npc_guide_staff', path: assetPath('fishing-game/assets/characters/ch_npc_guide_staff_v2.svg'), status: 'ready' },
+    youngFisher: { key: 'ch_npc_young_fisher', path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher_v2.svg'), status: 'ready' },
+    harborCaptain: { key: 'ch_npc_harbor_captain', path: assetPath('fishing-game/assets/characters/ch_npc_harbor_captain_v2.svg'), status: 'ready' },
+    dinerOwner: { key: 'ch_npc_diner_owner', path: assetPath('fishing-game/assets/characters/ch_npc_diner_owner_v2.svg'), status: 'ready' },
   },
   facilities: {
     market: { key: 'town_facility_market', path: assetPath('fishing-game/assets/town/town_facility_market.svg'), status: 'ready' },
@@ -30,6 +30,20 @@ export const ASSETS = {
     festival: { key: 'town_facility_festival', path: assetPath('fishing-game/assets/town/town_facility_festival.svg'), status: 'ready' },
     fishShop: { key: 'town_facility_fish_shop', path: assetPath('fishing-game/assets/town/town_facility_fish_shop.svg'), status: 'ready' },
     diner: { key: 'town_facility_diner', path: assetPath('fishing-game/assets/town/town_facility_diner.svg'), status: 'ready' },
+  },
+  facilityLevels: {
+    marketLv1: { key: 'town_facility_market_lv1', path: assetPath('fishing-game/assets/town/town_facility_market_lv1.svg'), status: 'ready' },
+    marketLv3: { key: 'town_facility_market_lv3', path: assetPath('fishing-game/assets/town/town_facility_market_lv3.svg'), status: 'ready' },
+    marketLv5: { key: 'town_facility_market_lv5', path: assetPath('fishing-game/assets/town/town_facility_market_lv5.svg'), status: 'ready' },
+    pierLv1: { key: 'town_facility_pier_lv1', path: assetPath('fishing-game/assets/town/town_facility_pier_lv1.svg'), status: 'ready' },
+    pierLv3: { key: 'town_facility_pier_lv3', path: assetPath('fishing-game/assets/town/town_facility_pier_lv3.svg'), status: 'ready' },
+    pierLv5: { key: 'town_facility_pier_lv5', path: assetPath('fishing-game/assets/town/town_facility_pier_lv5.svg'), status: 'ready' },
+    guideLv1: { key: 'town_facility_guide_lv1', path: assetPath('fishing-game/assets/town/town_facility_guide_lv1.svg'), status: 'ready' },
+    guideLv3: { key: 'town_facility_guide_lv3', path: assetPath('fishing-game/assets/town/town_facility_guide_lv3.svg'), status: 'ready' },
+    guideLv5: { key: 'town_facility_guide_lv5', path: assetPath('fishing-game/assets/town/town_facility_guide_lv5.svg'), status: 'ready' },
+    festivalLv1: { key: 'town_facility_festival_lv1', path: assetPath('fishing-game/assets/town/town_facility_festival_lv1.svg'), status: 'ready' },
+    festivalLv3: { key: 'town_facility_festival_lv3', path: assetPath('fishing-game/assets/town/town_facility_festival_lv3.svg'), status: 'ready' },
+    festivalLv5: { key: 'town_facility_festival_lv5', path: assetPath('fishing-game/assets/town/town_facility_festival_lv5.svg'), status: 'ready' },
   },
   fish: {
     ajiIcon: { key: 'fish_aji_icon', path: assetPath('fishing-game/assets/fish/fish_aji_icon.svg'), status: 'ready' },
