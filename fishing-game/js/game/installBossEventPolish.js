@@ -16,16 +16,6 @@ function forcedBossId(scene) {
   return p.get('qa') === '1' && BOSS_META[p.get('qaBoss')] ? p.get('qaBoss') : null
 }
 
-function forceBossFish(scene) {
-  const id = forcedBossId(scene)
-  const meta = id ? BOSS_META[id] : null
-  if (!meta) return null
-  const fish = scene?.fish?.id === meta.fishId
-    ? scene.fish
-    : (scene.constructor ? null : null)
-  return meta
-}
-
 function qaPersistentEncounter() {
   if (typeof window === 'undefined') return false
   const p = new URLSearchParams(window.location.search)
