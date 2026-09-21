@@ -21,12 +21,21 @@ export function prepareQaState() {
   const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
   localStorage.setItem('ainan_daily_bonus_date', today)
   localStorage.setItem('ainan_daily_bonus_streak', '4')
-  const catches = [
+  const pendingBosses = params.get('bossState') === 'pending'
+  const freshBoss = params.get('qaFreshBoss') === '1' ? params.get('qaBoss') : null
+  const bossFishId = { harborRunner: 'buri', bayHunter: 'bass', kue: 'kue' }[freshBoss] ?? null
+  const rows = [
     ['aji', 28, 'pointA'], ['tai', 58, 'pointA'], ['saba', 42, 'pointA'],
-    ['bass', 61, 'pointB'], ['isaki', 46, 'pointB'], ['hirame', 70, 'pointB'],
-    ['buri', 72, 'pointA'], ['kanpachi', 78, 'pointC'], ['kue', 112, 'pointC'],
-  ].map((row, index) => ({ fishId: row[0], sizeCm: row[1], point: row[2], score: 300 + index * 80, season: 'autumn', timeOfDay: 'noon', weather: 'sunny', timestamp: Date.now() - index * 1000 }))
+    ['bass', pendingBosses ? 42 : 61, 'pointB'], ['isaki', 46, 'pointB'], ['hirame', 70, 'pointB'],
+    ['buri', pendingBosses ? 44 : 72, 'pointA'], ['kanpachi', 78, 'pointC'], ['kue', pendingBosses ? 82 : 112, 'pointC'],
+  ].filter(row => row[0] !== bossFishId)
+  const catches = rows.map((row, index) => ({
+    fishId: row[0], sizeCm: row[1], point: row[2], score: 300 + index * 80,
+    season: 'autumn', timeOfDay: 'noon', weather: 'sunny',
+    timestamp: Date.now() - index * 1000,
+  }))
   localStorage.setItem('ainan_catches', JSON.stringify(catches))
+  localStorage.setItem('ainan_boss_trophies', JSON.stringify({}))
 }
 
 export function routeQaScene(game) {
