@@ -46,6 +46,10 @@ function applyBossBattleArt(scene) {
   aura.fillEllipse(0, 0, size.battleSize[0] * 1.12, size.battleSize[1] * 1.32)
   aura.lineStyle(3, visual.accent, 0.32)
   aura.strokeEllipse(0, 0, size.battleSize[0] * 1.03, size.battleSize[1] * 1.18)
+  aura.lineStyle(3, visual.secondary, 0.22)
+  aura.lineBetween(-size.battleSize[0] * 0.58, -28, size.battleSize[0] * 0.48, -28)
+  aura.lineStyle(2, 0xffffff, 0.20)
+  aura.lineBetween(-size.battleSize[0] * 0.52, 34, size.battleSize[0] * 0.44, 34)
   target.addAt?.(aura, 0)
   scene._bossArtAura = aura
 }
@@ -61,9 +65,12 @@ function buildBossResult(scene, meta) {
   const tweens = []
 
   if (scene._resultHeroFish?.active) {
-    scene._resultHeroFish.setTexture(art.key).setDisplaySize(...size.resultSize)
+    scene._resultHeroFish.setTexture(art.key).setDisplaySize(...size.resultSize).setAngle(0)
     scene._resultHeroFish.setY(H / 2 - 122)
   }
+
+  scene.resLabel?.setText?.('BOSS CATCH')
+  scene.resHint?.setText?.(meta.title + ' を制覇！')
 
   const glow = scene.add.ellipse(W / 2, H / 2 - 122, size.resultSize[0] * 1.2, size.resultSize[1] * 1.55, visual.accent, 0.12)
     .setDepth(128).setScrollFactor(0)
@@ -107,10 +114,12 @@ function qaOverride(scene, data = {}) {
   if (typeof window === 'undefined') return data
   const params = new URLSearchParams(window.location.search)
   if (params.get('qa') !== '1') return data
+  const directPoint = params.get('qaPoint')
   const id = params.get('qaBoss')
   const meta = id ? BOSS_META[id] : null
-  if (!meta) return data
-  return { ...data, point: meta.pointId }
+  if (meta) return { ...data, point: meta.pointId }
+  if (['pointA', 'pointB', 'pointC'].includes(directPoint)) return { ...data, point: directPoint }
+  return data
 }
 
 function qaForceFish(scene) {
