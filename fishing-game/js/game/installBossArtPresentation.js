@@ -142,6 +142,17 @@ export function installBossArtPresentation(GameScene) {
     return result
   }
 
+  const originalUpdate = GameScene.prototype.update
+  GameScene.prototype.update = function (...args) {
+    const result = originalUpdate?.apply(this, args)
+    if (this.phase === 'battle' && this._bossArtAura) {
+      const phase = this._bossPhase ?? 1
+      this._bossArtAura.setScale(phase === 3 ? 1.12 : phase === 2 ? 1.06 : 1)
+      this._bossArtAura.setAlpha(phase === 3 ? 1 : phase === 2 ? 0.88 : 0.72)
+    }
+    return result
+  }
+
   const originalFinish = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const meta = getBossMetaForScene(this)
