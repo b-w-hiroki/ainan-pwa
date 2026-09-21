@@ -6,6 +6,12 @@ import { ASSETS } from '../config/assetManifest.js'
 
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 const FIELD = ASSETS.fishingField
+
+const LOCATION_OVERLAY = {
+  pointA: FIELD.locationHarbor,
+  pointB: FIELD.locationBay,
+  pointC: FIELD.locationCape,
+}
 const LOCATION_OVERLAY = { pointA: FIELD.locationHarbor, pointB: FIELD.locationBay, pointC: FIELD.locationCape }
 
 const THEMES = {
