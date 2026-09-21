@@ -167,7 +167,27 @@ export function installBossEventPolish(GameScene) {
   if (GameScene.prototype.__ainanBossEventPolishInstalled) return
   GameScene.prototype.__ainanBossEventPolishInstalled = true
 
-  const originalEnterWait = GameScene.prototype._enterWait
+  const originalCreate = GameScene.prototype.create
+  GameScene.prototype.create = function (...args) {
+    const result = originalCreate.apply(this, args)
+    if (typeof window !== 'undefined') {
+      const p = new URLSearchParams(window.location.search)
+      if (p.get('qa') === '1' && p.get('qaEncounter') === '1') {
+        const id = p.get('qaBoss')
+        const meta = id ? BOSS_META[id] : null
+        if (meta) {
+          const fish = FISH_LIST.find(item => item.id === meta.fishId)
+          if (fish) this.fish = fish
+          this.env.point = meta.pointId
+          this.env.bossId = meta.id
+          this.time.delayedCall(320, () => showEncounter(this, meta))
+        }
+      }
+    }
+    return result
+  }
+
+    const originalEnterWait = GameScene.prototype._enterWait
   GameScene.prototype._enterWait = function (...args) {
     const result = originalEnterWait.apply(this, args)
     const id = forcedBossId(this)
