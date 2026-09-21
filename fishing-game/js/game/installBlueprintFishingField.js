@@ -7,6 +7,13 @@ import { ASSETS } from '../config/assetManifest.js'
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 const FIELD = ASSETS.fishingField
 
+const LOCATION_OVERLAY = {
+  pointA: FIELD.locationHarbor,
+  pointB: FIELD.locationBay,
+  pointC: FIELD.locationCape,
+}
+const LOCATION_OVERLAY = { pointA: FIELD.locationHarbor, pointB: FIELD.locationBay, pointC: FIELD.locationCape }
+
 const THEMES = {
   pointA: { top: 0x45cce8, mid: 0x1689b7, deep: 0x07527d, abyss: 0x053957, glow: 0xcdf8ff, accent: 0x79e8ef },
   pointB: { top: 0x55d4cc, mid: 0x168f96, deep: 0x075c70, abyss: 0x064352, glow: 0xd5fff4, accent: 0x89f0d8 },
@@ -51,6 +58,10 @@ function buildAssetWaterWorld(manager, W, H, pointId = 'pointA') {
   const pattern = makeLayer(FIELD.waterPattern, 1, 0.50, 1.04, 1.03)
   const highlight = makeLayer(FIELD.waterHighlight, 2, 0.62, 1.05, 1.04)
   const depth = makeLayer(FIELD.underwaterDepth, 3, 0.62)
+  const overlayAsset = LOCATION_OVERLAY[pointId]
+  const location = hasTexture(scene, overlayAsset)
+    ? makeLayer(overlayAsset, 4, pointId === 'pointC' ? 0.82 : 0.72)
+    : null
 
   if (pointId === 'pointB') base.setTint(0xd8fff2)
   if (pointId === 'pointC') base.setTint(0xd9eaff)
@@ -58,7 +69,7 @@ function buildAssetWaterWorld(manager, W, H, pointId = 'pointA') {
   scene.tweens.add({ targets: pattern, x: W / 2 + 10, y: H / 2 + 5, duration: 6200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   scene.tweens.add({ targets: highlight, x: W / 2 - 16, y: H / 2 + 8, alpha: 0.35, duration: 4600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
 
-  manager._blueprintWaterLayers = [base, pattern, highlight, depth]
+  manager._blueprintWaterLayers = [base, pattern, highlight, depth, location].filter(Boolean)
   return base
 }
 

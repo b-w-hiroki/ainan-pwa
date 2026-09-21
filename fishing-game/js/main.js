@@ -61,6 +61,7 @@ import { installBossBattlePhases } from './game/installBossBattlePhases.js'
 import { prepareQaState } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installResultPayoffVisuals } from './game/installResultPayoffVisuals.js'
+import { installBossArtPresentation } from './game/installBossArtPresentation.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -101,6 +102,7 @@ installEnvironmentPresentation(GameScene)
 installRetentionProgress(GameScene)
 installBossBattlePhases(GameScene)
 installResultPayoffVisuals(GameScene)
+installBossArtPresentation(GameScene)
 installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.

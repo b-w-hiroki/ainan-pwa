@@ -9,9 +9,9 @@ export const ASSETS = {
     townQuiet: { key: 'bg_town_quiet', path: assetPath('fishing-game/assets/backgrounds/bg_town_quiet.svg'), status: 'ready' },
     townGrowing: { key: 'bg_town_growing', path: assetPath('fishing-game/assets/backgrounds/bg_town_growing.svg'), status: 'ready' },
     townBustling: { key: 'bg_town_bustling', path: assetPath('fishing-game/assets/backgrounds/bg_town_bustling.svg'), status: 'ready' },
-    fishingHarbor: { key: 'bg_fishing_harbor', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_harbor.svg'), status: 'ready' },
-    fishingBay: { key: 'bg_fishing_bay', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_bay.svg'), status: 'ready' },
-    fishingCape: { key: 'bg_fishing_cape', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_cape.svg'), status: 'ready' },
+    fishingHarbor: { key: 'bg_fishing_harbor', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_harbor_v2.svg'), status: 'ready' },
+    fishingBay: { key: 'bg_fishing_bay', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_bay_v2.svg'), status: 'ready' },
+    fishingCape: { key: 'bg_fishing_cape', path: assetPath('fishing-game/assets/backgrounds/bg_fishing_cape_v2.svg'), status: 'ready' },
   },
   characters: {
     guideDefault: { key: 'ch_guide_default', path: assetPath('fishing-game/assets/characters/ch_guide_default.png'), status: 'ready' },
@@ -78,6 +78,14 @@ export const ASSETS = {
     retrieveButtonWait: { key: 'ff_retrieve_button_wait_01', path: assetPath('fishing-game/assets/fishing-field/ui/retrieve_button_wait_01.svg'), status: 'ready' },
     retrieveButtonShortReel: { key: 'ff_retrieve_button_short_reel_01', path: assetPath('fishing-game/assets/fishing-field/ui/retrieve_button_short_reel_01.svg'), status: 'ready' },
     retrieveButtonSlowReel: { key: 'ff_retrieve_button_slow_reel_01', path: assetPath('fishing-game/assets/fishing-field/ui/retrieve_button_slow_reel_01.svg'), status: 'ready' },
+    locationHarbor: { key: 'ff_location_harbor', path: assetPath('fishing-game/assets/fishing-field/location/location_harbor_overlay.svg'), status: 'ready' },
+    locationBay: { key: 'ff_location_bay', path: assetPath('fishing-game/assets/fishing-field/location/location_bay_overlay.svg'), status: 'ready' },
+    locationCape: { key: 'ff_location_cape', path: assetPath('fishing-game/assets/fishing-field/location/location_cape_overlay.svg'), status: 'ready' },
+  },
+  bosses: {
+    harborRunner: { key: 'boss_harbor_runner', path: assetPath('fishing-game/assets/boss/boss_harbor_runner.svg'), status: 'ready' },
+    bayHunter: { key: 'boss_bay_hunter', path: assetPath('fishing-game/assets/boss/boss_bay_hunter.svg'), status: 'ready' },
+    kue: { key: 'boss_kue', path: assetPath('fishing-game/assets/boss/boss_kue.svg'), status: 'ready' },
   },
   rewards: {
     sticker: { key: 'reward_sticker', path: assetPath('fishing-game/assets/rewards/reward_sticker.svg'), status: 'ready' },
