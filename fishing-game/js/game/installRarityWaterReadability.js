@@ -81,40 +81,34 @@ function applyAura(scene) {
   }
 }
 
-function stageQaFish(scene) {
+function forceQaFish(scene) {
+  const rarity = qaRarity()
+  if (!rarity) return null
+  const fish = FISH_LIST.find(item => item.id === QA_FISH[rarity])
+  if (!fish) return null
+  scene.fish = fish
+  // Kue is used only as a legendary visual sample here; keep it away from
+  // pointC so boss systems cannot classify this comparison as a boss fight.
+  scene.env.point = rarity === 'legendary' ? 'pointA' : (fish.habitat?.[0] ?? scene.env.point)
+  return fish
+}
+
+function buildQaPreview(scene) {
   const rarity = qaRarity()
   if (!rarity) return
-  const fish = FISH_LIST.find(item => item.id === QA_FISH[rarity])
-  const target = scene.bg?._fishGfx?.[0]
-  if (!fish || !target?.active) return
-  scene.fish = fish
-  scene.env.point = rarity === 'legendary' ? 'pointC' : fish.habitat?.[0] ?? scene.env.point
-  scene.bg?._fishTweens?.[0]?.stop?.()
-  scene._targetFishIndex = 0
-  scene._targetFishGfx = target
-  target.setPosition(scene.cameras.main.scrollX + scene.scale.width * 0.50, scene.cameras.main.scrollY + 330)
-  target.setScale(1, 1).setAlpha(1).setDepth(28)
-  applyAura(scene)
-
-  const label = scene.add.text(scene.scale.width / 2, 214, rarity.toUpperCase(), {
+  scene._rarityQaLabel?.destroy?.()
+  const label = scene.add.text(scene.scale.width / 2, 128, rarity.toUpperCase(), {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
-    backgroundColor: 'rgba(7,55,84,.78)',
+    backgroundColor: 'rgba(7,55,84,.82)',
     padding: { x: 10, y: 5 },
-  }).setOrigin(0.5).setDepth(96).setScrollFactor(0)
+  }).setOrigin(0.5).setDepth(196).setScrollFactor(0)
   scene._rarityQaLabel = label
 }
 
 export function installRarityWaterReadability(GameScene) {
   if (GameScene.prototype.__ainanRarityWaterReadabilityInstalled) return
   GameScene.prototype.__ainanRarityWaterReadabilityInstalled = true
-
-  const originalCreate = GameScene.prototype.create
-  GameScene.prototype.create = function (...args) {
-    const result = originalCreate.apply(this, args)
-    if (qaRarity()) this.time.delayedCall(220, () => stageQaFish(this))
-    return result
-  }
 
   const originalApproach = GameScene.prototype._startFishApproach
   GameScene.prototype._startFishApproach = function (...args) {
@@ -127,7 +121,17 @@ export function installRarityWaterReadability(GameScene) {
   const originalBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     clearAura(this)
-    return originalBattle.apply(this, args)
+    const forced = forceQaFish(this)
+    const result = originalBattle.apply(this, args)
+    if (forced) {
+      // The forced Battle path is used only by visual QA. Apply the same
+      // rarity treatment to the on-screen target after Battle composition.
+      this.time.delayedCall(0, () => {
+        applyAura(this)
+        buildQaPreview(this)
+      })
+    }
+    return result
   }
 
   const originalCast = GameScene.prototype._enterCast
