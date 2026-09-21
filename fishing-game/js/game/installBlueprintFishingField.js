@@ -12,7 +12,6 @@ const LOCATION_OVERLAY = {
   pointB: FIELD.locationBay,
   pointC: FIELD.locationCape,
 }
-const LOCATION_OVERLAY = { pointA: FIELD.locationHarbor, pointB: FIELD.locationBay, pointC: FIELD.locationCape }
 
 const THEMES = {
   pointA: { top: 0x45cce8, mid: 0x1689b7, deep: 0x07527d, abyss: 0x053957, glow: 0xcdf8ff, accent: 0x79e8ef },
