@@ -99,6 +99,8 @@ export function installCatchRewardPolish(GameScene) {
 
   const originalFinish = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
+    const rewardKind = qaReward()
+    if (rewardKind === 'legendary') this.env.point = 'pointA'
     const fish = this.fish
     const boss = getBossMetaForScene(this)
     const before = [...(this.catches ?? [])]
