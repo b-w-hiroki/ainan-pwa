@@ -5,8 +5,8 @@ const required = [
   'fishing-game/assets/backgrounds/bg_fishing_harbor_v2.svg',
   'fishing-game/assets/backgrounds/bg_fishing_bay_v2.svg',
   'fishing-game/assets/backgrounds/bg_fishing_cape_v2.svg',
-  'fishing-game/assets/boss/boss_harbor_runner.svg',
-  'fishing-game/assets/boss/boss_bay_hunter.svg',
+  'fishing-game/assets/boss/boss_buri.svg',
+  'fishing-game/assets/boss/boss_bass.svg',
   'fishing-game/assets/boss/boss_kue.svg',
   'fishing-game/assets/fishing-field/location/location_harbor_overlay.svg',
   'fishing-game/assets/fishing-field/location/location_bay_overlay.svg',
@@ -43,6 +43,8 @@ const bossPresentation = readFileSync(new URL('../fishing-game/js/game/installBo
 assert.ok(bossPresentation.includes('applyBossBattleArt'), 'boss battle art must be wired')
 assert.ok(bossPresentation.includes('buildBossResult'), 'boss result art must be wired')
 assert.ok(bossPresentation.includes('qaBoss'), 'boss E2E forcing must stay available')
+assert.ok(bossPresentation.includes('qaPoint'), 'location E2E forcing must stay available')
+assert.ok(bossPresentation.includes('BOSS CATCH'), 'boss result payoff must stay visible')
 
 const main = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
 assert.ok(main.includes('installBossArtPresentation(GameScene)'), 'boss art presentation must be installed')
@@ -53,5 +55,5 @@ assert.ok(challenge.includes('ASSETS.bosses[state.id]'), 'challenge cards must s
 
 console.log('Visual Art Pack 2 smoke QA passed')
 console.log('  fishing locations: 3 distinct v2 backgrounds + overlays')
-console.log('  boss art: 3 dedicated large assets')
+console.log('  boss art: 3 dedicated large assets (buri / bass / kue)')
 console.log('  Challenge / Battle / Result integration: OK')
