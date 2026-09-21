@@ -111,7 +111,7 @@ export class ResultUI {
     const g = scene.resStripe
     if (!g) return
     g.clear()
-    const isKue = outcome === 'caught' && scene.fish?.id === 'kue'
+    const isKue = outcome === 'caught' && scene.fish?.id === 'kue' && scene.env?.point === 'pointC'
     const color = isKue ? 0xffd95a : outcome === 'caught' ? 0x2f9ed4 : 0xff765a
     g.fillStyle(color, 0.96)
     g.fillRoundedRect(-92, -236, 184, 34, 15)
