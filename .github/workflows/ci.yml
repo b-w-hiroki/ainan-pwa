@@ -89,9 +89,9 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue" artifacts/e2e/21-boss-kue.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue" artifacts/e2e/22-boss-kue-result.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene&bossState=pending" artifacts/e2e/23-map-boss-pending.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=harborRunner&qaEncounter=1" artifacts/e2e/24-encounter-harbor.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=bayHunter&qaEncounter=1" artifacts/e2e/25-encounter-bay.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue&qaEncounter=1" artifacts/e2e/26-encounter-kue.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaBoss=harborRunner&qaEncounter=1" artifacts/e2e/24-encounter-harbor.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaBoss=bayHunter&qaEncounter=1" artifacts/e2e/25-encounter-bay.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=900 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaBoss=kue&qaEncounter=1" artifacts/e2e/26-encounter-kue.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue&qaFreshBoss=1" artifacts/e2e/27-kue-first-trophy.png
 
       - name: Upload E2E screenshots
