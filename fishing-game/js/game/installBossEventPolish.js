@@ -2,6 +2,7 @@ import { BOSS_META, getBossStates } from './midgameProgression.js'
 import { FISH_LIST } from './fish.js'
 import { getBossMetaForScene, getBossVisual } from './bossVisuals.js'
 import { haptic, isReducedMotion, playSfx } from './feedback.js'
+import { rewardToken } from './rewardPresentation.js'
 
 const PERSONALITY = {
   harborRunner: { label: 'SPEED', sub: '高速で海面を切り裂く', motion: 'runner' },
@@ -142,13 +143,14 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
   const y = H / 2 + 78
   const c = scene.add.container(W / 2, y).setDepth(146).setScrollFactor(0).setAlpha(0)
   const bg = scene.add.graphics()
-  bg.fillStyle(first ? 0xffd95a : isNew ? 0xff765a : 0x173248, 0.96)
+  const reward = first ? rewardToken('trophy') : isNew ? rewardToken('record') : { label: 'BOSS CLEARED', color: 0x173248, text: '#ffffff' }
+  bg.fillStyle(reward.color, 0.96)
   bg.lineStyle(2, 0xffffff, 0.68)
   bg.fillRoundedRect(-120, -22, 240, 44, 15)
   bg.strokeRoundedRect(-120, -22, 240, 44, 15)
-  const label = scene.add.text(0, -5, first ? '★ TROPHY UNLOCKED ★' : isNew ? '★ NEW RECORD ★' : 'BOSS CLEARED', {
+  const label = scene.add.text(0, -5, reward.label, {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold',
-    color: first ? '#173248' : '#ffffff', letterSpacing: 1,
+    color: reward.text, letterSpacing: 1,
   }).setOrigin(0.5)
   const best = scene.add.text(0, 12, 'BEST  ' + afterBest + 'cm', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '10px', fontStyle: 'bold',

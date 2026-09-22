@@ -13,8 +13,14 @@ assert.ok(rarity.includes('setTint(0xe1d4ff)'), 'rare tint missing')
 assert.ok(rarity.includes('setTint(0xffefad)'), 'legendary tint missing')
 
 const reward = read('fishing-game/js/game/installCatchRewardPolish.js')
-for (const token of ['FIRST CATCH', 'NEW RECORD', 'RARE CATCH', 'LEGENDARY', 'qaReward']) {
-  assert.ok(reward.includes(token), 'reward polish missing: ' + token)
+assert.ok(reward.includes('qaReward'), 'reward polish missing QA forcing')
+for (const kind of ['first', 'record', 'rare', 'legendary']) {
+  assert.ok(reward.includes("rewardToken('" + kind + "')"), 'reward polish missing shared token: ' + kind)
+}
+
+const rewardPresentation = read('fishing-game/js/game/rewardPresentation.js')
+for (const token of ['FIRST CATCH', 'NEW RECORD', 'RARE CATCH', 'LEGENDARY']) {
+  assert.ok(rewardPresentation.includes(token), 'shared reward language missing: ' + token)
 }
 assert.ok(reward.includes("scene.env.point = 'pointA'"), 'legendary QA must stay non-boss')
 assert.ok(reward.includes("return 124"), 'legendary QA size must be deterministic')

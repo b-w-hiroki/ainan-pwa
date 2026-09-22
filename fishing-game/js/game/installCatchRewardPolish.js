@@ -1,6 +1,7 @@
 import { FISH_LIST } from './fish.js'
 import { getBossMetaForScene } from './bossVisuals.js'
 import { haptic, playSfx } from './feedback.js'
+import { rewardToken } from './rewardPresentation.js'
 
 const QA_REWARD_FISH = {
   first: 'tai',
@@ -112,10 +113,21 @@ export function installCatchRewardPolish(GameScene) {
       const latest = [...(this.catches ?? [])].reverse().find(item => item.fishId === fish.id)
       const newBest = (latest?.sizeCm ?? 0) > oldBest
       const rewards = []
-      if (first) rewards.push({ label: '★ FIRST CATCH', bg: 0x5bb5d8, fg: '#ffffff' })
-      else if (newBest) rewards.push({ label: '★ NEW RECORD', bg: 0xff765a, fg: '#ffffff' })
-      if (fish.rarity === 'rare') rewards.push({ label: '✦ RARE CATCH', bg: 0x8f80e8, fg: '#ffffff' })
-      if (fish.rarity === 'legendary') rewards.push({ label: '✦ LEGENDARY', bg: 0xffd95a, fg: '#173248' })
+      if (first) {
+        const token = rewardToken('first')
+        rewards.push({ label: token.label, bg: token.color, fg: token.text })
+      } else if (newBest) {
+        const token = rewardToken('record')
+        rewards.push({ label: token.label, bg: token.color, fg: token.text })
+      }
+      if (fish.rarity === 'rare') {
+        const token = rewardToken('rare')
+        rewards.push({ label: token.label, bg: token.color, fg: token.text })
+      }
+      if (fish.rarity === 'legendary') {
+        const token = rewardToken('legendary')
+        rewards.push({ label: token.label, bg: token.color, fg: token.text })
+      }
       this.time.delayedCall(20, () => show(this, rewards))
       if (rewards.length) {
         playSfx(fish.rarity === 'legendary' ? 'legend' : 'catch')

@@ -17,6 +17,7 @@ import {
   getTownUnlockState,
 } from '../game/townUnlocks.js'
 import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityArt.js'
+import { REWARD_THEME } from '../game/rewardPresentation.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -661,7 +662,7 @@ export default class TownScene extends Phaser.Scene {
     card.fillRoundedRect(x + 14, y + 14, w - 28, 62, 20)
     items.push(card)
 
-    items.push(this.add.text(W / 2, y + 31, 'TOWN GROWTH', {
+    items.push(this.add.text(W / 2, y + 31, REWARD_THEME.growth.label, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep, letterSpacing: 1,
     }).setOrigin(0.5))
     items.push(this.add.text(W / 2, y + 56, meta.name, {
