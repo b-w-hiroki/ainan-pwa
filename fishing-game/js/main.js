@@ -146,7 +146,14 @@ function startGame() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) backupSave() })
 }
 
-if (typeof WebFont !== 'undefined') {
+const qaImmediateStart = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('qa') === '1'
+
+if (qaImmediateStart) {
+  // Visual CI must not depend on the latency of the external WebFont loader.
+  // Production still waits for web fonts as before.
+  startGame()
+} else if (typeof WebFont !== 'undefined') {
   WebFont.load({
     google: {
       families: ['Nunito:700,800,900', 'M+PLUS+Rounded+1c:700,800,900'],
