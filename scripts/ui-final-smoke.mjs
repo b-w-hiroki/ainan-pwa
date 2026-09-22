@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 const glyph = read('fishing-game/js/ui/UiGlyph.js')
+assert.ok(!glyph.includes('strokeArc'), 'UiGlyph must use Phaser-supported graphics APIs')
 for (const token of ['rod','trophy','fish','mission','ticket','gift','profile','settings','book','shop','rank','help']) {
   assert.ok(glyph.includes(`type === '${token}'`), 'shared glyph missing: ' + token)
 }
