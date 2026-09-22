@@ -168,11 +168,20 @@ function cape(scene, W, H) {
   })
 }
 
+function qaLocation() {
+  if (typeof window === 'undefined') return null
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('qa') !== '1') return null
+  const point = params.get('qaLocation')
+  return ['pointA', 'pointB', 'pointC'].includes(point) ? point : null
+}
+
 function buildLocationAtmosphere(scene) {
   clearLocationAtmosphere(scene)
   const { width: W, height: H } = scene.scale
-  if (scene.env?.point === 'pointB') bay(scene, W, H)
-  else if (scene.env?.point === 'pointC') cape(scene, W, H)
+  const point = qaLocation() ?? scene.env?.point ?? 'pointA'
+  if (point === 'pointB') bay(scene, W, H)
+  else if (point === 'pointC') cape(scene, W, H)
   else harbor(scene, W, H)
 }
 
