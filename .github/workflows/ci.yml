@@ -63,6 +63,16 @@ jobs:
           cat /tmp/ainan-preview.log
           exit 1
 
+      - name: Validate built PWA endpoints
+        run: |
+          curl -fsS http://127.0.0.1:4173/manifest.webmanifest > /tmp/ainan-manifest.webmanifest
+          node -e "const fs=require('fs'); const m=JSON.parse(fs.readFileSync('/tmp/ainan-manifest.webmanifest','utf8')); if(m.display!=='standalone') process.exit(1); if(!m.icons?.some(i=>i.src?.includes('ainan-icon.svg'))) process.exit(2); console.log('manifest OK')"
+          curl -fsS http://127.0.0.1:4173/ainan-icon.svg > /tmp/ainan-icon.svg
+          grep -q "<svg" /tmp/ainan-icon.svg
+          curl -fsS http://127.0.0.1:4173/sw.js > /tmp/ainan-sw.js
+          grep -q "precache" /tmp/ainan-sw.js
+          echo "PWA endpoints OK"
+
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e
