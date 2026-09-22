@@ -6,7 +6,7 @@ import { join } from 'node:path'
 const dir = process.argv[2] ?? 'artifacts/e2e'
 const files = readdirSync(dir).filter(name => name.endsWith('.png')).sort()
 
-assert.ok(files.length >= 40, 'expected at least 40 E2E screenshots, found ' + files.length)
+assert.ok(files.length >= 41, 'expected at least 40 E2E screenshots, found ' + files.length)
 
 function inspectPng(file) {
   const path = join(dir, file)
@@ -54,6 +54,7 @@ const keyFrames = [
   '38-player-boss.png',
   '39-player-result.png',
   '40-achievement-reward-banner.png',
+  '41-challenge-pending.png',
 ]
 
 for (const file of keyFrames) {
@@ -68,6 +69,7 @@ const uniqueGroups = [
   ['28-rarity-common.png', '29-rarity-uncommon.png', '30-rarity-rare.png', '31-rarity-legendary.png'],
   ['32-reward-first.png', '33-reward-record.png', '34-reward-rare.png', '35-reward-legendary.png'],
   ['36-player-hit.png', '37-player-battle.png', '38-player-boss.png', '39-player-result.png'],
+  ['18-challenge.png', '41-challenge-pending.png'],
 ]
 
 for (const group of uniqueGroups) {
