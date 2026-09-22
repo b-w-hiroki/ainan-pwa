@@ -1,4 +1,5 @@
 import { getStaminaState } from './progress.js'
+import { FISH_LIST } from './fish.js'
 
 export function installStaminaSessionGate(GameScene) {
   if (GameScene.prototype.__ainanStaminaSessionGateInstalled) return
@@ -16,6 +17,12 @@ export function installStaminaSessionGate(GameScene) {
       const action = params.get('qa') === '1' ? params.get('qaAction') : null
       if (action === 'battle' || action === 'caught') {
         window.setTimeout(() => {
+          const qaFishId = params.get('qaFish')
+          if (qaFishId) {
+            const qaFish = FISH_LIST.find(item => item.id === qaFishId)
+            if (qaFish) this.fish = qaFish
+            if (this.env) delete this.env.bossId
+          }
           if (this.phase !== 'battle' && this.phase !== 'result') {
             this._killWaitTimers?.()
             this._stopRetrieveRuntime?.()
