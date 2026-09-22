@@ -4,6 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { claimAchievement, getAchievementStates, getSelectedTitle, getUnlockedTitles, selectTitle } from '../game/retentionProgress.js'
+import { showRewardBanner } from '../game/rewardPresentation.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -27,6 +28,15 @@ export default class AchievementScene extends Phaser.Scene {
       t.setInteractive({ useHandCursor: true }).on('pointerdown', () => { selectTitle(title); this.scene.restart() })
     })
     buildFooterNav(this, W, H, 'menu')
+    const qa = new URLSearchParams(window.location.search)
+    if (qa.get('qa') === '1' && qa.get('qaRewardBanner') === 'achievement') {
+      showRewardBanner(this, {
+        kind: 'achievement',
+        detail: '実績を達成しました',
+        persistent: true,
+        y: 120,
+      })
+    }
   }
   _row(W, y, a) {
     const x = 22, w = W - 44, h = 60, g = this.add.graphics().setDepth(4)
@@ -36,6 +46,16 @@ export default class AchievementScene extends Phaser.Scene {
     const reward = (a.rewardScore ? a.rewardScore + 'pt ' : '') + (a.rewardGems ? '◆' + a.rewardGems : '')
     const label = a.claimed ? '受取済' : a.done ? '受取' : reward
     const t = this.add.text(x + w - 14, y + 30, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: a.done && !a.claimed ? UI_COLORS.warning : UI_COLORS.inkSoft }).setOrigin(1, 0.5).setDepth(6)
-    if (a.done && !a.claimed) t.setInteractive({ useHandCursor: true }).on('pointerdown', () => { if (claimAchievement(a.id)) this.scene.restart() })
+    if (a.done && !a.claimed) t.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+      if (!claimAchievement(a.id)) return
+      t.disableInteractive()
+      showRewardBanner(this, {
+        kind: 'achievement',
+        detail: a.title,
+        feedback: true,
+        duration: 650,
+        onComplete: () => this.scene.restart(),
+      })
+    })
   }
 }

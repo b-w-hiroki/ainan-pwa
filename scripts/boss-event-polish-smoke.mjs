@@ -7,11 +7,18 @@ const blueprint = read('fishing-game/js/game/installBlueprintFishingField.js')
 assert.equal((blueprint.match(/const LOCATION_OVERLAY/g) ?? []).length, 1, 'LOCATION_OVERLAY must be declared once')
 
 const bossEvent = read('fishing-game/js/game/installBossEventPolish.js')
-for (const token of ['BOSS ENCOUNTER', 'SPEED', 'HUNTER', 'HEAVY', 'TROPHY UNLOCKED', 'NEW RECORD', 'qaFreshBoss']) {
+for (const token of ['BOSS ENCOUNTER', 'SPEED', 'HUNTER', 'HEAVY', 'qaFreshBoss']) {
   assert.ok(bossEvent.includes(token), 'boss event polish missing: ' + token)
 }
 assert.ok(bossEvent.includes('this.env.bossId = id'), 'direct boss challenge must persist boss id')
 assert.ok(bossEvent.includes('FISH_LIST.find'), 'direct boss challenge must force target fish')
+
+const rewardPresentation = read('fishing-game/js/game/rewardPresentation.js')
+for (const token of ['TROPHY UNLOCKED', 'NEW RECORD']) {
+  assert.ok(rewardPresentation.includes(token), 'shared reward language missing: ' + token)
+}
+assert.ok(bossEvent.includes("rewardToken('trophy')"), 'boss trophy must use shared reward token')
+assert.ok(bossEvent.includes("rewardToken('record')"), 'boss record must use shared reward token')
 
 const map = read('fishing-game/js/scenes/MapScene.js')
 for (const token of ['BOSS!', '★ TROPHY', '大物挑戦 / 再戦', "this.scene.start('ChallengeScene')"]) {
