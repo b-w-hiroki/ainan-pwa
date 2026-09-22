@@ -16,8 +16,9 @@ for (const token of [
   else assert.ok(source.includes(token), 'location atmosphere missing: ' + token)
 }
 
-assert.ok(source.includes("scene.env?.point === 'pointB'"), 'bay routing missing')
-assert.ok(source.includes("scene.env?.point === 'pointC'"), 'cape routing missing')
+assert.ok(source.includes("qaLocation"), 'QA location override missing')
+assert.ok(source.includes("point === 'pointB'"), 'bay routing missing')
+assert.ok(source.includes("point === 'pointC'"), 'cape routing missing')
 assert.ok(source.includes('buildLocationAtmosphere(this)'), 'create integration missing')
 
 const main = read('fishing-game/js/main.js')
