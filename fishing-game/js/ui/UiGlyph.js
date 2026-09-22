@@ -33,8 +33,12 @@ export function drawGlyph(g, type, x, y, s = 1) {
     g.fillRoundedRect(x - 8*s, y - 11*s, 16*s, 11*s, 3*s)
     g.fillRect(x - 3*s, y, 6*s, 8*s)
     g.fillRoundedRect(x - 8*s, y + 8*s, 16*s, 4*s, 2*s)
-    g.strokeArc(x - 9*s, y - 5*s, 5*s, Math.PI/2, Math.PI*1.5)
-    g.strokeArc(x + 9*s, y - 5*s, 5*s, -Math.PI/2, Math.PI/2)
+    g.lineBetween(x - 8*s, y - 8*s, x - 13*s, y - 6*s)
+    g.lineBetween(x - 13*s, y - 6*s, x - 11*s, y - 1*s)
+    g.lineBetween(x - 11*s, y - 1*s, x - 7*s, y + 1*s)
+    g.lineBetween(x + 8*s, y - 8*s, x + 13*s, y - 6*s)
+    g.lineBetween(x + 13*s, y - 6*s, x + 11*s, y - 1*s)
+    g.lineBetween(x + 11*s, y - 1*s, x + 7*s, y + 1*s)
     return
   }
   if (type === 'fish') {
