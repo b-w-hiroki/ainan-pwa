@@ -54,6 +54,7 @@ const keyFrames = [
   '38-player-boss.png',
   '39-player-result.png',
   '40-achievement-reward-banner.png',
+  '41-menu-ui-final.png',
 ]
 
 for (const file of keyFrames) {
