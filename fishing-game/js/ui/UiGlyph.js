@@ -33,7 +33,6 @@ export function drawGlyph(g, type, x, y, s = 1) {
     g.fillRoundedRect(x - 8*s, y - 11*s, 16*s, 11*s, 3*s)
     g.fillRect(x - 3*s, y, 6*s, 8*s)
     g.fillRoundedRect(x - 8*s, y + 8*s, 16*s, 4*s, 2*s)
-    g.lineStyle(2*s, g.defaultStrokeColor || 0x1f6f9f, 1)
     g.strokeArc(x - 9*s, y - 5*s, 5*s, Math.PI/2, Math.PI*1.5)
     g.strokeArc(x + 9*s, y - 5*s, 5*s, -Math.PI/2, Math.PI/2)
     return
