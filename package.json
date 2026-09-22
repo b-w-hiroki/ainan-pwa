@@ -13,7 +13,8 @@
     "qa:boss-event": "node scripts/boss-event-polish-smoke.mjs",
     "qa:rarity-reward": "node scripts/rarity-reward-smoke.mjs",
     "qa:location-atmosphere": "node scripts/location-atmosphere-smoke.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && tsc -b && vite build",
+    "qa:player-fishing": "node scripts/player-fishing-polish-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
