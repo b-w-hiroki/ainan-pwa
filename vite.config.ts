@@ -50,11 +50,21 @@ export default defineConfig({
       manifest: {
         name: '町おこし釣りゲーム（仮）',
         short_name: '釣りゲーム',
+        id: base,
+        scope: base,
         display: 'standalone',
+        orientation: 'portrait',
         theme_color: '#0d6b5c',
         background_color: '#f0f7f5',
         start_url: base,
-        // icons は public/ に icon-192.png, icon-512.png を置くとインストール可能に
+        icons: [
+          {
+            src: `${base}fishing-game/assets/ui/ui_spot_pin_harbor.svg`,
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
