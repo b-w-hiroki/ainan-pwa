@@ -57,10 +57,16 @@ const keyFrames = [
   '41-menu-ui-final.png',
 ]
 
+const perFrameMinimum = {
+  '10-achievements.png': 30000,
+  '41-menu-ui-final.png': 70000,
+}
+
 for (const file of keyFrames) {
   assert.ok(files.includes(file), 'missing key visual frame: ' + file)
   const bytes = statSync(join(dir, file)).size
-  assert.ok(bytes > 15000, file + ': key frame looks visually empty (' + bytes + ' bytes)')
+  const minimum = perFrameMinimum[file] ?? 15000
+  assert.ok(bytes > minimum, file + ': key frame looks visually empty/incomplete (' + bytes + ' bytes, expected > ' + minimum + ')')
 }
 
 const uniqueGroups = [
