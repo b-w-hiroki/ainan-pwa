@@ -59,7 +59,6 @@ export default class HomeScene extends Phaser.Scene {
     this._buildTownAtmosphere(W, H)
     this._buildHeader(W)
     this._buildGrowthBanner(W)
-    this._buildTopShortcuts(W)
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
     this._buildMainCTA(W, H)
@@ -196,7 +195,7 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildGrowthBanner(W) {
-    const x = 22, y = 108, w = W - 44, h = 54
+    const x = 18, y = 112, w = W - 36, h = 48
     const next = this._nextUnlock
     let label = 'PORT GROWTH'
     let title = `${this._town.rank}になった`
@@ -293,22 +292,22 @@ export default class HomeScene extends Phaser.Scene {
     this.add.rectangle(dx + cardW / 2, y + h / 2, cardW, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('DailyScene'))
   }
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 54, H * 0.535).setDepth(7)
+    const c = this.add.container(W / 2 + 46, H * 0.49).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.35)
-    aura.fillEllipse(0, 78, 294, 420)
+    aura.fillEllipse(0, 76, 320, 444)
     aura.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, this._hasKue ? 0.24 : 0.2)
-    aura.fillEllipse(-18, 70, 224, 350)
+    aura.fillEllipse(-12, 68, 242, 370)
     const shadow = this.add.graphics()
     shadow.fillStyle(0x173248, 0.14)
-    shadow.fillEllipse(0, 286, 170, 24)
-    const guide = this.add.image(0, 6, ASSETS.characters.guideDefault.key).setOrigin(0.5).setDisplaySize(360, 540)
+    shadow.fillEllipse(0, 294, 182, 24)
+    const guide = this.add.image(0, 6, ASSETS.characters.guideDefault.key).setOrigin(0.5).setDisplaySize(382, 573)
     c.add([aura, shadow, guide])
-    this.tweens.add({ targets: c, y: H * 0.535 - 4, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    this.tweens.add({ targets: c, y: H * 0.49 - 4, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   }
 
   _buildGuideBubble(W, H) {
-    const x = 18, y = H * 0.405, w = 164, h = 68
+    const x = 16, y = H * 0.36, w = 154, h = 66
     const next = this._nextUnlock
     let title = next ? `次は ${next.name}` : `${this._town.rank}になったよ`
     let body = next ? `${next.unlockedBy}で新しい海へ` : `にぎわい ${this._town.bustle}/100 ・ 町を見に行こう`
@@ -337,7 +336,7 @@ export default class HomeScene extends Phaser.Scene {
   _buildMainCTA(W, H) {
     const stamina = getStaminaState()
     const waiting = stamina.current <= 0
-    const x = W / 2, y = H * 0.79, w = 286, h = 66
+    const x = W / 2, y = H * 0.805, w = 300, h = 68
     const c = this.add.container(x, y).setDepth(18)
     const g = this.add.graphics()
     const draw = press => {
