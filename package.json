@@ -15,7 +15,8 @@
     "qa:location-atmosphere": "node scripts/location-atmosphere-smoke.mjs",
     "qa:player-fishing": "node scripts/player-fishing-polish-smoke.mjs",
     "qa:reward-language": "node scripts/reward-language-smoke.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:reward-language && tsc -b && vite build",
+    "qa:ui-final": "node scripts/ui-final-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:reward-language && npm run qa:ui-final && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

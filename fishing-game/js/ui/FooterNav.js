@@ -1,6 +1,7 @@
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { getCatches, getTownFacilities } from '../game/progress.js'
+import { drawGlyph } from './UiGlyph.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -202,47 +203,4 @@ function addFooterIcon(scene, x, y, tab, active) {
   g.fillStyle(fg, 1)
   g.lineStyle(2.7, fg, 1)
   drawGlyph(g, tab.glyph, x, y, s)
-}
-
-function drawGlyph(g, type, x, y, s) {
-  if (type === 'home') {
-    g.fillTriangle(x - 15 * s, y - 3 * s, x, y - 16 * s, x + 15 * s, y - 3 * s)
-    g.fillRoundedRect(x - 11 * s, y - 3 * s, 22 * s, 17 * s, 3 * s)
-    g.fillStyle(0xf8fdff, 1)
-    g.fillRoundedRect(x - 3 * s, y + 5 * s, 6 * s, 9 * s, 1.5 * s)
-    return
-  }
-
-  if (type === 'equip') {
-    g.lineBetween(x - 13 * s, y + 13 * s, x + 13 * s, y - 14 * s)
-    g.strokeCircle(x - 4 * s, y + 4 * s, 7 * s)
-    g.fillCircle(x + 11 * s, y - 12 * s, 3 * s)
-    g.lineStyle(2, 0xf8fdff, 1)
-    g.strokeCircle(x - 4 * s, y + 4 * s, 3 * s)
-    return
-  }
-
-  if (type === 'town') {
-    g.fillRoundedRect(x - 14 * s, y - 3 * s, 28 * s, 17 * s, 3 * s)
-    g.fillTriangle(x - 17 * s, y - 3 * s, x, y - 17 * s, x + 17 * s, y - 3 * s)
-    g.fillStyle(0xf8fdff, 1)
-    g.fillRect(x - 9 * s, y + 2 * s, 5 * s, 8 * s)
-    g.fillRect(x - 2 * s, y + 2 * s, 5 * s, 8 * s)
-    g.fillRect(x + 5 * s, y + 2 * s, 5 * s, 8 * s)
-    return
-  }
-
-  if (type === 'shop') {
-    g.fillRoundedRect(x - 14 * s, y - 3 * s, 28 * s, 17 * s, 4 * s)
-    g.fillRoundedRect(x - 10 * s, y - 14 * s, 20 * s, 10 * s, 4 * s)
-    g.fillStyle(0xf8fdff, 1)
-    g.fillRoundedRect(x - 5 * s, y - 10 * s, 10 * s, 6 * s, 2 * s)
-    return
-  }
-
-  g.fillRoundedRect(x - 13 * s, y - 14 * s, 26 * s, 28 * s, 4 * s)
-  g.fillStyle(0xf8fdff, 1)
-  g.fillRoundedRect(x - 7 * s, y - 7 * s, 14 * s, 3 * s, 1.5 * s)
-  g.fillRoundedRect(x - 7 * s, y - 1 * s, 14 * s, 3 * s, 1.5 * s)
-  g.fillRoundedRect(x - 7 * s, y + 5 * s, 14 * s, 3 * s, 1.5 * s)
 }

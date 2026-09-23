@@ -4,6 +4,7 @@ import TitleScene from './scenes/TitleScene.js'
 import HomeScene from './scenes/HomeScene.js'
 import MapScene from './scenes/MapScene.js'
 import GameScene from './scenes/GameScene.js'
+import RarityQaScene from './scenes/RarityQaScene.js'
 import CollectionScene from './scenes/CollectionScene.js'
 import UpgradeScene from './scenes/UpgradeScene.js'
 import ExchangeScene from './scenes/ExchangeScene.js'
@@ -135,7 +136,7 @@ const config = {
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,
   },
-  scene: [TitleScene, HomeScene, MapScene, GameScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, ProfileScene, DailyScene, AchievementScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
+  scene: [TitleScene, HomeScene, MapScene, GameScene, RarityQaScene, CollectionScene, UpgradeScene, WorkshopScene, ExchangeScene, HarborServicesScene, MissionScene, LicenseScene, RankScene, ProfileScene, DailyScene, AchievementScene, TownScene, HelpScene, MenuScene, ChallengeScene, SettingsScene],
 }
 
 function startGame() {

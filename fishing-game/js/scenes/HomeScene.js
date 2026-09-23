@@ -3,6 +3,7 @@ import { UI_COLORS, uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { drawUiGlyph } from '../ui/UiGlyph.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import {
   LICENSE_SHEETS,
@@ -141,13 +142,13 @@ export default class HomeScene extends Phaser.Scene {
     profile.lineStyle(2, 0xffffff, 0.75)
     profile.strokeCircle(42, 45, 16)
 
-    this.add.text(42, 45, ICONS.ROD, { fontSize: '18px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
+    drawUiGlyph(this, 42, 45, 'rod', { size: 11, disc: false, fg: 0x173248, depth: 22 })
     this.add.text(64, 38, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
     this.add.text(64, 55, this._hasKue ? `RANK ${String(rank).padStart(2, '0')}  LEGEND` : `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
     this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ProfileScene'))
 
-    this._buildResourceChip(W - 116, 26, ICONS.SCORE, this._shortNum(totalScore), 0xfff5d9)
-    this._buildResourceChip(W - 62, 26, ICONS.FISH, this._shortNum(catches.length), 0xdff5ff)
+    this._buildResourceChip(W - 116, 26, 'trophy', this._shortNum(totalScore), 0xfff5d9)
+    this._buildResourceChip(W - 62, 26, 'fish', this._shortNum(catches.length), 0xdff5ff)
     this._buildResourceBar(W)
   }
 
@@ -181,7 +182,7 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(gemX + 12, 82, this._shortNum(gems), uiText('micro', { fontSize: '11px', color: UI_COLORS.oceanDeep })).setOrigin(0, 0.5).setDepth(22)
   }
 
-  _buildResourceChip(x, y, icon, value, tint) {
+  _buildResourceChip(x, y, glyph, value, tint) {
     const g = this.add.graphics().setDepth(21)
     g.fillStyle(0x173248, 0.09)
     g.fillRoundedRect(x + 1, y + 2, 48, 36, 13)
@@ -191,7 +192,7 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, 48, 36, 13)
     g.fillStyle(tint, 1)
     g.fillCircle(x + 14, y + 18, 11)
-    this.add.text(x + 14, y + 18, icon, { fontSize: '12px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(22)
+    drawUiGlyph(this, x + 14, y + 18, glyph, { size: 8, disc: false, fg: 0x1f6f9f, depth: 22 })
     this.add.text(x + 33, y + 18, value, uiText('chip', { fontSize: '13px', color: UI_COLORS.ink })).setOrigin(0.5).setDepth(22)
   }
 
@@ -244,9 +245,9 @@ export default class HomeScene extends Phaser.Scene {
     const license = this._licenseCount()
     const daily = getDailyBonusState()
     const items = [
-      { icon: ICONS.MISSION, title: T.mission, sub: `${missionValue}/${firstMission.target}`, accent: 0x2f9ed4, action: () => this.scene.start('MissionScene') },
-      { icon: ICONS.LICENSE, title: T.license, sub: `${license.done}/${license.total}`, accent: 0xffd95a, action: () => this.scene.start('LicenseScene') },
-      { icon: ICONS.BONUS, title: T.daily, sub: daily.canClaim ? '受取可' : `${daily.streak}${T.day}`, accent: 0xff765a, action: () => this._showDailyBonus(this.scale.width, this.scale.height) },
+      { glyph: 'mission', title: T.mission, sub: `${missionValue}/${firstMission.target}`, accent: 0x2f9ed4, action: () => this.scene.start('MissionScene') },
+      { glyph: 'ticket', title: T.license, sub: `${license.done}/${license.total}`, accent: 0xffd95a, action: () => this.scene.start('LicenseScene') },
+      { glyph: 'gift', title: T.daily, sub: daily.canClaim ? '受取可' : `${daily.streak}${T.day}`, accent: 0xff765a, action: () => this._showDailyBonus(this.scale.width, this.scale.height) },
     ]
     const gap = 8
     const w = (W - 44 - gap * 2) / 3
@@ -263,7 +264,7 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 16)
     g.fillStyle(item.accent, 0.16)
     g.fillCircle(x + 24, y + h / 2, 18)
-    this.add.text(x + 24, y + h / 2, item.icon, { fontSize: '19px', resolution: TEXT_RES }).setOrigin(0.5).setDepth(14)
+    drawUiGlyph(this, x + 24, y + h / 2, item.glyph, { size: 12, disc: false, fg: 0x173248, depth: 14 })
     this.add.text(x + 47, y + 19, item.title, uiText('micro', { fontSize: '10px' })).setOrigin(0, 0.5).setDepth(14)
     this.add.text(x + 47, y + 36, item.sub, uiText('chip', { fontSize: '12px', color: UI_COLORS.ink })).setOrigin(0, 0.5).setDepth(14)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', item.action)

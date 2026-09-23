@@ -3,6 +3,7 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { drawUiGlyph } from '../ui/UiGlyph.js'
 import { getBossStates } from '../game/midgameProgression.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -22,14 +23,14 @@ export default class MenuScene extends Phaser.Scene {
     const claimableBoss = bosses.some(item => item.cleared && !item.claimed)
     const challengeDesc = 'エリアボス ' + clearedBosses + '/' + bosses.length + '　記録サイズに挑戦'
     const menuItems = [
-      { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', mark: '魚', color: 0x5bb5d8, scene: 'CollectionScene' },
-      { title: '大物挑戦', desc: challengeDesc, mark: '主', color: 0x173248, scene: 'ChallengeScene', badge: claimableBoss ? 'GET' : clearedBosses === bosses.length ? 'CLEAR' : 'NEW' },
-      { title: '交換所', desc: 'ポイントを港の記念品と交換', mark: '換', color: 0xff765a, scene: 'ExchangeScene' },
-      { title: '魚屋・食堂', desc: '釣果を売って料理バフを受ける', mark: '店', color: 0xff9b5e, scene: 'HarborServicesScene' },
-      { title: 'ランク', desc: '釣り人としての成長を確認', mark: '級', color: 0xffd95a, scene: 'RankScene' },
-      { title: 'プロフィール', desc: '釣果・実績・育成状況をまとめて確認', mark: '人', color: 0x71d6a2, scene: 'ProfileScene' },
-      { title: '遊び方', desc: '釣りと町おこしの基本を確認', mark: '?', color: 0x8f80e8, scene: 'HelpScene' },
-      { title: '設定・データ', desc: 'サウンド・バックアップ・復旧', mark: '設', color: 0x5bb5d8, scene: 'SettingsScene' },
+      { title: '魚図鑑', desc: '釣った魚と未発見の魚を確認', glyph: 'book', color: 0x5bb5d8, scene: 'CollectionScene' },
+      { title: '大物挑戦', desc: challengeDesc, glyph: 'trophy', color: 0x173248, scene: 'ChallengeScene', badge: claimableBoss ? 'GET' : clearedBosses === bosses.length ? 'CLEAR' : 'NEW' },
+      { title: '交換所', desc: 'ポイントを港の記念品と交換', glyph: 'gift', color: 0xff765a, scene: 'ExchangeScene' },
+      { title: '魚屋・食堂', desc: '釣果を売って料理バフを受ける', glyph: 'shop', color: 0xff9b5e, scene: 'HarborServicesScene' },
+      { title: 'ランク', desc: '釣り人としての成長を確認', glyph: 'rank', color: 0xffd95a, scene: 'RankScene' },
+      { title: 'プロフィール', desc: '釣果・実績・育成状況をまとめて確認', glyph: 'profile', color: 0x71d6a2, scene: 'ProfileScene' },
+      { title: '遊び方', desc: '釣りと町おこしの基本を確認', glyph: 'help', color: 0x8f80e8, scene: 'HelpScene' },
+      { title: '設定・データ', desc: 'サウンド・バックアップ・復旧', glyph: 'settings', color: 0x5bb5d8, scene: 'SettingsScene' },
     ]
 
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
@@ -74,9 +75,12 @@ export default class MenuScene extends Phaser.Scene {
     g.fillStyle(item.color, item.badge === 'LOCK' ? 0.45 : 1)
     g.fillRoundedRect(x, y + 15, 5, h - 30, 3)
 
-    this.add.text(x + 39, y + h / 2, item.mark, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '19px', fontWeight: '900', color: item.badge === 'LOCK' ? UI_COLORS.muted : UI_COLORS.ink,
-    }).setOrigin(0.5).setDepth(6)
+    drawUiGlyph(this, x + 39, y + h / 2, item.glyph, {
+      size: 13,
+      disc: false,
+      fg: item.badge === 'LOCK' ? 0x718392 : 0x173248,
+      depth: 6,
+    })
     this.add.text(x + 82, y + 25, item.title, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(6)
