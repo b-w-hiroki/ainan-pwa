@@ -31,8 +31,8 @@ function anchorBattleFish(scene, fish) {
   const speed = feel.battleSpeed ?? 3.2
   const waveX = feel.battleWaveX ?? 12
   const waveY = feel.battleWaveY ?? 7
-  const screenX = scene.scale.width * 0.31 + Math.sin(t * speed) * waveX
-  const screenY = 300 + Math.sin(t * (speed + 0.9)) * waveY
+  const screenX = scene.scale.width * 0.48 + Math.sin(t * speed) * waveX
+  const screenY = 330 + Math.sin(t * (speed + 0.9)) * waveY
   fish.setPosition(cam.scrollX + screenX, cam.scrollY + screenY)
   fish.setAngle(Math.sin(t * (speed + 0.5)) * Math.min(8, 3 + waveX * 0.16) * (fish.scaleX < 0 ? -1 : 1))
 }
@@ -51,7 +51,7 @@ function emphasizeBattleFish(scene, fish) {
   }
 
   const rarity = scene.fish?.rarity ?? 'common'
-  const width = rarity === 'legendary' ? 164 : rarity === 'rare' ? 148 : rarity === 'uncommon' ? 132 : 120
+  const width = rarity === 'legendary' ? 180 : rarity === 'rare' ? 164 : rarity === 'uncommon' ? 148 : 136
   const scale = scene.fish?.feel?.battleScale ?? 1
   if (image) image.setDisplaySize(width * scale, width * 0.5 * scale)
   fish.setDepth(33).setAlpha(1)
