@@ -79,6 +79,7 @@ jobs:
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/00-home-character-clearance.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/01-home.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene" artifacts/e2e/02-map.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2400 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle" artifacts/e2e/03-battle.png
