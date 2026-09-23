@@ -15,13 +15,13 @@ export class BattleUI {
 
     const bg = scene.add.graphics()
     bg.fillStyle(0x073754, 0.92)
-    bg.fillRoundedRect(8, 7, W - 16, 48, 15)
+    bg.fillRect(0, 0, W, 62)
     bg.lineStyle(1.5, 0x8edfff, 0.48)
-    bg.strokeRoundedRect(8, 7, W - 16, 48, 15)
+    bg.strokeRect(0, 0, W, 62)
     bg.fillStyle(0xffffff, 0.08)
-    bg.fillRoundedRect(18, 13, W - 36, 8, 4)
+    bg.fillRect(0, 0, W, 4)
 
-    const title = scene.add.text(22, 31, 'テンション', {
+    const title = scene.add.text(16, 32, 'テンション', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '11px',
@@ -120,8 +120,8 @@ export class BattleUI {
     const st = battleState
     if (!st) return
 
-    const tensionX = 102
-    const tensionY = 24
+    const tensionX = 92
+    const tensionY = 25
     const tw = ebarW
     scene.ebarFill.clear()
     scene.ebarFill.fillStyle(0xdff5ff, 0.28)
