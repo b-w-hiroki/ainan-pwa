@@ -234,14 +234,14 @@ export default class GameScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(54)
     g.fillStyle(0xffffff, 0.92)
     g.lineStyle(2.5, 0x1a2a3a, 1)
-    g.fillRoundedRect(14, 16, 112, 38, 12)
-    g.strokeRoundedRect(14, 16, 112, 38, 12)
+    g.fillRoundedRect(12, 14, 142, 42, 15)
+    g.strokeRoundedRect(12, 14, 142, 42, 15)
     g.fillStyle(0xffd900, 1)
-    g.fillCircle(32, 35, 8)
+    g.fillCircle(30, 35, 7)
 
-    this.add.text(46, 35, pointName, {
+    this.add.text(43, 35, `釣り場・${pointName}`, {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '15px', fontWeight: '900',
+      fontSize: '13px', fontWeight: '900',
       color: '#1a3a5a',
     }).setOrigin(0, 0.5).setDepth(55)
   }
