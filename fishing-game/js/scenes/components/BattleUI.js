@@ -218,14 +218,14 @@ export class BattleUI {
     scene._hitHintBaseY = scene.hitHint.y
 
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
-    scene.rageTag = scene.add.text(W / 2, controlsTop + 62, '暴れてる… 今は待つ', {
+    scene.rageTag = scene.add.text(W / 2, controlsTop + 32, '暴れてる… 少し待とう', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '14px',
       fontWeight: '900',
       color: '#ffffff',
       backgroundColor: 'rgba(255,82,74,0.94)',
-      padding: { x: 26, y: 14 },
+      padding: { x: 18, y: 8 },
       stroke: '#7a251f',
       strokeThickness: 1,
     }).setOrigin(0.5).setDepth(93).setVisible(false).setScrollFactor(0)
