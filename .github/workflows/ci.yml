@@ -79,6 +79,7 @@ jobs:
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/00-home-character-clearance.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/01-home.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1500 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene" artifacts/e2e/02-map.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2400 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle" artifacts/e2e/03-battle.png
@@ -106,10 +107,10 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=bayHunter&qaEncounter=1" artifacts/e2e/25-encounter-bay.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue&qaEncounter=1" artifacts/e2e/26-encounter-kue.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue&qaFreshBoss=1" artifacts/e2e/27-kue-first-trophy.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=common" artifacts/e2e/28-rarity-common.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=uncommon" artifacts/e2e/29-rarity-uncommon.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=rare" artifacts/e2e/30-rarity-rare.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=1200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=legendary" artifacts/e2e/31-rarity-legendary.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=common" artifacts/e2e/28-rarity-common.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=uncommon" artifacts/e2e/29-rarity-uncommon.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=rare" artifacts/e2e/30-rarity-rare.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=legendary" artifacts/e2e/31-rarity-legendary.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=first" artifacts/e2e/32-reward-first.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=record" artifacts/e2e/33-reward-record.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=rare" artifacts/e2e/34-reward-rare.png
