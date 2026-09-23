@@ -268,7 +268,20 @@ export default class GameScene extends Phaser.Scene {
       g.fillStyle(fill, 1); g.lineStyle(3, 0xffffff, 0.92); g.fillCircle(x, y, 40); g.strokeCircle(x, y, 40)
       const ic = this.add.text(x, y - 5, icon, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: '#ffffff' }).setOrigin(0.5)
       const tx = this.add.text(x, y + 26, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#ffffff' }).setOrigin(0.5)
-      dock.add([g, ic, tx])
+      const hit = this.add.circle(x, y, 42, 0xffffff, 0.001).setInteractive({ useHandCursor: true })
+      hit.on('pointerdown', () => {
+        if (label === '待つ') return
+        if (this.phase === 'wait') {
+          const direction = label === 'ちょい巻き' ? 1 : 0.45
+          this._onDown?.({ x, y, isDown: true })
+          this._onMove?.({ x, y: y + 34 * direction, isDown: true })
+          this._onUp?.({ x, y: y + 34 * direction, isDown: false })
+        } else if (this.phase === 'battle') {
+          const strength = label === 'ちょい巻き' ? 54 : 28
+          applySwipe(this.battleState, strength)
+        }
+      })
+      dock.add([g, ic, tx, hit])
     })
     this.mockActionDock = dock
   }
