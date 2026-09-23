@@ -1,6 +1,14 @@
 # AINAN 釣り×街おこし
 
-PWA＋細かいスライスで常に実行可能な状態を保ちながら実装します。
+「釣り → 町おこし → 成長 → ボス」を軸にしたブラウザゲーム/PWAです。
+
+## Release Candidate
+
+- Version: `1.0.0-rc.1`
+- 基準画面: 390×844
+- 自動QA: build / smoke / mobile E2E / visual screenshot guard / PWA readiness
+- 最終リリース条件: `docs/qa/iphone-release-checklist.md` の物理iPhone QA完了
+- 実機QA管理: GitHub Issue #27
 
 ## 起動
 

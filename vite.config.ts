@@ -48,8 +48,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: '町おこし釣りゲーム（仮）',
-        short_name: '釣りゲーム',
+        name: 'AINAN 釣り×町おこし',
+        short_name: 'AINAN',
         display: 'standalone',
         theme_color: '#0d6b5c',
         background_color: '#f0f7f5',

@@ -77,25 +77,14 @@ export default class TitleScene extends Phaser.Scene {
     // ─── ロゴ ──────────────────────────────────────
     const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(5)
 
-    const logo = this.add.text(0, 0, '釣りゲーム', {
+    const logo = this.add.text(0, 0, 'AINAN', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '62px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.strong,
     }).setOrigin(0.5)
 
-    // （仮）バッジ
-    const kariW = 58, kariH = 26
-    const kariBg = this.add.graphics()
-    kariBg.fillStyle(0xff6a3d, 1)
-    kariBg.fillRoundedRect(-kariW / 2, -kariH / 2, kariW, kariH, 8)
-    kariBg.y = -44
-    const kariTxt = this.add.text(0, -44, '（仮）', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '900', color: '#ffffff',
-    }).setOrigin(0.5)
-
-    logoGroup.add([logo, kariBg, kariTxt])
+    logoGroup.add([logo])
 
     this.tweens.add({
       targets: logoGroup, y: H * 0.19 - 6,
@@ -158,7 +147,7 @@ export default class TitleScene extends Phaser.Scene {
     const footerBg = this.add.graphics().setDepth(4)
     footerBg.fillStyle(0xffffff, 0.70)
     footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
-    this.add.text(W / 2, H * 0.95, '釣り × 町おこしゲーム（プロトタイプ）', {
+    this.add.text(W / 2, H * 0.95, '釣り × 町おこし  AINAN', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: '12px', fontWeight: '700',
       color: '#1a3a5a',
