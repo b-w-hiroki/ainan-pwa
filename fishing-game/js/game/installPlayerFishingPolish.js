@@ -22,12 +22,12 @@ function panel(scene, { label, accent, boss = false, persistent = false } = {}) 
   if (!scene.textures.exists(FIGHT_KEY)) return null
 
   const { width: W, height: H } = scene.scale
-  const x = W - (boss ? 60 : 52)
-  const y = H - (boss ? 238 : 228)
+  const x = W - (boss ? 48 : 42)
+  const y = boss ? 146 : 136
   const c = scene.add.container(x, y).setDepth(138).setScrollFactor(0)
   const bg = scene.add.graphics()
-  const w = boss ? 110 : 94
-  const h = boss ? 126 : 112
+  const w = boss ? 82 : 72
+  const h = boss ? 92 : 82
   bg.fillStyle(0x06283f, 0.90)
   bg.lineStyle(boss ? 3 : 2, accent ?? 0x5bb5d8, boss ? 0.95 : 0.70)
   bg.fillRoundedRect(-w / 2, -h / 2, w, h, 18)
@@ -36,10 +36,10 @@ function panel(scene, { label, accent, boss = false, persistent = false } = {}) 
   bg.fillRoundedRect(-w / 2 + 8, -h / 2 + 8, w - 16, 24, 10)
 
   const sprite = scene.add.sprite(0, h * 0.14, FIGHT_KEY, 0)
-    .setDisplaySize(boss ? 78 : 68, boss ? 88 : 78)
+    .setDisplaySize(boss ? 58 : 50, boss ? 66 : 58)
   const text = scene.add.text(0, -h / 2 + 20, label ?? 'HIT!', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
-    fontSize: boss ? '9px' : '10px',
+    fontSize: boss ? '8px' : '8px',
     fontStyle: 'bold',
     color: boss ? '#ffd95a' : '#ffffff',
     letterSpacing: boss ? 1 : 0,
@@ -99,15 +99,15 @@ function showResultPartner(scene) {
   const { width: W, height: H } = scene.scale
   const boss = getBossMetaForScene(scene)
   const visual = boss ? getBossVisual(boss.id) : null
-  const c = scene.add.container(W / 2 + 112, H / 2 - 58).setDepth(144).setScrollFactor(0).setAlpha(0)
+  const c = scene.add.container(W / 2 + 118, H / 2 - 30).setDepth(144).setScrollFactor(0).setAlpha(0)
   const panelBg = scene.add.graphics()
   panelBg.fillStyle(0x06283f, 0.86)
   panelBg.lineStyle(2, visual?.accent ?? 0x5bb5d8, 0.82)
-  panelBg.fillRoundedRect(-44, -58, 88, 118, 18)
-  panelBg.strokeRoundedRect(-44, -58, 88, 118, 18)
-  const glow = scene.add.ellipse(0, 10, boss ? 78 : 70, boss ? 92 : 82, visual?.accent ?? 0x5bb5d8, boss ? 0.15 : 0.10)
-  const sprite = scene.add.sprite(0, 18, CATCH_KEY, 5).setDisplaySize(boss ? 72 : 64, boss ? 82 : 74)
-  const badge = scene.add.text(0, -43, boss ? 'BOSS!' : 'NICE!', {
+  panelBg.fillRoundedRect(-36, -48, 72, 98, 16)
+  panelBg.strokeRoundedRect(-36, -48, 72, 98, 16)
+  const glow = scene.add.ellipse(0, 10, boss ? 64 : 58, boss ? 76 : 70, visual?.accent ?? 0x5bb5d8, boss ? 0.15 : 0.10)
+  const sprite = scene.add.sprite(0, 18, CATCH_KEY, 5).setDisplaySize(boss ? 58 : 52, boss ? 68 : 62)
+  const badge = scene.add.text(0, -35, boss ? 'BOSS!' : 'NICE!', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
