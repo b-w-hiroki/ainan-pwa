@@ -31,7 +31,7 @@ export default class RarityQaScene extends Phaser.Scene {
     const rarity = ['common','uncommon','rare','legendary'].includes(params.get('qaRarity'))
       ? params.get('qaRarity')
       : 'common'
-    const style = RARITY_WATER_STYLE[rarity]
+    const style = RARITY_WATER_STYLE[rarity] ?? { color: 0x8fd8e8, fill: 0, ring: 0, scale: 1 }
 
     const addLayer = (asset, alpha, depth) => {
       if (!asset?.key || !this.textures.exists(asset.key)) return null
@@ -50,7 +50,7 @@ export default class RarityQaScene extends Phaser.Scene {
     veil.fillRect(0, 0, W, H)
 
     const cx = W / 2, cy = 350
-    if (style) {
+    if (rarity !== 'common') {
       const aura = this.add.graphics().setDepth(9)
       aura.fillStyle(style.color, style.fill)
       aura.fillEllipse(cx, cy, 190 * style.scale, 108 * style.scale)
@@ -60,7 +60,7 @@ export default class RarityQaScene extends Phaser.Scene {
 
     if (this.textures.exists(ASSETS.fishingField.fishShadowMediumIdle.key)) {
       const fish = this.add.image(cx, cy, ASSETS.fishingField.fishShadowMediumIdle.key)
-        .setDisplaySize(150 * (style?.scale ?? 1), 75 * (style?.scale ?? 1))
+        .setDisplaySize(150 * style.scale, 75 * style.scale)
         .setDepth(10)
       if (rarity === 'uncommon') fish.setTint(0xcff7df)
       if (rarity === 'rare') fish.setTint(0xe1d4ff)
@@ -68,7 +68,7 @@ export default class RarityQaScene extends Phaser.Scene {
     }
 
     const panel = this.add.graphics().setDepth(20)
-    const accent = style?.color ?? 0x8fd8e8
+    const accent = style.color
     panel.fillStyle(0x071a28, 0.90)
     panel.lineStyle(2, accent, 0.92)
     panel.fillRoundedRect(30, 92, W - 60, 76, 20)
