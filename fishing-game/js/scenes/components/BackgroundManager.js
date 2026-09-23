@@ -193,8 +193,8 @@ export class BackgroundManager {
   /** プレイヤーを描画し、{ anchorX, anchorY, castRangePx, shaftDisplayPx } を返す */
   buildPlayer(W, H) {
     const scene = this.scene
-    const cx = W * 0.50
-    const by = H * 0.84
+    const cx = W * 0.18
+    const by = H * 0.79
 
     // 生成済みキャラ立ち絵があれば画像＋コード描画の竿で構成
     if (scene.textures.exists('ch_player_default')) {
@@ -268,7 +268,7 @@ export class BackgroundManager {
   _buildImagePlayer(cx, by, H) {
     const scene = this.scene
     const src   = scene.textures.get('ch_player_default').getSourceImage()
-    const dispH = H * 0.20
+    const dispH = H * 0.16
     const scale = dispH / src.height
     const dispW = src.width * scale
 
