@@ -80,16 +80,16 @@ export default class MapScene extends Phaser.Scene {
   _buildHeader(W) {
     const g = this.add.graphics().setDepth(4)
     g.fillStyle(0x173248, 0.10)
-    g.fillRoundedRect(72, 52, W - 92, 70, 20)
+    g.fillRoundedRect(72, 50, W - 92, 56, 18)
     g.fillStyle(0xf8fdff, 0.94)
     g.lineStyle(2, 0xffffff, 0.82)
-    g.fillRoundedRect(72, 48, W - 92, 70, 20)
-    g.strokeRoundedRect(72, 48, W - 92, 70, 20)
-    this.add.text(W / 2 + 18, 70, '釣り場を選ぼう', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
+    g.fillRoundedRect(72, 46, W - 92, 56, 18)
+    g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+    this.add.text(W / 2 + 18, 64, '釣り場を選ぼう', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2 + 18, 99, `${getConditionSummary()}  ・  海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: UI_COLORS.inkSoft,
+    this.add.text(W / 2 + 18, 86, `${getConditionSummary()}  ・  海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
 
