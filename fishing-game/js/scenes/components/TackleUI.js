@@ -21,11 +21,11 @@ export class TackleUI {
 
   build(W, H) {
     const MARGIN = 16
-    const BTN_W  = 58
-    const BTN_H  = 58
-    const BTN_Y  = H - MARGIN - BTN_H / 2
+    const BTN_W  = 52
+    const BTN_H  = 42
+    const BTN_Y  = H - 196
 
-    this._rodBtn  = this._buildBtn(W - MARGIN - BTN_W * 1.5 - 8, BTN_Y, ICONS.ROD,  '竿',   () => this._toggle('rod'))
+    this._rodBtn  = this._buildBtn(W - MARGIN - BTN_W * 1.5 - 6, BTN_Y, ICONS.ROD,  '竿',   () => this._toggle('rod'))
     this._baitBtn = this._buildBtn(W - MARGIN - BTN_W / 2,        BTN_Y, ICONS.BAIT, 'エサ', () => this._toggle('bait'))
 
     this._rodPanel  = this._buildScrollPanel(W, H, 'rod',  ROD_LIST)
@@ -37,18 +37,18 @@ export class TackleUI {
 
   _buildBtn(x, y, icon, label, onTap) {
     const g = this.scene.add.graphics().setDepth(45)
-    this._drawBtnBg(g, x, y, 58, 58, false)
+    this._drawBtnBg(g, x, y, 52, 42, false)
 
-    const iconTxt = this.scene.add.text(x, y - 8, icon, {
-      fontSize: '22px', resolution: TEXT_RES,
+    const iconTxt = this.scene.add.text(x, y - 5, icon, {
+      fontSize: '17px', resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(46)
 
-    const lbl = this.scene.add.text(x, y + 14, label, {
-      fontFamily: FONT, fontSize: '14px', fontWeight: '800',
+    const lbl = this.scene.add.text(x, y + 10, label, {
+      fontFamily: FONT, fontSize: '10px', fontWeight: '800',
       color: CS, resolution: TEXT_RES,
     }).setOrigin(0.5).setDepth(46)
 
-    const hit = this.scene.add.rectangle(x, y, 58, 58)
+    const hit = this.scene.add.rectangle(x, y, 52, 42)
       .setDepth(47)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { if (this._enabled) onTap() })
