@@ -15,13 +15,13 @@ export class BattleUI {
 
     const bg = scene.add.graphics()
     bg.fillStyle(0x073754, 0.92)
-    bg.fillRoundedRect(8, 7, W - 16, 48, 15)
+    bg.fillRect(0, 0, W, 62)
     bg.lineStyle(1.5, 0x8edfff, 0.48)
-    bg.strokeRoundedRect(8, 7, W - 16, 48, 15)
+    bg.strokeRect(0, 0, W, 62)
     bg.fillStyle(0xffffff, 0.08)
-    bg.fillRoundedRect(18, 13, W - 36, 8, 4)
+    bg.fillRect(0, 0, W, 4)
 
-    const title = scene.add.text(22, 31, 'テンション', {
+    const title = scene.add.text(16, 32, 'テンション', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '11px',
@@ -120,8 +120,8 @@ export class BattleUI {
     const st = battleState
     if (!st) return
 
-    const tensionX = 102
-    const tensionY = 24
+    const tensionX = 92
+    const tensionY = 25
     const tw = ebarW
     scene.ebarFill.clear()
     scene.ebarFill.fillStyle(0xdff5ff, 0.28)
@@ -218,14 +218,14 @@ export class BattleUI {
     scene._hitHintBaseY = scene.hitHint.y
 
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
-    scene.rageTag = scene.add.text(W / 2, controlsTop + 62, '暴れてる… 今は待つ', {
+    scene.rageTag = scene.add.text(W / 2, controlsTop + 32, '暴れてる… 少し待とう', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '14px',
       fontWeight: '900',
       color: '#ffffff',
       backgroundColor: 'rgba(255,82,74,0.94)',
-      padding: { x: 26, y: 14 },
+      padding: { x: 18, y: 8 },
       stroke: '#7a251f',
       strokeThickness: 1,
     }).setOrigin(0.5).setDepth(93).setVisible(false).setScrollFactor(0)

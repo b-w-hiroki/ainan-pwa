@@ -140,18 +140,18 @@ export class CastUI {
 
   buildHUD(W, _H) {
     const scene = this.scene
-    const guideY = MOBILE_FRAME.topHudHeight + 27
+    const guideY = MOBILE_FRAME.topHudHeight + 18
     const controlsTop = MOBILE_FRAME.height - MOBILE_FRAME.bottomControlsHeight
 
     const hintBg = scene.add.graphics().setDepth(54)
-    hintBg.fillStyle(0x071a28, 0.62)
-    hintBg.fillRoundedRect(W / 2 - 118, guideY - 14, 236, 30, 13)
+    hintBg.fillStyle(0x071a28, 0.42)
+    hintBg.fillRoundedRect(W / 2 - 96, guideY - 11, 192, 24, 12)
     hintBg.lineStyle(1.2, 0xffffff, 0.18)
-    hintBg.strokeRoundedRect(W / 2 - 118, guideY - 14, 236, 30, 13)
+    hintBg.strokeRoundedRect(W / 2 - 96, guideY - 11, 192, 24, 12)
     scene.castHintBg = hintBg
 
     scene.hintText = scene.add.text(W / 2, guideY + 1, '狙う場所を決める', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
       color: '#ffffff',
     }).setOrigin(0.5).setDepth(55)
 

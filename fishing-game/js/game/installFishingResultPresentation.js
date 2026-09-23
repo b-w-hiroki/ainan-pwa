@@ -20,8 +20,8 @@ function buildResultHero(scene) {
   scene.resEmoji?.setVisible?.(false)
 
   const { width: W, height: H } = scene.scale
-  const hero = scene.add.image(W / 2, H / 2 - 116, icon.texture.key)
-    .setDisplaySize(146, 146)
+  const hero = scene.add.image(W / 2, H / 2 - 92, icon.texture.key)
+    .setDisplaySize(172, 172)
     .setDepth(132)
     .setScrollFactor(0)
     .setAlpha(0)
@@ -58,9 +58,9 @@ function polishCaughtResult(scene) {
   scene.resIcon?.setPosition?.(0, -116)
   scene.resEmoji?.setPosition?.(0, -116)
   scene.resEmoji?.setFontSize?.(108)
-  scene.resName?.setY?.(-28)
-  scene.resPts?.setY?.(24)
-  scene.resHint?.setY?.(72)
+  scene.resName?.setY?.(8)
+  scene.resPts?.setY?.(50)
+  scene.resHint?.setY?.(88)
 
   scene.resultOverlay.setAlpha(0)
   scene.tweens.add({

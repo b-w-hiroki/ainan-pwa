@@ -182,16 +182,16 @@ export default class TownScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(8)
     const border = this._hasKue ? 0xe5b83b : 0x9bcfe5
     g.fillStyle(0x173248, 0.12)
-    g.fillRoundedRect(12, 14, W - 24, 74, 22)
+    g.fillRoundedRect(12, 14, W - 24, 60, 20)
     g.fillStyle(0xf8fdff, 0.96)
     g.lineStyle(2, border, 0.94)
-    g.fillRoundedRect(12, 10, W - 24, 74, 22)
-    g.strokeRoundedRect(12, 10, W - 24, 74, 22)
+    g.fillRoundedRect(12, 10, W - 24, 60, 20)
+    g.strokeRoundedRect(12, 10, W - 24, 60, 20)
     g.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.78)
-    g.fillRoundedRect(20, 18, W - 40, 14, 7)
+    g.fillRoundedRect(20, 18, W - 40, 10, 5)
 
-    this.add.text(26, 45, 'みんなの港町', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '24px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
+    this.add.text(26, 40, 'みんなの港町', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0, 0.5).setDepth(10)
 
     if (this._hasKue) {
@@ -204,10 +204,10 @@ export default class TownScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(10)
     }
 
-    this.add.text(W - 26, 36, `${getScore().toLocaleString()} pt`, {
+    this.add.text(W - 26, 32, `${getScore().toLocaleString()} pt`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.warning,
     }).setOrigin(1, 0.5).setDepth(10)
-    this.add.text(W - 26, 56, `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
+    this.add.text(W - 26, 50, `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep,
     }).setOrigin(1, 0.5).setDepth(10)
   }

@@ -144,8 +144,7 @@ export function installPlayerFishingPolish(GameScene) {
     const result = originalCreate.apply(this, args)
     const qa = qaPlayerState()
     if (qa === 'hit') this.time.delayedCall(250, () => panel(this, { label: 'HIT!', accent: 0x5bb5d8, persistent: true }))
-    if (qa === 'battle') this.time.delayedCall(250, () => showBattle(this))
-    if (qa === 'boss') this.time.delayedCall(250, () => showBattle(this))
+    if (qa === 'battle' || qa === 'boss') this.time.delayedCall(250, () => clearReaction(this))
     return result
   }
 
@@ -159,7 +158,8 @@ export function installPlayerFishingPolish(GameScene) {
   const originalBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalBattle.apply(this, args)
-    showBattle(this)
+    // Mock-first composition: the hooked fish owns the playfield. Keep the player out of persistent Battle UI.
+    clearReaction(this)
     return result
   }
 
