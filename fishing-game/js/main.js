@@ -59,7 +59,7 @@ import { installEnvironmentPresentation } from './game/installEnvironmentPresent
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { installRetentionProgress } from './game/installRetentionProgress.js'
 import { installBossBattlePhases } from './game/installBossBattlePhases.js'
-import { prepareQaState } from './game/qaBootstrap.js'
+import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installResultPayoffVisuals } from './game/installResultPayoffVisuals.js'
 import { installBossArtPresentation } from './game/installBossArtPresentation.js'
@@ -144,6 +144,7 @@ function startGame() {
   ensureSaveVersion()
   const game = new Phaser.Game(config)
   window.__game = game
+  routeQaScene(game)
   document.addEventListener('visibilitychange', () => { if (document.hidden) backupSave() })
 }
 
