@@ -4,13 +4,15 @@ import { readFileSync } from 'node:fs'
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 
 const rarity = read('fishing-game/js/game/installRarityWaterReadability.js')
-for (const token of ['uncommon', 'rare', 'legendary', 'qaRarity', 'FIRST']) {
-  if (token === 'FIRST') continue
+for (const token of ['RARITY_WATER_STYLE', 'uncommon', 'rare', 'legendary']) {
   assert.ok(rarity.includes(token), 'rarity water missing: ' + token)
 }
 assert.ok(rarity.includes('setTint(0xcff7df)'), 'uncommon tint missing')
 assert.ok(rarity.includes('setTint(0xe1d4ff)'), 'rare tint missing')
 assert.ok(rarity.includes('setTint(0xffefad)'), 'legendary tint missing')
+assert.ok(rarity.includes('scale: 1.05'), 'uncommon scale missing')
+assert.ok(rarity.includes('scale: 1.11'), 'rare scale missing')
+assert.ok(rarity.includes('scale: 1.18'), 'legendary scale missing')
 
 const reward = read('fishing-game/js/game/installCatchRewardPolish.js')
 assert.ok(reward.includes('qaReward'), 'reward polish missing QA forcing')
