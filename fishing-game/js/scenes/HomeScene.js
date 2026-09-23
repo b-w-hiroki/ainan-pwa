@@ -60,7 +60,6 @@ export default class HomeScene extends Phaser.Scene {
     this._buildHeader(W)
     this._buildGrowthBanner(W)
     this._buildTopShortcuts(W)
-    this._buildRetentionStrip(W)
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
     this._buildMainCTA(W, H)
@@ -174,7 +173,7 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(32 + staminaMaxW, 82, staminaLabel, uiText('micro', { fontSize: '10px', color: UI_COLORS.success })).setOrigin(0, 0.5).setDepth(22)
 
     const coinX = W * 0.62
-    this.add.text(coinX, 82, '●', uiText('micro', { fontSize: '11px', color: '#e5a51c' })).setOrigin(0.5).setDepth(22)
+    this.add.text(coinX, 82, '●', uiText('micro', { fontSize: '10px', color: '#e5a51c' })).setOrigin(0.5).setDepth(22)
     this.add.text(coinX + 12, 82, this._shortNum(coins), uiText('micro', { fontSize: '11px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
 
     const gemX = W * 0.82
@@ -294,22 +293,22 @@ export default class HomeScene extends Phaser.Scene {
     this.add.rectangle(dx + cardW / 2, y + h / 2, cardW, h, 0x000000, 0).setDepth(15).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('DailyScene'))
   }
   _buildGuideCharacter(W, H) {
-    const c = this.add.container(W / 2 + 28, H * 0.57).setDepth(7)
+    const c = this.add.container(W / 2 + 54, H * 0.535).setDepth(7)
     const aura = this.add.graphics()
     aura.fillStyle(0xffffff, 0.35)
-    aura.fillEllipse(0, 84, 344, 470)
+    aura.fillEllipse(0, 78, 294, 420)
     aura.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, this._hasKue ? 0.24 : 0.2)
-    aura.fillEllipse(-30, 74, 264, 390)
+    aura.fillEllipse(-18, 70, 224, 350)
     const shadow = this.add.graphics()
     shadow.fillStyle(0x173248, 0.14)
-    shadow.fillEllipse(0, 316, 194, 28)
-    const guide = this.add.image(0, 6, ASSETS.characters.guideDefault.key).setOrigin(0.5).setDisplaySize(438, 658)
+    shadow.fillEllipse(0, 286, 170, 24)
+    const guide = this.add.image(0, 6, ASSETS.characters.guideDefault.key).setOrigin(0.5).setDisplaySize(360, 540)
     c.add([aura, shadow, guide])
-    this.tweens.add({ targets: c, y: H * 0.57 - 5, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
+    this.tweens.add({ targets: c, y: H * 0.535 - 4, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
   }
 
   _buildGuideBubble(W, H) {
-    const x = 20, y = H * 0.365, w = 184, h = 74
+    const x = 18, y = H * 0.405, w = 164, h = 68
     const next = this._nextUnlock
     let title = next ? `次は ${next.name}` : `${this._town.rank}になったよ`
     let body = next ? `${next.unlockedBy}で新しい海へ` : `にぎわい ${this._town.bustle}/100 ・ 町を見に行こう`
@@ -330,7 +329,7 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 18)
     g.fillStyle(this._hasKue ? 0xfffbec : 0xffffff, 0.97)
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
-    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '11px' : '13px' })).setDepth(15)
+    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '10px' : '12px' })).setDepth(15)
     this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color })).setDepth(15)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
   }
@@ -338,7 +337,7 @@ export default class HomeScene extends Phaser.Scene {
   _buildMainCTA(W, H) {
     const stamina = getStaminaState()
     const waiting = stamina.current <= 0
-    const x = W / 2, y = H * 0.805, w = 286, h = 66
+    const x = W / 2, y = H * 0.79, w = 286, h = 66
     const c = this.add.container(x, y).setDepth(18)
     const g = this.add.graphics()
     const draw = press => {
