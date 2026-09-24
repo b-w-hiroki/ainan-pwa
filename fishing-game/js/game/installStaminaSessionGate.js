@@ -14,6 +14,39 @@ function pickQaTarget(scene) {
   return runtime.gfx
 }
 
+function stabilizeQaRewardBadge(scene, kind) {
+  if (!kind) return
+  scene._qaRewardBadge?.destroy?.(true)
+  const labels = {
+    first: '★ FIRST CATCH',
+    record: '★ NEW RECORD',
+    rare: '✦ RARE CATCH',
+    legendary: '✦ LEGENDARY',
+  }
+  const fills = {
+    first: 0x5bb5d8,
+    record: 0xff765a,
+    rare: 0x8f80e8,
+    legendary: 0xffd95a,
+  }
+  const fg = kind === 'legendary' ? '#173248' : '#ffffff'
+  const y = 118
+  const box = scene.add.container(scene.scale.width / 2, y).setDepth(2500).setScrollFactor(0)
+  const bg = scene.add.graphics()
+  bg.fillStyle(fills[kind] ?? 0x5bb5d8, 0.98)
+  bg.lineStyle(2, 0xffffff, 0.8)
+  bg.fillRoundedRect(-110, -22, 220, 44, 15)
+  bg.strokeRoundedRect(-110, -22, 220, 44, 15)
+  const text = scene.add.text(0, 0, labels[kind] ?? String(kind).toUpperCase(), {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    fontSize: '11px',
+    fontStyle: 'bold',
+    color: fg,
+  }).setOrigin(0.5)
+  box.add([bg, text])
+  scene._qaRewardBadge = box
+}
+
 function clearQaMockOverlay(scene) {
   scene._qaMockOverlay?.forEach?.(obj => obj?.destroy?.())
   scene._qaMockOverlay = []
@@ -186,6 +219,7 @@ export function installStaminaSessionGate(GameScene) {
 
     const action = params.get('qaAction')
     const mockPhase = params.get('qaMockPhase')
+    const rewardKind = params.get('qaReward')
 
     // Preserve the existing QA action behavior used by reward / boss / player
     // regression captures.
@@ -224,16 +258,22 @@ export function installStaminaSessionGate(GameScene) {
 
     if (action === 'caught') {
       window.setTimeout(() => {
-        if (this.phase === 'result') return
-        if (this.phase !== 'battle') {
-          this._killWaitTimers?.()
-          this._stopRetrieveRuntime?.()
-          this._enterBattle?.()
+        if (this.phase !== 'result') {
+          if (this.phase !== 'battle') {
+            this._killWaitTimers?.()
+            this._stopRetrieveRuntime?.()
+            this._enterBattle?.()
+          }
+          this._battleTimer?.remove?.(false)
+          this._battleTimer = undefined
+          if (this.phase === 'battle') this._finishBattle?.('caught')
         }
-        this._battleTimer?.remove?.(false)
-        this._battleTimer = undefined
-        if (this.phase === 'battle') this._finishBattle?.('caught')
+        if (rewardKind) stabilizeQaRewardBadge(this, rewardKind)
       }, 760)
+
+      if (rewardKind) {
+        window.setTimeout(() => stabilizeQaRewardBadge(this, rewardKind), 1400)
+      }
     }
 
     // The four canonical mock captures are deterministic presentation states.
