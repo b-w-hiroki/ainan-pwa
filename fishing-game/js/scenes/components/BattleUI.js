@@ -1,8 +1,21 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
+import { ASSETS } from '../../config/assetManifest.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+
+const BATTLE_FISH_KEYS = {
+  aji: ASSETS.fish.ajiIcon.key,
+  tai: ASSETS.fish.madaiIcon.key,
+  bass: ASSETS.fish.blackBassIcon.key,
+  buri: ASSETS.fish.buriIcon.key,
+  kue: ASSETS.fish.kueIcon.key,
+  saba: ASSETS.fish.sabaIcon.key,
+  isaki: ASSETS.fish.isakiIcon.key,
+  hirame: ASSETS.fish.hirameIcon.key,
+  kanpachi: ASSETS.fish.kanpachiIcon.key,
+}
 
 export class BattleUI {
   constructor(scene) {
@@ -49,6 +62,15 @@ export class BattleUI {
   buildBattlePanel(W, H) {
     const scene = this.scene
     scene.battlePanel = scene.add.container(0, 0).setDepth(66).setVisible(false).setScrollFactor(0)
+
+    const fishKey = BATTLE_FISH_KEYS[scene.fish?.id]
+    if (fishKey && scene.textures.exists(fishKey)) {
+      scene.battleHero = scene.add.image(W / 2, 334, fishKey)
+        .setDisplaySize(184, 138)
+        .setDepth(84)
+        .setScrollFactor(0)
+        .setVisible(false)
+    }
 
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
     const trackX = 38
@@ -143,6 +165,7 @@ export class BattleUI {
     scene.reelFill.fillRoundedRect(reel.x + 3, reel.y + 2, Math.max(0, rw - 6), 3, 2)
 
     scene.battlePanel?.setVisible(false)
+    scene.battleHero?.setVisible?.(true)
     const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
     scene.reelCTA.setVisible(!st.isRaging)
@@ -233,5 +256,7 @@ export class BattleUI {
     this.scene._timeChipEvent = undefined
     this.scene.hitHint?.destroy()
     this.scene.rageTag?.destroy()
+    this.scene.battleHero?.destroy?.()
+    this.scene.battleHero = null
   }
 }

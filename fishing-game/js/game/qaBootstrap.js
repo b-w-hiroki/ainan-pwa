@@ -44,6 +44,15 @@ export function routeQaScene(game) {
   const scene = params.get('scene')
   if (!scene) return
   window.setTimeout(() => {
-    try { game.scene.start(scene) } catch (error) { console.error('QA scene route failed', scene, error) }
+    try {
+      const data = {}
+      if (scene === 'GameScene') {
+        const point = params.get('qaLocation')
+        if (['pointA', 'pointB', 'pointC'].includes(point)) data.point = point
+      }
+      game.scene.start(scene, data)
+    } catch (error) {
+      console.error('QA scene route failed', scene, error)
+    }
   }, 500)
 }

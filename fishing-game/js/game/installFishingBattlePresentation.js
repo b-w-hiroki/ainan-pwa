@@ -1,3 +1,75 @@
+import { ASSETS } from '../config/assetManifest.js'
+
+const BATTLE_FISH_KEYS = {
+  aji: ASSETS.fish.ajiIcon.key,
+  tai: ASSETS.fish.madaiIcon.key,
+  bass: ASSETS.fish.blackBassIcon.key,
+  buri: ASSETS.fish.buriIcon.key,
+  kue: ASSETS.fish.kueIcon.key,
+  saba: ASSETS.fish.sabaIcon.key,
+  isaki: ASSETS.fish.isakiIcon.key,
+  hirame: ASSETS.fish.hirameIcon.key,
+  kanpachi: ASSETS.fish.kanpachiIcon.key,
+}
+
+function clearBattleHero(scene) {
+  scene._battleHeroTween?.stop?.()
+  scene._battleHeroTween?.destroy?.()
+  scene._battleHeroTween = null
+  scene._battleHeroFish?.destroy?.()
+  scene._battleHeroFish = null
+}
+
+function buildBattleHero(scene) {
+  clearBattleHero(scene)
+  const key = BATTLE_FISH_KEYS[scene.fish?.id]
+  if (!key || !scene.textures?.exists?.(key)) return null
+
+  const rarity = scene.fish?.rarity ?? 'common'
+  const width = rarity === 'legendary' ? 190 : rarity === 'rare' ? 176 : rarity === 'uncommon' ? 164 : 154
+  const hero = scene.add.image(scene.scale.width * 0.50, 330, key)
+    .setDisplaySize(width, width * 0.52)
+    .setDepth(500)
+    .setScrollFactor(0)
+    .setAlpha(0.96)
+
+  scene._battleHeroFish = hero
+  scene._battleHeroTween = scene.tweens.add({
+    targets: hero,
+    y: hero.y - 6,
+    angle: 3,
+    duration: 900,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+  return hero
+}
+
+function clearBattleScreenHero(scene) {
+  scene._battleScreenHero?.destroy?.()
+  scene._battleScreenHero = null
+}
+
+function buildBattleScreenHero(scene) {
+  clearBattleScreenHero(scene)
+  const key = ASSETS.fishingField?.fishShadowMediumIdle?.key
+  if (key && scene.textures?.exists?.(key)) {
+    scene._battleScreenHero = scene.add.image(scene.scale.width / 2, 330, key)
+      .setDisplaySize(176, 88)
+      .setDepth(500)
+      .setScrollFactor(0)
+      .setAlpha(0.94)
+    return
+  }
+
+  const g = scene.add.graphics().setDepth(500).setScrollFactor(0)
+  g.fillStyle(0x0b3046, 0.92)
+  g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
+  g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
+  scene._battleScreenHero = g
+}
+
 function findBattleTarget(scene) {
   if (scene._targetFishGfx?.active) return scene._targetFishGfx
   const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
@@ -92,7 +164,10 @@ export function installFishingBattlePresentation(GameScene) {
     const result = originalEnterBattle.apply(this, args)
     const target = this._targetFishGfx?.active ? this._targetFishGfx : targetBefore
     emphasizeBattleFish(this, target)
+    buildBattleHero(this)
+    if (target?.active) target.setAlpha?.(0.18)
     enforceBattleComposition(this)
+    if (this.phase === 'battle' && !this._battleScreenHero?.active) buildBattleScreenHero(this)
     return result
   }
 
@@ -103,23 +178,30 @@ export function installFishingBattlePresentation(GameScene) {
     if (this.phase === 'battle') anchorBattleFish(this, this._targetFishGfx)
     const result = originalUpdate?.apply(this, args)
     enforceBattleComposition(this)
+    if (this.phase === 'battle') {
+      this._battleHeroFish?.setVisible?.(true)?.setDepth?.(500)?.setAlpha?.(0.98)
+      this._battleScreenHero?.setVisible?.(true)?.setDepth?.(499)?.setAlpha?.(0.90)
+    }
     return result
   }
 
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalFinishBattle.apply(this, args)
   }
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalEnterCast.apply(this, args)
   }
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalCleanup.apply(this, args)
   }

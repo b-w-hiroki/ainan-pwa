@@ -102,7 +102,6 @@ installFishingBiteHitPresentation(GameScene)
 installFishingBattlePresentation(GameScene)
 installFishingResultPresentation(GameScene)
 installFishingVisualUpgrade(GameScene)
-installFishingPresentationGuard(GameScene)
 installMidgameProgression(GameScene)
 installEnvironmentPresentation(GameScene)
 installRetentionProgress(GameScene)
@@ -118,6 +117,8 @@ installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
 installStaminaSessionGate(GameScene)
+// Final RC presentation guard must wrap every legacy/QA layer.
+installFishingPresentationGuard(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {

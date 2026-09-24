@@ -94,6 +94,10 @@ export function installFishingResultPresentation(GameScene) {
   if (GameScene.prototype.__ainanFishingResultPresentationInstalled) return
   GameScene.prototype.__ainanFishingResultPresentationInstalled = true
 
+  GameScene.prototype._polishCaughtResultPresentation = function () {
+    polishCaughtResult(this)
+  }
+
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     clearResultHero(this)
