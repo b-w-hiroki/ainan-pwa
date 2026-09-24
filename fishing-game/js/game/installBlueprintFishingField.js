@@ -206,6 +206,8 @@ function buildCastInstruction(scene) {
     })
   items.push(hit)
 
+  scene.powerGfx?.setDepth(95).setScrollFactor(0)
+  scene.powerLabel?.setDepth(96).setScrollFactor(0)
   scene._blueprintCastInstruction = scene.add.container(0, 0, items).setDepth(91).setScrollFactor(0).setVisible(false)
 }
 
