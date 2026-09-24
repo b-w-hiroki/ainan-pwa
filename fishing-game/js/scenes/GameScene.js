@@ -663,7 +663,7 @@ export default class GameScene extends Phaser.Scene {
       this.resLabel.setText(`${this.fish.name}を釣り上げた！`)
       this._showResultFishVisual(this.fish)
       this.resName.setText(this.fish.name)
-      this.resPts.setText(`${sizeCm}cm  +${score}pt`)
+      this.resPts.setText(`サイズ  ${sizeCm} cm   +${score} pt\nレア度  ${{ common: '★☆☆☆☆', uncommon: '★★☆☆☆', rare: '★★★☆☆', legendary: '★★★★★' }[this.fish.rarity] ?? '★☆☆☆☆'}`)
       this.resHint.setText('サイズ・ポイントを確認')
 
       this.resultEmojiTween?.destroy()
