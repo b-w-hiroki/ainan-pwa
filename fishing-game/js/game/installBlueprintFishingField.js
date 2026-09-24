@@ -297,7 +297,7 @@ export function installBlueprintFishingField(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
-    setPlayer(this, false)
+    setPlayer(this, true, PLAYER_SCALE.cast)
     this.playerActionInset?.setVisible?.(false)
     this._castDistanceBadge?.setVisible(false); this._distanceBadge?.setVisible(false)
     showCastInstruction(this, false)
