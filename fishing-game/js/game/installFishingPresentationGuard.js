@@ -46,6 +46,14 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   scene.lineGfx.lineBetween(scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y)
 }
 
+function hideLegacyGuideChrome(scene) {
+  scene.castHintBg?.setVisible?.(false)
+  scene.hintText?.setVisible?.(false)
+  scene.children?.list?.forEach?.(obj => {
+    if (obj?.depth === 54 || obj?.depth === 55) obj.setVisible?.(false)
+  })
+}
+
 function hideTackleChrome(scene) {
   const tackle = scene.tackleUI
   if (!tackle) return
@@ -188,8 +196,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const result = phase === 'result'
 
   hideTackleChrome(scene)
-  scene.castHintBg?.setVisible?.(false)
-  scene.hintText?.setVisible?.(false)
+  hideLegacyGuideChrome(scene)
   scene._blueprintCastInstruction?.setVisible?.(cast)
   scene.retrieveUI?.hide?.()
   scene._rcCastDock?.setVisible?.(cast)
