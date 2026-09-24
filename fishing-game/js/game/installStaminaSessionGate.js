@@ -64,25 +64,49 @@ function stabilizeMockBattle(scene) {
     target.setDepth?.(40)
     target.setPosition?.((cam?.scrollX ?? 0) + scene.scale.width * 0.50, (cam?.scrollY ?? 0) + 330)
     target._assetImage?.setDisplaySize?.(176, 88)
+
+    scene._qaMockBattleFish?.destroy?.()
+    const textureKey = target._assetImage?.texture?.key
+    if (textureKey && scene.textures?.exists?.(textureKey)) {
+      scene._qaMockBattleFish = scene.add.image(scene.scale.width / 2, 330, textureKey)
+        .setDisplaySize(176, 88)
+        .setDepth(205)
+        .setScrollFactor(0)
+        .setAlpha(0.96)
+    }
   }
 }
 
 function stabilizeMockResult(scene) {
-  stabilizeMockBattle(scene)
-  scene._finishBattle?.('caught')
-  scene.time?.delayedCall?.(120, () => {
-    scene.phase = 'result'
-    scene.resultOverlay?.setVisible?.(true)
-    scene.escapeBar?.setVisible?.(false)
-    scene.battlePanel?.setVisible?.(false)
-    scene.reelCTA?.setVisible?.(false)
-    scene.rageTag?.setVisible?.(false)
-    scene.dangerFx?.setAlpha?.(0)
-    scene._mobileHudSetVisible?.(false)
-    scene._rcCastDock?.setVisible?.(false)
-    scene._rcRetrieveDock?.setVisible?.(false)
-    scene._applyRcFishingPresentation?.('result')
-  })
+  scene._killWaitTimers?.()
+  scene._stopRetrieveRuntime?.()
+  scene._battleTimer?.remove?.(false)
+  scene._battleTimer = undefined
+  scene._qaMockBattleFish?.destroy?.()
+  scene._qaMockBattleFish = null
+
+  scene.phase = 'result'
+  const fish = scene.fish
+  const score = fish ? scene.calcScore?.(fish) ?? 0 : 0
+  const sizeCm = fish ? scene._rollFishSize?.(fish) ?? 42 : 42
+
+  scene.resultUI?.drawResultStripe?.('caught')
+  scene.resLabel?.setText?.(fish ? `${fish.name}を釣り上げた！` : '釣り上げた！')
+  if (fish) scene._showResultFishVisual?.(fish)
+  scene.resName?.setText?.(fish?.name ?? '釣果')
+  scene.resPts?.setText?.(`サイズ  ${sizeCm} cm   +${score} pt\nレア度  ★☆☆☆☆`)
+  scene.resHint?.setText?.('サイズ・ポイントを確認')
+
+  scene.escapeBar?.setVisible?.(false)
+  scene.battlePanel?.setVisible?.(false)
+  scene.reelCTA?.setVisible?.(false)
+  scene.rageTag?.setVisible?.(false)
+  scene.dangerFx?.setAlpha?.(0)
+  scene.resultOverlay?.setVisible?.(true)
+  scene._mobileHudSetVisible?.(false)
+  scene._rcCastDock?.setVisible?.(false)
+  scene._rcRetrieveDock?.setVisible?.(false)
+  scene._applyRcFishingPresentation?.('result')
 }
 
 export function installStaminaSessionGate(GameScene) {
