@@ -39,7 +39,7 @@ export class ResultUI {
     stats.strokeRoundedRect(-136, -6, 272, 74, 16)
 
     scene.resPts = scene.add.text(0, 30, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffd95a',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 6,
     }).setOrigin(0.5)
     scene.resHint = scene.add.text(0, 78, 'サイズ・ポイントを確認', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
