@@ -146,9 +146,10 @@ export class BattleUI {
     scene.reelFill.fillStyle(0xffffff, 0.30)
     scene.reelFill.fillRoundedRect(reel.x + 3, reel.y + 2, Math.max(0, rw - 6), 3, 2)
 
+    scene.battlePanel?.setVisible(false)
     const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
-    scene.reelCTA.setVisible(!st.isRaging)
+    scene.reelCTA.setVisible(false)
     if (st.isRaging && !wasRaging) scene.cameras.main.shake(180, 0.009)
   }
 
