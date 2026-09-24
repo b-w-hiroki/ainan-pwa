@@ -194,7 +194,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   scene._rcRetrieveDock?.setVisible?.(retrieve)
 
   scene._mobileHudSetVisible?.(cast || retrieve)
-  if (battle) showRcBattleHero(scene)
+  scene.battleHero?.setVisible?.(battle)
+  if (battle && !scene.battleHero?.active) showRcBattleHero(scene)
   else clearRcBattleHero(scene)
   if (battle) {
     scene.escapeBar?.setVisible?.(true)
