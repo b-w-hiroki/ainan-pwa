@@ -75,7 +75,7 @@ export class BattleUI {
     scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x073754, 0.92)
+    bg.fillStyle(0x073754, 1)
     bg.fillRect(0, 0, W, 62)
     bg.lineStyle(1.5, 0x8edfff, 0.48)
     bg.strokeRect(0, 0, W, 62)
