@@ -31,7 +31,7 @@ function buildTopHud(scene, W) {
     fontSize: '25px',
     fontWeight: '900',
     color: '#ffffff',
-  }).setOrigin(1, 0.5).setScrollFactor(0)
+  }).setOrigin(0.5).setScrollFactor(0)
   const backHit = scene.add.circle(28, 32, 21, 0x000000, 0)
     .setScrollFactor(0)
     .setInteractive({ useHandCursor: true })
@@ -45,7 +45,7 @@ function buildTopHud(scene, W) {
   const location = scene.add.text(52, 24, `釣り場・${pointName(scene.env?.point)}`, {
     fontFamily: FONT,
     resolution: TEXT_RES,
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '900',
     color: '#ffffff',
   }).setOrigin(0, 0.5).setScrollFactor(0)
@@ -57,10 +57,10 @@ function buildTopHud(scene, W) {
   const status = scene.add.text(W - 18, 39, 'キャスト', {
     fontFamily: FONT,
     resolution: TEXT_RES,
-    fontSize: '12px',
+    fontSize: '13px',
     fontWeight: '900',
     color: '#dff5ff',
-  }).setOrigin(0.5).setScrollFactor(0)
+  }).setOrigin(1, 0.5).setScrollFactor(0)
 
   c.add([bg, backBg, back, backHit, location, statusBg, status])
   scene._mobileFishingHud = c
