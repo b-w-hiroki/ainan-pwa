@@ -10,8 +10,8 @@ Reference: four user-provided 390×844 fishing mock screens.
 - [x] Add dark bottom action dock
 - [x] Add three circular actions: 待つ / ちょい巻き / ゆっくり巻く
 - [x] Wire the three actions to phase-appropriate fishing behavior
-- [ ] Match top HUD distance/location layout to reference
-- [ ] Match lure/line focal position and fish-shadow scale to reference
+- [x] Match top HUD distance/location layout to reference
+- [x] Match lure/line focal position and fish-shadow scale to reference
 - [ ] Confirm no UI overlaps player/fish/lure
 
 ## P0 — Battle / Result
