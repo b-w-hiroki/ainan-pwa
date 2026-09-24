@@ -211,6 +211,8 @@ export function installRetrieveGameplay(GameScene) {
     this._stopRetrieveRuntime?.()
     const result = originalEnterCast.apply(this, args)
     this.retrieveUI?.hide()
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
     this._distanceBadge?.setVisible(false)
     this.castHintBg?.setVisible(true)
     this.hintText?.setVisible(true)
@@ -312,6 +314,8 @@ export function installRetrieveGameplay(GameScene) {
     }
     this.bobber.setPosition(x, y).setVisible(true)
     this._retrieveTargetFish = null
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
     this.retrieveUI?.show()
     this.retrieveUI?.syncAppeal(this.retrieveState.appeal)
     this.retrieveUI?.setHint('少しずつ巻いて、魚影の反応を見よう')
