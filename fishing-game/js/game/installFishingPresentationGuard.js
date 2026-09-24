@@ -4,6 +4,17 @@ import { ASSETS } from '../config/assetManifest.js'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 
 const FIELD = ASSETS.fishingField
+const FISH_ICON_BY_ID = {
+  aji: ASSETS.fish.ajiIcon.key,
+  tai: ASSETS.fish.madaiIcon.key,
+  bass: ASSETS.fish.blackBassIcon.key,
+  buri: ASSETS.fish.buriIcon.key,
+  kue: ASSETS.fish.kueIcon.key,
+  saba: ASSETS.fish.sabaIcon.key,
+  isaki: ASSETS.fish.isakiIcon.key,
+  hirame: ASSETS.fish.hirameIcon.key,
+  kanpachi: ASSETS.fish.kanpachiIcon.key,
+}
 
 function collectPlayerObjects(scene, added = []) {
   const existing = scene._fishingPresentationObjects ?? []
@@ -127,6 +138,35 @@ function buildFinalControlChrome(scene) {
   scene._rcRetrieveDock = retrieve
 }
 
+function clearRcBattleHero(scene) {
+  scene._rcBattleHeroTween?.stop?.()
+  scene._rcBattleHeroTween?.destroy?.()
+  scene._rcBattleHeroTween = null
+  scene._rcBattleHero?.destroy?.()
+  scene._rcBattleHero = null
+}
+
+function showRcBattleHero(scene) {
+  clearRcBattleHero(scene)
+  const key = FISH_ICON_BY_ID[scene.fish?.id]
+  if (!key || !scene.textures?.exists?.(key)) return
+  const hero = scene.add.image(scene.scale.width / 2, 338, key)
+    .setDisplaySize(172, 132)
+    .setDepth(206)
+    .setScrollFactor(0)
+    .setAlpha(0.98)
+  scene._rcBattleHero = hero
+  scene._rcBattleHeroTween = scene.tweens.add({
+    targets: hero,
+    y: 332,
+    angle: 2.5,
+    duration: 900,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+}
+
 function applyPhasePresentation(scene, phase = scene.phase) {
   const cast = phase === 'cast'
   const retrieve = phase === 'retrieve'
@@ -140,6 +180,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   scene._rcRetrieveDock?.setVisible?.(retrieve)
 
   scene._mobileHudSetVisible?.(cast || retrieve)
+  if (battle) showRcBattleHero(scene)
+  else clearRcBattleHero(scene)
   if (battle) {
     scene.escapeBar?.setVisible?.(true)
     scene.reelCTA?.setVisible?.(!scene.battleState?.isRaging)
@@ -290,6 +332,7 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcRetrieveDock?.destroy?.(true)
     this._rcCastDock = null
     this._rcRetrieveDock = null
+    clearRcBattleHero(this)
     this._fishingPresentationObjects = null
     return originalCleanup.apply(this, args)
   }
