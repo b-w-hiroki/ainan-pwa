@@ -43,7 +43,10 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   if (scene.phase !== 'retrieve' || !scene.bobber?.visible || !scene.lineGfx) return
   scene.lineGfx.clear()
   scene.lineGfx.lineStyle(1.8, 0xffffff, 0.86)
-  scene.lineGfx.lineBetween(scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y)
+  const cam = scene.cameras?.main
+  const startX = scene._rcPlayerHero?.visible ? (cam?.scrollX ?? 0) + 108 : scene.anchorX
+  const startY = scene._rcPlayerHero?.visible ? (cam?.scrollY ?? 0) + MOBILE_FRAME.playBottom - 118 : scene.anchorY
+  scene.lineGfx.lineBetween(startX, startY, scene.bobber.x, scene.bobber.y)
 }
 
 function hideLegacyGuideChrome(scene) {
@@ -63,6 +66,20 @@ function hideTackleChrome(scene) {
   }
   tackle._rodPanel?.setVisible?.(false)
   tackle._baitPanel?.setVisible?.(false)
+}
+
+function buildRcPlayerHero(scene) {
+  if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
+  const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
+  if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
+  const hero = scene.add.image(76, MOBILE_FRAME.playBottom - 8, asset.key)
+    .setOrigin(0.5, 1)
+    .setDisplaySize(112, 148)
+    .setDepth(205)
+    .setScrollFactor(0)
+    .setVisible(false)
+  scene._rcPlayerHero = hero
+  return hero
 }
 
 function buildFinalControlChrome(scene) {
@@ -197,6 +214,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
 
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
+  const playerHero = buildRcPlayerHero(scene)
+  playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
   scene.retrieveUI?.hide?.()
   scene._rcCastDock?.setVisible?.(cast)
@@ -283,8 +302,9 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     buildFinalControlChrome(this)
+    buildRcPlayerHero(this)
     collectPlayerObjects(this)
-    setFishingPlayerVisible(this, ['cast', 'retrieve'].includes(this.phase))
+    setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.(this.phase)
     return result
   }
@@ -292,7 +312,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
-    setFishingPlayerVisible(this, true)
+    setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('cast')
     return result
   }
@@ -308,7 +328,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
-    setFishingPlayerVisible(this, true)
+    setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('retrieve')
     drawRetrieveLineToPlayfieldEdge(this)
     return result
@@ -356,6 +376,8 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._cleanup = function (...args) {
     this._rcCastDock?.destroy?.(true)
     this._rcRetrieveDock?.destroy?.(true)
+    this._rcPlayerHero?.destroy?.()
+    this._rcPlayerHero = null
     this._rcCastDock = null
     this._rcRetrieveDock = null
     clearRcBattleHero(this)
