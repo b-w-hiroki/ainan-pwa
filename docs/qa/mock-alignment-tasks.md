@@ -9,7 +9,7 @@ Reference: four user-provided 390×844 fishing mock screens.
 - [x] Compact tackle controls outside primary action row
 - [x] Add dark bottom action dock
 - [x] Add three circular actions: 待つ / ちょい巻き / ゆっくり巻く
-- [ ] Wire the three actions to phase-appropriate fishing behavior
+- [x] Wire the three actions to phase-appropriate fishing behavior
 - [ ] Match top HUD distance/location layout to reference
 - [ ] Match lure/line focal position and fish-shadow scale to reference
 - [ ] Confirm no UI overlaps player/fish/lure
@@ -18,9 +18,9 @@ Reference: four user-provided 390×844 fishing mock screens.
 - [x] Keep Battle fish as primary subject
 - [x] Remove persistent Battle player inset
 - [x] Enlarge caught fish on Result
-- [ ] Reduce legacy Battle swipe/reel chrome that conflicts with reference
-- [ ] Result: consolidate fish name / size / points into one information card
-- [ ] Result: expose two clear CTAs (町へ持ち帰る / もう一度釣る)
+- [x] Reduce legacy Battle swipe/reel chrome that conflicts with reference
+- [x] Result: consolidate fish name / size / points into one information card
+- [x] Result: expose two clear CTAs (町へ持ち帰る / もう一度釣る)
 
 ## P1 — Core screens
 - [x] Reduce Map header
