@@ -303,12 +303,12 @@ export class BackgroundManager {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   spawnFish(W, H) {
     this._fishDefs = [
-      { t: 'common',   y: 0.30, dur: 8000,  delay: 0,    sc: 1.0,  rtl: false },
-      { t: 'common',   y: 0.42, dur: 10000, delay: 1500, sc: 0.85, rtl: true },
-      { t: 'common',   y: 0.58, dur: 9000,  delay: 3000, sc: 0.70, rtl: false },
-      { t: 'uncommon', y: 0.28, dur: 7000,  delay: 2000, sc: 1.6,  rtl: false },
-      { t: 'uncommon', y: 0.50, dur: 12000, delay: 4000, sc: 1.35, rtl: true },
-      { t: 'rare',     y: 0.38, dur: 14000, delay: 4000, sc: 2.2,  rtl: false },
+      { t: 'common',   y: 0.31, dur: 8200,  delay: 0,    sc: 0.95, rtl: false },
+      { t: 'common',   y: 0.43, dur: 10000, delay: 1400, sc: 0.82, rtl: true },
+      { t: 'common',   y: 0.58, dur: 9300,  delay: 2600, sc: 0.78, rtl: false },
+      { t: 'uncommon', y: 0.35, dur: 7600,  delay: 1800, sc: 1.18, rtl: false },
+      { t: 'uncommon', y: 0.52, dur: 11800, delay: 3600, sc: 1.08, rtl: true },
+      { t: 'rare',     y: 0.46, dur: 13800, delay: 4200, sc: 1.38, rtl: false },
     ]
     this._fishGfx = []
     this._fishTweens = []
