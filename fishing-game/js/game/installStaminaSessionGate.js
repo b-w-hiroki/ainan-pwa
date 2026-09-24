@@ -25,8 +25,9 @@ export function installStaminaSessionGate(GameScene) {
           const y = this.anchorY - 300
           this._enterRetrieve?.(x, y)
           this.bobber?.setPosition?.(x, y)?.setVisible?.(true)
-          this.retrieveUI?.show?.()
-          this.retrieveUI?.container?.setVisible?.(true)
+          this.retrieveUI?.hide?.()
+          this._rcRetrieveDock?.setVisible?.(true)
+          this._rcCastDock?.setVisible?.(false)
           this._syncRetrieveWorldUI?.()
         }, 220)
       }
