@@ -44,13 +44,13 @@ export class ResultUI {
     const stats = scene.add.graphics()
     stats.fillStyle(0xffffff, 0.10)
     stats.lineStyle(1.5, 0x8edfff, 0.34)
-    stats.fillRoundedRect(-132, -4, 264, 52, 16)
-    stats.strokeRoundedRect(-132, -4, 264, 52, 16)
+    stats.fillRoundedRect(-136, -6, 272, 74, 16)
+    stats.strokeRoundedRect(-136, -6, 272, 74, 16)
 
-    scene.resPts = scene.add.text(0, 22, '', {
+    scene.resPts = scene.add.text(0, 30, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffd95a',
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 68, '釣果を町へ持ち帰ろう', {
+    scene.resHint = scene.add.text(0, 78, 'サイズ・ポイントを確認', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
     }).setOrigin(0.5)
 
@@ -83,7 +83,7 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const town = makeBtn(-126, 102, 252, 56, '町へ持ち帰る', () => {
+    const town = makeBtn(-126, 112, 252, 56, '町へ持ち帰る', () => {
       const lastCatch = scene.catches?.[scene.catches.length - 1]
       const catchArrival = lastCatch && scene.fish ? {
         fishId: scene.fish.id, name: scene.fish.name, emoji: scene.fish.emoji,
@@ -92,17 +92,14 @@ export class ResultUI {
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, true)
-    const retry = makeBtn(-126, 170, 120, 42, '↻ もう一度', () => {
+    const retry = makeBtn(-126, 180, 252, 46, '↻ もう一度釣る', () => {
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
     })
-    const book = makeBtn(6, 170, 120, 42, '□ 図鑑', () => {
-      scene._cleanup()
-      scene.scene.start('CollectionScene')
-    })
 
-    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, ...book])
+
+    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry])
     scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, scene.resultSuccessActions])
   }
 
