@@ -21,6 +21,12 @@ export class RetrieveUI {
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
     const statusY = controlsTop + 22
 
+    const dockBg = this.scene.add.graphics().setScrollFactor(0)
+    dockBg.fillStyle(0x073754, 0.97)
+    dockBg.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
+    dockBg.lineStyle(2, 0x8edfff, 0.38)
+    dockBg.lineBetween(0, controlsTop, W, controlsTop)
+
     // One thin status row only. The fish itself is the primary feedback UI.
     const statusBg = this.scene.add.graphics().setScrollFactor(0)
     statusBg.fillStyle(0x071a28, 0.78)
@@ -69,7 +75,7 @@ export class RetrieveUI {
       .on('pointerout', () => this._releaseSlow())
 
     this.container.add([
-      statusBg, this.hintText,
+      dockBg, statusBg, this.hintText,
       senseBg, this.senseFill, this.senseText,
       waitBtn.container, twitchBtn.container, slowBtn.container,
     ])
