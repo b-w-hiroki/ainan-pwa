@@ -660,7 +660,7 @@ export default class GameScene extends Phaser.Scene {
       this._saveProgress()
 
       this.resultUI.drawResultStripe('caught')
-      this.resLabel.setText('✦ GET! ✦')
+      this.resLabel.setText(`${this.fish.name}を釣り上げた！`)
       this._showResultFishVisual(this.fish)
       this.resName.setText(this.fish.name)
       this.resPts.setText(`${sizeCm}cm  +${score}pt`)
