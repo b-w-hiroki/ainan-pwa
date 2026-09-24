@@ -29,7 +29,7 @@ function buildBattleHero(scene) {
   const width = rarity === 'legendary' ? 190 : rarity === 'rare' ? 176 : rarity === 'uncommon' ? 164 : 154
   const hero = scene.add.image(scene.scale.width * 0.50, 330, key)
     .setDisplaySize(width, width * 0.52)
-    .setDepth(122)
+    .setDepth(500)
     .setScrollFactor(0)
     .setAlpha(0.96)
 
@@ -57,13 +57,13 @@ function buildBattleScreenHero(scene) {
   if (key && scene.textures?.exists?.(key)) {
     scene._battleScreenHero = scene.add.image(scene.scale.width / 2, 330, key)
       .setDisplaySize(176, 88)
-      .setDepth(54)
+      .setDepth(500)
       .setScrollFactor(0)
       .setAlpha(0.94)
     return
   }
 
-  const g = scene.add.graphics().setDepth(54).setScrollFactor(0)
+  const g = scene.add.graphics().setDepth(500).setScrollFactor(0)
   g.fillStyle(0x0b3046, 0.92)
   g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
   g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
@@ -178,6 +178,10 @@ export function installFishingBattlePresentation(GameScene) {
     if (this.phase === 'battle') anchorBattleFish(this, this._targetFishGfx)
     const result = originalUpdate?.apply(this, args)
     enforceBattleComposition(this)
+    if (this.phase === 'battle') {
+      this._battleHeroFish?.setVisible?.(true)?.setDepth?.(500)?.setAlpha?.(0.98)
+      this._battleScreenHero?.setVisible?.(true)?.setDepth?.(499)?.setAlpha?.(0.90)
+    }
     return result
   }
 
