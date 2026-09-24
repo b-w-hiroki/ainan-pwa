@@ -194,9 +194,9 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   scene._rcRetrieveDock?.setVisible?.(retrieve)
 
   scene._mobileHudSetVisible?.(cast || retrieve)
+  clearRcBattleHero(scene)
   scene.battleHero?.setVisible?.(battle)
-  if (battle && !scene.battleHero?.active) showRcBattleHero(scene)
-  else clearRcBattleHero(scene)
+  scene.battleHeroGlow?.setVisible?.(battle)
   if (battle) {
     scene.escapeBar?.setVisible?.(true)
     scene.reelCTA?.setVisible?.(!scene.battleState?.isRaging)
@@ -223,6 +223,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene.rageTag?.setVisible?.(false)
     scene.dangerFx?.setAlpha?.(0)
     scene.resultOverlay?.setVisible?.(true)
+    scene.battleHero?.setVisible?.(false)
+    scene.battleHeroGlow?.setVisible?.(false)
     scene._mobileHudSetVisible?.(false)
   }
 }
