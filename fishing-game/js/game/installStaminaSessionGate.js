@@ -14,8 +14,23 @@ export function installStaminaSessionGate(GameScene) {
     const result = originalCreate.apply(this, args)
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      const action = params.get('qa') === '1' ? params.get('qaAction') : null
-      if (action === 'battle' || action === 'caught') {
+      const qa = params.get('qa') === '1'
+      const mockPhase = qa ? params.get('qaMockPhase') : null
+      const action = qa ? params.get('qaAction') : null
+
+      if (mockPhase === 'retrieve') {
+        window.setTimeout(() => {
+          if (this.phase !== 'cast') return
+          const x = this.anchorX + 210
+          const y = this.anchorY - 300
+          this._enterRetrieve?.(x, y)
+          this.bobber?.setPosition?.(x, y)?.setVisible?.(true)
+          this._syncRetrieveWorldUI?.()
+        }, 220)
+      }
+
+      const resolvedAction = action ?? (mockPhase === 'battle' ? 'battle' : mockPhase === 'result' ? 'caught' : null)
+      if (resolvedAction === 'battle' || resolvedAction === 'caught') {
         window.setTimeout(() => {
           const qaFishId = params.get('qaFish')
           if (qaFishId) {
@@ -28,7 +43,7 @@ export function installStaminaSessionGate(GameScene) {
             this._stopRetrieveRuntime?.()
             this._enterBattle?.()
           }
-          if (action === 'battle' && this.phase === 'battle') {
+          if (resolvedAction === 'battle' && this.phase === 'battle') {
             this._battleTimer?.remove?.(false)
             this._battleTimer = undefined
             if (this.battleState) {
@@ -41,7 +56,7 @@ export function installStaminaSessionGate(GameScene) {
             this.escapeBar?.setVisible?.(true)
             this.battlePanel?.setVisible?.(true)
           }
-          if (action === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
+          if (resolvedAction === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
         }, 220)
       }
     }
