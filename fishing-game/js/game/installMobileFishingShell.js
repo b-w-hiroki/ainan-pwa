@@ -15,24 +15,24 @@ function buildTopHud(scene, W) {
   const c = scene.add.container(0, 0).setDepth(96).setScrollFactor(0)
 
   const bg = scene.add.graphics().setScrollFactor(0)
-  bg.fillStyle(0x073754, 0.88)
-  bg.fillRoundedRect(8, 7, W - 16, 48, 15)
-  bg.lineStyle(1.5, 0x8edfff, 0.48)
-  bg.strokeRoundedRect(8, 7, W - 16, 48, 15)
-  bg.fillStyle(0xffffff, 0.09)
-  bg.fillRoundedRect(18, 13, W - 36, 9, 5)
+  bg.fillStyle(0x073754, 0.97)
+  bg.fillRect(0, 0, W, 64)
+  bg.lineStyle(2, 0x8edfff, 0.42)
+  bg.lineBetween(0, 63, W, 63)
+  bg.fillStyle(0xffffff, 0.08)
+  bg.fillRect(0, 0, W, 4)
 
-  const backBg = scene.add.circle(31, 31, 17, 0xffffff, 0.14)
+  const backBg = scene.add.circle(28, 32, 15, 0xffffff, 0.12)
     .setStrokeStyle(1.5, 0xffffff, 0.30)
     .setScrollFactor(0)
-  const back = scene.add.text(31, 30, '‹', {
+  const back = scene.add.text(28, 31, '‹', {
     fontFamily: FONT,
     resolution: TEXT_RES,
-    fontSize: '29px',
+    fontSize: '25px',
     fontWeight: '900',
     color: '#ffffff',
-  }).setOrigin(0.5).setScrollFactor(0)
-  const backHit = scene.add.circle(31, 31, 23, 0x000000, 0)
+  }).setOrigin(1, 0.5).setScrollFactor(0)
+  const backHit = scene.add.circle(28, 32, 21, 0x000000, 0)
     .setScrollFactor(0)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', pointer => pointer?.event?.stopPropagation?.())
@@ -42,7 +42,7 @@ function buildTopHud(scene, W) {
       scene.scene.start('MapScene')
     })
 
-  const location = scene.add.text(56, 31, pointName(scene.env?.point), {
+  const location = scene.add.text(52, 24, `釣り場・${pointName(scene.env?.point)}`, {
     fontFamily: FONT,
     resolution: TEXT_RES,
     fontSize: '13px',
@@ -51,10 +51,10 @@ function buildTopHud(scene, W) {
   }).setOrigin(0, 0.5).setScrollFactor(0)
 
   const statusBg = scene.add.graphics().setScrollFactor(0)
-  statusBg.fillStyle(0x021d2d, 0.42)
-  statusBg.fillRoundedRect(W - 132, 15, 108, 32, 12)
+  statusBg.fillStyle(0x021d2d, 0)
+  statusBg.fillRect(W - 118, 0, 118, 64)
 
-  const status = scene.add.text(W - 78, 31, 'キャスト', {
+  const status = scene.add.text(W - 18, 39, 'キャスト', {
     fontFamily: FONT,
     resolution: TEXT_RES,
     fontSize: '12px',
