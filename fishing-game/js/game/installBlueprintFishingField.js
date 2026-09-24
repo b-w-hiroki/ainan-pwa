@@ -153,12 +153,60 @@ function hideTackle(scene) {
 
 function buildCastInstruction(scene) {
   const W = scene.scale.width
-  const y = MOBILE_FRAME.playBottom - 24
-  const bg = scene.add.graphics().setDepth(92).setScrollFactor(0)
-  bg.fillStyle(0x062c44, 0.78); bg.fillRoundedRect(W / 2 - 116, y - 15, 232, 30, 13)
-  bg.lineStyle(1.2, 0xffffff, 0.20); bg.strokeRoundedRect(W / 2 - 116, y - 15, 232, 30, 13)
-  const text = scene.add.text(W / 2, y, '長押しでパワー → 離してキャスト', { fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES, fontSize: '10px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5).setDepth(93).setScrollFactor(0)
-  scene._blueprintCastInstruction = scene.add.container(0, 0, [bg, text]).setDepth(92).setScrollFactor(0).setVisible(false)
+  const H = scene.scale.height
+  const top = H - MOBILE_FRAME.bottomControlsHeight
+  const items = []
+
+  const panel = scene.add.graphics().setDepth(91).setScrollFactor(0)
+  panel.fillStyle(0xf8fdff, 0.95)
+  panel.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
+  panel.lineStyle(2, 0x9bcfe5, 0.55)
+  panel.lineBetween(0, top, W, top)
+  items.push(panel)
+
+  const power = scene.add.text(22, top + 24, 'パワー', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    resolution: TEXT_RES,
+    fontSize: '12px',
+    fontStyle: 'bold',
+    color: '#173248',
+  }).setOrigin(0, 0.5).setDepth(93).setScrollFactor(0)
+  items.push(power)
+
+  const buttonBg = scene.add.graphics().setDepth(92).setScrollFactor(0)
+  buttonBg.fillStyle(0x2f9ed4, 1)
+  buttonBg.lineStyle(3, 0xffffff, 0.94)
+  buttonBg.fillCircle(W / 2, top + 116, 45)
+  buttonBg.strokeCircle(W / 2, top + 116, 45)
+  items.push(buttonBg)
+
+  const buttonText = scene.add.text(W / 2, top + 116, '投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    resolution: TEXT_RES,
+    fontSize: '16px',
+    fontStyle: 'bold',
+    color: '#ffffff',
+  }).setOrigin(0.5).setDepth(93).setScrollFactor(0)
+  items.push(buttonText)
+
+  const hit = scene.add.circle(W / 2, top + 116, 48, 0x000000, 0)
+    .setDepth(94)
+    .setScrollFactor(0)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', (_pointer, _lx, _ly, event) => {
+      event?.stopPropagation?.()
+      if (scene.phase !== 'cast' || scene.isCharging) return
+      scene.isCharging = true
+      scene.chargeStartedAt = scene.time.now
+    })
+    .on('pointerup', (_pointer, _lx, _ly, event) => {
+      event?.stopPropagation?.()
+      if (scene.phase !== 'cast' || !scene.isCharging) return
+      scene._onUp?.()
+    })
+  items.push(hit)
+
+  scene._blueprintCastInstruction = scene.add.container(0, 0, items).setDepth(91).setScrollFactor(0).setVisible(false)
 }
 
 function showCastInstruction(scene, visible) { scene._blueprintCastInstruction?.setVisible(Boolean(visible)) }
