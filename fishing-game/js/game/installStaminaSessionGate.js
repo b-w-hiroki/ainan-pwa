@@ -65,7 +65,13 @@ export function installStaminaSessionGate(GameScene) {
             this.escapeBar?.setVisible?.(true)
             this.battlePanel?.setVisible?.(true)
           }
-          if (resolvedAction === 'caught' && this.phase === 'battle') this._finishBattle?.('caught')
+          if (resolvedAction === 'caught' && this.phase === 'battle') {
+            this._battleTimer?.remove?.(false)
+            this._battleTimer = undefined
+            this.time?.delayedCall?.(120, () => {
+              if (this.phase === 'battle') this._finishBattle?.('caught')
+            })
+          }
         }, 220)
       }
     }
