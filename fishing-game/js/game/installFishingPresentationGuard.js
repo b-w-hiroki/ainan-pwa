@@ -35,15 +35,109 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   scene.lineGfx.lineBetween(scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y)
 }
 
+function hideTackleChrome(scene) {
+  const tackle = scene.tackleUI
+  if (!tackle) return
+  for (const btn of [tackle._rodBtn, tackle._baitBtn]) {
+    if (!btn) continue
+    Object.values(btn).forEach(obj => obj?.setVisible?.(false))
+  }
+  tackle._rodPanel?.setVisible?.(false)
+  tackle._baitPanel?.setVisible?.(false)
+}
+
+function buildFinalControlChrome(scene) {
+  if (scene._rcCastDock || scene._rcRetrieveDock) return
+  const W = scene.scale.width
+  const top = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
+
+  const cast = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
+  const castBg = scene.add.graphics().setScrollFactor(0)
+  castBg.fillStyle(0xf8fdff, 0.98)
+  castBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
+  castBg.lineStyle(2, 0x9bcfe5, 0.72)
+  castBg.lineBetween(0, top, W, top)
+  const powerLabel = scene.add.text(24, top + 23, 'パワー', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '12px', fontStyle: 'bold', color: '#173248',
+  }).setOrigin(0, 0.5)
+  const track = scene.add.graphics()
+  track.fillStyle(0xd9edf6, 1)
+  track.fillRoundedRect(82, top + 18, 198, 10, 5)
+  track.fillStyle(0x58b8df, 1)
+  track.fillRoundedRect(82, top + 18, 126, 10, 5)
+  const throwBg = scene.add.circle(W / 2, top + 108, 44, 0x2f9ed4, 1)
+    .setStrokeStyle(3, 0xffffff, 0.96)
+  const throwText = scene.add.text(W / 2, top + 108, '投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0.5)
+  const throwHit = scene.add.circle(W / 2, top + 108, 48, 0x000000, 0)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', pointer => {
+      pointer?.event?.stopPropagation?.()
+      if (scene.phase !== 'cast' || scene.isCharging) return
+      scene.isCharging = true
+      scene.chargeStartedAt = scene.time.now
+    })
+    .on('pointerup', pointer => {
+      pointer?.event?.stopPropagation?.()
+      if (scene.phase === 'cast' && scene.isCharging) scene._onUp?.()
+    })
+  cast.add([castBg, powerLabel, track, throwBg, throwText, throwHit])
+
+  const retrieve = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
+  const retrieveBg = scene.add.graphics()
+  retrieveBg.fillStyle(0x073754, 0.98)
+  retrieveBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
+  retrieveBg.lineStyle(2, 0x8edfff, 0.42)
+  retrieveBg.lineBetween(0, top, W, top)
+  const retrieveHint = scene.add.text(W / 2, top + 21, '魚影の反応を見ながら操作', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '11px', fontStyle: 'bold', color: '#dff5ff',
+  }).setOrigin(0.5)
+
+  const makeAction = (x, fill, mark, label, down, up = null) => {
+    const bg = scene.add.circle(x, top + 91, 38, fill, 1).setStrokeStyle(3, 0xffffff, 0.94)
+    const icon = scene.add.text(x, top + 82, mark, {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+      fontSize: '24px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5)
+    const txt = scene.add.text(x, top + 137, label, {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+      fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5)
+    const hit = scene.add.circle(x, top + 91, 43, 0x000000, 0).setInteractive({ useHandCursor: true })
+    hit.on('pointerdown', pointer => { pointer?.event?.stopPropagation?.(); down?.() })
+    if (up) {
+      hit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); up() })
+      hit.on('pointerupoutside', up)
+      hit.on('pointerout', up)
+    }
+    return [bg, icon, txt, hit]
+  }
+  retrieve.add([
+    retrieveBg, retrieveHint,
+    ...makeAction(W * 0.22, 0x248cd6, 'Ⅱ', '待つ', () => scene._setRetrieveIdle?.()),
+    ...makeAction(W * 0.50, 0x2ebd67, '↻', 'ちょい巻き', () => scene._twitchRetrieve?.()),
+    ...makeAction(W * 0.78, 0xf2a01f, '≫', 'ゆっくり巻く', () => scene._startSlowRetrieve?.(), () => scene._stopSlowRetrieve?.()),
+  ])
+
+  scene._rcCastDock = cast
+  scene._rcRetrieveDock = retrieve
+}
+
 function applyPhasePresentation(scene, phase = scene.phase) {
   const cast = phase === 'cast'
   const retrieve = phase === 'retrieve'
   const battle = phase === 'battle'
   const result = phase === 'result'
 
-  scene._blueprintCastInstruction?.setVisible?.(cast)
-  if (retrieve) scene.retrieveUI?.show?.()
-  else scene.retrieveUI?.hide?.()
+  hideTackleChrome(scene)
+  scene._blueprintCastInstruction?.setVisible?.(false)
+  scene.retrieveUI?.hide?.()
+  scene._rcCastDock?.setVisible?.(cast)
+  scene._rcRetrieveDock?.setVisible?.(retrieve)
 
   scene._mobileHudSetVisible?.(cast || retrieve)
   if (battle) {
@@ -54,11 +148,14 @@ function applyPhasePresentation(scene, phase = scene.phase) {
       : scene.bg?._fishRuntime?.find(item => item?.gfx?.active)?.gfx
     if (target?.active) {
       scene._targetFishGfx = target
+      scene.bg?._fishTweens?.[scene._targetFishIndex]?.stop?.()
       target.setVisible?.(true)
       target.setAlpha?.(1)
       target.setDepth?.(40)
+      const cam = scene.cameras?.main
+      target.setPosition?.((cam?.scrollX ?? 0) + scene.scale.width * 0.50, (cam?.scrollY ?? 0) + 330)
       const image = target._assetImage
-      if (image) image.setDisplaySize(168, 84)
+      if (image) image.setDisplaySize(176, 88)
     }
   }
 
@@ -112,6 +209,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalCreate = GameScene.prototype.create
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
+    buildFinalControlChrome(this)
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, ['cast', 'retrieve'].includes(this.phase))
     applyPhasePresentation(this)
@@ -183,6 +281,10 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    this._rcCastDock?.destroy?.(true)
+    this._rcRetrieveDock?.destroy?.(true)
+    this._rcCastDock = null
+    this._rcRetrieveDock = null
     this._fishingPresentationObjects = null
     return originalCleanup.apply(this, args)
   }
