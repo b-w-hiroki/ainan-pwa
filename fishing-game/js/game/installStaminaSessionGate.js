@@ -27,6 +27,7 @@ function stabilizeMockRetrieve(scene) {
   scene._rcCastDock?.setVisible?.(false)
   scene._rcRetrieveDock?.setVisible?.(true)
   scene._blueprintCastInstruction?.setVisible?.(false)
+  scene._applyRcFishingPresentation?.('retrieve')
   scene._mobileHudSetVisible?.(true)
   scene._mobileHudSetStatus?.('残り 20m')
   scene.lineGfx?.clear?.()
@@ -54,6 +55,7 @@ function stabilizeMockBattle(scene) {
   scene._mobileHudSetVisible?.(false)
   scene._rcCastDock?.setVisible?.(false)
   scene._rcRetrieveDock?.setVisible?.(false)
+  scene._applyRcFishingPresentation?.('battle')
 
   if (target?.active) {
     const cam = scene.cameras?.main
@@ -79,6 +81,7 @@ function stabilizeMockResult(scene) {
     scene._mobileHudSetVisible?.(false)
     scene._rcCastDock?.setVisible?.(false)
     scene._rcRetrieveDock?.setVisible?.(false)
+    scene._applyRcFishingPresentation?.('result')
   })
 }
 
@@ -94,6 +97,7 @@ export function installStaminaSessionGate(GameScene) {
     }
 
     const result = originalCreate.apply(this, args)
+    this._applyRcFishingPresentation?.(this.phase)
     if (typeof window === 'undefined') return result
 
     const params = new URLSearchParams(window.location.search)
