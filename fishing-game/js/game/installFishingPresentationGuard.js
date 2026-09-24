@@ -179,6 +179,11 @@ export function installFishingPresentationGuard(GameScene) {
   if (GameScene.prototype.__ainanFishingPresentationGuardInstalled) return
   GameScene.prototype.__ainanFishingPresentationGuardInstalled = true
 
+  GameScene.prototype._applyRcFishingPresentation = function (phase = this.phase) {
+    buildFinalControlChrome(this)
+    applyPhasePresentation(this, phase)
+  }
+
   const originalBuildPlayer = BackgroundManager.prototype.buildPlayer
   BackgroundManager.prototype.buildPlayer = function (...args) {
     const before = this.scene.children.list.length
@@ -212,7 +217,7 @@ export function installFishingPresentationGuard(GameScene) {
     buildFinalControlChrome(this)
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, ['cast', 'retrieve'].includes(this.phase))
-    applyPhasePresentation(this)
+    this._applyRcFishingPresentation?.(this.phase)
     return result
   }
 
@@ -220,7 +225,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
     setFishingPlayerVisible(this, true)
-    applyPhasePresentation(this, 'cast')
+    this._applyRcFishingPresentation?.('cast')
     return result
   }
 
@@ -236,7 +241,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
     setFishingPlayerVisible(this, true)
-    applyPhasePresentation(this, 'retrieve')
+    this._applyRcFishingPresentation?.('retrieve')
     drawRetrieveLineToPlayfieldEdge(this)
     return result
   }
@@ -252,7 +257,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._beginRetrieveBite = function (...args) {
     const result = originalBeginRetrieveBite.apply(this, args)
     setFishingPlayerVisible(this, false)
-    applyPhasePresentation(this, 'battle')
+    this._applyRcFishingPresentation?.('battle')
     return result
   }
 
@@ -267,7 +272,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     setFishingPlayerVisible(this, false)
-    applyPhasePresentation(this, 'battle')
+    this._applyRcFishingPresentation?.('battle')
     return result
   }
 
@@ -275,7 +280,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
     setFishingPlayerVisible(this, false)
-    applyPhasePresentation(this, 'result')
+    this._applyRcFishingPresentation?.('result')
     return result
   }
 
