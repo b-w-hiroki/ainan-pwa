@@ -250,6 +250,7 @@ export default class GameScene extends Phaser.Scene {
 
 
 
+
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // PHASES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -276,6 +277,8 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
     this.scoreBar.setY(16)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
     this.hintText.setText('画面を長押し → 方向を狙って離す')
 
     // 魚を開始位置にリセットして Tween を再生成
@@ -558,6 +561,8 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
     this.scoreBar.setY(88)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
 
     this.battleState = createBattleState(this.fish, this.rod)
     armFirstRage(this.battleState, this.fish, this.time.now)
@@ -632,6 +637,8 @@ export default class GameScene extends Phaser.Scene {
     this.dangerFx.setAlpha(0)
     this.hintText.setText('')
     this.scoreBar.setY(16)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
@@ -653,11 +660,11 @@ export default class GameScene extends Phaser.Scene {
       this._saveProgress()
 
       this.resultUI.drawResultStripe('caught')
-      this.resLabel.setText('✦ GET! ✦')
+      this.resLabel.setText(`${this.fish.name}を釣り上げた！`)
       this._showResultFishVisual(this.fish)
       this.resName.setText(this.fish.name)
-      this.resPts.setText(`${sizeCm}cm  +${score}pt`)
-      this.resHint.setText('タップで続ける / 図鑑に記録')
+      this.resPts.setText(`サイズ  ${sizeCm} cm   +${score} pt\nレア度  ${{ common: '★☆☆☆☆', uncommon: '★★☆☆☆', rare: '★★★☆☆', legendary: '★★★★★' }[this.fish.rarity] ?? '★☆☆☆☆'}`)
+      this.resHint.setText('サイズ・ポイントを確認')
 
       this.resultEmojiTween?.destroy()
       this.resultEmojiTween = this.tweens.add({

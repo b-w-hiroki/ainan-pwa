@@ -112,21 +112,29 @@ export function installCatchRewardPolish(GameScene) {
     if (outcome === 'caught' && fish && !boss) {
       const latest = [...(this.catches ?? [])].reverse().find(item => item.fishId === fish.id)
       const newBest = (latest?.sizeCm ?? 0) > oldBest
-      const rewards = []
-      if (first) {
-        const token = rewardToken('first')
-        rewards.push({ label: token.label, bg: token.color, fg: token.text })
-      } else if (newBest) {
-        const token = rewardToken('record')
-        rewards.push({ label: token.label, bg: token.color, fg: token.text })
-      }
-      if (fish.rarity === 'rare') {
-        const token = rewardToken('rare')
-        rewards.push({ label: token.label, bg: token.color, fg: token.text })
-      }
-      if (fish.rarity === 'legendary') {
-        const token = rewardToken('legendary')
-        rewards.push({ label: token.label, bg: token.color, fg: token.text })
+      let rewards = []
+      if (rewardKind) {
+        // QA screenshots must isolate the requested reward language. Deriving
+        // rewards from catch history made FIRST/RARE/LEGENDARY collapse into
+        // identical visual states when multiple conditions were true.
+        const token = rewardToken(rewardKind)
+        rewards = [{ label: token.label, bg: token.color, fg: token.text }]
+      } else {
+        if (first) {
+          const token = rewardToken('first')
+          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+        } else if (newBest) {
+          const token = rewardToken('record')
+          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+        }
+        if (fish.rarity === 'rare') {
+          const token = rewardToken('rare')
+          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+        }
+        if (fish.rarity === 'legendary') {
+          const token = rewardToken('legendary')
+          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+        }
       }
       this.time.delayedCall(20, () => show(this, rewards))
       if (rewards.length) {

@@ -11,23 +11,14 @@ export class ResultUI {
     const scene = this.scene
     scene.resultOverlay = scene.add.container(W / 2, H / 2).setDepth(120).setVisible(false).setScrollFactor(0)
 
-    const scrim = scene.add.rectangle(0, 0, W, H, 0x03243a, 0.72)
-    let card
-    if (scene.textures.exists(ASSETS.ui.resultFrame.key)) {
-      card = scene.add.image(0, 0, ASSETS.ui.resultFrame.key).setDisplaySize(336, 500)
-    } else {
-      card = scene.add.graphics()
-      card.fillStyle(0x073754, 0.96)
-      card.lineStyle(2, 0x8edfff, 0.55)
-      card.fillRoundedRect(-168, -250, 336, 500, 28)
-      card.strokeRoundedRect(-168, -250, 336, 500, 28)
-      card.fillStyle(0xffffff, 0.08)
-      card.fillRoundedRect(-154, -236, 308, 9, 5)
-    }
+    const scrim = scene.add.rectangle(0, 0, W, H, 0x06395c, 0.97)
+    const card = scene.add.graphics()
+    card.fillStyle(0x0b4a70, 0.18)
+    card.fillRoundedRect(-176, -258, 352, 516, 30)
 
     scene.resStripe = scene.add.graphics()
-    scene.resLabel = scene.add.text(0, -218, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
+    scene.resLabel = scene.add.text(0, -220, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const halo = scene.add.graphics()
@@ -42,15 +33,15 @@ export class ResultUI {
     }).setOrigin(0.5)
 
     const stats = scene.add.graphics()
-    stats.fillStyle(0xffffff, 0.10)
-    stats.lineStyle(1.5, 0x8edfff, 0.34)
-    stats.fillRoundedRect(-132, -4, 264, 52, 16)
-    stats.strokeRoundedRect(-132, -4, 264, 52, 16)
+    stats.fillStyle(0x062c44, 0.86)
+    stats.lineStyle(1.5, 0xbcecff, 0.46)
+    stats.fillRoundedRect(-136, -6, 272, 74, 16)
+    stats.strokeRoundedRect(-136, -6, 272, 74, 16)
 
-    scene.resPts = scene.add.text(0, 22, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffd95a',
+    scene.resPts = scene.add.text(0, 30, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 6,
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 68, '釣果を町へ持ち帰ろう', {
+    scene.resHint = scene.add.text(0, 78, 'サイズ・ポイントを確認', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
     }).setOrigin(0.5)
 
@@ -83,7 +74,7 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const town = makeBtn(-126, 102, 252, 56, '町へ持ち帰る', () => {
+    const town = makeBtn(-126, 112, 252, 56, '町へ持ち帰る', () => {
       const lastCatch = scene.catches?.[scene.catches.length - 1]
       const catchArrival = lastCatch && scene.fish ? {
         fishId: scene.fish.id, name: scene.fish.name, emoji: scene.fish.emoji,
@@ -92,17 +83,14 @@ export class ResultUI {
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, true)
-    const retry = makeBtn(-126, 170, 120, 42, '↻ もう一度', () => {
+    const retry = makeBtn(-126, 180, 252, 46, '↻ もう一度釣る', () => {
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
     })
-    const book = makeBtn(6, 170, 120, 42, '□ 図鑑', () => {
-      scene._cleanup()
-      scene.scene.start('CollectionScene')
-    })
 
-    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, ...book])
+
+    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry])
     scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, scene.resultSuccessActions])
   }
 
