@@ -46,6 +46,30 @@ function buildBattleHero(scene) {
   return hero
 }
 
+function clearBattleScreenHero(scene) {
+  scene._battleScreenHero?.destroy?.()
+  scene._battleScreenHero = null
+}
+
+function buildBattleScreenHero(scene) {
+  clearBattleScreenHero(scene)
+  const key = ASSETS.fishingField?.fishShadowMediumIdle?.key
+  if (key && scene.textures?.exists?.(key)) {
+    scene._battleScreenHero = scene.add.image(scene.scale.width / 2, 330, key)
+      .setDisplaySize(176, 88)
+      .setDepth(54)
+      .setScrollFactor(0)
+      .setAlpha(0.94)
+    return
+  }
+
+  const g = scene.add.graphics().setDepth(54).setScrollFactor(0)
+  g.fillStyle(0x0b3046, 0.92)
+  g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
+  g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
+  scene._battleScreenHero = g
+}
+
 function findBattleTarget(scene) {
   if (scene._targetFishGfx?.active) return scene._targetFishGfx
   const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
@@ -143,6 +167,7 @@ export function installFishingBattlePresentation(GameScene) {
     buildBattleHero(this)
     if (target?.active) target.setAlpha?.(0.18)
     enforceBattleComposition(this)
+    if (this.phase === 'battle' && !this._battleScreenHero?.active) buildBattleScreenHero(this)
     return result
   }
 
