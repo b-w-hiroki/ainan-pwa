@@ -50,18 +50,14 @@ export class RetrieveUI {
       color: '#dff5ff',
     }).setOrigin(0.5).setScrollFactor(0)
 
-    const btnY = controlsTop + 92
-    const gap = 8
-    const sideW = 104
-    const mainW = W - 32 - sideW * 2 - gap * 2
-
-    const waitBtn = this._button(16 + sideW / 2, btnY, sideW, 68, 'Ⅱ', '待つ', '動かさず見る', 0x0e557b, () => {
+    const btnY = controlsTop + 104
+    const waitBtn = this._button(W * 0.22, btnY, 86, 86, 'Ⅱ', '待つ', '', 0x248cd6, () => {
       this.scene._setRetrieveIdle?.()
-    }, false, FIELD.retrieveButtonWait)
-    const twitchBtn = this._button(W / 2, btnY, mainW, 74, '↻', 'ちょい巻き', '少しだけ引く', 0xffd95a, () => {
+    })
+    const twitchBtn = this._button(W * 0.50, btnY, 94, 94, '↻', 'ちょい巻き', '', 0x2ebd67, () => {
       this.scene._twitchRetrieve?.()
-    }, true, FIELD.retrieveButtonShortReel)
-    const slowBtn = this._button(W - 16 - sideW / 2, btnY, sideW, 68, '≫', 'ゆっくり', '長押し', 0x0e557b, null, false, FIELD.retrieveButtonSlowReel)
+    }, true)
+    const slowBtn = this._button(W * 0.78, btnY, 86, 86, '≫', 'ゆっくり巻く', '', 0xf2a01f, null)
 
     slowBtn.hit
       .on('pointerdown', () => {
@@ -88,40 +84,37 @@ export class RetrieveUI {
 
   _button(x, y, w, h, mark, label, sub, fill, onTap, primary = false, asset = null) {
     const c = this.scene.add.container(x, y).setScrollFactor(0)
-    const hasAsset = Boolean(asset?.key && this.scene.textures.exists(asset.key))
-    const bg = this.scene.add.graphics().setScrollFactor(0).setVisible(!hasAsset)
-    bg.fillStyle(0x071a28, 0.24)
-    bg.fillRoundedRect(-w / 2 + 2, -h / 2 + 4, w, h, 20)
-    bg.fillStyle(fill, primary ? 1 : 0.96)
-    bg.lineStyle(primary ? 2.5 : 1.6, primary ? 0xffffff : 0x8edfff, primary ? 0.62 : 0.48)
-    bg.fillRoundedRect(-w / 2, -h / 2, w, h, 20)
-    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 20)
-    bg.fillStyle(0xffffff, primary ? 0.26 : 0.12)
-    bg.fillRoundedRect(-w / 2 + 10, -h / 2 + 8, w - 20, 7, 4)
-
-    const assetBg = hasAsset
-      ? this.scene.add.image(0, 0, asset.key).setDisplaySize(w, h).setScrollFactor(0)
-      : null
+    const radius = Math.min(w, h) / 2
+    const bg = this.scene.add.graphics().setScrollFactor(0)
+    bg.fillStyle(0x031b2a, 0.38)
+    bg.fillCircle(2, 4, radius + 2)
+    bg.fillStyle(fill, 1)
+    bg.lineStyle(primary ? 4 : 3, 0xffffff, 0.94)
+    bg.fillCircle(0, 0, radius)
+    bg.strokeCircle(0, 0, radius)
+    bg.fillStyle(0xffffff, 0.20)
+    bg.fillCircle(-radius * 0.25, -radius * 0.28, radius * 0.28)
+    const assetBg = null
 
     const icon = this.scene.add.text(0, -19, mark, {
       fontFamily: FONT,
       resolution: TEXT_RES,
-      fontSize: primary ? '21px' : '18px',
+      fontSize: primary ? '30px' : '27px',
       fontWeight: '900',
       color: primary ? UI_COLORS.ink : '#ffffff',
       shadow: primary ? SHADOW.subtle : undefined,
     }).setOrigin(0.5).setScrollFactor(0)
 
-    const t = this.scene.add.text(0, 2, label, {
+    const t = this.scene.add.text(0, radius + 17, label, {
       fontFamily: FONT,
       resolution: TEXT_RES,
-      fontSize: primary ? '16px' : '14px',
+      fontSize: primary ? '13px' : '12px',
       fontWeight: '900',
       color: primary ? UI_COLORS.ink : '#ffffff',
       shadow: primary ? SHADOW.subtle : undefined,
     }).setOrigin(0.5).setScrollFactor(0)
 
-    const s = this.scene.add.text(0, 23, sub, {
+    const s = this.scene.add.text(0, radius + 31, sub, {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '8px',
@@ -129,7 +122,7 @@ export class RetrieveUI {
       color: primary ? UI_COLORS.inkSoft : '#dff5ff',
     }).setOrigin(0.5).setScrollFactor(0)
 
-    const hit = this.scene.add.rectangle(0, 0, w, h, 0x000000, 0)
+    const hit = this.scene.add.circle(0, 0, radius + 4, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .setScrollFactor(0)
     if (onTap) hit.on('pointerdown', onTap)
