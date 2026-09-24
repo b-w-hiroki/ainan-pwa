@@ -81,38 +81,34 @@ export class BattleUI {
   buildReelCTA(W, H) {
     const scene = this.scene
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
-    scene.reelCTA = scene.add.container(W / 2, controlsTop + 62).setDepth(92).setVisible(false).setScrollFactor(0)
+    scene.reelCTA = scene.add.container(0, 0).setDepth(92).setVisible(false).setScrollFactor(0)
 
-    const shadow = scene.add.graphics()
-    shadow.fillStyle(0x071a28, 0.24)
-    shadow.fillRoundedRect(-132, -22, 264, 50, 21)
+    const shade = scene.add.graphics()
+    shade.fillStyle(0x042238, 0.50)
+    shade.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
+    shade.lineStyle(1.5, 0x8edfff, 0.28)
+    shade.lineBetween(0, controlsTop, W, controlsTop)
 
-    const pill = scene.add.graphics()
-    pill.fillStyle(0x0e557b, 0.96)
-    pill.lineStyle(2, 0x8edfff, 0.58)
-    pill.fillRoundedRect(-132, -26, 264, 50, 21)
-    pill.strokeRoundedRect(-132, -26, 264, 50, 21)
-    pill.fillStyle(0xffffff, 0.12)
-    pill.fillRoundedRect(-116, -18, 232, 7, 4)
-
-    const arrow = scene.add.text(-88, -1, '↓', {
+    const arrow = scene.add.text(W / 2, controlsTop + 72, '↓', {
       fontFamily: FONT,
-      fontSize: '27px',
+      fontSize: '46px',
       fontWeight: '900',
       color: '#ffffff',
       resolution: TEXT_RES,
     }).setOrigin(0.5)
 
-    const text = scene.add.text(25, -1, '下へスワイプで巻く', {
+    const text = scene.add.text(W / 2, controlsTop + 132, '下にスワイプで巻く', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '14px',
       fontWeight: '900',
       color: '#ffffff',
+      backgroundColor: 'rgba(3,27,42,0.64)',
+      padding: { x: 14, y: 6 },
     }).setOrigin(0.5)
 
-    scene.reelCTA.add([shadow, pill, arrow, text])
-    scene.tweens.add({ targets: arrow, y: '+=5', duration: 520, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    scene.reelCTA.add([shade, arrow, text])
+    scene.tweens.add({ targets: arrow, y: '+=7', duration: 520, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
   }
 
   sync(battleState, reel, ebarW) {
@@ -149,7 +145,7 @@ export class BattleUI {
     scene.battlePanel?.setVisible(false)
     const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
-    scene.reelCTA.setVisible(false)
+    scene.reelCTA.setVisible(!st.isRaging)
     if (st.isRaging && !wasRaging) scene.cameras.main.shake(180, 0.009)
   }
 
