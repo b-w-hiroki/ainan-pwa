@@ -271,6 +271,17 @@ export function installFishingPresentationGuard(GameScene) {
     applyPhasePresentation(this, phase)
   }
 
+  const originalPreload = GameScene.prototype.preload
+  GameScene.prototype.preload = function (...args) {
+    originalPreload?.apply(this, args)
+    const playerAssets = [ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    playerAssets.forEach(asset => {
+      if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
+        this.load.image(asset.key, asset.path)
+      }
+    })
+  }
+
   const originalBuildPlayer = BackgroundManager.prototype.buildPlayer
   BackgroundManager.prototype.buildPlayer = function (...args) {
     const before = this.scene.children.list.length
