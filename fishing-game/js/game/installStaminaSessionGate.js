@@ -1,5 +1,6 @@
 import { getStaminaState } from './progress.js'
 import { FISH_LIST } from './fish.js'
+import { ASSETS } from '../config/assetManifest.js'
 
 function pickQaTarget(scene) {
   const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
