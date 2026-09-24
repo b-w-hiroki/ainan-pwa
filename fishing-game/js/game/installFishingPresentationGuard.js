@@ -150,15 +150,14 @@ function showRcBattleHero(scene) {
   clearRcBattleHero(scene)
   const key = FISH_ICON_BY_ID[scene.fish?.id]
   if (!key || !scene.textures?.exists?.(key)) return
-  const hero = scene.add.image(scene.scale.width / 2, 338, key)
+  const hero = scene.add.image(scene.scale.width / 2, 345, key)
     .setDisplaySize(172, 132)
-    .setDepth(206)
-    .setScrollFactor(0)
     .setAlpha(0.98)
+  scene.escapeBar?.add?.(hero)
   scene._rcBattleHero = hero
   scene._rcBattleHeroTween = scene.tweens.add({
     targets: hero,
-    y: 332,
+    y: 339,
     angle: 2.5,
     duration: 900,
     yoyo: true,
