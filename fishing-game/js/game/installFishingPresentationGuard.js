@@ -35,6 +35,44 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   scene.lineGfx.lineBetween(scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y)
 }
 
+function applyPhasePresentation(scene, phase = scene.phase) {
+  const cast = phase === 'cast'
+  const retrieve = phase === 'retrieve'
+  const battle = phase === 'battle'
+  const result = phase === 'result'
+
+  scene._blueprintCastInstruction?.setVisible?.(cast)
+  if (retrieve) scene.retrieveUI?.show?.()
+  else scene.retrieveUI?.hide?.()
+
+  scene._mobileHudSetVisible?.(cast || retrieve)
+  if (battle) {
+    scene.escapeBar?.setVisible?.(true)
+    scene.reelCTA?.setVisible?.(!scene.battleState?.isRaging)
+    const target = scene._targetFishGfx?.active
+      ? scene._targetFishGfx
+      : scene.bg?._fishRuntime?.find(item => item?.gfx?.active)?.gfx
+    if (target?.active) {
+      scene._targetFishGfx = target
+      target.setVisible?.(true)
+      target.setAlpha?.(1)
+      target.setDepth?.(40)
+      const image = target._assetImage
+      if (image) image.setDisplaySize(168, 84)
+    }
+  }
+
+  if (result) {
+    scene.escapeBar?.setVisible?.(false)
+    scene.battlePanel?.setVisible?.(false)
+    scene.reelCTA?.setVisible?.(false)
+    scene.rageTag?.setVisible?.(false)
+    scene.dangerFx?.setAlpha?.(0)
+    scene.resultOverlay?.setVisible?.(true)
+    scene._mobileHudSetVisible?.(false)
+  }
+}
+
 /**
  * Last-line presentation guard for the canonical mobile fishing composition.
  * It prevents legacy fallback character art from leaking back into Retrieve /
@@ -76,6 +114,7 @@ export function installFishingPresentationGuard(GameScene) {
     const result = originalCreate.apply(this, args)
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, ['cast', 'retrieve'].includes(this.phase))
+    applyPhasePresentation(this)
     return result
   }
 
@@ -83,6 +122,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
     setFishingPlayerVisible(this, true)
+    applyPhasePresentation(this, 'cast')
     return result
   }
 
@@ -90,6 +130,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._fireCast = function (...args) {
     const result = originalFireCast.apply(this, args)
     setFishingPlayerVisible(this, true)
+    this._blueprintCastInstruction?.setVisible?.(false)
     return result
   }
 
@@ -97,6 +138,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
     setFishingPlayerVisible(this, true)
+    applyPhasePresentation(this, 'retrieve')
     drawRetrieveLineToPlayfieldEdge(this)
     return result
   }
@@ -112,6 +154,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._beginRetrieveBite = function (...args) {
     const result = originalBeginRetrieveBite.apply(this, args)
     setFishingPlayerVisible(this, false)
+    applyPhasePresentation(this, 'battle')
     return result
   }
 
@@ -132,7 +175,8 @@ export function installFishingPresentationGuard(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
-    setFishingPlayerVisible(this, outcome === 'caught')
+    setFishingPlayerVisible(this, false)
+    applyPhasePresentation(this, 'result')
     return result
   }
 
