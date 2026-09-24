@@ -13,6 +13,18 @@ function pickQaTarget(scene) {
   return runtime.gfx
 }
 
+function stabilizeMockCast(scene) {
+  scene._killWaitTimers?.()
+  scene._stopRetrieveRuntime?.()
+  scene.phase = 'cast'
+  scene.retrieveUI?.hide?.()
+  scene._mobileHudSetVisible?.(true)
+  scene._mobileHudSetStatus?.('キャスト')
+  scene._blueprintCastInstruction?.setVisible?.(false)
+  scene._rcRetrieveDock?.setVisible?.(false)
+  scene._applyRcFishingPresentation?.('cast')
+}
+
 function stabilizeMockRetrieve(scene) {
   const x = scene.anchorX + 210
   const y = scene.anchorY - 300
@@ -67,12 +79,21 @@ function stabilizeMockBattle(scene) {
 
     scene._qaMockBattleFish?.destroy?.()
     const textureKey = target._assetImage?.texture?.key
-    if (textureKey && scene.textures?.exists?.(textureKey)) {
-      scene._qaMockBattleFish = scene.add.image(scene.scale.width / 2, 330, textureKey)
-        .setDisplaySize(176, 88)
+    const qaTexture = textureKey && scene.textures?.exists?.(textureKey)
+      ? textureKey
+      : scene.textures?.exists?.('fish_aji_icon') ? 'fish_aji_icon' : null
+    if (qaTexture) {
+      scene._qaMockBattleFish = scene.add.image(scene.scale.width / 2, 330, qaTexture)
+        .setDisplaySize(qaTexture === 'fish_aji_icon' ? 156 : 176, qaTexture === 'fish_aji_icon' ? 156 : 88)
         .setDepth(205)
         .setScrollFactor(0)
-        .setAlpha(0.96)
+        .setAlpha(0.98)
+    } else {
+      const g = scene.add.graphics().setDepth(205).setScrollFactor(0)
+      g.fillStyle(0x0b3046, 0.92)
+      g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
+      g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
+      scene._qaMockBattleFish = g
     }
   }
 }
@@ -183,7 +204,9 @@ export function installStaminaSessionGate(GameScene) {
 
     // The four canonical mock captures are deterministic presentation states.
     // Keep them isolated from the broader qaAction fixtures above.
-    if (mockPhase === 'retrieve') {
+    if (mockPhase === 'cast') {
+      window.setTimeout(() => stabilizeMockCast(this), 700)
+    } else if (mockPhase === 'retrieve') {
       window.setTimeout(() => stabilizeMockRetrieve(this), 700)
     } else if (mockPhase === 'battle') {
       window.setTimeout(() => stabilizeMockBattle(this), 700)
