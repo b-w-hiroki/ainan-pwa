@@ -166,9 +166,6 @@ export function installPlayerFishingPolish(GameScene) {
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
-    if (qaPlayerState() === 'result' && this.phase === 'result' && !this._playerResultPartner) {
-      showResultPartner(this)
-    }
     return result
   }
 
@@ -176,8 +173,7 @@ export function installPlayerFishingPolish(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     clearReaction(this)
     const result = originalFinish.call(this, outcome, ...args)
-    if (outcome === 'caught') this.time.delayedCall(1060, () => showResultPartner(this))
-    else clearResultPartner(this)
+    clearResultPartner(this)
     return result
   }
 
