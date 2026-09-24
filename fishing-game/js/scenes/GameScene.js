@@ -696,7 +696,7 @@ export default class GameScene extends Phaser.Scene {
       this._showResultFishVisual(this.fish)
       this.resName.setText(this.fish.name)
       this.resPts.setText(`${sizeCm}cm  +${score}pt`)
-      this.resHint.setText('タップで続ける / 図鑑に記録')
+      this.resHint.setText('サイズ・ポイントを確認')
 
       this.resultEmojiTween?.destroy()
       this.resultEmojiTween = this.tweens.add({
