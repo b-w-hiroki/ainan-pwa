@@ -2,12 +2,15 @@
 
 ## Automated before device QA
 
-The release branch must be green for all of the following:
+The release candidate must be green for all of the following:
+
+- RC version: 1.0.0-rc.2
+- RC baseline main: 063cc917570a0e8c3dd2f79323b0dc56e2a106f8
 
 - Production build
 - Production dependency audit (high+)
 - All game smoke QA suites
-- 41+ mobile screenshots at 390x844
+- 50 mobile screenshots at 390x844
 - Visual screenshot guard
 - PWA manifest is served
 - App icon is served
