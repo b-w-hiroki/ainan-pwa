@@ -153,6 +153,39 @@ function buildQaHud(scene) {
   scene._qaPanelHeight = 92
 }
 
+function syncMockSubject(scene) {
+  if (!scene._qaEnabled || typeof window === 'undefined') return
+  const phase = new URLSearchParams(window.location.search).get('qaMockPhase')
+  if (phase !== 'battle') {
+    scene._qaMockSubject?.destroy?.()
+    scene._qaMockSubject = null
+    return
+  }
+
+  if (scene._qaMockSubject?.active) {
+    scene._qaMockSubject.setVisible?.(true)
+    return
+  }
+
+  const key = scene.textures?.exists?.('ff_fish_shadow_m_idle_01')
+    ? 'ff_fish_shadow_m_idle_01'
+    : scene.textures?.exists?.('fish_aji_icon') ? 'fish_aji_icon' : null
+
+  if (key) {
+    scene._qaMockSubject = scene.add.image(scene.scale.width / 2, 330, key)
+      .setDisplaySize(key === 'fish_aji_icon' ? 150 : 176, key === 'fish_aji_icon' ? 150 : 88)
+      .setDepth(1004)
+      .setScrollFactor(0)
+      .setAlpha(0.98)
+  } else {
+    const g = scene.add.graphics().setDepth(1004).setScrollFactor(0)
+    g.fillStyle(0x0b3046, 0.94)
+    g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
+    g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
+    scene._qaMockSubject = g
+  }
+}
+
 function syncQaHud(scene) {
   if (!scene._qaStatusText) return
   const phase = String(scene.phase ?? '-').toUpperCase()
@@ -204,7 +237,10 @@ export function installVerticalSliceQaMode(GameScene) {
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
-    if (this._qaEnabled) syncQaHud(this)
+    if (this._qaEnabled) {
+      syncQaHud(this)
+      syncMockSubject(this)
+    }
     return result
   }
 
@@ -213,6 +249,8 @@ export function installVerticalSliceQaMode(GameScene) {
     this._qaHudObjects?.forEach(obj => obj?.destroy?.())
     this._qaHudObjects = null
     this._qaStatusText = null
+    this._qaMockSubject?.destroy?.()
+    this._qaMockSubject = null
     return originalCleanup.apply(this, args)
   }
 }
