@@ -192,7 +192,6 @@ export function installVerticalSliceQaMode(GameScene) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) buildQaHud(this)
-    forceMockPhase(this)
     return result
   }
 
