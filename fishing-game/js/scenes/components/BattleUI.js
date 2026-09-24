@@ -17,6 +17,54 @@ const BATTLE_FISH_KEYS = {
   kanpachi: ASSETS.fish.kanpachiIcon.key,
 }
 
+function clearBattleHeroVisual(scene) {
+  scene._battleHeroTween?.stop?.()
+  scene._battleHeroTween?.destroy?.()
+  scene._battleHeroTween = null
+  scene.battleHeroGlow?.destroy?.()
+  scene.battleHeroGlow = null
+  scene.battleHero?.destroy?.()
+  scene.battleHero = null
+  scene._battleHeroKey = null
+}
+
+function ensureBattleHero(scene) {
+  const key = BATTLE_FISH_KEYS[scene.fish?.id]
+  if (!key || !scene.textures?.exists?.(key)) return null
+  if (scene.battleHero?.active && scene._battleHeroKey === key) return scene.battleHero
+
+  clearBattleHeroVisual(scene)
+  const W = scene.scale.width
+  const rarity = scene.fish?.rarity ?? 'common'
+  const width = rarity === 'legendary' ? 220 : rarity === 'rare' ? 208 : rarity === 'uncommon' ? 198 : 190
+  const height = Math.round(width * 0.62)
+
+  const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
+  glow.fillStyle(0x77d8ec, 0.12)
+  glow.fillEllipse(W / 2, 336, width + 74, height + 56)
+  glow.lineStyle(2, 0xbcecff, 0.28)
+  glow.strokeEllipse(W / 2, 336, width + 42, height + 28)
+
+  const hero = scene.add.image(W / 2, 336, key)
+    .setDisplaySize(width, height)
+    .setDepth(84)
+    .setScrollFactor(0)
+    .setVisible(false)
+
+  scene.battleHeroGlow = glow
+  scene.battleHero = hero
+  scene._battleHeroKey = key
+  scene._battleHeroTween = scene.tweens.add({
+    targets: [hero, glow],
+    y: '-=5',
+    duration: 880,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+  return hero
+}
+
 export class BattleUI {
   constructor(scene) {
     this.scene = scene
@@ -62,15 +110,6 @@ export class BattleUI {
   buildBattlePanel(W, H) {
     const scene = this.scene
     scene.battlePanel = scene.add.container(0, 0).setDepth(66).setVisible(false).setScrollFactor(0)
-
-    const fishKey = BATTLE_FISH_KEYS[scene.fish?.id]
-    if (fishKey && scene.textures.exists(fishKey)) {
-      scene.battleHero = scene.add.image(W / 2, 334, fishKey)
-        .setDisplaySize(184, 138)
-        .setDepth(84)
-        .setScrollFactor(0)
-        .setVisible(false)
-    }
 
     const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
     const trackX = 38
@@ -165,7 +204,9 @@ export class BattleUI {
     scene.reelFill.fillRoundedRect(reel.x + 3, reel.y + 2, Math.max(0, rw - 6), 3, 2)
 
     scene.battlePanel?.setVisible(false)
-    scene.battleHero?.setVisible?.(true)
+    const hero = ensureBattleHero(scene)
+    hero?.setVisible?.(true)
+    scene.battleHeroGlow?.setVisible?.(true)
     const wasRaging = scene.rageTag.visible
     scene.rageTag.setVisible(st.isRaging)
     scene.reelCTA.setVisible(!st.isRaging)
@@ -256,7 +297,6 @@ export class BattleUI {
     this.scene._timeChipEvent = undefined
     this.scene.hitHint?.destroy()
     this.scene.rageTag?.destroy()
-    this.scene.battleHero?.destroy?.()
-    this.scene.battleHero = null
+    clearBattleHeroVisual(this.scene)
   }
 }
