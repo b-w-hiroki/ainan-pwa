@@ -107,6 +107,7 @@ function stabilizeMockResult(scene) {
   scene._rcCastDock?.setVisible?.(false)
   scene._rcRetrieveDock?.setVisible?.(false)
   scene._applyRcFishingPresentation?.('result')
+  scene._polishCaughtResultPresentation?.()
 }
 
 export function installStaminaSessionGate(GameScene) {
