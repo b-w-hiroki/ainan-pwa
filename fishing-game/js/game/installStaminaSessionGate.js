@@ -142,6 +142,20 @@ export function installStaminaSessionGate(GameScene) {
       }, 220)
     }
 
+    if (action === 'caught') {
+      window.setTimeout(() => {
+        if (this.phase === 'result') return
+        if (this.phase !== 'battle') {
+          this._killWaitTimers?.()
+          this._stopRetrieveRuntime?.()
+          this._enterBattle?.()
+        }
+        this._battleTimer?.remove?.(false)
+        this._battleTimer = undefined
+        if (this.phase === 'battle') this._finishBattle?.('caught')
+      }, 760)
+    }
+
     // The four canonical mock captures are deterministic presentation states.
     // Keep them isolated from the broader qaAction fixtures above.
     if (mockPhase === 'retrieve') {
