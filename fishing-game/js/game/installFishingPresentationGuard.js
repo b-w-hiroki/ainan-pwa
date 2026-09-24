@@ -169,6 +169,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     setFishingPlayerVisible(this, false)
+    applyPhasePresentation(this, 'battle')
     return result
   }
 
