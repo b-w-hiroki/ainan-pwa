@@ -75,6 +75,45 @@ function forceCatch(scene) {
   })
 }
 
+
+function qaMockPhase() {
+  if (!qaEnabled()) return null
+  const value = new URLSearchParams(window.location.search).get('qaMockPhase')
+  return ['cast', 'retrieve', 'battle', 'result'].includes(value) ? value : null
+}
+
+function forceMockPhase(scene) {
+  const phase = qaMockPhase()
+  if (!phase || phase === 'cast') return
+
+  scene.time.delayedCall(700, () => {
+    if (!scene.sys?.isActive?.()) return
+    if (phase === 'retrieve') {
+      const x = scene.anchorX + 210
+      const y = scene.anchorY - 300
+      scene._enterRetrieve?.(x, y)
+      scene.bobber?.setPosition?.(x, y)?.setVisible?.(true)
+      scene._syncRetrieveWorldUI?.()
+      return
+    }
+
+    const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
+      ?? scene.bg?._fishRuntime?.[0]
+    if (runtime?.gfx) {
+      scene._targetFishIndex = runtime.index ?? 0
+      scene._targetFishGfx = runtime.gfx
+      runtime.gfx.setVisible?.(true)
+    }
+
+    scene._enterBattle?.()
+    if (phase === 'result') {
+      scene.time.delayedCall(260, () => {
+        if (scene.phase === 'battle') scene._finishBattle?.('caught')
+      })
+    }
+  })
+}
+
 function buildQaHud(scene) {
   const W = scene.scale.width
   const items = []
@@ -153,6 +192,7 @@ export function installVerticalSliceQaMode(GameScene) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) buildQaHud(this)
+    forceMockPhase(this)
     return result
   }
 
