@@ -1,3 +1,51 @@
+import { ASSETS } from '../config/assetManifest.js'
+
+const BATTLE_FISH_KEYS = {
+  aji: ASSETS.fish.ajiIcon.key,
+  tai: ASSETS.fish.madaiIcon.key,
+  bass: ASSETS.fish.blackBassIcon.key,
+  buri: ASSETS.fish.buriIcon.key,
+  kue: ASSETS.fish.kueIcon.key,
+  saba: ASSETS.fish.sabaIcon.key,
+  isaki: ASSETS.fish.isakiIcon.key,
+  hirame: ASSETS.fish.hirameIcon.key,
+  kanpachi: ASSETS.fish.kanpachiIcon.key,
+}
+
+function clearBattleHero(scene) {
+  scene._battleHeroTween?.stop?.()
+  scene._battleHeroTween?.destroy?.()
+  scene._battleHeroTween = null
+  scene._battleHeroFish?.destroy?.()
+  scene._battleHeroFish = null
+}
+
+function buildBattleHero(scene) {
+  clearBattleHero(scene)
+  const key = BATTLE_FISH_KEYS[scene.fish?.id]
+  if (!key || !scene.textures?.exists?.(key)) return null
+
+  const rarity = scene.fish?.rarity ?? 'common'
+  const width = rarity === 'legendary' ? 190 : rarity === 'rare' ? 176 : rarity === 'uncommon' ? 164 : 154
+  const hero = scene.add.image(scene.scale.width * 0.50, 330, key)
+    .setDisplaySize(width, width * 0.52)
+    .setDepth(122)
+    .setScrollFactor(0)
+    .setAlpha(0.96)
+
+  scene._battleHeroFish = hero
+  scene._battleHeroTween = scene.tweens.add({
+    targets: hero,
+    y: hero.y - 6,
+    angle: 3,
+    duration: 900,
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+  return hero
+}
+
 function findBattleTarget(scene) {
   if (scene._targetFishGfx?.active) return scene._targetFishGfx
   const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
@@ -92,6 +140,8 @@ export function installFishingBattlePresentation(GameScene) {
     const result = originalEnterBattle.apply(this, args)
     const target = this._targetFishGfx?.active ? this._targetFishGfx : targetBefore
     emphasizeBattleFish(this, target)
+    buildBattleHero(this)
+    if (target?.active) target.setAlpha?.(0.18)
     enforceBattleComposition(this)
     return result
   }
@@ -108,18 +158,21 @@ export function installFishingBattlePresentation(GameScene) {
 
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalFinishBattle.apply(this, args)
   }
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalEnterCast.apply(this, args)
   }
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    clearBattleHero(this)
     restoreBattleFish(this)
     return originalCleanup.apply(this, args)
   }
