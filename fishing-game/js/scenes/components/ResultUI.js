@@ -28,20 +28,20 @@ export class ResultUI {
     halo.strokeCircle(0, -116, 70)
 
     scene.resEmoji = scene.add.text(0, -116, '', { fontSize: '82px', resolution: TEXT_RES }).setOrigin(0.5)
-    scene.resName = scene.add.text(0, -38, '', {
+    scene.resName = scene.add.text(0, -16, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const stats = scene.add.graphics()
     stats.fillStyle(0x062c44, 0.86)
     stats.lineStyle(1.5, 0xbcecff, 0.46)
-    stats.fillRoundedRect(-136, -6, 272, 74, 16)
-    stats.strokeRoundedRect(-136, -6, 272, 74, 16)
+    stats.fillRoundedRect(-136, 18, 272, 76, 16)
+    stats.strokeRoundedRect(-136, 18, 272, 76, 16)
 
-    scene.resPts = scene.add.text(0, 30, '', {
+    scene.resPts = scene.add.text(0, 56, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 6,
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 78, 'サイズ・ポイントを確認', {
+    scene.resHint = scene.add.text(0, 106, 'サイズ・ポイントを確認', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
     }).setOrigin(0.5)
 
@@ -74,7 +74,7 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const town = makeBtn(-126, 112, 252, 56, '町へ持ち帰る', () => {
+    const town = makeBtn(-126, 132, 252, 56, '町へ持ち帰る', () => {
       const lastCatch = scene.catches?.[scene.catches.length - 1]
       const catchArrival = lastCatch && scene.fish ? {
         fishId: scene.fish.id, name: scene.fish.name, emoji: scene.fish.emoji,
@@ -83,7 +83,7 @@ export class ResultUI {
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, true)
-    const retry = makeBtn(-126, 180, 252, 46, '↻ もう一度釣る', () => {
+    const retry = makeBtn(-126, 198, 252, 46, '↻ もう一度釣る', () => {
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
