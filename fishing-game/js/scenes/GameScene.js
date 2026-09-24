@@ -277,6 +277,8 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
     this.scoreBar.setY(16)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
     this.hintText.setText('画面を長押し → 方向を狙って離す')
 
     // 魚を開始位置にリセットして Tween を再生成
@@ -559,6 +561,8 @@ export default class GameScene extends Phaser.Scene {
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
     this.scoreBar.setY(88)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
 
     this.battleState = createBattleState(this.fish, this.rod)
     armFirstRage(this.battleState, this.fish, this.time.now)
@@ -633,6 +637,8 @@ export default class GameScene extends Phaser.Scene {
     this.dangerFx.setAlpha(0)
     this.hintText.setText('')
     this.scoreBar.setY(16)
+    this.scoreBar?.setVisible(false)
+    this.schoolFx?.setVisible(false)
 
     if (outcome === 'caught') {
       const score = this.calcScore(this.fish)
