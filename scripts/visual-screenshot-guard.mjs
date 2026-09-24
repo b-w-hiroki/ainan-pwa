@@ -75,6 +75,7 @@ const uniqueGroups = [
   ['28-rarity-common.png', '29-rarity-uncommon.png', '30-rarity-rare.png', '31-rarity-legendary.png'],
   ['32-reward-first.png', '33-reward-record.png', '34-reward-rare.png', '35-reward-legendary.png'],
   ['36-player-hit.png', '37-player-battle.png', '38-player-boss.png', '39-player-result.png'],
+  ['46-mock-cast.png', '47-mock-retrieve.png', '48-mock-battle.png', '49-mock-result.png'],
 ]
 
 for (const group of uniqueGroups) {
