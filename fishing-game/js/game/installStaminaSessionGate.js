@@ -25,6 +25,8 @@ export function installStaminaSessionGate(GameScene) {
           const y = this.anchorY - 300
           this._enterRetrieve?.(x, y)
           this.bobber?.setPosition?.(x, y)?.setVisible?.(true)
+          this.retrieveUI?.show?.()
+          this.retrieveUI?.container?.setVisible?.(true)
           this._syncRetrieveWorldUI?.()
         }, 220)
       }
@@ -41,6 +43,13 @@ export function installStaminaSessionGate(GameScene) {
           if (this.phase !== 'battle' && this.phase !== 'result') {
             this._killWaitTimers?.()
             this._stopRetrieveRuntime?.()
+            const runtime = this.bg?._fishRuntime?.find(item => item?.gfx?.active)
+              ?? this.bg?._fishRuntime?.[0]
+            if (runtime?.gfx) {
+              this._targetFishIndex = runtime.index ?? 0
+              this._targetFishGfx = runtime.gfx
+              runtime.gfx.setVisible?.(true)
+            }
             this._enterBattle?.()
           }
           if (resolvedAction === 'battle' && this.phase === 'battle') {
