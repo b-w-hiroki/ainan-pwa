@@ -174,7 +174,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const result = phase === 'result'
 
   hideTackleChrome(scene)
-  scene._blueprintCastInstruction?.setVisible?.(false)
+  scene._blueprintCastInstruction?.setVisible?.(cast)
   scene.retrieveUI?.hide?.()
   scene._rcCastDock?.setVisible?.(cast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
