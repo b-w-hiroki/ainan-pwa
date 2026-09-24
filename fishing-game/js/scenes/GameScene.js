@@ -181,7 +181,6 @@ export default class GameScene extends Phaser.Scene {
     // ─── 竿・エサ切り替えUI ─────────────────────────────────────
     this.tackleUI = new TackleUI(this)
     this.tackleUI.build(W, H)
-    this._buildMockActionDock(W, H)
     markLicenseFlag('ainan_touched_tackle')
 
     // ─── 入力 ────────────────────────────────────────────────────
@@ -248,43 +247,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
 
-  _buildMockActionDock(W, H) {
-    const top = H - 176
-    const y = H - 86
-    const dock = this.add.container(0, 0).setDepth(64).setScrollFactor(0)
-    const bg = this.add.graphics()
-    bg.fillStyle(0x073754, 0.97)
-    bg.fillRect(0, top, W, 176)
-    bg.lineStyle(2, 0x8edfff, 0.42)
-    bg.lineBetween(0, top, W, top)
-    dock.add(bg)
-    ;[
-      { x: W * 0.22, icon: '⌛', label: '待つ', fill: 0x2d6383 },
-      { x: W * 0.50, icon: '↻', label: 'ちょい巻き', fill: 0x169bd1 },
-      { x: W * 0.78, icon: '↻', label: 'ゆっくり巻く', fill: 0x2471b6 },
-    ].forEach(({ x, icon, label, fill }) => {
-      const g = this.add.graphics()
-      g.fillStyle(0x041b2a, 0.34); g.fillCircle(x + 2, y + 4, 42)
-      g.fillStyle(fill, 1); g.lineStyle(3, 0xffffff, 0.92); g.fillCircle(x, y, 40); g.strokeCircle(x, y, 40)
-      const ic = this.add.text(x, y - 5, icon, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: '#ffffff' }).setOrigin(0.5)
-      const tx = this.add.text(x, y + 26, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#ffffff' }).setOrigin(0.5)
-      const hit = this.add.circle(x, y, 42, 0xffffff, 0.001).setInteractive({ useHandCursor: true })
-      hit.on('pointerdown', () => {
-        if (label === '待つ') return
-        if (this.phase === 'wait') {
-          const direction = label === 'ちょい巻き' ? 1 : 0.45
-          this._onDown?.({ x, y, isDown: true })
-          this._onMove?.({ x, y: y + 34 * direction, isDown: true })
-          this._onUp?.({ x, y: y + 34 * direction, isDown: false })
-        } else if (this.phase === 'battle') {
-          const strength = label === 'ちょい巻き' ? 54 : 28
-          applySwipe(this.battleState, strength)
-        }
-      })
-      dock.add([g, ic, tx, hit])
-    })
-    this.mockActionDock = dock
-  }
 
 
 
