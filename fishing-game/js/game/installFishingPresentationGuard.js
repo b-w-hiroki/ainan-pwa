@@ -151,7 +151,7 @@ function showRcBattleHero(scene) {
   const W = scene.scale.width
   const cx = W / 2
   const cy = 338
-  const hero = scene.add.graphics()
+  const hero = scene.add.graphics().setDepth(160).setScrollFactor(0)
 
   hero.fillStyle(0x072f46, 0.98)
   hero.lineStyle(4, 0x9fe8f4, 0.92)
@@ -178,7 +178,6 @@ function showRcBattleHero(scene) {
   hero.lineTo(cx + 34, cy + 2)
   hero.strokePath()
 
-  scene.escapeBar?.add?.(hero)
   scene._rcBattleHero = hero
 }
 
