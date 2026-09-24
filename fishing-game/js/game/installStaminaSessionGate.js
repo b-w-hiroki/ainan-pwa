@@ -14,19 +14,50 @@ function pickQaTarget(scene) {
   return runtime.gfx
 }
 
+function clearQaMockOverlay(scene) {
+  scene._qaMockOverlay?.forEach?.(obj => obj?.destroy?.())
+  scene._qaMockOverlay = []
+}
+
 function stabilizeMockCast(scene) {
   scene._killWaitTimers?.()
   scene._stopRetrieveRuntime?.()
   scene.phase = 'cast'
   scene.retrieveUI?.hide?.()
+  scene.escapeBar?.setVisible?.(false)
+  scene.battlePanel?.setVisible?.(false)
+  scene.reelCTA?.setVisible?.(false)
+  scene.resultOverlay?.setVisible?.(false)
   scene._mobileHudSetVisible?.(true)
   scene._mobileHudSetStatus?.('キャスト')
   scene._rcRetrieveDock?.setVisible?.(false)
   scene._applyRcFishingPresentation?.('cast')
-  scene._rcCastDock?.setVisible?.(true)?.setDepth?.(500)
-  // Keep the existing canonical cast panel as a guaranteed fallback in
-  // deterministic mock capture; it matches the reference's bottom panel.
-  scene._blueprintCastInstruction?.setVisible?.(true)?.setDepth?.(490)
+
+  clearQaMockOverlay(scene)
+  const W = scene.scale.width
+  const H = scene.scale.height
+  const top = H - 176
+  const g = scene.add.graphics().setDepth(2000).setScrollFactor(0)
+  g.fillStyle(0xf8fdff, 0.99)
+  g.fillRect(0, top, W, 176)
+  g.lineStyle(2, 0x9bcfe5, 0.78)
+  g.lineBetween(0, top, W, top)
+  g.fillStyle(0xd9edf6, 1)
+  g.fillRoundedRect(82, top + 18, 198, 10, 5)
+  g.fillStyle(0x58b8df, 1)
+  g.fillRoundedRect(82, top + 18, 126, 10, 5)
+  g.fillStyle(0x2f9ed4, 1)
+  g.lineStyle(3, 0xffffff, 0.96)
+  g.fillCircle(W / 2, top + 108, 44)
+  g.strokeCircle(W / 2, top + 108, 44)
+
+  const power = scene.add.text(24, top + 23, 'パワー', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173248',
+  }).setOrigin(0, 0.5).setDepth(2001).setScrollFactor(0)
+  const throwText = scene.add.text(W / 2, top + 108, '投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0.5).setDepth(2001).setScrollFactor(0)
+  scene._qaMockOverlay = [g, power, throwText]
 }
 
 function stabilizeMockRetrieve(scene) {
