@@ -51,7 +51,10 @@ function stabilizeMockRetrieve(scene) {
 function stabilizeMockBattle(scene) {
   scene._killWaitTimers?.()
   scene._stopRetrieveRuntime?.()
+  const commonFish = FISH_LIST.find(item => item.id === 'aji')
+  if (commonFish) scene.fish = commonFish
   const target = pickQaTarget(scene)
+  if (commonFish) scene.fish = commonFish
   scene._enterBattle?.()
   scene._battleTimer?.remove?.(false)
   scene._battleTimer = undefined
