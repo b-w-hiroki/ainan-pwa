@@ -148,22 +148,38 @@ function clearRcBattleHero(scene) {
 
 function showRcBattleHero(scene) {
   clearRcBattleHero(scene)
-  const key = FISH_ICON_BY_ID[scene.fish?.id]
-  if (!key || !scene.textures?.exists?.(key)) return
-  const hero = scene.add.image(scene.scale.width / 2, 345, key)
-    .setDisplaySize(172, 132)
-    .setAlpha(0.98)
+  const W = scene.scale.width
+  const cx = W / 2
+  const cy = 338
+  const hero = scene.add.graphics()
+
+  hero.fillStyle(0x072f46, 0.98)
+  hero.lineStyle(4, 0x9fe8f4, 0.92)
+  hero.fillEllipse(cx, cy, 166, 74)
+  hero.strokeEllipse(cx, cy, 166, 74)
+
+  hero.fillStyle(0x0a3c58, 1)
+  hero.fillTriangle(cx + 68, cy, cx + 116, cy - 34, cx + 116, cy + 34)
+  hero.lineStyle(3, 0x9fe8f4, 0.78)
+  hero.strokeTriangle(cx + 68, cy, cx + 116, cy - 34, cx + 116, cy + 34)
+
+  hero.fillStyle(0x0a3c58, 1)
+  hero.fillTriangle(cx - 14, cy - 31, cx + 12, cy - 57, cx + 30, cy - 29)
+  hero.fillTriangle(cx - 4, cy + 31, cx + 22, cy + 51, cx + 35, cy + 27)
+
+  hero.fillStyle(0xffffff, 0.9)
+  hero.fillCircle(cx - 48, cy - 10, 6)
+  hero.fillStyle(0x173248, 1)
+  hero.fillCircle(cx - 46, cy - 10, 2.5)
+
+  hero.lineStyle(3, 0xffffff, 0.58)
+  hero.beginPath()
+  hero.moveTo(cx - 36, cy + 8)
+  hero.lineTo(cx + 34, cy + 2)
+  hero.strokePath()
+
   scene.escapeBar?.add?.(hero)
   scene._rcBattleHero = hero
-  scene._rcBattleHeroTween = scene.tweens.add({
-    targets: hero,
-    y: 339,
-    angle: 2.5,
-    duration: 900,
-    yoyo: true,
-    repeat: -1,
-    ease: 'Sine.easeInOut',
-  })
 }
 
 function applyPhasePresentation(scene, phase = scene.phase) {
