@@ -164,10 +164,8 @@ export function installFishingBattlePresentation(GameScene) {
     const result = originalEnterBattle.apply(this, args)
     const target = this._targetFishGfx?.active ? this._targetFishGfx : targetBefore
     emphasizeBattleFish(this, target)
-    buildBattleHero(this)
     if (target?.active) target.setAlpha?.(0.18)
     enforceBattleComposition(this)
-    if (this.phase === 'battle' && !this._battleScreenHero?.active) buildBattleScreenHero(this)
     return result
   }
 
@@ -179,8 +177,8 @@ export function installFishingBattlePresentation(GameScene) {
     const result = originalUpdate?.apply(this, args)
     enforceBattleComposition(this)
     if (this.phase === 'battle') {
-      this._battleHeroFish?.setVisible?.(true)?.setDepth?.(500)?.setAlpha?.(0.98)
-      this._battleScreenHero?.setVisible?.(true)?.setDepth?.(499)?.setAlpha?.(0.90)
+      this.battleHero?.setVisible?.(true)
+      this.battleHeroGlow?.setVisible?.(true)
     }
     return result
   }
