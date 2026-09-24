@@ -21,9 +21,12 @@ function stabilizeMockCast(scene) {
   scene.retrieveUI?.hide?.()
   scene._mobileHudSetVisible?.(true)
   scene._mobileHudSetStatus?.('キャスト')
-  scene._blueprintCastInstruction?.setVisible?.(false)
   scene._rcRetrieveDock?.setVisible?.(false)
   scene._applyRcFishingPresentation?.('cast')
+  scene._rcCastDock?.setVisible?.(true)?.setDepth?.(500)
+  // Keep the existing canonical cast panel as a guaranteed fallback in
+  // deterministic mock capture; it matches the reference's bottom panel.
+  scene._blueprintCastInstruction?.setVisible?.(true)?.setDepth?.(490)
 }
 
 function stabilizeMockRetrieve(scene) {
@@ -80,25 +83,30 @@ function stabilizeMockBattle(scene) {
     target.setDepth?.(40)
     target.setPosition?.((cam?.scrollX ?? 0) + scene.scale.width * 0.50, (cam?.scrollY ?? 0) + 330)
     target._assetImage?.setDisplaySize?.(176, 88)
+  }
 
-    scene._qaMockBattleFish?.destroy?.()
-    const textureKey = target._assetImage?.texture?.key
-    const qaTexture = textureKey && scene.textures?.exists?.(textureKey)
-      ? textureKey
+  scene._qaMockBattleFish?.destroy?.()
+  const targetTexture = target?._assetImage?.texture?.key
+  const shadowKey = ASSETS.fishingField?.fishShadowMediumIdle?.key
+  const qaTexture = targetTexture && scene.textures?.exists?.(targetTexture)
+    ? targetTexture
+    : shadowKey && scene.textures?.exists?.(shadowKey)
+      ? shadowKey
       : scene.textures?.exists?.('fish_aji_icon') ? 'fish_aji_icon' : null
-    if (qaTexture) {
-      scene._qaMockBattleFish = scene.add.image(scene.scale.width / 2, 330, qaTexture)
-        .setDisplaySize(qaTexture === 'fish_aji_icon' ? 156 : 176, qaTexture === 'fish_aji_icon' ? 156 : 88)
-        .setDepth(205)
-        .setScrollFactor(0)
-        .setAlpha(0.98)
-    } else {
-      const g = scene.add.graphics().setDepth(205).setScrollFactor(0)
-      g.fillStyle(0x0b3046, 0.92)
-      g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
-      g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
-      scene._qaMockBattleFish = g
-    }
+
+  if (qaTexture) {
+    const isIcon = qaTexture === 'fish_aji_icon'
+    scene._qaMockBattleFish = scene.add.image(scene.scale.width / 2, 330, qaTexture)
+      .setDisplaySize(isIcon ? 156 : 176, isIcon ? 156 : 88)
+      .setDepth(500)
+      .setScrollFactor(0)
+      .setAlpha(0.98)
+  } else {
+    const g = scene.add.graphics().setDepth(500).setScrollFactor(0)
+    g.fillStyle(0x0b3046, 0.92)
+    g.fillEllipse(scene.scale.width / 2, 330, 168, 76)
+    g.fillTriangle(scene.scale.width / 2 + 70, 330, scene.scale.width / 2 + 112, 298, scene.scale.width / 2 + 112, 362)
+    scene._qaMockBattleFish = g
   }
 }
 
