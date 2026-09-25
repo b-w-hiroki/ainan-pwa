@@ -40,9 +40,26 @@ function show(scene, rewards) {
     const y = H / 2 - 184 + i * 34
     const c = scene.add.container(W / 2 - 132, y).setDepth(145).setScrollFactor(0).setAlpha(0)
 
-    if (reward.kind === 'record' && scene.textures.exists(ASSETS.ui.resultNewRecord.key)) {
-      const art = scene.add.image(74, 0, ASSETS.ui.resultNewRecord.key).setDisplaySize(148, 53)
-      c.add(art)
+    if (reward.kind === 'record') {
+      // Native gold badge mirrors the generated NEW RECORD concept while
+      // avoiding raster alpha inconsistencies across Safari/CI.
+      const bg = scene.add.graphics()
+      bg.fillStyle(0xffb51f, 1)
+      bg.lineStyle(2, 0xffef9a, 1)
+      bg.fillRoundedRect(0, -16, 152, 32, 13)
+      bg.strokeRoundedRect(0, -16, 152, 32, 13)
+      bg.fillStyle(0xffffff, 0.28)
+      bg.fillRoundedRect(5, -11, 142, 7, 4)
+      const crown = scene.add.text(18, 0, '♛', {
+        fontFamily: 'Nunito, sans-serif',
+        fontSize: '15px', fontStyle: 'bold', color: '#fff8cf',
+      }).setOrigin(0.5)
+      const txt = scene.add.text(88, 0, 'NEW RECORD!', {
+        fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
+        fontSize: '12px', fontStyle: 'bold', color: '#6a3b00',
+        letterSpacing: 0.6,
+      }).setOrigin(0.5)
+      c.add([bg, crown, txt])
     } else {
       const bg = scene.add.graphics()
       bg.fillStyle(reward.bg, 0.97)
