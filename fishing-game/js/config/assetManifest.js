@@ -17,7 +17,6 @@ export const ASSETS = {
     guideDefault: { key: 'ch_guide_default', path: assetPath('fishing-game/assets/characters/ch_guide_default.png'), status: 'ready' },
     playerDefault: { key: 'ch_player_default', path: assetPath('fishing-game/assets/characters/ch_player_default.png'), status: 'ready' },
     playerDefaultUi: { key: 'ch_player_default_ui', path: assetPath('fishing-game/assets/characters/ch_player_default_ui.png'), status: 'ready' },
-    fishingHero: { key: 'ch_fishing_hero', path: assetPath('fishing-game/assets/generated/fishing_player_hero.webp'), status: 'ready' },
     fishmonger: { key: 'ch_npc_fishmonger', path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger_v2.svg'), status: 'ready' },
     guideStaff: { key: 'ch_npc_guide_staff', path: assetPath('fishing-game/assets/characters/ch_npc_guide_staff_v2.svg'), status: 'ready' },
     youngFisher: { key: 'ch_npc_young_fisher', path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher_v2.svg'), status: 'ready' },
@@ -58,7 +57,6 @@ export const ASSETS = {
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
   fishingField: {
-    leftPierDecor: { key: 'ff_left_pier_decor', path: assetPath('fishing-game/assets/generated/fishing_left_pier_decor.webp'), status: 'ready' },
     waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
     waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
     waterHighlight: { key: 'ff_water_highlight_01', path: assetPath('fishing-game/assets/fishing-field/water/water_highlight_01.svg'), status: 'ready' },
