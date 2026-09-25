@@ -44,6 +44,7 @@ function setFishingPlayerVisible(scene, visible) {
 function drawRetrieveLineToPlayfieldEdge(scene) {
   if (scene.phase !== 'retrieve' || !scene.bobber?.visible) return
   scene.lineGfx?.clear?.()
+  scene.lineGfx?.setVisible?.(false)
 
   if (!scene._rcRetrieveLine?.active) {
     scene._rcRetrieveLine = scene.add.graphics().setDepth(204).setScrollFactor(0)
@@ -357,6 +358,13 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const retrieve = phase === 'retrieve'
   const battle = phase === 'battle'
   const result = phase === 'result'
+
+  if (!retrieve) {
+    scene.lineGfx?.setVisible?.(true)
+    scene._rcRetrieveLine?.setVisible?.(false)
+  } else {
+    scene._rcRetrieveLine?.setVisible?.(true)
+  }
 
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
