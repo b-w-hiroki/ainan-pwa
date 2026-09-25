@@ -104,7 +104,7 @@ export const ASSETS = {
   },
   ui: {
     resultFrame: { key: 'ui_result_frame', path: assetPath('fishing-game/assets/ui/ui_result_frame.svg'), status: 'ready' },
-    resultNewRecord: { key: 'ui_result_new_record', path: assetPath('fishing-game/assets/ui/result_new_record.webp'), status: 'planned' },
+    resultNewRecord: { key: 'ui_result_new_record', path: assetPath('fishing-game/assets/ui/result_new_record.webp'), status: 'ready' },
     panelHarbor: { key: 'ui_panel_harbor', path: assetPath('fishing-game/assets/ui/ui_panel_harbor.svg'), status: 'ready' },
     buttonPrimary: { key: 'ui_button_primary', path: assetPath('fishing-game/assets/ui/ui_button_primary.svg'), status: 'ready' },
     spotPinHarbor: { key: 'ui_spot_pin_harbor', path: assetPath('fishing-game/assets/ui/ui_spot_pin_harbor.svg'), status: 'ready' },
