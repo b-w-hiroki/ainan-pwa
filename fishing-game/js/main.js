@@ -53,6 +53,7 @@ import { installFishingBattlePresentation } from './game/installFishingBattlePre
 import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
 import { installFishingVisualUpgrade } from './game/installFishingVisualUpgrade.js'
 import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
+import { installMockFirstFishingComposition } from './game/installMockFirstFishingComposition.js'
 import { installStaminaSessionGate } from './game/installStaminaSessionGate.js'
 import { installMidgameProgression, installTownSensoryFeedback } from './game/installMidgameProgression.js'
 import { installEnvironmentPresentation } from './game/installEnvironmentPresentation.js'
@@ -119,6 +120,8 @@ installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyS
 installStaminaSessionGate(GameScene)
 // Final RC presentation guard must wrap every legacy/QA layer.
 installFishingPresentationGuard(GameScene)
+// Final mock-first composition owns screen-space geometry after all legacy wrappers.
+installMockFirstFishingComposition(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
