@@ -1,7 +1,7 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
-import { MOBILE_FRAME } from '../config/mobileFrame.js'
+import Phaser from 'phaser'\nimport { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 
 const FIELD = ASSETS.fishingField
@@ -41,13 +41,24 @@ function setFishingPlayerVisible(scene, visible) {
 }
 
 function drawRetrieveLineToPlayfieldEdge(scene) {
-  if (scene.phase !== 'retrieve' || !scene.bobber?.visible || !scene.lineGfx) return
-  scene.lineGfx.clear()
-  scene.lineGfx.lineStyle(1.8, 0xffffff, 0.86)
+  if (scene.phase !== 'retrieve' || !scene.bobber?.visible) return
+  scene.lineGfx?.clear?.()
+
+  if (!scene._rcRetrieveLine?.active) {
+    scene._rcRetrieveLine = scene.add.graphics().setDepth(204).setScrollFactor(0)
+  }
+  const g = scene._rcRetrieveLine
   const cam = scene.cameras?.main
-  const startX = scene._rcPlayerHero?.visible ? (cam?.scrollX ?? 0) + 108 : scene.anchorX
-  const startY = scene._rcPlayerHero?.visible ? (cam?.scrollY ?? 0) + MOBILE_FRAME.playBottom - 118 : scene.anchorY
-  scene.lineGfx.lineBetween(startX, startY, scene.bobber.x, scene.bobber.y)
+  const lureX = Phaser.Math.Clamp(scene.bobber.x - (cam?.scrollX ?? 0), 148, scene.scale.width - 34)
+  const lureY = Phaser.Math.Clamp(scene.bobber.y - (cam?.scrollY ?? 0), MOBILE_FRAME.playTop + 52, MOBILE_FRAME.playBottom - 50)
+  const startX = 145
+  const startY = MOBILE_FRAME.playBottom - 176
+
+  g.clear()
+  g.lineStyle(3.2, 0x14354d, 0.72)
+  g.lineBetween(startX, startY, lureX, lureY)
+  g.lineStyle(1.4, 0xffffff, 0.96)
+  g.lineBetween(startX, startY, lureX, lureY)
 }
 
 function hideLegacyGuideChrome(scene) {
@@ -530,7 +541,7 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcCastAim?.destroy?.()
     this._rcCastAim = null
     this._rcRetrieveDock?.destroy?.(true)
-    this._rcPlayerHero?.destroy?.()
+    this._rcRetrieveLine?.destroy?.()\n    this._rcRetrieveLine = null\n    this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null
     this._rcLeftPierDecor?.destroy?.()
     this._rcLeftPierDecor = null
