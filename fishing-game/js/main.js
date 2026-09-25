@@ -68,6 +68,7 @@ import { installRarityWaterReadability } from './game/installRarityWaterReadabil
 import { installCatchRewardPolish } from './game/installCatchRewardPolish.js'
 import { installLocationAtmosphere } from './game/installLocationAtmosphere.js'
 import { installPlayerFishingPolish } from './game/installPlayerFishingPolish.js'
+import { installFishingFeelPass } from './game/installFishingFeelPass.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -117,6 +118,8 @@ installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 // Install last so zero stamina short-circuits every older create() wrapper safely.
 installStaminaSessionGate(GameScene)
+// Feel pass wraps the finished gameplay methods without changing balance.
+installFishingFeelPass(GameScene)
 // Final RC presentation guard must wrap every legacy/QA layer.
 installFishingPresentationGuard(GameScene)
 

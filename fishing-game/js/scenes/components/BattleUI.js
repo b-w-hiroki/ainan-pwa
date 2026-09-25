@@ -23,6 +23,8 @@ function clearBattleHeroVisual(scene) {
   scene._battleHeroTween = null
   scene.battleHeroGlow?.destroy?.()
   scene.battleHeroGlow = null
+  scene.battleHeroSplash?.destroy?.()
+  scene.battleHeroSplash = null
   scene.battleHero?.destroy?.()
   scene.battleHero = null
   scene._battleHeroKey = null
@@ -45,6 +47,27 @@ function ensureBattleHero(scene) {
   glow.lineStyle(2, 0xbcecff, 0.28)
   glow.strokeEllipse(W / 2, 348, width + 42, height + 28)
 
+  const splash = scene.add.graphics().setDepth(83).setScrollFactor(0)
+  splash.lineStyle(4, 0xeafcff, 0.86)
+  splash.strokeEllipse(W / 2, 380, width * 0.90, 30)
+  splash.lineStyle(2, 0x8edfff, 0.72)
+  splash.strokeEllipse(W / 2, 382, width * 1.12, 42)
+  ;[-74, -46, 52, 82].forEach((dx, index) => {
+    const baseX = W / 2 + dx
+    const baseY = 372 + (index % 2) * 4
+    splash.lineStyle(index % 2 ? 3 : 4, 0xffffff, 0.82)
+    splash.beginPath()
+    splash.moveTo(baseX, baseY)
+    splash.lineTo(baseX + dx * 0.10, baseY - 22 - (index % 2) * 7)
+    splash.lineTo(baseX + dx * 0.16, baseY - 5)
+    splash.strokePath()
+  })
+  splash.fillStyle(0xc9f5ff, 0.92)
+  ;[[-96,367,4],[-67,352,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
+    splash.fillCircle(W / 2 + dx, y, r)
+  })
+  scene.battleHeroSplash = splash
+
   const hero = scene.add.image(W / 2, 348, key)
     .setDisplaySize(width, height)
     .setDepth(84)
@@ -55,7 +78,7 @@ function ensureBattleHero(scene) {
   scene.battleHero = hero
   scene._battleHeroKey = key
   scene._battleHeroTween = scene.tweens.add({
-    targets: [hero, glow],
+    targets: [hero, glow, splash],
     y: '-=5',
     duration: 880,
     yoyo: true,
@@ -145,7 +168,7 @@ export class BattleUI {
     scene.reelCTA = scene.add.container(0, 0).setDepth(92).setVisible(false).setScrollFactor(0)
 
     const shade = scene.add.graphics()
-    shade.fillStyle(0x042238, 0.50)
+    shade.fillStyle(0x042238, 0.98)
     shade.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
     shade.lineStyle(1.5, 0x8edfff, 0.28)
     shade.lineBetween(0, controlsTop, W, controlsTop)

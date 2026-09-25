@@ -1,3 +1,4 @@
+import { ASSETS } from '../config/assetManifest.js'
 import { FISH_LIST } from './fish.js'
 import { getBossMetaForScene } from './bossVisuals.js'
 import { haptic, playSfx } from './feedback.js'
@@ -36,19 +37,43 @@ function show(scene, rewards) {
   const objects = []
 
   rewards.slice(0, 2).forEach((reward, i) => {
-    const y = H / 2 - 184 + i * 30
+    const y = H / 2 - 184 + i * 34
     const c = scene.add.container(W / 2 - 132, y).setDepth(145).setScrollFactor(0).setAlpha(0)
-    const bg = scene.add.graphics()
-    bg.fillStyle(reward.bg, 0.97)
-    bg.lineStyle(1.5, 0xffffff, 0.76)
-    bg.fillRoundedRect(0, -11, 122, 23, 9)
-    bg.strokeRoundedRect(0, -11, 122, 23, 9)
-    const txt = scene.add.text(61, 0, reward.label, {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif',
-      fontSize: '9px', fontStyle: 'bold', color: reward.fg,
-      letterSpacing: 0.5,
-    }).setOrigin(0.5)
-    c.add([bg, txt])
+
+    if (reward.kind === 'record') {
+      // Native gold badge mirrors the generated NEW RECORD concept while
+      // avoiding raster alpha inconsistencies across Safari/CI.
+      const bg = scene.add.graphics()
+      bg.fillStyle(0xffb51f, 1)
+      bg.lineStyle(2, 0xffef9a, 1)
+      bg.fillRoundedRect(0, -16, 152, 32, 13)
+      bg.strokeRoundedRect(0, -16, 152, 32, 13)
+      bg.fillStyle(0xffffff, 0.28)
+      bg.fillRoundedRect(5, -11, 142, 7, 4)
+      const crown = scene.add.text(18, 0, '♛', {
+        fontFamily: 'Nunito, sans-serif',
+        fontSize: '15px', fontStyle: 'bold', color: '#fff8cf',
+      }).setOrigin(0.5)
+      const txt = scene.add.text(88, 0, 'NEW RECORD!', {
+        fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
+        fontSize: '12px', fontStyle: 'bold', color: '#6a3b00',
+        letterSpacing: 0.6,
+      }).setOrigin(0.5)
+      c.add([bg, crown, txt])
+    } else {
+      const bg = scene.add.graphics()
+      bg.fillStyle(reward.bg, 0.97)
+      bg.lineStyle(1.5, 0xffffff, 0.76)
+      bg.fillRoundedRect(0, -11, 122, 23, 9)
+      bg.strokeRoundedRect(0, -11, 122, 23, 9)
+      const txt = scene.add.text(61, 0, reward.label, {
+        fontFamily: 'M PLUS Rounded 1c, sans-serif',
+        fontSize: '9px', fontStyle: 'bold', color: reward.fg,
+        letterSpacing: 0.5,
+      }).setOrigin(0.5)
+      c.add([bg, txt])
+    }
+
     objects.push(c)
     scene.tweens.add({ targets: c, x: c.x + 8, alpha: 1, duration: 220 + i * 60, ease: 'Back.easeOut' })
   })
@@ -118,22 +143,22 @@ export function installCatchRewardPolish(GameScene) {
         // rewards from catch history made FIRST/RARE/LEGENDARY collapse into
         // identical visual states when multiple conditions were true.
         const token = rewardToken(rewardKind)
-        rewards = [{ label: token.label, bg: token.color, fg: token.text }]
+        rewards = [{ kind: rewardKind, label: token.label, bg: token.color, fg: token.text }]
       } else {
         if (first) {
           const token = rewardToken('first')
-          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+          rewards.push({ kind: 'first', label: token.label, bg: token.color, fg: token.text })
         } else if (newBest) {
           const token = rewardToken('record')
-          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+          rewards.push({ kind: 'record', label: token.label, bg: token.color, fg: token.text })
         }
         if (fish.rarity === 'rare') {
           const token = rewardToken('rare')
-          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+          rewards.push({ kind: 'rare', label: token.label, bg: token.color, fg: token.text })
         }
         if (fish.rarity === 'legendary') {
           const token = rewardToken('legendary')
-          rewards.push({ label: token.label, bg: token.color, fg: token.text })
+          rewards.push({ kind: 'legendary', label: token.label, bg: token.color, fg: token.text })
         }
       }
       this.time.delayedCall(20, () => show(this, rewards))

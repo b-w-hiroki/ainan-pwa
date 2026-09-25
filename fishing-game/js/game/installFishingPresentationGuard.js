@@ -1,6 +1,7 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
+import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 
@@ -41,13 +42,25 @@ function setFishingPlayerVisible(scene, visible) {
 }
 
 function drawRetrieveLineToPlayfieldEdge(scene) {
-  if (scene.phase !== 'retrieve' || !scene.bobber?.visible || !scene.lineGfx) return
-  scene.lineGfx.clear()
-  scene.lineGfx.lineStyle(1.8, 0xffffff, 0.86)
+  if (scene.phase !== 'retrieve' || !scene.bobber?.visible) return
+  scene.lineGfx?.clear?.()
+  scene.lineGfx?.setVisible?.(false)
+
+  if (!scene._rcRetrieveLine?.active) {
+    scene._rcRetrieveLine = scene.add.graphics().setDepth(204).setScrollFactor(0)
+  }
+  const g = scene._rcRetrieveLine
   const cam = scene.cameras?.main
-  const startX = scene._rcPlayerHero?.visible ? (cam?.scrollX ?? 0) + 108 : scene.anchorX
-  const startY = scene._rcPlayerHero?.visible ? (cam?.scrollY ?? 0) + MOBILE_FRAME.playBottom - 118 : scene.anchorY
-  scene.lineGfx.lineBetween(startX, startY, scene.bobber.x, scene.bobber.y)
+  const lureX = Phaser.Math.Clamp(scene.bobber.x - (cam?.scrollX ?? 0), 148, scene.scale.width - 34)
+  const lureY = Phaser.Math.Clamp(scene.bobber.y - (cam?.scrollY ?? 0), MOBILE_FRAME.playTop + 52, MOBILE_FRAME.playBottom - 50)
+  const startX = 145
+  const startY = MOBILE_FRAME.playBottom - 176
+
+  g.clear()
+  g.lineStyle(3.2, 0x14354d, 0.72)
+  g.lineBetween(startX, startY, lureX, lureY)
+  g.lineStyle(1.4, 0xffffff, 0.96)
+  g.lineBetween(startX, startY, lureX, lureY)
 }
 
 function hideLegacyGuideChrome(scene) {
@@ -69,13 +82,94 @@ function hideTackleChrome(scene) {
   tackle._baitPanel?.setVisible?.(false)
 }
 
+function buildLeftPierDecor(scene) {
+  if (scene._rcLeftPierDecor?.active) return scene._rcLeftPierDecor
+
+  // Render the generated pier concept as native Phaser shapes. The generated
+  // raster had browser alpha artifacts on some CI/iPhone paths, while this
+  // version keeps the same visual idea with stable transparency.
+  const c = scene.add.container(0, 0).setDepth(198).setScrollFactor(0).setVisible(false)
+  const g = scene.add.graphics().setScrollFactor(0)
+
+  const baseY = MOBILE_FRAME.playBottom
+
+  // Stone quay / rocks
+  g.fillStyle(0xd9c89f, 1)
+  g.lineStyle(2, 0x76664f, 0.75)
+  g.fillRoundedRect(-8, baseY - 118, 142, 124, 16)
+  g.strokeRoundedRect(-8, baseY - 118, 142, 124, 16)
+  ;[[18,baseY-18,36,22],[55,baseY-13,44,26],[104,baseY-16,38,24]].forEach(([x,y,w,h]) => {
+    g.fillStyle(0x625b54, 1)
+    g.fillEllipse(x, y, w, h)
+    g.lineStyle(1.5, 0x3f3a35, 0.8)
+    g.strokeEllipse(x, y, w, h)
+  })
+
+  // Wooden harbor post and rail
+  g.fillStyle(0xb98b53, 1)
+  g.lineStyle(2, 0x5b4431, 0.9)
+  g.fillRoundedRect(16, baseY - 264, 34, 155, 8)
+  g.strokeRoundedRect(16, baseY - 264, 34, 155, 8)
+  g.fillRoundedRect(-10, baseY - 250, 82, 22, 7)
+  g.strokeRoundedRect(-10, baseY - 250, 82, 22, 7)
+
+  // Rope coils
+  g.lineStyle(6, 0xd8c294, 1)
+  g.strokeEllipse(33, baseY - 217, 58, 23)
+  g.lineStyle(2, 0x786747, 0.8)
+  g.strokeEllipse(33, baseY - 217, 58, 23)
+  g.lineStyle(5, 0xd8c294, 1)
+  g.strokeEllipse(46, baseY - 75, 82, 28)
+
+  // Cooler box
+  g.fillStyle(0x1977d2, 1)
+  g.lineStyle(2, 0xe7f4ff, 1)
+  g.fillRoundedRect(3, baseY - 152, 92, 58, 10)
+  g.strokeRoundedRect(3, baseY - 152, 92, 58, 10)
+  g.fillStyle(0xf2f7fb, 1)
+  g.fillRect(3, baseY - 137, 92, 8)
+  g.lineStyle(5, 0x173248, 1)
+  g.strokeRoundedRect(29, baseY - 166, 40, 18, 7)
+
+  // Bait bucket
+  g.fillStyle(0xf05236, 1)
+  g.lineStyle(2, 0x74291f, 0.9)
+  g.fillRoundedRect(70, baseY - 126, 57, 52, 12)
+  g.strokeRoundedRect(70, baseY - 126, 57, 52, 12)
+  g.lineStyle(4, 0x242a30, 1)
+  g.beginPath()
+  g.arc(98, baseY - 101, 31, 0.1, Math.PI - 0.1, false)
+  g.strokePath()
+
+  // Landing net leaning right.
+  g.lineStyle(6, 0x183f62, 1)
+  g.lineBetween(66, baseY - 54, 151, baseY - 88)
+  g.lineStyle(3, 0x2b78ba, 1)
+  g.strokeEllipse(154, baseY - 92, 68, 44)
+  g.lineStyle(1, 0xffffff, 0.72)
+  for (let i = -22; i <= 22; i += 11) {
+    g.lineBetween(132 + i, baseY - 110, 160 + i, baseY - 74)
+  }
+
+  // Grass accents soften the edge between quay and water.
+  g.lineStyle(3, 0x4f9b3e, 0.9)
+  ;[4,18,120,136].forEach((x, i) => {
+    g.lineBetween(x, baseY - 122 + (i%2)*8, x + 5, baseY - 144 - (i%2)*6)
+    g.lineBetween(x + 4, baseY - 122, x + 13, baseY - 139)
+  })
+
+  c.add(g)
+  scene._rcLeftPierDecor = c
+  return c
+}
+
 function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
-  const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
+  const asset = ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
-  const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
+  const hero = scene.add.image(88, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
-    .setDisplaySize(L.cast.player.width, L.cast.player.height)
+    .setDisplaySize(142, 191)
     .setDepth(205)
     .setScrollFactor(0)
     .setVisible(false)
@@ -265,9 +359,18 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const battle = phase === 'battle'
   const result = phase === 'result'
 
+  if (!retrieve) {
+    scene.lineGfx?.setVisible?.(true)
+    scene._rcRetrieveLine?.setVisible?.(false)
+  } else {
+    scene._rcRetrieveLine?.setVisible?.(true)
+  }
+
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
   syncMockFieldStaging(scene, phase)
+  const decor = buildLeftPierDecor(scene)
+  decor?.setVisible?.(cast || retrieve)
   const playerHero = buildRcPlayerHero(scene)
   playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
@@ -328,7 +431,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingHero, FIELD.leftPierDecor, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
     playerAssets.forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
@@ -367,6 +470,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     buildFinalControlChrome(this)
+    buildLeftPierDecor(this)
     buildRcPlayerHero(this)
     buildMockFieldStaging(this)
     collectPlayerObjects(this)
@@ -446,8 +550,12 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcCastAim?.destroy?.()
     this._rcCastAim = null
     this._rcRetrieveDock?.destroy?.(true)
+    this._rcRetrieveLine?.destroy?.()
+    this._rcRetrieveLine = null
     this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null
+    this._rcLeftPierDecor?.destroy?.()
+    this._rcLeftPierDecor = null
     this._rcCastDock = null
     this._rcRetrieveDock = null
     clearRcBattleHero(this)
