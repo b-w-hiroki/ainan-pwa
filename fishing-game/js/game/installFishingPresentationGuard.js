@@ -284,7 +284,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   hideLegacyGuideChrome(scene)
   syncMockFieldStaging(scene, phase)
   const decor = buildLeftPierDecor(scene)
-  decor?.setVisible?.(false)
+  decor?.setVisible?.(cast || retrieve)
   const playerHero = buildRcPlayerHero(scene)
   playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
