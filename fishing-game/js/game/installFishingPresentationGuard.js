@@ -71,7 +71,7 @@ function hideTackleChrome(scene) {
 
 function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
-  const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
+  const asset = ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
   const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
@@ -328,7 +328,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault, ASSETS.ui?.resultNewRecord].filter(Boolean)
     playerAssets.forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
