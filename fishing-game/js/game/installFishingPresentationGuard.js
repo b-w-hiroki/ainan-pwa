@@ -2,6 +2,7 @@ import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
+import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -72,9 +73,9 @@ function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
   const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
-  const hero = scene.add.image(76, MOBILE_FRAME.playBottom - 8, asset.key)
+  const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
-    .setDisplaySize(112, 148)
+    .setDisplaySize(L.cast.player.width, L.cast.player.height)
     .setDepth(205)
     .setScrollFactor(0)
     .setVisible(false)
@@ -163,6 +164,58 @@ function buildFinalControlChrome(scene) {
   scene._rcRetrieveDock = retrieve
 }
 
+function buildMockFieldStaging(scene) {
+  if (scene._rcMockFieldFish || scene._rcCastAim) return
+
+  const fish = []
+  const fishAsset = FIELD.fishShadowMediumIdle
+  const positions = L.cast.fish
+  positions.forEach((p, index) => {
+    if (fishAsset?.key && scene.textures.exists(fishAsset.key)) {
+      fish.push(scene.add.image(p.x, p.y, fishAsset.key)
+        .setDisplaySize(p.width, Math.round(p.width * 0.5))
+        .setAlpha(index === 0 ? 0.72 : 0.48)
+        .setDepth(202)
+        .setScrollFactor(0)
+        .setVisible(false))
+      return
+    }
+    const g = scene.add.graphics().setDepth(202).setScrollFactor(0).setVisible(false)
+    const h = Math.round(p.width * 0.34)
+    g.fillStyle(0x08283a, index === 0 ? 0.72 : 0.48)
+    g.fillEllipse(p.x, p.y, p.width, h)
+    g.fillTriangle(p.x + p.width * 0.40, p.y, p.x + p.width * 0.64, p.y - h * 0.58, p.x + p.width * 0.64, p.y + h * 0.58)
+    fish.push(g)
+  })
+
+  const aim = scene.add.graphics().setDepth(203).setScrollFactor(0).setVisible(false)
+  aim.fillStyle(0xffd95a, 0.10)
+  aim.fillEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+  aim.lineStyle(3, 0xffe88a, 0.92)
+  aim.strokeEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+  aim.lineStyle(1.4, 0xffffff, 0.74)
+  aim.strokeEllipse(L.cast.target.x, L.cast.target.y, 42, 20)
+  for (let i = 0; i < 5; i++) {
+    const t = (i + 1) / 6
+    const sx = L.cast.player.x + 34
+    const sy = L.cast.player.y - 112
+    const x = sx + (L.cast.target.x - sx) * t
+    const y = sy + (L.cast.target.y - sy) * t - Math.sin(Math.PI * t) * 74
+    aim.fillStyle(0xffffff, 0.76 - i * 0.08)
+    aim.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
+  }
+
+  scene._rcMockFieldFish = fish
+  scene._rcCastAim = aim
+}
+
+function syncMockFieldStaging(scene, phase) {
+  buildMockFieldStaging(scene)
+  const fieldVisible = phase === 'cast' || phase === 'retrieve'
+  scene._rcMockFieldFish?.forEach(obj => obj?.setVisible?.(fieldVisible))
+  scene._rcCastAim?.setVisible?.(phase === 'cast')
+}
+
 function clearRcBattleHero(scene) {
   scene._rcBattleHeroTween?.stop?.()
   scene._rcBattleHeroTween?.destroy?.()
@@ -214,6 +267,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
 
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
+  syncMockFieldStaging(scene, phase)
   const playerHero = buildRcPlayerHero(scene)
   playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
@@ -314,6 +368,7 @@ export function installFishingPresentationGuard(GameScene) {
     const result = originalCreate.apply(this, args)
     buildFinalControlChrome(this)
     buildRcPlayerHero(this)
+    buildMockFieldStaging(this)
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.(this.phase)
@@ -386,6 +441,10 @@ export function installFishingPresentationGuard(GameScene) {
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
     this._rcCastDock?.destroy?.(true)
+    this._rcMockFieldFish?.forEach(obj => obj?.destroy?.())
+    this._rcMockFieldFish = null
+    this._rcCastAim?.destroy?.()
+    this._rcCastAim = null
     this._rcRetrieveDock?.destroy?.(true)
     this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null

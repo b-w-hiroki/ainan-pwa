@@ -7,6 +7,12 @@ import { ASSETS } from '../config/assetManifest.js'
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 const FIELD = ASSETS.fishingField
 
+const SCENIC_BACKGROUND = {
+  pointA: ASSETS.backgrounds.fishingHarbor,
+  pointB: ASSETS.backgrounds.fishingBay,
+  pointC: ASSETS.backgrounds.fishingCape,
+}
+
 const LOCATION_OVERLAY = {
   pointA: FIELD.locationHarbor,
   pointB: FIELD.locationBay,
@@ -235,7 +241,17 @@ export function installBlueprintFishingField(GameScene) {
   }
 
   BackgroundManager.prototype.buildBackground = function (_W, _H, pointId = 'pointA') {
-    return buildAssetWaterWorld(this, FISHING_WORLD.width, FISHING_WORLD.height, pointId)
+    const scene = this.scene
+    const asset = SCENIC_BACKGROUND[pointId] ?? SCENIC_BACKGROUND.pointA
+    if (hasTexture(scene, asset)) {
+      const image = scene.add.image(MOBILE_FRAME.width / 2, MOBILE_FRAME.height / 2, asset.key)
+        .setDisplaySize(MOBILE_FRAME.width, MOBILE_FRAME.height)
+        .setDepth(0)
+        .setScrollFactor(0)
+      this._blueprintWaterLayers = [image]
+      return image
+    }
+    return drawFallbackWaterWorld(this, MOBILE_FRAME.width, MOBILE_FRAME.height, pointId)
   }
 
   BackgroundManager.prototype._drawFish = function (g, type, sc) { drawReadableFish(g, type, sc) }
