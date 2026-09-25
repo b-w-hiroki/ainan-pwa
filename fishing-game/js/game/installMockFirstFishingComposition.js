@@ -7,37 +7,53 @@ const POINT_BG = {
   pointC: ASSETS.backgrounds.fishingCape,
 }
 
-function ensureFixedBackdrop(scene) {
-  if (scene._mockFirstBackdrop?.active) return scene._mockFirstBackdrop
-  const asset = POINT_BG[scene.env?.point] ?? POINT_BG.pointA
-  if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
+const FIELD = ASSETS.fishingField
+
+function hasTexture(scene, asset) {
+  return Boolean(asset?.key && scene.textures?.exists?.(asset.key))
+}
+
+function ensureFacade(scene) {
+  if (scene._mockFacade?.container?.active) return scene._mockFacade
 
   const W = scene.scale.width
   const top = MOBILE_FRAME.topHudHeight
   const bottom = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
   const h = bottom - top
+  const container = scene.add.container(0, 0).setDepth(140).setScrollFactor(0)
 
-  const backdrop = scene.add.image(W / 2, top + h / 2, asset.key)
-    .setDisplaySize(W, h)
-    .setDepth(21)
-    .setScrollFactor(0)
+  const asset = POINT_BG[scene.env?.point] ?? POINT_BG.pointA
+  const backdrop = hasTexture(scene, asset)
+    ? scene.add.image(W / 2, top + h / 2, asset.key).setDisplaySize(W, h).setScrollFactor(0)
+    : scene.add.rectangle(W / 2, top + h / 2, W, h, 0x1689b7).setScrollFactor(0)
 
-  // The gameplay world still exists behind this image and owns all coordinates.
-  // The fixed art only establishes the mock's composition: location / water /
-  // shore always occupy the same screen-space proportions at 390x844.
-  scene._mockFirstBackdrop = backdrop
-  return backdrop
-}
+  const fishAssets = [
+    FIELD.fishShadowMediumIdle,
+    FIELD.fishShadowSmallIdle,
+    FIELD.fishShadowMediumIdle,
+  ]
+  const fishPos = [
+    [W * 0.72, top + h * 0.32, 52],
+    [W * 0.38, top + h * 0.48, 42],
+    [W * 0.78, top + h * 0.60, 48],
+  ]
+  const fish = fishPos.map(([x, y, size], index) => {
+    const a = fishAssets[index]
+    if (!hasTexture(scene, a)) return null
+    return scene.add.image(x, y, a.key)
+      .setDisplaySize(size, Math.round(size * 0.50))
+      .setAlpha(index === 0 ? 0.72 : 0.52)
+      .setScrollFactor(0)
+  }).filter(Boolean)
 
-function ensureBattleWash(scene) {
-  if (scene._mockFirstBattleWash?.active) return scene._mockFirstBattleWash
-  const top = MOBILE_FRAME.topHudHeight
-  const bottom = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
-  const g = scene.add.graphics().setDepth(78).setScrollFactor(0).setVisible(false)
-  g.fillStyle(0x073754, 0.10)
-  g.fillRect(0, top, scene.scale.width, bottom - top)
-  scene._mockFirstBattleWash = g
-  return g
+  const line = scene.add.graphics().setScrollFactor(0)
+  const lure = hasTexture(scene, FIELD.lureIdle)
+    ? scene.add.image(W * 0.76, top + h * 0.58, FIELD.lureIdle.key).setDisplaySize(38, 38).setScrollFactor(0)
+    : null
+
+  container.add([backdrop, ...fish, line, ...(lure ? [lure] : [])])
+  scene._mockFacade = { container, backdrop, fish, line, lure }
+  return scene._mockFacade
 }
 
 function tunePlayer(scene, phase) {
@@ -47,70 +63,75 @@ function tunePlayer(scene, phase) {
   const visible = phase === 'cast' || phase === 'retrieve'
   hero.setVisible(visible)
   if (!visible) return
-
-  // Mock-first: the fisherman is a foreground anchor, never the center subject.
-  // Keep feet on the shore/deck edge and leave the middle two thirds to water.
   hero
-    .setPosition(70, playBottom - 6)
+    .setPosition(72, playBottom - 6)
     .setOrigin(0.5, 1)
-    .setDisplaySize(124, 164)
+    .setDisplaySize(126, 166)
     .setDepth(205)
 }
 
-function tuneFishField(scene, phase) {
+function syncFacade(scene, phase = scene.phase) {
+  const facade = ensureFacade(scene)
+  const visible = phase === 'cast' || phase === 'retrieve' || phase === 'battle'
+  facade.container?.setVisible?.(visible)
+  if (!visible) return
+
+  const W = scene.scale.width
   const top = MOBILE_FRAME.topHudHeight
-  const playBottom = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
-  const cam = scene.cameras?.main
+  const bottom = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
+  const h = bottom - top
 
-  // Keep the active lure / fish relationship in the central playfield.
-  if (phase === 'retrieve' && scene.bobber?.visible) {
-    const sx = (cam?.scrollX ?? 0) + scene.scale.width * 0.72
-    const sy = (cam?.scrollY ?? 0) + top + (playBottom - top) * 0.53
-    const dx = sx - scene.bobber.x
-    const dy = sy - scene.bobber.y
-    if (Math.abs(dx) > 150 || Math.abs(dy) > 180) {
-      // Only correct severe composition drift. Normal retrieve motion remains intact.
-      scene.bobber.x += dx * 0.18
-      scene.bobber.y += dy * 0.18
-    }
-  }
-
-  // Decorative fish should read as underwater silhouettes, not UI chips.
-  ;(scene.bg?._fishGfx ?? []).forEach((fish, index) => {
-    if (!fish?.active || fish === scene._targetFishGfx) return
-    fish.setAlpha?.(phase === 'battle' ? 0.10 : 0.58)
-    fish.setDepth?.(22)
-    const image = fish._assetImage
-    if (image) {
-      const widths = [48, 42, 46, 54, 50, 58]
-      const w = widths[index % widths.length]
-      image.setDisplaySize(w, Math.round(w * 0.50))
+  const isBattle = phase === 'battle'
+  facade.fish.forEach((fish, index) => {
+    fish?.setVisible?.(!isBattle)
+    if (phase === 'retrieve' && fish) {
+      fish.setAlpha(index === 0 ? 0.76 : 0.46)
     }
   })
+
+  facade.line.clear()
+  facade.lure?.setVisible?.(phase === 'retrieve')
+
+  if (phase === 'retrieve' && facade.lure) {
+    const cam = scene.cameras?.main
+    const sx = scene.bobber?.visible
+      ? Math.max(132, Math.min(W - 42, scene.bobber.x - (cam?.scrollX ?? 0)))
+      : W * 0.76
+    const sy = scene.bobber?.visible
+      ? Math.max(top + 130, Math.min(bottom - 64, scene.bobber.y - (cam?.scrollY ?? 0)))
+      : top + h * 0.58
+
+    facade.lure.setPosition(sx, sy)
+    facade.line.lineStyle(2, 0xffffff, 0.90)
+    facade.line.lineBetween(108, bottom - 108, sx - 8, sy + 4)
+  }
+
+  if (isBattle) {
+    facade.backdrop?.setAlpha?.(0.94)
+  } else {
+    facade.backdrop?.setAlpha?.(1)
+  }
 }
 
 function tuneBattle(scene) {
   const battle = scene.phase === 'battle'
-  scene._mockFirstBattleWash?.setVisible?.(battle)
   if (!battle) return
 
-  const W = scene.scale.width
   const hero = scene.battleHero
   if (hero?.active) {
     const rarity = scene.fish?.rarity ?? 'common'
     const width = rarity === 'legendary' ? 252 : rarity === 'rare' ? 238 : 226
     hero
-      .setPosition(W / 2, 330)
+      .setPosition(scene.scale.width / 2, 330)
       .setDisplaySize(width, Math.round(width * 0.56))
       .setDepth(170)
       .setVisible(true)
   }
+
   scene.battleHeroGlow?.setVisible?.(true)
   scene._targetFishGfx?.setAlpha?.(0)
   scene.lineGfx?.clear?.()
   scene.bobber?.setVisible?.(false)
-
-  // Battle owns the screen: normal fishing HUD/control layers must not leak in.
   scene._rcCastDock?.setVisible?.(false)
   scene._rcRetrieveDock?.setVisible?.(false)
   scene._mobileHudSetVisible?.(false)
@@ -119,8 +140,7 @@ function tuneBattle(scene) {
 
 function tuneResult(scene) {
   if (scene.phase !== 'result') return
-  scene._mockFirstBattleWash?.setVisible?.(false)
-  scene._mockFirstBackdrop?.setVisible?.(false)
+  scene._mockFacade?.container?.setVisible?.(false)
 
   const hero = scene._resultHeroFish
   if (hero?.active) {
@@ -131,7 +151,6 @@ function tuneResult(scene) {
       .setVisible(true)
   }
 
-  // Preserve the intended reading order: fish -> name -> stats -> CTA.
   scene.resName?.setY?.(18)
   scene.resPts?.setY?.(74)
   scene.resHint?.setY?.(119)
@@ -139,22 +158,18 @@ function tuneResult(scene) {
 }
 
 function apply(scene, phase = scene.phase) {
-  const backdrop = ensureFixedBackdrop(scene)
-  ensureBattleWash(scene)
-  backdrop?.setVisible?.(phase !== 'result')
-
+  syncFacade(scene, phase)
   tunePlayer(scene, phase)
-  tuneFishField(scene, phase)
-  tuneBattle(scene)
+  if (phase === 'battle') tuneBattle(scene)
   if (phase === 'result') tuneResult(scene)
 }
 
 /**
  * Final mock-first composition pass.
  *
- * It deliberately does not change fishing rules. It fixes the screen-space
- * hierarchy at 390x844 so camera/world movement can no longer destroy the
- * reference composition.
+ * Fishing logic remains world-space. Presentation is rendered as a fixed
+ * 390x844 screen-space facade so legacy camera/background layers can no longer
+ * determine the composition.
  */
 export function installMockFirstFishingComposition(GameScene) {
   if (GameScene.prototype.__ainanMockFirstFishingCompositionInstalled) return
@@ -183,7 +198,6 @@ export function installMockFirstFishingComposition(GameScene) {
   GameScene.prototype._finishBattle = function (...args) {
     const result = originalFinishBattle.apply(this, args)
     apply(this, this.phase)
-    // Result hero is created by another presentation layer on the same tick.
     this.time?.delayedCall?.(0, () => apply(this, this.phase))
     return result
   }
@@ -191,16 +205,18 @@ export function installMockFirstFishingComposition(GameScene) {
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
-    if (this.phase === 'battle') tuneBattle(this)
+    if (this.phase === 'retrieve') syncFacade(this, 'retrieve')
+    if (this.phase === 'battle') {
+      syncFacade(this, 'battle')
+      tuneBattle(this)
+    }
     return result
   }
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
-    this._mockFirstBackdrop?.destroy?.()
-    this._mockFirstBackdrop = null
-    this._mockFirstBattleWash?.destroy?.()
-    this._mockFirstBattleWash = null
+    this._mockFacade?.container?.destroy?.(true)
+    this._mockFacade = null
     return originalCleanup.apply(this, args)
   }
 }
