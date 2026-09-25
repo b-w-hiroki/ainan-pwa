@@ -168,7 +168,7 @@ export class BattleUI {
     scene.reelCTA = scene.add.container(0, 0).setDepth(92).setVisible(false).setScrollFactor(0)
 
     const shade = scene.add.graphics()
-    shade.fillStyle(0x042238, 0.50)
+    shade.fillStyle(0x042238, 0.98)
     shade.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
     shade.lineStyle(1.5, 0x8edfff, 0.28)
     shade.lineBetween(0, controlsTop, W, controlsTop)
