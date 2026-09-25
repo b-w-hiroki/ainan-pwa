@@ -25,6 +25,12 @@ const POINT_BG = {
 
 const FIELD = ASSETS.fishingField
 
+const POINT_NAME = {
+  pointA: '汐風港',
+  pointB: '蒼海湾',
+  pointC: '黒潮崎',
+}
+
 function hasTexture(scene, assetOrKey) {
   const key = typeof assetOrKey === 'string' ? assetOrKey : assetOrKey?.key
   return Boolean(key && scene.textures?.exists?.(key))
@@ -98,7 +104,7 @@ export class FishingPresentation {
     g.strokeCircle(28, 32, 16)
     this.phaseRoot.add(g)
     this.phaseRoot.add(addText(scene, 28, 32, '‹', 25))
-    this.phaseRoot.add(addText(scene, 52, 31, '釣り場・汐風港', 12, { originX: 0 }))
+    this.phaseRoot.add(addText(scene, 52, 31, `釣り場・${POINT_NAME[scene.env?.point] ?? '釣り場'}`, 12, { originX: 0 }))
     this.phaseRoot.add(addText(scene, 356, 31, status, 12, { originX: 1 }))
   }
 
@@ -116,12 +122,21 @@ export class FishingPresentation {
   _fishShadow(x, y, width, alpha = 0.66) {
     const scene = this.scene
     const asset = FIELD.fishShadowMediumIdle
-    if (!hasTexture(scene, asset)) return
-    const fish = scene.add.image(x, y, asset.key)
-      .setDisplaySize(width, Math.round(width * 0.50))
-      .setAlpha(alpha)
-      .setScrollFactor(0)
-    this.phaseRoot.add(fish)
+    if (hasTexture(scene, asset)) {
+      const fish = scene.add.image(x, y, asset.key)
+        .setDisplaySize(width, Math.round(width * 0.50))
+        .setAlpha(alpha)
+        .setScrollFactor(0)
+      this.phaseRoot.add(fish)
+      return
+    }
+
+    const g = scene.add.graphics().setScrollFactor(0)
+    const h = Math.round(width * 0.34)
+    g.fillStyle(0x08283a, alpha)
+    g.fillEllipse(x, y, width, h)
+    g.fillTriangle(x + width * 0.40, y, x + width * 0.64, y - h * 0.58, x + width * 0.64, y + h * 0.58)
+    this.phaseRoot.add(g)
   }
 
   _cast() {
@@ -130,6 +145,24 @@ export class FishingPresentation {
     this._topHud('キャスト')
     L.cast.fish.forEach((f, i) => this._fishShadow(f.x, f.y, f.width, i ? 0.48 : 0.72))
     this._player(L.cast.player)
+
+    // Always show a restrained landing target so Cast has a clear visual goal
+    // without adding another instruction card.
+    const aim = scene.add.graphics().setScrollFactor(0)
+    aim.fillStyle(0xffd95a, 0.10)
+    aim.fillEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+    aim.lineStyle(3, 0xffe88a, 0.92)
+    aim.strokeEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+    aim.lineStyle(1.4, 0xffffff, 0.74)
+    aim.strokeEllipse(L.cast.target.x, L.cast.target.y, 42, 20)
+    for (let i = 0; i < 5; i++) {
+      const t = (i + 1) / 6
+      const x = L.cast.player.x + 32 + (L.cast.target.x - (L.cast.player.x + 32)) * t
+      const y = L.cast.player.y - 110 + (L.cast.target.y - (L.cast.player.y - 110)) * t - Math.sin(Math.PI * t) * 74
+      aim.fillStyle(0xffffff, 0.78 - i * 0.08)
+      aim.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
+    }
+    this.phaseRoot.add(aim)
 
     const dock = scene.add.graphics().setScrollFactor(0)
     dock.fillStyle(0xf7fbfd, 1)
@@ -203,6 +236,15 @@ export class FishingPresentation {
     top.fillRoundedRect(L.battle.tension.x, L.battle.tension.y, Math.max(8, L.battle.tension.width * escape / 100), L.battle.tension.height, 7)
     this.phaseRoot.add(top)
     this.phaseRoot.add(addText(scene, 16, 35, 'テンション', 11, { originX: 0 }))
+
+    const waterFocus = scene.add.graphics().setScrollFactor(0)
+    waterFocus.fillStyle(0x8edfff, 0.08)
+    waterFocus.fillEllipse(L.battle.fish.x, L.battle.fish.y + 4, 286, 170)
+    waterFocus.lineStyle(2, 0xc7f3ff, 0.28)
+    waterFocus.strokeEllipse(L.battle.fish.x, L.battle.fish.y + 4, 264, 148)
+    waterFocus.lineStyle(1.2, 0xffffff, 0.16)
+    waterFocus.strokeEllipse(L.battle.fish.x, L.battle.fish.y + 7, 310, 188)
+    this.phaseRoot.add(waterFocus)
 
     const key = FISH_KEY[scene.fish?.id] ?? FISH_KEY.aji
     if (hasTexture(scene, key)) {
