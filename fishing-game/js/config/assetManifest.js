@@ -58,6 +58,7 @@ export const ASSETS = {
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
   fishingField: {
+    leftPierDecor: { key: 'ff_left_pier_decor', path: assetPath('fishing-game/assets/generated/fishing_left_pier_decor.webp'), status: 'ready' },
     waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
     waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
     waterHighlight: { key: 'ff_water_highlight_01', path: assetPath('fishing-game/assets/fishing-field/water/water_highlight_01.svg'), status: 'ready' },
