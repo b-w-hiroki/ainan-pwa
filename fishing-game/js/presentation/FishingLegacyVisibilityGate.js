@@ -45,6 +45,13 @@ export class FishingLegacyVisibilityGate {
       tackle._baitPanel?.setVisible?.(false)
     }
 
+    this.scene._visualUpgradeAtmosphere?.objects?.forEach(obj => obj?.setVisible?.(false))
+    this.scene._locationAtmosphereObjects?.forEach(obj => obj?.setVisible?.(false))
+    this.scene._conditionPresentation?.overlay?.setVisible?.(false)
+    this.scene._conditionPresentation?.badge?.setVisible?.(false)
+    this.scene._visualUpgradeBattleFocus?.objects?.forEach(obj => obj?.setVisible?.(false))
+    this.scene._visualUpgradeResultAccent?.objects?.forEach(obj => obj?.setVisible?.(false))
+
     visuallySuppressWorld(this.scene)
   }
 
