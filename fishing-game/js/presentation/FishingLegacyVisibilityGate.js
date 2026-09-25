@@ -7,20 +7,30 @@ const KNOWN_LEGACY_REFS = [
   '_resultHeroFish','_qaMockSubject',
 ]
 
-function setRefVisible(scene, key, visible) {
-  const obj = scene[key]
-  obj?.setVisible?.(visible)
+function hideRef(scene, key) {
+  scene[key]?.setVisible?.(false)
+}
+
+function visuallySuppressWorld(scene) {
+  // Keep logical visibility/state intact: several gameplay methods use
+  // bobber.visible and active fish actors as state checks.
+  scene._playerSprite?.setAlpha?.(0)
+  scene._playerShadow?.setAlpha?.(0)
+  ;(scene.bg?._fishGfx ?? []).forEach(obj => obj?.setAlpha?.(0))
+  scene.bobber?.setAlpha?.(0)
+  scene.lineGfx?.setAlpha?.(0)
+  scene.castGfx?.setAlpha?.(0)
 }
 
 export class FishingLegacyVisibilityGate {
   constructor(scene) {
     this.scene = scene
-    this._hidden = false
+    this._suppressed = false
   }
 
   suppress() {
-    this._hidden = true
-    for (const key of KNOWN_LEGACY_REFS) setRefVisible(this.scene, key, false)
+    this._suppressed = true
+    for (const key of KNOWN_LEGACY_REFS) hideRef(this.scene, key)
 
     this.scene.retrieveUI?.hide?.()
     this.scene.playerActionInset?.setVisible?.(false)
@@ -35,26 +45,14 @@ export class FishingLegacyVisibilityGate {
       tackle._baitPanel?.setVisible?.(false)
     }
 
-    // Keep world actors alive for game logic, but presentation owns their visuals.
-    this.scene._playerSprite?.setVisible?.(false)
-    this.scene._playerShadow?.setVisible?.(false)
-    ;(this.scene.bg?._fishGfx ?? []).forEach(obj => obj?.setVisible?.(false))
-    this.scene.bobber?.setVisible?.(false)
-    this.scene.lineGfx?.setVisible?.(false)
-    this.scene.castGfx?.setVisible?.(false)
+    visuallySuppressWorld(this.scene)
   }
 
   sync() {
-    if (!this._hidden) return
-    this.suppress()
-  }
-
-  restoreWorldLogic() {
-    this.scene.lineGfx?.setVisible?.(true)
-    this.scene.castGfx?.setVisible?.(true)
+    if (this._suppressed) this.suppress()
   }
 
   destroy() {
-    this._hidden = false
+    this._suppressed = false
   }
 }
