@@ -69,13 +69,28 @@ function hideTackleChrome(scene) {
   tackle._baitPanel?.setVisible?.(false)
 }
 
+function buildLeftPierDecor(scene) {
+  if (scene._rcLeftPierDecor?.active) return scene._rcLeftPierDecor
+  const asset = FIELD.leftPierDecor
+  if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
+  const decor = scene.add.image(0, MOBILE_FRAME.playBottom + 4, asset.key)
+    .setOrigin(0, 1)
+    .setDisplaySize(154, 274)
+    .setDepth(198)
+    .setScrollFactor(0)
+    .setVisible(false)
+    .setAlpha(0.98)
+  scene._rcLeftPierDecor = decor
+  return decor
+}
+
 function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
   const asset = ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
-  const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
+  const hero = scene.add.image(88, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
-    .setDisplaySize(L.cast.player.width, L.cast.player.height)
+    .setDisplaySize(142, 191)
     .setDepth(205)
     .setScrollFactor(0)
     .setVisible(false)
@@ -268,6 +283,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
   syncMockFieldStaging(scene, phase)
+  const decor = buildLeftPierDecor(scene)
+  decor?.setVisible?.(cast || retrieve)
   const playerHero = buildRcPlayerHero(scene)
   playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
@@ -328,7 +345,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault, ASSETS.ui?.resultNewRecord].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingHero, FIELD.leftPierDecor, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault, ASSETS.ui?.resultNewRecord].filter(Boolean)
     playerAssets.forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
@@ -367,6 +384,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     buildFinalControlChrome(this)
+    buildLeftPierDecor(this)
     buildRcPlayerHero(this)
     buildMockFieldStaging(this)
     collectPlayerObjects(this)
@@ -448,6 +466,8 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcRetrieveDock?.destroy?.(true)
     this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null
+    this._rcLeftPierDecor?.destroy?.()
+    this._rcLeftPierDecor = null
     this._rcCastDock = null
     this._rcRetrieveDock = null
     clearRcBattleHero(this)
