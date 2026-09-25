@@ -542,7 +542,9 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcCastAim?.destroy?.()
     this._rcCastAim = null
     this._rcRetrieveDock?.destroy?.(true)
-    this._rcRetrieveLine?.destroy?.()\n    this._rcRetrieveLine = null\n    this._rcPlayerHero?.destroy?.()
+    this._rcRetrieveLine?.destroy?.()
+    this._rcRetrieveLine = null
+    this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null
     this._rcLeftPierDecor?.destroy?.()
     this._rcLeftPierDecor = null
