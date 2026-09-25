@@ -19,7 +19,7 @@ function ensureFixedBackdrop(scene) {
 
   const backdrop = scene.add.image(W / 2, top + h / 2, asset.key)
     .setDisplaySize(W, h)
-    .setDepth(6)
+    .setDepth(18)
     .setScrollFactor(0)
 
   // The gameplay world still exists behind this image and owns all coordinates.
