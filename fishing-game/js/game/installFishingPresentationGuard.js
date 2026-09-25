@@ -71,17 +71,83 @@ function hideTackleChrome(scene) {
 
 function buildLeftPierDecor(scene) {
   if (scene._rcLeftPierDecor?.active) return scene._rcLeftPierDecor
-  const asset = FIELD.leftPierDecor
-  if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
-  const decor = scene.add.image(0, MOBILE_FRAME.playBottom + 4, asset.key)
-    .setOrigin(0, 1)
-    .setDisplaySize(154, 274)
-    .setDepth(198)
-    .setScrollFactor(0)
-    .setVisible(false)
-    .setAlpha(0.98)
-  scene._rcLeftPierDecor = decor
-  return decor
+
+  // Render the generated pier concept as native Phaser shapes. The generated
+  // raster had browser alpha artifacts on some CI/iPhone paths, while this
+  // version keeps the same visual idea with stable transparency.
+  const c = scene.add.container(0, 0).setDepth(198).setScrollFactor(0).setVisible(false)
+  const g = scene.add.graphics().setScrollFactor(0)
+
+  const baseY = MOBILE_FRAME.playBottom
+
+  // Stone quay / rocks
+  g.fillStyle(0xd9c89f, 1)
+  g.lineStyle(2, 0x76664f, 0.75)
+  g.fillRoundedRect(-8, baseY - 118, 142, 124, 16)
+  g.strokeRoundedRect(-8, baseY - 118, 142, 124, 16)
+  ;[[18,baseY-18,36,22],[55,baseY-13,44,26],[104,baseY-16,38,24]].forEach(([x,y,w,h]) => {
+    g.fillStyle(0x625b54, 1)
+    g.fillEllipse(x, y, w, h)
+    g.lineStyle(1.5, 0x3f3a35, 0.8)
+    g.strokeEllipse(x, y, w, h)
+  })
+
+  // Wooden harbor post and rail
+  g.fillStyle(0xb98b53, 1)
+  g.lineStyle(2, 0x5b4431, 0.9)
+  g.fillRoundedRect(16, baseY - 264, 34, 155, 8)
+  g.strokeRoundedRect(16, baseY - 264, 34, 155, 8)
+  g.fillRoundedRect(-10, baseY - 250, 82, 22, 7)
+  g.strokeRoundedRect(-10, baseY - 250, 82, 22, 7)
+
+  // Rope coils
+  g.lineStyle(6, 0xd8c294, 1)
+  g.strokeEllipse(33, baseY - 217, 58, 23)
+  g.lineStyle(2, 0x786747, 0.8)
+  g.strokeEllipse(33, baseY - 217, 58, 23)
+  g.lineStyle(5, 0xd8c294, 1)
+  g.strokeEllipse(46, baseY - 75, 82, 28)
+
+  // Cooler box
+  g.fillStyle(0x1977d2, 1)
+  g.lineStyle(2, 0xe7f4ff, 1)
+  g.fillRoundedRect(3, baseY - 152, 92, 58, 10)
+  g.strokeRoundedRect(3, baseY - 152, 92, 58, 10)
+  g.fillStyle(0xf2f7fb, 1)
+  g.fillRect(3, baseY - 137, 92, 8)
+  g.lineStyle(5, 0x173248, 1)
+  g.strokeRoundedRect(29, baseY - 166, 40, 18, 7)
+
+  // Bait bucket
+  g.fillStyle(0xf05236, 1)
+  g.lineStyle(2, 0x74291f, 0.9)
+  g.fillRoundedRect(70, baseY - 126, 57, 52, 12)
+  g.strokeRoundedRect(70, baseY - 126, 57, 52, 12)
+  g.lineStyle(4, 0x242a30, 1)
+  g.beginPath()
+  g.arc(98, baseY - 101, 31, 0.1, Math.PI - 0.1, false)
+  g.strokePath()
+
+  // Landing net leaning right.
+  g.lineStyle(6, 0x183f62, 1)
+  g.lineBetween(66, baseY - 54, 151, baseY - 88)
+  g.lineStyle(3, 0x2b78ba, 1)
+  g.strokeEllipse(154, baseY - 92, 68, 44)
+  g.lineStyle(1, 0xffffff, 0.72)
+  for (let i = -22; i <= 22; i += 11) {
+    g.lineBetween(132 + i, baseY - 110, 160 + i, baseY - 74)
+  }
+
+  // Grass accents soften the edge between quay and water.
+  g.lineStyle(3, 0x4f9b3e, 0.9)
+  ;[4,18,120,136].forEach((x, i) => {
+    g.lineBetween(x, baseY - 122 + (i%2)*8, x + 5, baseY - 144 - (i%2)*6)
+    g.lineBetween(x + 4, baseY - 122, x + 13, baseY - 139)
+  })
+
+  c.add(g)
+  scene._rcLeftPierDecor = c
+  return c
 }
 
 function buildRcPlayerHero(scene) {
