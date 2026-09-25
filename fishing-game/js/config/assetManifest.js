@@ -17,6 +17,7 @@ export const ASSETS = {
     guideDefault: { key: 'ch_guide_default', path: assetPath('fishing-game/assets/characters/ch_guide_default.png'), status: 'ready' },
     playerDefault: { key: 'ch_player_default', path: assetPath('fishing-game/assets/characters/ch_player_default.png'), status: 'ready' },
     playerDefaultUi: { key: 'ch_player_default_ui', path: assetPath('fishing-game/assets/characters/ch_player_default_ui.png'), status: 'ready' },
+    fishingHero: { key: 'ch_fishing_hero', path: assetPath('fishing-game/assets/generated/fishing_player_hero.webp'), status: 'ready' },
     fishmonger: { key: 'ch_npc_fishmonger', path: assetPath('fishing-game/assets/characters/ch_npc_fishmonger_v2.svg'), status: 'ready' },
     guideStaff: { key: 'ch_npc_guide_staff', path: assetPath('fishing-game/assets/characters/ch_npc_guide_staff_v2.svg'), status: 'ready' },
     youngFisher: { key: 'ch_npc_young_fisher', path: assetPath('fishing-game/assets/characters/ch_npc_young_fisher_v2.svg'), status: 'ready' },
