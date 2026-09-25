@@ -1,7 +1,8 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
-import Phaser from 'phaser'\nimport { MOBILE_FRAME } from '../config/mobileFrame.js'
+import Phaser from 'phaser'
+import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 
 const FIELD = ASSETS.fishingField
