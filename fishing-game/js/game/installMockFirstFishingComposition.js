@@ -20,7 +20,7 @@ function ensureFacade(scene) {
   const top = MOBILE_FRAME.topHudHeight
   const bottom = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
   const h = bottom - top
-  const container = scene.add.container(0, 0).setDepth(140).setScrollFactor(0)
+  const container = scene.add.container(0, 0).setDepth(500).setScrollFactor(0)
 
   const asset = POINT_BG[scene.env?.point] ?? POINT_BG.pointA
   const backdrop = hasTexture(scene, asset)
@@ -67,7 +67,7 @@ function tunePlayer(scene, phase) {
     .setPosition(72, playBottom - 6)
     .setOrigin(0.5, 1)
     .setDisplaySize(126, 166)
-    .setDepth(205)
+    .setDepth(520)
 }
 
 function syncFacade(scene, phase = scene.phase) {
@@ -124,7 +124,7 @@ function tuneBattle(scene) {
     hero
       .setPosition(scene.scale.width / 2, 330)
       .setDisplaySize(width, Math.round(width * 0.56))
-      .setDepth(170)
+      .setDepth(530)
       .setVisible(true)
   }
 
