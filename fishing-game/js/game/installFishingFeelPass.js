@@ -36,7 +36,7 @@ export function installFishingFeelPass(GameScene) {
   const originalFire = GameScene.prototype._fireCast
   GameScene.prototype._fireCast = function (...args) {
     haptic(12)
-    playSfx('tap')
+    playSfx('select')
     this.cameras?.main?.shake?.(85, 0.0016)
     return originalFire.apply(this, args)
   }
@@ -89,7 +89,6 @@ export function installFishingFeelPass(GameScene) {
       this.cameras?.main?.flash?.(180, 255, 246, 190, true)
       this.cameras?.main?.shake?.(130, 0.003)
       haptic([24, 18, 42])
-      playSfx('catch')
     }
     return result
   }
