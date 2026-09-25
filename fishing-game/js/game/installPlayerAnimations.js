@@ -1,4 +1,5 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
+import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 
 const BASE = import.meta.env.BASE_URL ?? '/'
 const assetPath = path => `${BASE}${path.replace(/^\/+/, '')}`
@@ -120,10 +121,11 @@ export function installPlayerAnimations(GameScene) {
       return originalBuildPlayer.call(this, W, H)
     }
 
-    const cx = W * 0.50
-    // Sand starts around 88.8% of the fishing background. Put the soles just
-    // inside that area so the character feels planted instead of floating on water.
-    const by = H * 0.885
+    // Keep the fisherman at the canonical world anchor used by the camera.
+    // This places him in the lower-left of the 390x844 composition instead of
+    // drifting toward the middle of the 900px world.
+    const cx = FISHING_WORLD.player.x
+    const by = FISHING_WORLD.player.y
     const displayH = Math.min(H * 0.25, 210)
     const displayW = displayH * (FRAME_W / FRAME_H)
 

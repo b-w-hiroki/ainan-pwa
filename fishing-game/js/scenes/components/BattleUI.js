@@ -36,16 +36,16 @@ function ensureBattleHero(scene) {
   clearBattleHeroVisual(scene)
   const W = scene.scale.width
   const rarity = scene.fish?.rarity ?? 'common'
-  const width = rarity === 'legendary' ? 220 : rarity === 'rare' ? 208 : rarity === 'uncommon' ? 198 : 190
-  const height = Math.round(width * 0.62)
+  const width = rarity === 'legendary' ? 242 : rarity === 'rare' ? 230 : rarity === 'uncommon' ? 220 : 212
+  const height = Math.round(width * 0.58)
 
   const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
   glow.fillStyle(0x77d8ec, 0.12)
-  glow.fillEllipse(W / 2, 336, width + 74, height + 56)
+  glow.fillEllipse(W / 2, 348, width + 74, height + 56)
   glow.lineStyle(2, 0xbcecff, 0.28)
-  glow.strokeEllipse(W / 2, 336, width + 42, height + 28)
+  glow.strokeEllipse(W / 2, 348, width + 42, height + 28)
 
-  const hero = scene.add.image(W / 2, 336, key)
+  const hero = scene.add.image(W / 2, 348, key)
     .setDisplaySize(width, height)
     .setDepth(84)
     .setScrollFactor(0)
@@ -75,7 +75,7 @@ export class BattleUI {
     scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x073754, 0.92)
+    bg.fillStyle(0x073754, 1)
     bg.fillRect(0, 0, W, 62)
     bg.lineStyle(1.5, 0x8edfff, 0.48)
     bg.strokeRect(0, 0, W, 62)
