@@ -1,5 +1,6 @@
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ASSETS } from '../../config/assetManifest.js'
+import { haptic, playSfx } from '../../game/feedback.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const KUE_CLEAR_SEEN_KEY = 'ainan_kue_first_clear_seen'
@@ -75,6 +76,8 @@ export class ResultUI {
     }
 
     const town = makeBtn(-126, 132, 252, 56, '町へ持ち帰る', () => {
+      playSfx('select')
+      haptic(10)
       const lastCatch = scene.catches?.[scene.catches.length - 1]
       const catchArrival = lastCatch && scene.fish ? {
         fishId: scene.fish.id, name: scene.fish.name, emoji: scene.fish.emoji,
@@ -83,14 +86,20 @@ export class ResultUI {
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, true)
-    const retry = makeBtn(-126, 198, 252, 46, '↻ もう一度釣る', () => {
+    const retry = makeBtn(-126, 198, 252, 46, '↻ もう一投', () => {
+      playSfx('select')
+      haptic(12)
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
     })
 
 
-    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry])
+    const retrySub = scene.add.text(0, 224, '同じ釣り場・仕掛けで続ける', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#a9d9ed',
+    }).setOrigin(0.5)
+
+    scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, retrySub])
     scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, scene.resultSuccessActions])
   }
 
