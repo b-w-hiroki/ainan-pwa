@@ -67,7 +67,7 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
 function buildFishReadCue(scene) {
   if (scene._rcFishReadCue?.active) return scene._rcFishReadCue
   const c = scene.add.container(252, MOBILE_FRAME.playBottom - 44)
-    .setDepth(209)
+    .setDepth(220)
     .setScrollFactor(0)
     .setVisible(false)
   const bg = scene.add.graphics()
@@ -494,6 +494,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   scene.retrieveUI?.hide?.()
   scene._rcCastDock?.setVisible?.(cast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
+  if (retrieve) syncFishReadCue(scene)
+  else scene._rcFishReadCue?.setVisible?.(false)
 
   scene._mobileHudSetVisible?.(cast || retrieve)
   clearRcBattleHero(scene)
