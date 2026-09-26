@@ -1,9 +1,22 @@
+import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
 import { ASSETS } from '../../config/assetManifest.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
+
+const BATTLE_STYLE = {
+  aji:      { intro: '小刻みに走る', rage: '細かく走る… 少し待とう' },
+  saba:     { intro: '素早い引き', rage: '急に走る… 少し待とう' },
+  tai:      { intro: '重く粘る引き', rage: '首を振っている… 待とう' },
+  isaki:    { intro: 'じわっと粘る', rage: 'じわじわ抵抗… 少し待とう' },
+  bass:     { intro: '鋭いダッシュ', rage: '跳ねて暴れる！ 少し待とう' },
+  buri:     { intro: '横へ走る強烈な引き', rage: '横へ走る！ 少し待とう' },
+  hirame:   { intro: '底へ潜る重い引き', rage: '底へ潜る… 無理に巻かない' },
+  kanpachi: { intro: '一気に走る大物', rage: '強烈に走る！ 少し待とう' },
+  kue:      { intro: '岩へ潜る怪物級の引き', rage: '底へ潜る！ 今は耐える' },
+}
 
 const BATTLE_FISH_KEYS = {
   aji: ASSETS.fish.ajiIcon.key,
@@ -21,6 +34,14 @@ function clearBattleHeroVisual(scene) {
   scene._battleHeroTween?.stop?.()
   scene._battleHeroTween?.destroy?.()
   scene._battleHeroTween = null
+  scene._battleHeroAngleTween?.stop?.()
+  scene._battleHeroAngleTween?.destroy?.()
+  scene._battleHeroAngleTween = null
+  scene._battleStyleCueTween?.stop?.()
+  scene._battleStyleCueTween?.destroy?.()
+  scene._battleStyleCueTween = null
+  scene._battleStyleCue?.destroy?.()
+  scene._battleStyleCue = null
   scene.battleHeroGlow?.destroy?.()
   scene.battleHeroGlow = null
   scene.battleHeroSplash?.destroy?.()
@@ -77,14 +98,58 @@ function ensureBattleHero(scene) {
   scene.battleHeroGlow = glow
   scene.battleHero = hero
   scene._battleHeroKey = key
+
+  const feel = scene.fish?.feel ?? {}
+  const speed = feel.battleSpeed ?? 3.2
+  const waveX = Math.min(18, Math.max(4, (feel.battleWaveX ?? 10) * 0.62))
+  const waveY = Math.min(10, Math.max(4, feel.battleWaveY ?? 6))
+  const duration = Phaser.Math.Clamp(Math.round(1220 - speed * 115), 540, 1050)
+  const angle = Math.min(7, Math.max(2, (feel.battleWaveX ?? 10) * 0.22))
+
   scene._battleHeroTween = scene.tweens.add({
     targets: [hero, glow, splash],
-    y: '-=5',
-    duration: 880,
+    x: `+=${waveX}`,
+    y: `-=${waveY}`,
+    duration,
     yoyo: true,
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
+  scene._battleHeroAngleTween = scene.tweens.add({
+    targets: hero,
+    angle,
+    duration: Math.round(duration * 0.82),
+    yoyo: true,
+    repeat: -1,
+    ease: 'Sine.easeInOut',
+  })
+
+  const style = BATTLE_STYLE[scene.fish?.id]
+  if (style?.intro) {
+    const cue = scene.add.text(W / 2, 446, style.intro, {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '11px',
+      fontWeight: '900',
+      color: '#dff5ff',
+      backgroundColor: 'rgba(7,55,84,0.76)',
+      padding: { x: 12, y: 5 },
+    }).setOrigin(0.5).setDepth(91).setScrollFactor(0).setAlpha(0)
+    scene._battleStyleCue = cue
+    scene._battleStyleCueTween = scene.tweens.add({
+      targets: cue,
+      alpha: 1,
+      y: 440,
+      duration: 180,
+      yoyo: true,
+      hold: 720,
+      ease: 'Sine.easeOut',
+      onComplete: () => {
+        cue.destroy()
+        if (scene._battleStyleCue === cue) scene._battleStyleCue = null
+      },
+    })
+  }
   return hero
 }
 
@@ -231,6 +296,9 @@ export class BattleUI {
     hero?.setVisible?.(true)
     scene.battleHeroGlow?.setVisible?.(true)
     const wasRaging = scene.rageTag.visible
+    const style = BATTLE_STYLE[scene.fish?.id]
+    if (st.isRaging && style?.rage) scene.rageTag.setText(style.rage)
+    else if (!st.isRaging) scene.rageTag.setText('暴れてる… 少し待とう')
     scene.rageTag.setVisible(st.isRaging)
     scene.reelCTA.setVisible(!st.isRaging)
     if (st.isRaging && !wasRaging) scene.cameras.main.shake(180, 0.009)
