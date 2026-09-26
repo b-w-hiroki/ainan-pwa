@@ -1,3 +1,4 @@
+import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
