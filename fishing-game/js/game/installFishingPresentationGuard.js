@@ -4,6 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
+import { haptic } from './feedback.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -61,6 +62,113 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   g.lineBetween(startX, startY, lureX, lureY)
   g.lineStyle(1.4, 0xffffff, 0.96)
   g.lineBetween(startX, startY, lureX, lureY)
+}
+
+function buildFishReadCue(scene) {
+  if (scene._rcFishReadCue?.active) return scene._rcFishReadCue
+  const c = scene.add.container(252, MOBILE_FRAME.playBottom - 44)
+    .setDepth(209)
+    .setScrollFactor(0)
+    .setVisible(false)
+  const bg = scene.add.graphics()
+  const text = scene.add.text(0, 0, '', {
+    fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif',
+    resolution: 1,
+    fontSize: '10px',
+    fontStyle: 'bold',
+    color: '#ffffff',
+  }).setOrigin(0.5)
+  c.add([bg, text])
+  c._bg = bg
+  c._text = text
+  scene._rcFishReadCue = c
+  return c
+}
+
+function preferredActionMatch(runtime, action) {
+  const prefer = runtime?.fishDef?.retrieve?.prefer ?? 'mixed'
+  if (prefer === 'stop') return action === 'idle'
+  if (prefer === 'twitch') return action === 'twitch'
+  if (prefer === 'slow') return action === 'slowReel'
+  return action === 'twitch' || action === 'slowReel'
+}
+
+function nearestRetrieveFish(scene) {
+  if (scene.phase !== 'retrieve' || !scene.bobber?.visible) return null
+  const runtimes = scene.bg?._fishRuntime ?? []
+  let best = null
+  for (const runtime of runtimes) {
+    if (!runtime?.gfx?.active) continue
+    const dist = Phaser.Math.Distance.Between(runtime.gfx.x, runtime.gfx.y, scene.bobber.x, scene.bobber.y)
+    if (!best || dist < best.dist) best = { runtime, dist }
+  }
+  return best
+}
+
+function syncFishReadCue(scene) {
+  const cue = buildFishReadCue(scene)
+  if (scene.phase !== 'retrieve') {
+    cue?.setVisible?.(false)
+    scene._rcFishReadCueState = null
+    return
+  }
+
+  const nearest = nearestRetrieveFish(scene)
+  if (!nearest || nearest.dist > 210) {
+    cue?.setVisible?.(false)
+    return
+  }
+
+  const runtime = nearest.runtime
+  const state = runtime.state ?? 'cruise'
+  const action = scene.retrieveState?.action ?? 'idle'
+  const matched = preferredActionMatch(runtime, action)
+  const rarity = runtime.fishDef?.rarity ?? 'common'
+
+  let label = ''
+  let fill = 0x17445f
+  let stroke = 0x8edfff
+  let tone = '#ffffff'
+
+  if (runtime.spooked) {
+    label = '警戒された…'
+    fill = 0x73352f
+    stroke = 0xff9a86
+  } else if (state === 'biteReady') {
+    label = rarity === 'rare' || rarity === 'legendary' ? '強い気配… 食う！' : '食う…！'
+    fill = rarity === 'legendary' ? 0x76520f : 0x236e55
+    stroke = rarity === 'legendary' ? 0xffd95a : 0x71d6a2
+  } else if (state === 'inspect') {
+    label = matched ? '反応がいい！' : 'じっと見ている…'
+    fill = matched ? 0x205f52 : 0x17445f
+    stroke = matched ? 0x71d6a2 : 0x8edfff
+  } else if (state === 'follow') {
+    label = matched ? '追ってきた！' : '追ってきた…'
+    fill = matched ? 0x205f52 : 0x17445f
+    stroke = matched ? 0x71d6a2 : 0x8edfff
+  } else if (state === 'noticed') {
+    label = rarity === 'rare' || rarity === 'legendary' ? '大きな魚影が反応…' : '魚影が反応…'
+  } else {
+    cue?.setVisible?.(false)
+    return
+  }
+
+  cue._bg.clear()
+  const w = label.length >= 11 ? 160 : 136
+  cue._bg.fillStyle(fill, 0.92)
+  cue._bg.lineStyle(1.5, stroke, 0.96)
+  cue._bg.fillRoundedRect(-w / 2, -15, w, 30, 12)
+  cue._bg.strokeRoundedRect(-w / 2, -15, w, 30, 12)
+  cue._text.setText(label).setColor(tone)
+  cue.setVisible(true)
+
+  const cueState = `${runtime.index}:${state}:${runtime.spooked ? 1 : 0}:${matched ? 1 : 0}`
+  if (cueState !== scene._rcFishReadCueState) {
+    if (runtime.spooked) haptic(8)
+    else if (state === 'inspect' && matched) haptic(10)
+    else if (state === 'biteReady') haptic([10, 12, 18])
+    scene._rcFishReadCueState = cueState
+  }
 }
 
 function hideLegacyGuideChrome(scene) {
@@ -473,6 +581,7 @@ export function installFishingPresentationGuard(GameScene) {
     buildLeftPierDecor(this)
     buildRcPlayerHero(this)
     buildMockFieldStaging(this)
+    buildFishReadCue(this)
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.(this.phase)
@@ -542,6 +651,13 @@ export function installFishingPresentationGuard(GameScene) {
     return result
   }
 
+  const originalUpdate = GameScene.prototype.update
+  GameScene.prototype.update = function (...args) {
+    const result = originalUpdate?.apply(this, args)
+    syncFishReadCue(this)
+    return result
+  }
+
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
     this._rcCastDock?.destroy?.(true)
@@ -552,6 +668,9 @@ export function installFishingPresentationGuard(GameScene) {
     this._rcRetrieveDock?.destroy?.(true)
     this._rcRetrieveLine?.destroy?.()
     this._rcRetrieveLine = null
+    this._rcFishReadCue?.destroy?.(true)
+    this._rcFishReadCue = null
+    this._rcFishReadCueState = null
     this._rcPlayerHero?.destroy?.()
     this._rcPlayerHero = null
     this._rcLeftPierDecor?.destroy?.()
