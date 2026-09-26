@@ -113,15 +113,24 @@ function syncFishReadCue(scene) {
     return
   }
 
+  const qaMockRetrieve = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('qa') === '1'
+    && new URLSearchParams(window.location.search).get('qaMockPhase') === 'retrieve'
+
   const nearest = nearestRetrieveFish(scene)
-  if (!nearest || nearest.dist > 210) {
+  if ((!nearest || nearest.dist > 210) && !qaMockRetrieve) {
     cue?.setVisible?.(false)
     return
   }
 
-  const runtime = nearest.runtime
-  const state = runtime.state ?? 'cruise'
-  const action = scene.retrieveState?.action ?? 'idle'
+  const runtime = nearest?.runtime ?? {
+    index: -1,
+    state: 'follow',
+    spooked: false,
+    fishDef: { rarity: 'uncommon', retrieve: { prefer: 'slow' } },
+  }
+  const state = qaMockRetrieve ? 'follow' : (runtime.state ?? 'cruise')
+  const action = qaMockRetrieve ? 'slowReel' : (scene.retrieveState?.action ?? 'idle')
   const matched = preferredActionMatch(runtime, action)
   const rarity = runtime.fishDef?.rarity ?? 'common'
 
