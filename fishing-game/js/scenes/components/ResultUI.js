@@ -95,7 +95,7 @@ export class ResultUI {
     })
 
 
-    const retrySub = scene.add.text(0, 224, '同じ釣り場・仕掛けで続ける', {
+    const retrySub = scene.add.text(0, 250, '同じ釣り場・仕掛けで続ける', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#a9d9ed',
     }).setOrigin(0.5)
 
