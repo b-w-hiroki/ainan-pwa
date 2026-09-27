@@ -64,7 +64,7 @@ export function installTownCatchArrival(TownScene) {
     const x = 24
     const y = 154
     const w = W - 48
-    const h = 404
+    const h = 452
 
     const card = this.add.graphics()
     card.fillStyle(0x071a28, 0.22)
@@ -148,11 +148,17 @@ export function installTownCatchArrival(TownScene) {
       wordWrap: { width: w - 70 },
     }).setOrigin(0.5, 0))
 
-    const button = this._actionButton(W / 2, y + h - 38, '町のみんなに届ける', () => {
+    const deliver = this._actionButton(W / 2, y + h - 76, '町のみんなに届ける', () => {
       container.destroy(true)
       this.cameras.main.flash(180, 235, 250, 255, true)
     }, 226, 48)
-    items.push(button)
+    items.push(deliver)
+
+    const returnFishing = this._actionButton(W / 2, y + h - 24, 'もう一度釣りへ', () => {
+      container.destroy(true)
+      this.scene.start('MapScene')
+    }, 226, 40)
+    items.push(returnFishing)
 
     const container = this.add.container(0, 18, items).setDepth(220).setAlpha(0)
     this.tweens.add({ targets: container, y: 0, alpha: 1, duration: 240, ease: 'Back.easeOut' })
