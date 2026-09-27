@@ -46,6 +46,8 @@ function clearBattleHeroVisual(scene) {
   scene.battleHeroGlow = null
   scene.battleHeroSplash?.destroy?.()
   scene.battleHeroSplash = null
+  scene.battleHeroShadow?.destroy?.()
+  scene.battleHeroShadow = null
   scene.battleHero?.destroy?.()
   scene.battleHero = null
   scene._battleHeroKey = null
@@ -89,6 +91,11 @@ function ensureBattleHero(scene) {
   })
   scene.battleHeroSplash = splash
 
+  const shadow = scene.add.ellipse(W / 2 + 7, 362, width * 0.82, height * 0.38, 0x031725, 0.26)
+    .setDepth(83)
+    .setScrollFactor(0)
+  scene.battleHeroShadow = shadow
+
   const hero = scene.add.image(W / 2, 348, key)
     .setDisplaySize(width, height)
     .setDepth(84)
@@ -107,7 +114,7 @@ function ensureBattleHero(scene) {
   const angle = Math.min(7, Math.max(2, (feel.battleWaveX ?? 10) * 0.22))
 
   scene._battleHeroTween = scene.tweens.add({
-    targets: [hero, glow, splash],
+    targets: [hero, glow, splash, shadow],
     x: `+=${waveX}`,
     y: `-=${waveY}`,
     duration,
