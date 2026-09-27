@@ -69,6 +69,7 @@ import { installCatchRewardPolish } from './game/installCatchRewardPolish.js'
 import { installLocationAtmosphere } from './game/installLocationAtmosphere.js'
 import { installPlayerFishingPolish } from './game/installPlayerFishingPolish.js'
 import { installFishingFeelPass } from './game/installFishingFeelPass.js'
+import { installFishingDiagnostics, installGlobalDiagnostics } from './game/diagnostics.js'
 
 installFishingVisualTuning()
 installPlayerAnimations(GameScene)
@@ -122,6 +123,8 @@ installStaminaSessionGate(GameScene)
 installFishingFeelPass(GameScene)
 // Final RC presentation guard must wrap every legacy/QA layer.
 installFishingPresentationGuard(GameScene)
+// Diagnostics observe the final gameplay methods and never affect game logic.
+installFishingDiagnostics(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
@@ -144,6 +147,7 @@ const config = {
 }
 
 function startGame() {
+  installGlobalDiagnostics()
   prepareQaState()
   ensureSaveVersion()
   const game = new Phaser.Game(config)
