@@ -4,6 +4,8 @@ function clearResultHero(scene) {
   scene._resultHeroTween = null
   scene._resultHeroFish?.destroy?.()
   scene._resultHeroFish = null
+  scene._resultHeroShadow?.destroy?.()
+  scene._resultHeroShadow = null
 }
 
 function buildResultHero(scene) {
@@ -20,8 +22,15 @@ function buildResultHero(scene) {
   scene.resEmoji?.setVisible?.(false)
 
   const { width: W, height: H } = scene.scale
+  const rarity = scene.fish?.rarity ?? 'common'
+  const heroSize = rarity === 'legendary' ? 230 : rarity === 'rare' ? 220 : 210
+  const shadow = scene.add.ellipse(W / 2 + 7, H / 2 - 83, heroSize * 0.64, heroSize * 0.18, 0x021723, 0.28)
+    .setDepth(131)
+    .setScrollFactor(0)
+    .setAlpha(0)
+  scene._resultHeroShadow = shadow
   const hero = scene.add.image(W / 2, H / 2 - 104, icon.texture.key)
-    .setDisplaySize(202, 202)
+    .setDisplaySize(heroSize, heroSize)
     .setDepth(132)
     .setScrollFactor(0)
     .setAlpha(0)
@@ -32,7 +41,7 @@ function buildResultHero(scene) {
   hero.setScale(baseScaleX * 0.78, baseScaleY * 0.78)
 
   scene.tweens.add({
-    targets: hero,
+    targets: [hero, shadow],
     alpha: 1,
     scaleX: baseScaleX,
     scaleY: baseScaleY,
