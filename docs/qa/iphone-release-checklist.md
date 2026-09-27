@@ -4,8 +4,8 @@
 
 The release candidate must be green for all of the following:
 
-- RC version: 1.0.0-rc.2
-- RC baseline main: 063cc917570a0e8c3dd2f79323b0dc56e2a106f8
+- RC version: 1.0.0-rc.3
+- RC baseline: main after PR #44 merge; record the exact merge SHA in Issue #27
 
 - Production build
 - Production dependency audit (high+)

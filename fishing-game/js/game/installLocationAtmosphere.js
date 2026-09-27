@@ -180,6 +180,16 @@ function buildLocationAtmosphere(scene) {
   clearLocationAtmosphere(scene)
   const { width: W, height: H } = scene.scale
   const point = qaLocation() ?? scene.env?.point ?? 'pointA'
+
+  // Very light fixed mood glaze makes each spot identifiable at a glance
+  // without covering the fishing art or changing gameplay readability.
+  const mood = point === 'pointB'
+    ? { color: 0x73e1cb, alpha: 0.025 }
+    : point === 'pointC'
+      ? { color: 0x244c78, alpha: 0.055 }
+      : { color: 0xffd59a, alpha: 0.022 }
+  register(scene, scene.add.rectangle(W / 2, H / 2, W, H, mood.color, mood.alpha).setDepth(6).setScrollFactor(0))
+
   if (point === 'pointB') bay(scene, W, H)
   else if (point === 'pointC') cape(scene, W, H)
   else harbor(scene, W, H)
