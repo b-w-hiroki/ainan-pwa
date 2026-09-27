@@ -1,3 +1,4 @@
+import { diagCount, diagRecord } from './diagnostics.js'
 export const SAVE_VERSION = 3
 
 const SAVE_KEYS = [
@@ -51,7 +52,9 @@ export function backupSave() {
     localStorage.setItem(BACKUP_KEYS[0], encoded)
     localStorage.setItem('ainan_save_backup', encoded)
     return true
-  } catch {
+  } catch (error) {
+    diagCount('save_backup_failure')
+    diagRecord('save_backup_failure', { message: error?.message ?? 'backup failed' })
     return false
   }
 }
@@ -69,7 +72,11 @@ function initializeDefaults() {
 }
 
 function applySnapshot(snapshot) {
-  if (!validateSnapshot(snapshot)) return false
+  if (!validateSnapshot(snapshot)) {
+    diagCount('save_validation_failure')
+    diagRecord('save_validation_failure', { version: snapshot?.version ?? null })
+    return false
+  }
   Object.entries(snapshot.data).forEach(([key, value]) => localStorage.setItem(key, String(value)))
   initializeDefaults()
   localStorage.setItem('ainan_save_version', String(SAVE_VERSION))
@@ -95,7 +102,9 @@ export function restoreBackup(slot = 1) {
     const raw = localStorage.getItem(BACKUP_KEYS[index])
     if (!raw) return false
     return applySnapshot(JSON.parse(raw))
-  } catch {
+  } catch (error) {
+    diagCount('save_restore_failure')
+    diagRecord('save_restore_failure', { slot, message: error?.message ?? 'restore failed' })
     return false
   }
 }
@@ -105,7 +114,9 @@ export function restoreLatestBackup() {
   try {
     const legacy = JSON.parse(localStorage.getItem('ainan_save_backup') ?? 'null')
     return applySnapshot(legacy)
-  } catch {
+  } catch (error) {
+    diagCount('save_restore_failure')
+    diagRecord('save_restore_failure', { legacy: true, message: error?.message ?? 'legacy restore failed' })
     return false
   }
 }
@@ -122,7 +133,9 @@ export function importSaveData(text) {
     if (!validateSnapshot(snapshot)) return false
     backupSave()
     return applySnapshot(snapshot)
-  } catch {
+  } catch (error) {
+    diagCount('save_import_failure')
+    diagRecord('save_import_failure', { message: error?.message ?? 'import failed' })
     return false
   }
 }
