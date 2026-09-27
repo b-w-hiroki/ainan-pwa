@@ -35,7 +35,8 @@ assert.ok(qa.includes("bossState") && qa.includes("qaFreshBoss"), 'QA must suppo
 assert.ok(qa.includes("ainan_boss_trophies"), 'QA must reset boss trophies deterministically')
 
 const main = read('fishing-game/js/main.js')
-assert.ok(main.includes('installBossEventPolish(GameScene)'), 'Boss event polish must be installed')
+const runtime = read('fishing-game/js/game/installFishingRuntime.js')
+assert.ok((main + runtime).includes('installBossEventPolish(GameScene)'), 'Boss event polish must be installed')
 
 console.log('Boss Event Polish smoke QA passed')
 console.log('  main build duplicate regression: guarded')
