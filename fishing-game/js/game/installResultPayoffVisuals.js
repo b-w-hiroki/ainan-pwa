@@ -39,6 +39,36 @@ function build(scene) {
   }
   objects.push(rays)
 
+  const latest = scene.catches?.[scene.catches.length - 1]
+  const sizeCm = Number(latest?.sizeCm ?? 0)
+  const bigCatch = Number.isFinite(sizeCm) && sizeCm >= (scene.fish?.rarity === 'legendary' ? 100 : scene.fish?.rarity === 'rare' ? 70 : 55)
+  if (bigCatch) {
+    const badge = scene.add.container(cx, cy + 126).setDepth(135).setScrollFactor(0)
+    const bg = scene.add.graphics()
+    bg.fillStyle(0xffb51f, 0.96)
+    bg.lineStyle(2, 0xffef9a, 0.95)
+    bg.fillRoundedRect(-62, -14, 124, 28, 12)
+    bg.strokeRoundedRect(-62, -14, 124, 28, 12)
+    const txt = scene.add.text(0, 0, scene.fish?.rarity === 'legendary' ? 'MONSTER SIZE' : 'BIG CATCH', {
+      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
+      fontSize: '10px',
+      fontStyle: 'bold',
+      color: '#663a00',
+      letterSpacing: 0.8,
+    }).setOrigin(0.5)
+    badge.add([bg, txt])
+    objects.push(badge)
+    if (!reduced) tweens.push(scene.tweens.add({
+      targets: badge,
+      scaleX: 1.06,
+      scaleY: 1.06,
+      duration: 560,
+      yoyo: true,
+      repeat: 2,
+      ease: 'Sine.easeInOut',
+    }))
+  }
+
   if (['rare', 'legendary'].includes(scene.fish?.rarity)) {
     for (let i = 0; i < (scene.fish.rarity === 'legendary' ? 12 : 7); i++) {
       const a = (Math.PI * 2 * i) / (scene.fish.rarity === 'legendary' ? 12 : 7)
