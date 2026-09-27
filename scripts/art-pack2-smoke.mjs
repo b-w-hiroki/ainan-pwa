@@ -47,7 +47,8 @@ assert.ok(bossPresentation.includes('qaPoint'), 'location E2E forcing must stay 
 assert.ok(bossPresentation.includes('BOSS CATCH'), 'boss result payoff must stay visible')
 
 const main = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
-assert.ok(main.includes('installBossArtPresentation(GameScene)'), 'boss art presentation must be installed')
+const runtime = readFileSync(new URL('../fishing-game/js/game/installFishingRuntime.js', import.meta.url), 'utf8')
+assert.ok((main + runtime).includes('installBossArtPresentation(GameScene)'), 'boss art presentation must be installed')
 
 const challenge = readFileSync(new URL('../fishing-game/js/scenes/ChallengeScene.js', import.meta.url), 'utf8')
 assert.ok(challenge.includes('Object.values(ASSETS.bosses)'), 'challenge must preload boss art')
