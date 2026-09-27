@@ -5,6 +5,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { backupSave, exportSaveData, getBackupSummaries, importSaveData, restoreLatestBackup, SAVE_VERSION } from '../game/saveSystem.js'
 import { isHapticsEnabled, isReducedMotion, isSoundEnabled, setHapticsEnabled, setReducedMotion, setSoundEnabled } from '../game/feedback.js'
+import { exportDiagnostics } from '../game/diagnostics.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -29,10 +30,11 @@ export default class SettingsScene extends Phaser.Scene {
       ['最新を復旧', validBackups ? '復元可能' : 'バックアップなし', () => { if (restoreLatestBackup()) { this._toast('復元しました'); this.time.delayedCall(350, () => this.scene.start('HomeScene')) } else this._toast('復元できません') }],
       ['データを書き出す', 'JSONをコピー', () => this._export()],
       ['データを読み込む', 'JSONから復元', () => this._import()],
+      ['診断ログを書き出す', '端末内ログをコピー', () => this._exportDiagnostics()],
     ]
-    cards.forEach((item, i) => this._card(W, 104 + i * 67, item[0], item[1], item[2]))
-    this.add.text(30, 586, 'SAVE VERSION  ' + SAVE_VERSION, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
-    this.add.text(30, 606, '書き出しデータには端末内のゲーム進行だけが含まれます。', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: W - 60 } }).setDepth(5)
+    cards.forEach((item, i) => this._card(W, 96 + i * 61, item[0], item[1], item[2]))
+    this.add.text(30, 592, 'SAVE VERSION  ' + SAVE_VERSION, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
+    this.add.text(30, 612, '書き出しデータには端末内のゲーム進行だけが含まれます。', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: W - 60 } }).setDepth(5)
     buildFooterNav(this, W, H, 'menu')
   }
   _header(W) {
@@ -42,7 +44,7 @@ export default class SettingsScene extends Phaser.Scene {
     this.add.text(30, 65, '音・振動・動き・3世代バックアップを管理', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.inkSoft }).setDepth(5)
   }
   _card(W, y, title, value, action) {
-    const x = 24, w = W - 48, h = 56, g = this.add.graphics().setDepth(4)
+    const x = 24, w = W - 48, h = 52, g = this.add.graphics().setDepth(4)
     g.fillStyle(0xffffff, 0.98); g.lineStyle(1.4, 0xb9d4df, 0.86); g.fillRoundedRect(x, y, w, h, 15); g.strokeRoundedRect(x, y, w, h, 15)
     this.add.text(x + 16, y + 17, title, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(x + 16, y + 37, value, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.oceanDeep }).setDepth(5)
@@ -56,6 +58,15 @@ export default class SettingsScene extends Phaser.Scene {
       this._toast('セーブJSONをコピーしました')
     } catch {
       window.prompt('このJSONを保存してください', value)
+    }
+  }
+  async _exportDiagnostics() {
+    const value = exportDiagnostics()
+    try {
+      await navigator.clipboard?.writeText?.(value)
+      this._toast('診断ログをコピーしました')
+    } catch {
+      window.prompt('この診断JSONを保存してください', value)
     }
   }
   _import() {
