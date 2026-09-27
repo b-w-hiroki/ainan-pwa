@@ -155,6 +155,8 @@ assert.equal(battleOutcome(recklessBattle), 'escaped', 'reeling repeatedly while
 
 // 6) Integration guards: gameplay + canonical mobile composition stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
+const runtimeInstallerSource = readFileSync(new URL('../fishing-game/js/game/installFishingRuntime.js', import.meta.url), 'utf8')
+const installerWiringSource = mainSource + '\n' + runtimeInstallerSource
 for (const installer of [
   'installVerticalSliceLayout',
   'installVerticalSliceAgency',
@@ -170,7 +172,7 @@ for (const installer of [
   'installFishingVisualUpgrade',
   'installStaminaSessionGate',
 ]) {
-  assert.ok(mainSource.includes(`${installer}(`), `${installer} is not wired in main.js`)
+  assert.ok(installerWiringSource.includes(`${installer}(`), `${installer} is not wired in Fishing runtime`)
 }
 
 const resultUiSource = readFileSync(new URL('../fishing-game/js/scenes/components/ResultUI.js', import.meta.url), 'utf8')
