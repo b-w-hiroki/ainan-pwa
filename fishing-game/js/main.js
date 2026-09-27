@@ -22,12 +22,16 @@ import ProfileScene from './scenes/ProfileScene.js'
 import DailyScene from './scenes/DailyScene.js'
 import AchievementScene from './scenes/AchievementScene.js'
 import { installTownCatchArrival } from './game/installTownCatchArrival.js'
+import { installTownSensoryFeedback } from './game/installMidgameProgression.js'
 import { installFishingRuntime } from './game/installFishingRuntime.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 
 installFishingRuntime(GameScene)
+installTownCatchArrival(TownScene)
+installTownSensoryFeedback(TownScene, HomeScene)
+installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
