@@ -76,6 +76,91 @@ function forceCatch(scene) {
 }
 
 
+function qaActionState() {
+  if (!qaEnabled() || typeof window === 'undefined') return { action: null, player: null }
+  const p = new URLSearchParams(window.location.search)
+  return {
+    action: ['battle', 'caught'].includes(p.get('qaAction')) ? p.get('qaAction') : null,
+    player: ['hit', 'battle', 'boss', 'result'].includes(p.get('qaPlayer')) ? p.get('qaPlayer') : null,
+  }
+}
+
+function ensureQaHitCue(scene) {
+  scene._qaHitCue?.destroy?.(true)
+  const W = scene.scale.width
+  const c = scene.add.container(W / 2, 326).setDepth(1005).setScrollFactor(0)
+  const ring = scene.add.circle(0, 0, 56, 0xffd95a, 0.10)
+    .setStrokeStyle(4, 0xffd95a, 0.96)
+  const text = scene.add.text(0, -2, 'HIT!', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    fontSize: '30px',
+    fontStyle: 'bold',
+    color: '#ffd95a',
+    stroke: '#073754',
+    strokeThickness: 6,
+  }).setOrigin(0.5)
+  const sub = scene.add.text(0, 38, '今！タップ', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    fontSize: '12px',
+    fontStyle: 'bold',
+    color: '#ffffff',
+    backgroundColor: 'rgba(7,55,84,.86)',
+    padding: { x: 10, y: 4 },
+  }).setOrigin(0.5)
+  c.add([ring, text, sub])
+  scene._qaHitCue = c
+}
+
+function prepareQaBattleSubject(scene) {
+  const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
+    ?? scene.bg?._fishRuntime?.[0]
+  if (runtime?.gfx) {
+    scene._targetFishIndex = runtime.index ?? 0
+    scene._targetFishGfx = runtime.gfx
+    scene.fish = runtime.fishDef ?? scene.fish
+    runtime.gfx.setVisible?.(true)
+  }
+}
+
+function forceQaAction(scene) {
+  if (qaMockPhase()) return
+  const { action, player } = qaActionState()
+  if (!action && !player) return
+
+  scene.time.delayedCall(650, () => {
+    if (!scene.sys?.isActive?.()) return
+
+    if (action === 'battle') {
+      prepareQaBattleSubject(scene)
+      scene._killWaitTimers?.()
+      scene._stopRetrieveRuntime?.()
+      scene._enterBattle?.()
+      return
+    }
+
+    if (action === 'caught') {
+      prepareQaBattleSubject(scene)
+      scene._killWaitTimers?.()
+      scene._stopRetrieveRuntime?.()
+      if (scene.phase !== 'battle') scene._enterBattle?.()
+      scene.time.delayedCall(180, () => {
+        if (scene.phase === 'battle') scene._finishBattle?.('caught')
+      })
+      return
+    }
+
+    if (player === 'hit') {
+      scene._killWaitTimers?.()
+      scene._stopRetrieveRuntime?.()
+      scene.phase = 'wait'
+      scene.waitTapActive = true
+      scene.hitHint?.setVisible?.(true)
+      scene._mobileHudSetStatus?.('HIT!')
+      ensureQaHitCue(scene)
+    }
+  })
+}
+
 function qaMockPhase() {
   if (!qaEnabled()) return null
   const value = new URLSearchParams(window.location.search).get('qaMockPhase')
@@ -224,7 +309,10 @@ export function installVerticalSliceQaMode(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
-    if (this._qaEnabled) buildQaHud(this)
+    if (this._qaEnabled) {
+      buildQaHud(this)
+      forceQaAction(this)
+    }
     return result
   }
 
@@ -251,6 +339,8 @@ export function installVerticalSliceQaMode(GameScene) {
     this._qaStatusText = null
     this._qaMockSubject?.destroy?.()
     this._qaMockSubject = null
+    this._qaHitCue?.destroy?.(true)
+    this._qaHitCue = null
     return originalCleanup.apply(this, args)
   }
 }
