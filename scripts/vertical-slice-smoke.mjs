@@ -218,8 +218,8 @@ assert.ok(townSource.includes('_ambientGrowth'), 'town must visually react to gr
 assert.ok(mainSource.includes('WorkshopScene'), 'workshop scene must be registered')
 assert.ok(mainSource.includes('HarborServicesScene'), 'harbor services scene must be registered')
 assert.ok(mainSource.includes('SettingsScene'), 'settings scene must be registered')
-assert.ok(mainSource.includes('installMidgameProgression(GameScene)'), 'midgame progression must be wired')
-assert.ok(mainSource.includes('installEnvironmentPresentation(GameScene)'), 'environment presentation must be wired')
+assert.ok(installerWiringSource.includes('installMidgameProgression(GameScene)'), 'midgame progression must be wired')
+assert.ok(installerWiringSource.includes('installEnvironmentPresentation(GameScene)'), 'environment presentation must be wired')
 assert.ok(midgameSource.includes('grantCatchLoot'), 'caught fish must feed materials and town inventory')
 assert.ok(resultUiSource2.includes('scene.scene.restart(env)'), 'result retry must start a new stamina session')
 
