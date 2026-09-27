@@ -5,7 +5,7 @@
 The release candidate must be green for all of the following:
 
 - RC version: 1.0.0-rc.3
-- RC baseline: main after PR #44 merge; record the exact merge SHA in Issue #27
+- RC baseline main: bed1d0645cc6de7e1fb36b3caa2d4de17c54d6ad
 
 - Production build
 - Production dependency audit (high+)
@@ -84,3 +84,21 @@ Release candidate is ready when:
 - No blank or duplicate key screenshot is present.
 - All physical-iPhone checks above pass.
 - Save export/import and one backup restore are verified on device.
+
+
+## 10-minute device path
+
+Use this order for the final release decision:
+
+1. Open production URL in Safari and verify Home / Map safe-area.
+2. Enter Fishing and complete Cast → Retrieve → HIT → Battle → Result once.
+3. Confirm no page scroll, double input, clipped controls, or background taps.
+4. Confirm sound unlock and HIT / catch haptics after the first user gesture.
+5. Catch one normal fish and open Town; verify the catch arrival flow and return-to-fishing route.
+6. Run one boss battle, then spot-check the remaining two boss encounters.
+7. Add to Home Screen, launch standalone, force-close, and relaunch.
+8. Change equipment and one town upgrade; relaunch and verify persistence.
+9. Export save, create a new backup-generating change, restore backup slot 1, then re-import the export.
+10. Background/resume during Fishing and Result; verify no duplicated audio, timers, overlays, or listeners.
+
+If any P0 issue is found, record device / iOS / Safari-or-PWA / reproduction steps in Issue #27 and do not approve release.
