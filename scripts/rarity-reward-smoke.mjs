@@ -28,8 +28,10 @@ assert.ok(reward.includes("scene.env.point = 'pointA'"), 'legendary QA must stay
 assert.ok(reward.includes("return 124"), 'legendary QA size must be deterministic')
 
 const main = read('fishing-game/js/main.js')
-assert.ok(main.includes('installRarityWaterReadability(GameScene)'), 'rarity water installer missing')
-assert.ok(main.includes('installCatchRewardPolish(GameScene)'), 'catch reward installer missing')
+const runtime = read('fishing-game/js/game/installFishingRuntime.js')
+const wiring = main + runtime
+assert.ok(wiring.includes('installRarityWaterReadability(GameScene)'), 'rarity water installer missing')
+assert.ok(wiring.includes('installCatchRewardPolish(GameScene)'), 'catch reward installer missing')
 
 console.log('Rarity / Reward polish smoke QA passed')
 console.log('  water rarity tiers: common / uncommon / rare / legendary')
