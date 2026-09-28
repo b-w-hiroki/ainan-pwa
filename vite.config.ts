@@ -41,6 +41,15 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
         fishing: path.resolve(__dirname, 'fishing-game/index.html'),
       },
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('/phaser/')) return 'vendor-phaser'
+          if (id.includes('/pixi.js/') || id.includes('/@pixi/')) return 'vendor-pixi'
+          if (id.includes('/react/') || id.includes('/react-dom/')) return 'vendor-react'
+          return 'vendor'
+        },
+      },
     },
   },
   plugins: [
