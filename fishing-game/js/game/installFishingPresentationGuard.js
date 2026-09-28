@@ -54,8 +54,8 @@ function drawRetrieveLineToPlayfieldEdge(scene) {
   const cam = scene.cameras?.main
   const lureX = Phaser.Math.Clamp(scene.bobber.x - (cam?.scrollX ?? 0), 148, scene.scale.width - 34)
   const lureY = Phaser.Math.Clamp(scene.bobber.y - (cam?.scrollY ?? 0), MOBILE_FRAME.playTop + 52, MOBILE_FRAME.playBottom - 50)
-  const startX = 145
-  const startY = MOBILE_FRAME.playBottom - 176
+  const startX = L.retrieve.lineStart.x
+  const startY = L.retrieve.lineStart.y
 
   g.clear()
   g.lineStyle(3.2, 0x14354d, 0.72)
@@ -282,11 +282,11 @@ function buildLeftPierDecor(scene) {
 
 function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
-  const asset = ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.playerDefault
+  const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
-  const hero = scene.add.image(88, L.cast.player.y, asset.key)
+  const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
-    .setDisplaySize(142, 191)
+    .setDisplaySize(L.cast.player.width, L.cast.player.height)
     .setDepth(205)
     .setScrollFactor(0)
     .setVisible(false)
@@ -487,7 +487,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   hideLegacyGuideChrome(scene)
   syncMockFieldStaging(scene, phase)
   const decor = buildLeftPierDecor(scene)
-  decor?.setVisible?.(cast || retrieve)
+  decor?.setVisible?.(false)
   const playerHero = buildRcPlayerHero(scene)
   playerHero?.setVisible?.(cast || retrieve)
   scene._blueprintCastInstruction?.setVisible?.(cast)
@@ -514,9 +514,9 @@ function applyPhasePresentation(scene, phase = scene.phase) {
       target.setAlpha?.(1)
       target.setDepth?.(40)
       const cam = scene.cameras?.main
-      target.setPosition?.((cam?.scrollX ?? 0) + scene.scale.width * 0.50, (cam?.scrollY ?? 0) + 330)
+      target.setPosition?.((cam?.scrollX ?? 0) + L.battle.fish.x, (cam?.scrollY ?? 0) + L.battle.fish.y)
       const image = target._assetImage
-      if (image) image.setDisplaySize(176, 88)
+      if (image) image.setDisplaySize(L.battle.fish.width, L.battle.fish.height)
     }
   }
 
