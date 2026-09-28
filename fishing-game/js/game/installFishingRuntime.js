@@ -34,7 +34,6 @@ import { installMidgameProgression } from './installMidgameProgression.js'
 import { installEnvironmentPresentation } from './installEnvironmentPresentation.js'
 import { installRetentionProgress } from './installRetentionProgress.js'
 import { installBossBattlePhases } from './installBossBattlePhases.js'
-import { installResultPayoffVisuals } from './installResultPayoffVisuals.js'
 import { installBossArtPresentation } from './installBossArtPresentation.js'
 import { installBossEventPolish } from './installBossEventPolish.js'
 import { installRarityWaterReadability } from './installRarityWaterReadability.js'
@@ -83,7 +82,6 @@ function installPresentation(GameScene) {
   installFishingResultPresentation(GameScene)
   installFishingVisualUpgrade(GameScene)
   installEnvironmentPresentation(GameScene)
-  installResultPayoffVisuals(GameScene)
   installBossArtPresentation(GameScene)
   installBossEventPolish(GameScene)
   installRarityWaterReadability(GameScene)
