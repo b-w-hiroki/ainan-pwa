@@ -25,7 +25,16 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install --package-lock-only
+          npm ci
+
+      - name: Upload regenerated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-package-lock
+          path: package-lock.json
+          retention-days: 2
 
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=critical
@@ -48,7 +57,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install --package-lock-only
+          npm ci
 
       - name: Build
         run: npm run build
