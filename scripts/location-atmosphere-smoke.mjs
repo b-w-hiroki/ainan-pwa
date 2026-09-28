@@ -22,7 +22,8 @@ assert.ok(source.includes("point === 'pointC'"), 'cape routing missing')
 assert.ok(source.includes('buildLocationAtmosphere(this)'), 'create integration missing')
 
 const main = read('fishing-game/js/main.js')
-assert.ok(main.includes('installLocationAtmosphere(GameScene)'), 'location atmosphere installer missing')
+const runtime = read('fishing-game/js/game/installFishingRuntime.js')
+assert.ok((main + runtime).includes('installLocationAtmosphere(GameScene)'), 'location atmosphere installer missing')
 
 console.log('Location atmosphere smoke QA passed')
 console.log('  harbor: ropes / boat shadows / buoys / lights')

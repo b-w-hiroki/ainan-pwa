@@ -19,7 +19,8 @@ assert.ok(source.includes('ch_player_catch_anim'), 'catch animation asset must b
 assert.ok(source.includes('isReducedMotion'), 'Reduced Motion support missing')
 
 const main = read('fishing-game/js/main.js')
-assert.ok(main.includes('installPlayerFishingPolish(GameScene)'), 'player fishing polish installer missing')
+const runtime = read('fishing-game/js/game/installFishingRuntime.js')
+assert.ok((main + runtime).includes('installPlayerFishingPolish(GameScene)'), 'player fishing polish installer missing')
 
 console.log('Player fishing polish smoke QA passed')
 console.log('  hit reaction inset: OK')

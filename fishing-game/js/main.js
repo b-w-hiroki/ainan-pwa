@@ -21,110 +21,18 @@ import SettingsScene from './scenes/SettingsScene.js'
 import ProfileScene from './scenes/ProfileScene.js'
 import DailyScene from './scenes/DailyScene.js'
 import AchievementScene from './scenes/AchievementScene.js'
-import { installPlayerAnimations } from './game/installPlayerAnimations.js'
-import { installRetrieveGameplay } from './game/installRetrieveGameplay.js'
-import { installRetrievePolish } from './game/installRetrievePolish.js'
-import { installRetrieveFeedback } from './game/installRetrieveFeedback.js'
-import { installRetrieveTutorial } from './game/installRetrieveTutorial.js'
-import { installCastZoneFish } from './game/installCastZoneFish.js'
-import { installRetrieveWorldFx } from './game/installRetrieveWorldFx.js'
-import { installBiteCameraFeedback } from './game/installBiteCameraFeedback.js'
-import { installTackleSync } from './game/installTackleSync.js'
-import { installRetrieveCompletion } from './game/installRetrieveCompletion.js'
-import { installFishingVisualTuning } from './game/installFishingVisualTuning.js'
-import { installFishFieldDensity } from './game/installFishFieldDensity.js'
-import { installRetrieveLandingBeat } from './game/installRetrieveLandingBeat.js'
-import { installMinimalFishingHud } from './game/installMinimalFishingHud.js'
 import { installTownCatchArrival } from './game/installTownCatchArrival.js'
-import { installVerticalSliceLayout } from './game/installVerticalSliceLayout.js'
-import { installVerticalSliceAgency } from './game/installVerticalSliceAgency.js'
-import { installVerticalSliceBitePresentation } from './game/installVerticalSliceBitePresentation.js'
-import { installVerticalSliceFishReadability } from './game/installVerticalSliceFishReadability.js'
-import { installVerticalSliceBattleContinuity } from './game/installVerticalSliceBattleContinuity.js'
-import { installVerticalSliceResultRouting } from './game/installVerticalSliceResultRouting.js'
-import { installVerticalSliceHookInput } from './game/installVerticalSliceHookInput.js'
-import { installVerticalSliceQaMode } from './game/installVerticalSliceQaMode.js'
-import { installMobileFishingShell } from './game/installMobileFishingShell.js'
-import { installBlueprintFishingField } from './game/installBlueprintFishingField.js'
-import { installFishingFieldMotionFx } from './game/installFishingFieldMotionFx.js'
-import { installCastFishStaging } from './game/installCastFishStaging.js'
-import { installFishingBiteHitPresentation } from './game/installFishingBiteHitPresentation.js'
-import { installFishingBattlePresentation } from './game/installFishingBattlePresentation.js'
-import { installFishingResultPresentation } from './game/installFishingResultPresentation.js'
-import { installFishingVisualUpgrade } from './game/installFishingVisualUpgrade.js'
-import { installFishingPresentationGuard } from './game/installFishingPresentationGuard.js'
-import { installStaminaSessionGate } from './game/installStaminaSessionGate.js'
-import { installMidgameProgression, installTownSensoryFeedback } from './game/installMidgameProgression.js'
-import { installEnvironmentPresentation } from './game/installEnvironmentPresentation.js'
+import { installTownSensoryFeedback } from './game/installMidgameProgression.js'
+import { installFishingRuntime } from './game/installFishingRuntime.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
-import { installRetentionProgress } from './game/installRetentionProgress.js'
-import { installBossBattlePhases } from './game/installBossBattlePhases.js'
 import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
-import { installResultPayoffVisuals } from './game/installResultPayoffVisuals.js'
-import { installBossArtPresentation } from './game/installBossArtPresentation.js'
-import { installBossEventPolish } from './game/installBossEventPolish.js'
-import { installRarityWaterReadability } from './game/installRarityWaterReadability.js'
-import { installCatchRewardPolish } from './game/installCatchRewardPolish.js'
-import { installLocationAtmosphere } from './game/installLocationAtmosphere.js'
-import { installPlayerFishingPolish } from './game/installPlayerFishingPolish.js'
-import { installFishingFeelPass } from './game/installFishingFeelPass.js'
-import { installFishingDiagnostics, installGlobalDiagnostics } from './game/diagnostics.js'
+import { installGlobalDiagnostics } from './game/diagnostics.js'
 
-installFishingVisualTuning()
-installPlayerAnimations(GameScene)
-installRetrieveGameplay(GameScene)
-installRetrievePolish(GameScene)
-installRetrieveFeedback(GameScene)
-installRetrieveTutorial(GameScene)
-installCastZoneFish(GameScene)
-installRetrieveWorldFx(GameScene)
-installBiteCameraFeedback(GameScene)
-installTackleSync(GameScene)
-installRetrieveCompletion(GameScene)
-installRetrieveLandingBeat(GameScene)
-installFishFieldDensity()
-installMinimalFishingHud(GameScene)
+installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
-installVerticalSliceLayout(GameScene)
-installVerticalSliceAgency(GameScene)
-installVerticalSliceFishReadability(GameScene)
-installVerticalSliceBitePresentation(GameScene)
-installVerticalSliceBattleContinuity(GameScene)
-installVerticalSliceResultRouting(GameScene)
-installVerticalSliceHookInput(GameScene)
-installVerticalSliceQaMode(GameScene)
-installMobileFishingShell(GameScene)
-// Canonical presentation layers are intentionally last so legacy wrappers
-// cannot reclaim fishing playfield space.
-installBlueprintFishingField(GameScene)
-installFishingFieldMotionFx(GameScene)
-installCastFishStaging(GameScene)
-installFishingBiteHitPresentation(GameScene)
-installFishingBattlePresentation(GameScene)
-installFishingResultPresentation(GameScene)
-installFishingVisualUpgrade(GameScene)
-installMidgameProgression(GameScene)
-installEnvironmentPresentation(GameScene)
-installRetentionProgress(GameScene)
-installBossBattlePhases(GameScene)
-installResultPayoffVisuals(GameScene)
-installBossArtPresentation(GameScene)
-installBossEventPolish(GameScene)
-installRarityWaterReadability(GameScene)
-installCatchRewardPolish(GameScene)
-installLocationAtmosphere(GameScene)
-installPlayerFishingPolish(GameScene)
 installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
-// Install last so zero stamina short-circuits every older create() wrapper safely.
-installStaminaSessionGate(GameScene)
-// Feel pass wraps the finished gameplay methods without changing balance.
-installFishingFeelPass(GameScene)
-// Final RC presentation guard must wrap every legacy/QA layer.
-installFishingPresentationGuard(GameScene)
-// Diagnostics observe the final gameplay methods and never affect game logic.
-installFishingDiagnostics(GameScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
