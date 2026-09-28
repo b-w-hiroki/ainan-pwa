@@ -161,7 +161,6 @@ for (const installer of [
   'installVerticalSliceLayout',
   'installVerticalSliceAgency',
   'installVerticalSliceFishReadability',
-  'installVerticalSliceBitePresentation',
   'installVerticalSliceBattleContinuity',
   'installVerticalSliceResultRouting',
   'installVerticalSliceHookInput',
@@ -174,6 +173,10 @@ for (const installer of [
 ]) {
   assert.ok(installerWiringSource.includes(`${installer}(`), `${installer} is not wired in Fishing runtime`)
 }
+
+const bitePresentationSource = readFileSync(new URL('../fishing-game/js/game/installFishingBiteHitPresentation.js', import.meta.url), 'utf8')
+assert.ok(bitePresentationSource.includes('showBiteWorldLabel'), 'canonical bite presentation must retain water-world bite label')
+assert.ok(bitePresentationSource.includes("'食った！'"), 'canonical bite presentation must retain strong bite beat')
 
 const resultUiSource = readFileSync(new URL('../fishing-game/js/scenes/components/ResultUI.js', import.meta.url), 'utf8')
 const resultRoutingSource = readFileSync(new URL('../fishing-game/js/game/installVerticalSliceResultRouting.js', import.meta.url), 'utf8')

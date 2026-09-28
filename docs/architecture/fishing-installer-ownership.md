@@ -42,3 +42,19 @@ After 1.0 release, merge wrappers that independently patch the same GameScene me
 - `_finishBattle`
 
 Do this method-by-method with the 50-screen guard before/after. Do not combine balance changes with wrapper consolidation.
+
+
+## Consolidation progress
+
+Completed method-by-method reductions:
+- Result: folded `installResultPayoffVisuals` into `installFishingResultPresentation` (#62)
+- Bite / Hit: folded `installVerticalSliceBitePresentation` into `installFishingBiteHitPresentation` (#65)
+
+These passes preserve the original wrapper call order and keep gameplay/balance untouched.
+
+Remaining higher-risk overlap:
+- `create` / `update` across battle, boss, player-polish and final guard layers
+- `_enterCast` / `_enterBattle` across boss and rarity presentation
+- `_finishBattle` across progression/reward/boss layers
+
+Do not collapse those in one broad rewrite. Continue only as isolated owner-by-owner changes with the 50-screen guard.

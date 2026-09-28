@@ -14,7 +14,6 @@ import { installRetrieveLandingBeat } from './installRetrieveLandingBeat.js'
 import { installMinimalFishingHud } from './installMinimalFishingHud.js'
 import { installVerticalSliceLayout } from './installVerticalSliceLayout.js'
 import { installVerticalSliceAgency } from './installVerticalSliceAgency.js'
-import { installVerticalSliceBitePresentation } from './installVerticalSliceBitePresentation.js'
 import { installVerticalSliceFishReadability } from './installVerticalSliceFishReadability.js'
 import { installVerticalSliceBattleContinuity } from './installVerticalSliceBattleContinuity.js'
 import { installVerticalSliceResultRouting } from './installVerticalSliceResultRouting.js'
@@ -68,7 +67,6 @@ function installPresentation(GameScene) {
   installMinimalFishingHud(GameScene)
   installVerticalSliceLayout(GameScene)
   installVerticalSliceFishReadability(GameScene)
-  installVerticalSliceBitePresentation(GameScene)
   installVerticalSliceBattleContinuity(GameScene)
   installVerticalSliceResultRouting(GameScene)
   installMobileFishingShell(GameScene)
