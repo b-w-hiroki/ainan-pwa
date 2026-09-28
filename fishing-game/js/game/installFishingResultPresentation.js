@@ -1,4 +1,5 @@
 import { isReducedMotion } from './feedback.js'
+import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 
 const RARITY = {
   common: { color: 0x78d7ff, rays: 6, scale: 1.00 },
@@ -135,15 +136,14 @@ function buildResultHero(scene) {
   scene.resEmoji?.setVisible?.(false)
 
   const { width: W, height: H } = scene.scale
-  const rarity = scene.fish?.rarity ?? 'common'
-  const heroSize = rarity === 'legendary' ? 230 : rarity === 'rare' ? 220 : 210
-  const shadow = scene.add.ellipse(W / 2 + 7, H / 2 - 83, heroSize * 0.64, heroSize * 0.18, 0x021723, 0.28)
+  const heroSize = L.result.fish.width
+  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 22, heroSize * 0.64, heroSize * 0.18, 0x021723, 0.24)
     .setDepth(131)
     .setScrollFactor(0)
     .setAlpha(0)
   scene._resultHeroShadow = shadow
-  const hero = scene.add.image(W / 2, H / 2 - 104, icon.texture.key)
-    .setDisplaySize(heroSize, heroSize)
+  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, icon.texture.key)
+    .setDisplaySize(L.result.fish.width, L.result.fish.height)
     .setDepth(132)
     .setScrollFactor(0)
     .setAlpha(0)
