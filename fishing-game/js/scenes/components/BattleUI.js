@@ -3,6 +3,7 @@ import { FONT, SHADOW, UI_COLORS } from '../../config/fontStyles.js'
 import { ICONS } from '../../config/icons.js'
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
 import { ASSETS } from '../../config/assetManifest.js'
+import { FISHING_MOCK_LAYOUT as L } from '../../presentation/layouts/fishingMockLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -60,23 +61,23 @@ function ensureBattleHero(scene) {
 
   clearBattleHeroVisual(scene)
   const W = scene.scale.width
-  const rarity = scene.fish?.rarity ?? 'common'
-  const width = rarity === 'legendary' ? 242 : rarity === 'rare' ? 230 : rarity === 'uncommon' ? 220 : 212
-  const height = Math.round(width * 0.58)
+  const width = L.battle.fish.width
+  const height = L.battle.fish.height
+  const cy = L.battle.fish.y
 
   const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
   glow.fillStyle(0x77d8ec, 0.12)
-  glow.fillEllipse(W / 2, 348, width + 74, height + 56)
+  glow.fillEllipse(L.battle.fish.x, cy, width + 74, height + 56)
   glow.lineStyle(2, 0xbcecff, 0.28)
-  glow.strokeEllipse(W / 2, 348, width + 42, height + 28)
+  glow.strokeEllipse(L.battle.fish.x, cy, width + 42, height + 28)
 
   const splash = scene.add.graphics().setDepth(83).setScrollFactor(0)
   splash.lineStyle(4, 0xeafcff, 0.86)
-  splash.strokeEllipse(W / 2, 380, width * 0.90, 30)
+  splash.strokeEllipse(L.battle.fish.x, cy + 46, width * 0.90, 30)
   splash.lineStyle(2, 0x8edfff, 0.72)
-  splash.strokeEllipse(W / 2, 382, width * 1.12, 42)
+  splash.strokeEllipse(L.battle.fish.x, cy + 48, width * 1.12, 42)
   ;[-74, -46, 52, 82].forEach((dx, index) => {
-    const baseX = W / 2 + dx
+    const baseX = L.battle.fish.x + dx
     const baseY = 372 + (index % 2) * 4
     splash.lineStyle(index % 2 ? 3 : 4, 0xffffff, 0.82)
     splash.beginPath()
@@ -87,16 +88,16 @@ function ensureBattleHero(scene) {
   })
   splash.fillStyle(0xc9f5ff, 0.92)
   ;[[-96,367,4],[-67,352,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
-    splash.fillCircle(W / 2 + dx, y, r)
+    splash.fillCircle(L.battle.fish.x + dx, y, r)
   })
   scene.battleHeroSplash = splash
 
-  const shadow = scene.add.ellipse(W / 2 + 7, 362, width * 0.82, height * 0.38, 0x031725, 0.26)
+  const shadow = scene.add.ellipse(L.battle.fish.x + 7, cy + 28, width * 0.82, height * 0.38, 0x031725, 0.22)
     .setDepth(83)
     .setScrollFactor(0)
   scene.battleHeroShadow = shadow
 
-  const hero = scene.add.image(W / 2, 348, key)
+  const hero = scene.add.image(L.battle.fish.x, cy, key)
     .setDisplaySize(width, height)
     .setDepth(84)
     .setScrollFactor(0)
