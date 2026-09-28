@@ -27,6 +27,7 @@ import { installFishingRuntime } from './game/installFishingRuntime.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
+import { installGlobalDiagnostics } from './game/diagnostics.js'
 
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
@@ -54,6 +55,7 @@ const config = {
 }
 
 function startGame() {
+  installGlobalDiagnostics()
   prepareQaState()
   ensureSaveVersion()
   const game = new Phaser.Game(config)

@@ -58,7 +58,6 @@ export const ASSETS = {
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
   fishingField: {
-    leftPierDecor: { key: 'ff_left_pier_decor', path: assetPath('fishing-game/assets/generated/fishing_left_pier_decor.webp'), status: 'ready' },
     waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
     waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
     waterHighlight: { key: 'ff_water_highlight_01', path: assetPath('fishing-game/assets/fishing-field/water/water_highlight_01.svg'), status: 'ready' },
@@ -104,7 +103,6 @@ export const ASSETS = {
   },
   ui: {
     resultFrame: { key: 'ui_result_frame', path: assetPath('fishing-game/assets/ui/ui_result_frame.svg'), status: 'ready' },
-    resultNewRecord: { key: 'ui_result_new_record', path: assetPath('fishing-game/assets/ui/result_new_record.webp'), status: 'ready' },
     panelHarbor: { key: 'ui_panel_harbor', path: assetPath('fishing-game/assets/ui/ui_panel_harbor.svg'), status: 'ready' },
     buttonPrimary: { key: 'ui_button_primary', path: assetPath('fishing-game/assets/ui/ui_button_primary.svg'), status: 'ready' },
     spotPinHarbor: { key: 'ui_spot_pin_harbor', path: assetPath('fishing-game/assets/ui/ui_spot_pin_harbor.svg'), status: 'ready' },

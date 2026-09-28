@@ -42,6 +42,7 @@ import { installCatchRewardPolish } from './installCatchRewardPolish.js'
 import { installLocationAtmosphere } from './installLocationAtmosphere.js'
 import { installPlayerFishingPolish } from './installPlayerFishingPolish.js'
 import { installFishingFeelPass } from './installFishingFeelPass.js'
+import { installFishingDiagnostics } from './diagnostics.js'
 
 function installGameplay(GameScene) {
   installFishingVisualTuning()
@@ -102,6 +103,8 @@ function installFinalGuards(GameScene) {
   installFishingFeelPass(GameScene)
   // Presentation guard remains the final visual owner.
   installFishingPresentationGuard(GameScene)
+  // Diagnostics observe the fully wrapped runtime and never change gameplay.
+  installFishingDiagnostics(GameScene)
 }
 
 export function installFishingRuntime(GameScene) {
