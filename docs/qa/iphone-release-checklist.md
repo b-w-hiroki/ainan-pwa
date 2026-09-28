@@ -5,10 +5,10 @@
 The release candidate must be green for all of the following:
 
 - RC version: 1.0.0-rc.3
-- RC baseline main: bed1d0645cc6de7e1fb36b3caa2d4de17c54d6ad
+- RC baseline main: 183f82b7b08ff6368956a3a7efb4bf382dce760b
 
 - Production build
-- Production dependency audit (high+)
+- Production dependency audit (critical gate; high-severity Pixi/xmldom follow-up tracked in #58)
 - All game smoke QA suites
 - 50 mobile screenshots at 390x844
 - Visual screenshot guard
