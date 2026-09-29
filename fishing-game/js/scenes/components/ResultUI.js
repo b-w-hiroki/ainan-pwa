@@ -63,7 +63,7 @@ export class ResultUI {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
       color: '#173248', lineSpacing: 3,
     }).setOrigin(0, 0)
-    const guideAsset = ASSETS.characters?.fishingCastHero ?? ASSETS.characters?.playerDefaultUi
+    const guideAsset = ASSETS.characters?.fishingResultHero ?? ASSETS.characters?.fishingCastHero ?? ASSETS.characters?.playerDefaultUi
     const guideArt = guideAsset?.key && scene.textures.exists(guideAsset.key)
       ? scene.add.image(123, 238, guideAsset.key).setOrigin(0.5, 1).setDisplaySize(88, 124)
       : scene.add.text(125, 213, '🎣', { fontSize: '54px', resolution: TEXT_RES }).setOrigin(0.5)
