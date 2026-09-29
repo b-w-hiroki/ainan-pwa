@@ -11,6 +11,9 @@ const required = [
   'fishing-game/assets/fishing-field/location/location_harbor_overlay.svg',
   'fishing-game/assets/fishing-field/location/location_bay_overlay.svg',
   'fishing-game/assets/fishing-field/location/location_cape_overlay.svg',
+  'fishing-game/assets/generated/hero/fish_hero_tai.svg',
+  'fishing-game/assets/generated/hero/fish_hero_buri.svg',
+  'fishing-game/assets/generated/hero/fish_hero_kue.svg',
 ]
 
 for (const path of required) {
@@ -21,7 +24,7 @@ const manifest = readFileSync(new URL('../fishing-game/js/config/assetManifest.j
 for (const path of ['bg_fishing_harbor_v2.svg', 'bg_fishing_bay_v2.svg', 'bg_fishing_cape_v2.svg']) {
   assert.ok(manifest.includes(path), 'manifest must use v2 background: ' + path)
 }
-for (const key of ['boss_harbor_runner', 'boss_bay_hunter', 'boss_kue', 'ff_location_harbor', 'ff_location_bay', 'ff_location_cape']) {
+for (const key of ['boss_harbor_runner', 'boss_bay_hunter', 'boss_kue', 'ff_location_harbor', 'ff_location_bay', 'ff_location_cape', 'fish_hero_tai', 'fish_hero_buri', 'fish_hero_kue']) {
   assert.ok(manifest.includes(key), 'manifest missing: ' + key)
 }
 
@@ -50,6 +53,13 @@ const main = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url)
 const runtime = readFileSync(new URL('../fishing-game/js/game/installFishingRuntime.js', import.meta.url), 'utf8')
 assert.ok((main + runtime).includes('installBossArtPresentation(GameScene)'), 'boss art presentation must be installed')
 
+const battleUi = readFileSync(new URL('../fishing-game/js/scenes/components/BattleUI.js', import.meta.url), 'utf8')
+const resultPresentation = readFileSync(new URL('../fishing-game/js/game/installFishingResultPresentation.js', import.meta.url), 'utf8')
+for (const hero of ['fishHeroes.tai', 'fishHeroes.buri', 'fishHeroes.kue']) {
+  assert.ok(battleUi.includes(hero), 'Battle must use premium hero: ' + hero)
+}
+assert.ok(resultPresentation.includes('FISH_HERO_KEYS'), 'Result must support premium fish heroes')
+
 const challenge = readFileSync(new URL('../fishing-game/js/scenes/ChallengeScene.js', import.meta.url), 'utf8')
 assert.ok(challenge.includes('Object.values(ASSETS.bosses)'), 'challenge must preload boss art')
 assert.ok(challenge.includes('ASSETS.bosses[state.id]'), 'challenge cards must show dedicated boss art')
@@ -58,3 +68,4 @@ console.log('Visual Art Pack 2 smoke QA passed')
 console.log('  fishing locations: 3 distinct v2 backgrounds + overlays')
 console.log('  boss art: 3 dedicated large assets (harborRunner / bayHunter / kue)')
 console.log('  Challenge / Battle / Result integration: OK')
+console.log('  premium fish heroes: tai / buri / kue')
