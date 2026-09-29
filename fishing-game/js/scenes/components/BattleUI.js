@@ -61,9 +61,9 @@ function ensureBattleHero(scene) {
 
   clearBattleHeroVisual(scene)
   const W = scene.scale.width
-  const width = 326
-  const height = 184
-  const cy = 322
+  const width = 342
+  const height = 193
+  const cy = 310
 
   const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
   glow.fillStyle(0x77d8ec, 0.12)
@@ -72,9 +72,9 @@ function ensureBattleHero(scene) {
   glow.strokeEllipse(scene.scale.width / 2, cy, width + 42, height + 28)
 
   const splash = scene.add.graphics().setDepth(83).setScrollFactor(0)
-  splash.lineStyle(4, 0xeafcff, 0.86)
+  splash.lineStyle(5, 0xeafcff, 0.92)
   splash.strokeEllipse(scene.scale.width / 2, cy + 46, width * 0.90, 30)
-  splash.lineStyle(2, 0x8edfff, 0.72)
+  splash.lineStyle(3, 0x8edfff, 0.80)
   splash.strokeEllipse(scene.scale.width / 2, cy + 48, width * 1.12, 42)
   ;[-74, -46, 52, 82].forEach((dx, index) => {
     const baseX = scene.scale.width / 2 + dx
