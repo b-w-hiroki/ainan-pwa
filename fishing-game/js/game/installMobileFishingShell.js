@@ -66,7 +66,7 @@ function buildTopHud(scene, W) {
   scene._mobileFishingHud = c
   scene._mobileFishingStatus = status
   scene._mobileHudSetStatus = text => status?.setText(text || '')
-  scene._mobileHudSetVisible = visible => c?.setVisible(Boolean(visible))
+  scene._mobileHudSetVisible = visible => c?.setVisible(Boolean(visible) && !scene._mockTopChrome?.active)
 }
 
 /**
