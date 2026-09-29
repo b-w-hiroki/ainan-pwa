@@ -60,6 +60,11 @@ export const ASSETS = {
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
   fishHeroes: {
+    aji: { key: 'fish_hero_aji', path: assetPath('fishing-game/assets/generated/hero/fish_hero_aji.svg'), status: 'ready' },
+    saba: { key: 'fish_hero_saba', path: assetPath('fishing-game/assets/generated/hero/fish_hero_saba.svg'), status: 'ready' },
+    bass: { key: 'fish_hero_bass', path: assetPath('fishing-game/assets/generated/hero/fish_hero_bass.svg'), status: 'ready' },
+    hirame: { key: 'fish_hero_hirame', path: assetPath('fishing-game/assets/generated/hero/fish_hero_hirame.svg'), status: 'ready' },
+    kanpachi: { key: 'fish_hero_kanpachi', path: assetPath('fishing-game/assets/generated/hero/fish_hero_kanpachi.svg'), status: 'ready' },
     tai: { key: 'fish_hero_tai', path: assetPath('fishing-game/assets/generated/hero/fish_hero_tai.svg'), status: 'ready' },
     buri: { key: 'fish_hero_buri', path: assetPath('fishing-game/assets/generated/hero/fish_hero_buri.svg'), status: 'ready' },
     kue: { key: 'fish_hero_kue', path: assetPath('fishing-game/assets/generated/hero/fish_hero_kue.svg'), status: 'ready' },
