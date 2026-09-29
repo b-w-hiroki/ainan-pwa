@@ -3,6 +3,7 @@ import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLay
 import { ASSETS } from '../config/assetManifest.js'
 
 const FISH_HERO_KEYS = {
+  aji: ASSETS.fishHeroes.aji.key,
   tai: ASSETS.fishHeroes.tai.key,
   buri: ASSETS.fishHeroes.buri.key,
   kue: ASSETS.fishHeroes.kue.key,
