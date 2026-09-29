@@ -61,9 +61,9 @@ function ensureBattleHero(scene) {
 
   clearBattleHeroVisual(scene)
   const W = scene.scale.width
-  const width = 304
-  const height = 171
-  const cy = 330
+  const width = 326
+  const height = 184
+  const cy = 322
 
   const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
   glow.fillStyle(0x77d8ec, 0.12)
@@ -123,10 +123,10 @@ function ensureBattleHero(scene) {
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
-  hero.setAngle(-8)
+  hero.setAngle(-16)
   scene._battleHeroAngleTween = scene.tweens.add({
     targets: hero,
-    angle: [-10, -3],
+    angle: [-18, -8],
     duration: Math.round(duration * 0.82),
     yoyo: true,
     repeat: -1,
@@ -135,7 +135,7 @@ function ensureBattleHero(scene) {
 
   const style = BATTLE_STYLE[scene.fish?.id]
   if (style?.intro) {
-    const cue = scene.add.text(W / 2, 446, style.intro, {
+    const cue = scene.add.text(W / 2, 454, style.intro, {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '11px',
