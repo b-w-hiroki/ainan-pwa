@@ -105,10 +105,10 @@ export class CastUI {
     const midEnd = clamp(35 / maxMeters, 0, 1)
 
     scene.powerGfx.clear()
-    scene.powerGfx.fillStyle(0x071a28, 0.18)
+    scene.powerGfx.fillStyle(0x021b2b, 0.28)
     scene.powerGfx.fillRoundedRect(bx + 2, by + 4, barW, 30, 15)
-    scene.powerGfx.fillStyle(0xf8fdff, 0.96)
-    scene.powerGfx.lineStyle(2, 0x9bcfe5, 0.90)
+    scene.powerGfx.fillStyle(0x062c44, 0.88)
+    scene.powerGfx.lineStyle(2, 0xc9f4ff, 0.66)
     scene.powerGfx.fillRoundedRect(bx, by, barW, 30, 15)
     scene.powerGfx.strokeRoundedRect(bx, by, barW, 30, 15)
 
@@ -157,8 +157,8 @@ export class CastUI {
 
     scene.powerLabel = scene.add.text(W / 2, controlsTop + 25, '長押し → 離して投げる', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900',
-      color: UI_COLORS.ink,
-      stroke: '#ffffff', strokeThickness: 3,
+      color: '#ffffff',
+      stroke: '#073754', strokeThickness: 3,
       letterSpacing: 0.2,
       shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(37).setVisible(false)
