@@ -286,7 +286,7 @@ function buildRcPlayerHero(scene) {
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
   const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
-    .setDisplaySize(L.cast.player.width, L.cast.player.height)
+    .setDisplaySize(Math.round(L.cast.player.width * 1.14), Math.round(L.cast.player.height * 1.14))
     .setDepth(205)
     .setScrollFactor(0)
     .setVisible(false)
@@ -501,6 +501,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   decor?.setVisible?.(false)
   const playerHero = buildRcPlayerHero(scene)
   if (playerHero?.active) {
+    playerHero.setPosition(L.cast.player.x + 8, L.cast.player.y + 2)
     const phaseAsset = retrieve ? ASSETS.characters?.fishingRetrieveHero : ASSETS.characters?.fishingCastHero
     if (phaseAsset?.key && scene.textures.exists(phaseAsset.key) && playerHero.texture?.key !== phaseAsset.key) {
       playerHero.setTexture(phaseAsset.key)
