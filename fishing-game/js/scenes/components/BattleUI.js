@@ -20,7 +20,7 @@ const BATTLE_STYLE = {
 }
 
 const BATTLE_FISH_KEYS = {
-  aji: ASSETS.fish.ajiIcon.key,
+  aji: ASSETS.fishHeroes.aji.key,
   tai: ASSETS.fishHeroes.tai.key,
   bass: ASSETS.fish.blackBassIcon.key,
   buri: ASSETS.fishHeroes.buri.key,
