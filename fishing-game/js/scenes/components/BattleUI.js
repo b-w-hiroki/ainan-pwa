@@ -20,15 +20,15 @@ const BATTLE_STYLE = {
 }
 
 const BATTLE_FISH_KEYS = {
-  aji: ASSETS.fish.ajiIcon.key,
+  aji: ASSETS.fishHeroes.aji.key,
   tai: ASSETS.fishHeroes.tai.key,
-  bass: ASSETS.fish.blackBassIcon.key,
+  bass: ASSETS.fishHeroes.bass.key,
   buri: ASSETS.fishHeroes.buri.key,
   kue: ASSETS.fishHeroes.kue.key,
-  saba: ASSETS.fish.sabaIcon.key,
+  saba: ASSETS.fishHeroes.saba.key,
   isaki: ASSETS.fish.isakiIcon.key,
-  hirame: ASSETS.fish.hirameIcon.key,
-  kanpachi: ASSETS.fish.kanpachiIcon.key,
+  hirame: ASSETS.fishHeroes.hirame.key,
+  kanpachi: ASSETS.fishHeroes.kanpachi.key,
 }
 
 function clearBattleHeroVisual(scene) {
