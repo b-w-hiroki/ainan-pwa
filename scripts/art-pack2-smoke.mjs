@@ -2,6 +2,14 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 
 const required = [
+  'fishing-game/assets/generated/mock-ui/button_retry.svg',
+  'fishing-game/assets/generated/mock-ui/button_town.svg',
+  'fishing-game/assets/generated/mock-ui/battle_dial.svg',
+  'fishing-game/assets/generated/mock-ui/button_slow.svg',
+  'fishing-game/assets/generated/mock-ui/button_short.svg',
+  'fishing-game/assets/generated/mock-ui/button_wait.svg',
+  'fishing-game/assets/generated/mock-ui/button_cast.svg',
+  'fishing-game/assets/generated/mock-ui/logo_ainan_fishing.svg',
   'fishing-game/assets/backgrounds/bg_fishing_harbor_v2.svg',
   'fishing-game/assets/backgrounds/bg_fishing_bay_v2.svg',
   'fishing-game/assets/backgrounds/bg_fishing_cape_v2.svg',
@@ -70,3 +78,4 @@ console.log('  fishing locations: 3 distinct v2 backgrounds + overlays')
 console.log('  boss art: 3 dedicated large assets (harborRunner / bayHunter / kue)')
 console.log('  Challenge / Battle / Result integration: OK')
 console.log('  premium fish heroes: tai / buri / kue')
+console.log('  mock-derived Fishing UI asset pack: OK')
