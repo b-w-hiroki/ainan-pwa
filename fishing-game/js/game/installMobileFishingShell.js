@@ -89,14 +89,14 @@ export function installMobileFishingShell(GameScene) {
     // lives in the fixed top shell.
     this.resultUI?._backBtn?.destroy(true)
     this.resultUI._backBtn = null
-    this._mobileHudSetVisible?.(!['battle', 'result'].includes(this.phase))
+    if (!this._mockTopChrome?.active) this._mobileHudSetVisible?.(!['battle', 'result'].includes(this.phase))
     return result
   }
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
-    this._mobileHudSetVisible?.(true)
+    if (!this._mockTopChrome?.active) this._mobileHudSetVisible?.(true)
     this._mobileHudSetStatus?.('キャスト')
     return result
   }
@@ -104,7 +104,7 @@ export function installMobileFishingShell(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
-    this._mobileHudSetVisible?.(true)
+    if (!this._mockTopChrome?.active) this._mobileHudSetVisible?.(true)
     this._mobileHudSetStatus?.('残り --')
     return result
   }
@@ -123,7 +123,7 @@ export function installMobileFishingShell(GameScene) {
   const originalOpenHitWindow = GameScene.prototype._openHitWindow
   GameScene.prototype._openHitWindow = function (...args) {
     const result = originalOpenHitWindow.apply(this, args)
-    this._mobileHudSetVisible?.(true)
+    if (!this._mockTopChrome?.active) this._mobileHudSetVisible?.(true)
     this._mobileHudSetStatus?.('HIT!')
     return result
   }

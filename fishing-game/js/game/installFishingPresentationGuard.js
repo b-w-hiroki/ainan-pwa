@@ -370,7 +370,7 @@ function buildFinalControlChrome(scene) {
 
   const cast = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const castBg = scene.add.graphics().setScrollFactor(0)
-  castBg.fillStyle(0x031d2e, 0.16)
+  castBg.fillStyle(0x031d2e, 0.52)
   castBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
   castBg.lineStyle(1.5, 0xc9f4ff, 0.22)
   castBg.lineBetween(0, top, W, top)
@@ -413,7 +413,7 @@ function buildFinalControlChrome(scene) {
 
   const retrieve = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const retrieveBg = scene.add.graphics()
-  retrieveBg.fillStyle(0x031d2e, 0.62)
+  retrieveBg.fillStyle(0x031d2e, 0.52)
   retrieveBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
   retrieveBg.lineStyle(1.5, 0x8edfff, 0.28)
   retrieveBg.lineBetween(0, top, W, top)
@@ -747,6 +747,9 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
     setFishingPlayerVisible(this, false)
+    this.resLabel?.setText?.('GET!')
+      ?.setPosition?.(0, -304)
+      ?.setFontSize?.(58)
     this._applyRcFishingPresentation?.('result')
     return result
   }
