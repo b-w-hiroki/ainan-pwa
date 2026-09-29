@@ -313,28 +313,21 @@ function buildMockTopChrome(scene) {
     fontSize: '20px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5)
 
-  const locBg = scene.add.graphics()
-  locBg.fillStyle(0x073754, 0.82)
-  locBg.lineStyle(1.5, 0xffffff, 0.45)
-  locBg.fillRoundedRect(17, 70, 132, 36, 16)
-  locBg.strokeRoundedRect(17, 70, 132, 36, 16)
+  const locBg = scene.add.image(83, 88, ASSETS.ui.fishingLocationPanel.key).setDisplaySize(144, 38)
   const loc = scene.add.text(31, 88, '● あいなん港', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
     fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0, 0.5)
 
-  const weather = scene.add.text(W - 22, 78, '☀ 晴れ\n10:24', {
+  const weatherBg = scene.add.image(W - 61, 87, ASSETS.ui.fishingWeatherPanel.key).setDisplaySize(116, 51)
+  const weather = scene.add.text(W - 20, 87, '晴れ\n10:24', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
     fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
     align: 'right', stroke: '#07517d', strokeThickness: 2,
-  }).setOrigin(1, 0)
+  }).setOrigin(1, 0.5)
 
   const plate = scene.add.container(W / 2, 414)
-  const plateBg = scene.add.graphics()
-  plateBg.fillStyle(0x062c44, 0.88)
-  plateBg.lineStyle(1.5, 0xc9f4ff, 0.78)
-  plateBg.fillRoundedRect(-110, -28, 220, 56, 14)
-  plateBg.strokeRoundedRect(-110, -28, 220, 56, 14)
+  const plateBg = scene.add.image(0, 0, ASSETS.ui.fishingInstructionPanel.key).setDisplaySize(238, 63)
   const plateText = scene.add.text(0, 0, 'タップでキャスト！', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
     fontSize: '14px', fontStyle: 'bold', color: '#ffffff', align: 'center',
@@ -342,7 +335,7 @@ function buildMockTopChrome(scene) {
   plate.add([plateBg, plateText])
   plate._text = plateText
 
-  c.add([logo, menuBg, menu, locBg, loc, weather, plate])
+  c.add([logo, menuBg, menu, locBg, loc, weatherBg, weather, plate])
   c._plate = plate
   c._location = loc
   scene._mockTopChrome = c
