@@ -255,28 +255,8 @@ export class BattleUI {
 
     const cx = W / 2
     const cy = controlsTop + 76
-    const dial = scene.add.graphics()
-    dial.fillStyle(0x062c44, 1)
-    dial.fillCircle(cx + 2, cy + 4, 70)
-    dial.lineStyle(8, 0x23b6ef, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 0.60, Math.PI * 1.34, false); dial.strokePath()
-    dial.lineStyle(8, 0xff9f22, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 1.66, Math.PI * 0.40, false); dial.strokePath()
-    dial.lineStyle(2, 0xffffff, 0.70)
-    dial.strokeCircle(cx, cy, 50)
-    dial.fillStyle(0x0b4567, 1)
-    dial.fillCircle(cx, cy, 45)
-    dial.fillStyle(0xffffff, 0.10)
-    dial.fillCircle(cx - 12, cy - 13, 13)
-
-    const fish = scene.add.text(cx, cy - 9, '🐟', {
-      fontSize: '24px', resolution: TEXT_RES,
-    }).setOrigin(0.5)
-    const tension = scene.add.text(cx, cy + 20, 'TENSION', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900', color: '#ffffff',
-      letterSpacing: 1,
-    }).setOrigin(0.5)
+    const dial = scene.add.image(cx, cy, ASSETS.ui.fishingBattleDial.key)
+      .setDisplaySize(168, 168)
 
     const text = scene.add.text(W / 2, controlsTop + 158, 'タイミングよく下へスワイプ', {
       fontFamily: FONT,
@@ -288,8 +268,8 @@ export class BattleUI {
       padding: { x: 14, y: 6 },
     }).setOrigin(0.5)
 
-    scene.reelCTA.add([shade, dial, fish, tension, text])
-    scene.tweens.add({ targets: [fish, tension], y: '+=3', duration: 620, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    scene.reelCTA.add([shade, dial, text])
+
   }
 
   sync(battleState, reel, ebarW) {
