@@ -57,6 +57,11 @@ export const ASSETS = {
     hirameIcon: { key: 'fish_hirame_icon', path: assetPath('fishing-game/assets/fish/fish_hirame_icon.svg'), status: 'ready' },
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
+  fishHeroes: {
+    tai: { key: 'fish_hero_tai', path: assetPath('fishing-game/assets/generated/hero/fish_hero_tai.svg'), status: 'ready' },
+    buri: { key: 'fish_hero_buri', path: assetPath('fishing-game/assets/generated/hero/fish_hero_buri.svg'), status: 'ready' },
+    kue: { key: 'fish_hero_kue', path: assetPath('fishing-game/assets/generated/hero/fish_hero_kue.svg'), status: 'ready' },
+  },
   fishingField: {
     waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
     waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
