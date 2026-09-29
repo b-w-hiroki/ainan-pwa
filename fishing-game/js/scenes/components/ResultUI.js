@@ -14,12 +14,17 @@ export class ResultUI {
 
     const scrim = scene.add.rectangle(0, 0, W, H, 0x06395c, 0.97)
     const card = scene.add.graphics()
-    card.fillStyle(0x0b4a70, 0.18)
+    card.fillStyle(0x031f33, 0.52)
+    card.lineStyle(2, 0xbcecff, 0.44)
     card.fillRoundedRect(-176, -258, 352, 516, 30)
+    card.strokeRoundedRect(-176, -258, 352, 516, 30)
+    card.fillStyle(0xffffff, 0.045)
+    card.fillRoundedRect(-168, -250, 336, 86, 24)
 
     scene.resStripe = scene.add.graphics()
     scene.resLabel = scene.add.text(0, -220, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '30px', fontWeight: '900', color: '#ffd95a',
+      stroke: '#6b3b00', strokeThickness: 3, shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const halo = scene.add.graphics()
@@ -57,10 +62,14 @@ export class ResultUI {
           return
         }
         bg.clear()
-        bg.fillStyle(primary ? 0x2f9ed4 : 0x0e425f, pressed ? 0.82 : 0.98)
-        bg.lineStyle(primary ? 2 : 1.5, primary ? 0xbcecff : 0x8edfff, primary ? 0.72 : 0.36)
+        bg.fillStyle(0x021b2b, 0.28)
+        bg.fillRoundedRect(x + 2, y + 5, w, h, primary ? 20 : 15)
+        bg.fillStyle(primary ? 0x2f9ed4 : 0x0e425f, pressed ? 0.84 : 1)
+        bg.lineStyle(primary ? 2.5 : 1.8, primary ? 0xc9f4ff : 0x8edfff, primary ? 0.92 : 0.54)
         bg.fillRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 20 : 15)
         bg.strokeRoundedRect(x, y + (pressed ? 2 : 0), w, h, primary ? 20 : 15)
+        bg.fillStyle(0xffffff, primary ? 0.12 : 0.07)
+        bg.fillRoundedRect(x + 7, y + 7 + (pressed ? 2 : 0), w - 14, 9, 5)
       }
       draw(false)
       const txt = scene.add.text(x + w / 2, y + h / 2, label, {
