@@ -76,7 +76,7 @@ function ensureBattleHero(scene) {
   splash.strokeEllipse(scene.scale.width / 2, cy + 46, width * 0.90, 30)
   splash.lineStyle(2, 0x8edfff, 0.72)
   splash.strokeEllipse(scene.scale.width / 2, cy + 48, width * 1.12, 42)
-  ;[-74, -46, 61, 82].forEach((dx, index) => {
+  ;[-74, -46, 52, 82].forEach((dx, index) => {
     const baseX = scene.scale.width / 2 + dx
     const baseY = 372 + (index % 2) * 4
     splash.lineStyle(index % 2 ? 3 : 4, 0xffffff, 0.82)
@@ -87,7 +87,7 @@ function ensureBattleHero(scene) {
     splash.strokePath()
   })
   splash.fillStyle(0xc9f5ff, 0.92)
-  ;[[-96,367,4],[-67,361,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
+  ;[[-96,367,4],[-67,352,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
     splash.fillCircle(scene.scale.width / 2 + dx, y, r)
   })
   scene.battleHeroSplash = splash
@@ -304,7 +304,6 @@ export class BattleUI {
     scene.ebarFill.clear()
     scene.ebarFill.fillStyle(0xdff5ff, 0.28)
     scene.ebarFill.fillRoundedRect(tensionX, tensionY, tw, 14, 7)
-    const escapeColor = st.escape >= 72 ? 0xff765a : st.escape >= 42 ? 0xffc857 : 0x58b8df
     scene.ebarFill.fillStyle(st.escape >= 72 ? 0xff514b : st.escape >= 42 ? 0xffa928 : 0x2da8e6, 1)
     scene.ebarFill.fillRoundedRect(tensionX, tensionY, Math.max(5, tw * (st.escape / 100)), 14, 7)
     scene.ebarFill.fillStyle(0xffffff, 0.32)
