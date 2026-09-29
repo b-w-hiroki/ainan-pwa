@@ -146,15 +146,15 @@ function buildResultHero(scene) {
   const { width: W, height: H } = scene.scale
   const premiumKey = FISH_HERO_KEYS[scene.fish?.id]
   const usePremiumHero = Boolean(premiumKey && scene.textures.exists(premiumKey))
-  const heroWidth = usePremiumHero ? 260 : L.result.fish.width
-  const heroHeight = usePremiumHero ? 146 : L.result.fish.height
+  const heroWidth = usePremiumHero ? 286 : L.result.fish.width
+  const heroHeight = usePremiumHero ? 161 : L.result.fish.height
   const textureKey = usePremiumHero ? premiumKey : icon.texture.key
-  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 28, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
+  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 34, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
     .setDepth(131)
     .setScrollFactor(0)
     .setAlpha(0)
   scene._resultHeroShadow = shadow
-  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, textureKey)
+  const hero = scene.add.image(L.result.fish.x, L.result.fish.y - 8, textureKey)
     .setDisplaySize(heroWidth, heroHeight)
     .setDepth(132)
     .setScrollFactor(0)
@@ -192,9 +192,10 @@ function polishCaughtResult(scene) {
   scene.resIcon?.setPosition?.(0, -116)
   scene.resEmoji?.setPosition?.(0, -116)
   scene.resEmoji?.setFontSize?.(108)
-  scene.resName?.setY?.(2)
-  scene.resPts?.setY?.(58)
-  scene.resHint?.setY?.(104)
+  scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -304)?.setFontSize?.(58)
+  scene.resName?.setY?.(18)
+  scene.resPts?.setY?.(84)
+  scene.resHint?.setY?.(139)
 
   scene.resultOverlay.setAlpha(0)
   scene.tweens.add({
