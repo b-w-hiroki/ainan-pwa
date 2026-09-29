@@ -299,16 +299,13 @@ function buildMockTopChrome(scene) {
   const W = scene.scale.width
   const c = scene.add.container(0, 0).setDepth(225).setScrollFactor(0).setVisible(false)
 
-  const logo = scene.add.text(18, 18, 'AINAN\nFISHING', {
-    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
-    resolution: 1,
-    fontSize: '17px',
-    fontStyle: 'bold',
-    color: '#ffffff',
-    stroke: '#0a5f9e',
-    strokeThickness: 3,
-    lineSpacing: -5,
-  }).setOrigin(0, 0)
+  const logo = scene.textures.exists(ASSETS.ui.fishingLogo.key)
+    ? scene.add.image(16, 12, ASSETS.ui.fishingLogo.key).setOrigin(0, 0).setDisplaySize(118, 49)
+    : scene.add.text(18, 18, 'AINAN\nFISHING', {
+        fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: 1,
+        fontSize: '17px', fontStyle: 'bold', color: '#ffffff',
+        stroke: '#0a5f9e', strokeThickness: 3, lineSpacing: -5,
+      }).setOrigin(0, 0)
 
   const menuBg = scene.add.circle(W - 29, 31, 20, 0x073754, 0.82).setStrokeStyle(2, 0xffffff, 0.78)
   const menu = scene.add.text(W - 29, 31, '☰', {
@@ -383,20 +380,14 @@ function buildFinalControlChrome(scene) {
   track.fillRoundedRect(82, top + 18, 198, 10, 5)
   track.fillStyle(0x58b8df, 1)
   track.fillRoundedRect(82, top + 18, 126, 10, 5)
-  const throwShadow = scene.add.circle(W / 2 + 2, top + 112, 49, 0x021d2e, 0.34)
-  const throwOuter = scene.add.circle(W / 2, top + 108, 48, 0x0d6ca8, 1)
-    .setStrokeStyle(3, 0xaeeaff, 0.96)
-  const throwBg = scene.add.circle(W / 2, top + 108, 41, 0x2f9ed4, 1)
-    .setStrokeStyle(2, 0xffffff, 0.92)
-  const throwGlow = scene.add.circle(W / 2 - 11, top + 96, 12, 0xffffff, 0.16)
-  const throwIcon = scene.add.text(W / 2, top + 94, '⌁', {
-    fontFamily: 'Nunito, sans-serif', resolution: 1,
-    fontSize: '25px', fontStyle: 'bold', color: '#ffffff',
-  }).setOrigin(0.5)
-  const throwText = scene.add.text(W / 2, top + 120, 'キャスト', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-    fontSize: '14px', fontStyle: 'bold', color: '#ffffff',
-  }).setOrigin(0.5)
+  const throwShadow = scene.add.circle(W / 2 + 2, top + 112, 52, 0x021d2e, 0.28)
+  const throwArt = scene.add.image(W / 2, top + 106, ASSETS.ui.fishingCastButton.key)
+    .setDisplaySize(116, 116)
+  const throwOuter = scene.add.circle(W / 2, top + 108, 48, 0x000000, 0)
+  const throwBg = scene.add.circle(W / 2, top + 108, 1, 0x000000, 0)
+  const throwGlow = scene.add.circle(W / 2, top + 108, 1, 0x000000, 0)
+  const throwIcon = scene.add.text(W / 2, top + 108, '', { fontSize: '1px' })
+  const throwText = scene.add.text(W / 2, top + 108, '', { fontSize: '1px' })
   const throwHit = scene.add.circle(W / 2, top + 108, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', pointer => {
@@ -409,7 +400,7 @@ function buildFinalControlChrome(scene) {
       pointer?.event?.stopPropagation?.()
       if (scene.phase === 'cast' && scene.isCharging) scene._onUp?.()
     })
-  cast.add([castBg, powerLabel, track, throwShadow, throwOuter, throwBg, throwGlow, throwIcon, throwText, throwHit])
+  cast.add([castBg, powerLabel, track, throwShadow, throwArt, throwOuter, throwBg, throwGlow, throwIcon, throwText, throwHit])
 
   const retrieve = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const retrieveBg = scene.add.graphics()
@@ -422,33 +413,27 @@ function buildFinalControlChrome(scene) {
     fontSize: '11px', fontStyle: 'bold', color: '#dff5ff',
   }).setOrigin(0.5)
 
-  const makeAction = (x, fill, mark, label, down, up = null) => {
-    const shadow = scene.add.circle(x + 2, top + 95, 43, 0x011b2b, 0.42)
-    const outer = scene.add.circle(x, top + 91, 42, fill, 1).setStrokeStyle(3, 0xbcecff, 0.92)
-    const bg = scene.add.circle(x, top + 91, 35, fill, 1).setStrokeStyle(2, 0xffffff, 0.84)
-    const shine = scene.add.circle(x - 10, top + 80, 10, 0xffffff, 0.14)
-    const icon = scene.add.text(x, top + 82, mark, {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-      fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
-      stroke: '#08324b', strokeThickness: 2,
-    }).setOrigin(0.5)
-    const txt = scene.add.text(x, top + 137, label, {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-      fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5)
+  const makeAction = (x, fill, mark, label, asset, down, up = null) => {
+    const shadow = scene.add.circle(x + 2, top + 95, 45, 0x011b2b, 0.28)
+    const art = scene.add.image(x, top + 92, asset.key).setDisplaySize(102, 102)
+    const outer = scene.add.circle(x, top + 91, 42, 0x000000, 0)
+    const bg = scene.add.circle(x, top + 91, 1, fill, 0)
+    const shine = scene.add.circle(x, top + 91, 1, 0xffffff, 0)
+    const icon = scene.add.text(x, top + 82, '', { fontSize: '1px' }).setOrigin(0.5)
+    const txt = scene.add.text(x, top + 137, '', { fontSize: '1px' }).setOrigin(0.5)
     const hit = scene.add.circle(x, top + 91, 46, 0x000000, 0).setInteractive({ useHandCursor: true })
     hit.on('pointerdown', pointer => { pointer?.event?.stopPropagation?.(); outer.setScale(0.95); bg.setScale(0.95); down?.() })
     const release = () => { outer.setScale(1); bg.setScale(1); up?.() }
     hit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); release() })
     hit.on('pointerupoutside', release)
     hit.on('pointerout', () => { outer.setScale(1); bg.setScale(1); if (up) up() })
-    return [shadow, outer, bg, shine, icon, txt, hit]
+    return [shadow, art, outer, bg, shine, icon, txt, hit]
   }
   retrieve.add([
     retrieveBg, retrieveHint,
-    ...makeAction(W * 0.22, 0x248cd6, 'Ⅱ', '待つ', () => scene._setRetrieveIdle?.()),
-    ...makeAction(W * 0.50, 0x2ebd67, '↻', 'ちょい巻き', () => scene._twitchRetrieve?.()),
-    ...makeAction(W * 0.78, 0xf2a01f, '≫', 'ゆっくり巻く', () => scene._startSlowRetrieve?.(), () => scene._stopSlowRetrieve?.()),
+    ...makeAction(W * 0.22, 0x248cd6, 'Ⅱ', '待つ', ASSETS.ui.fishingWaitButton, () => scene._setRetrieveIdle?.()),
+    ...makeAction(W * 0.50, 0x2ebd67, '↻', 'ちょい巻き', ASSETS.ui.fishingShortButton, () => scene._twitchRetrieve?.()),
+    ...makeAction(W * 0.78, 0xf2a01f, '≫', 'ゆっくり巻く', ASSETS.ui.fishingSlowButton, () => scene._startSlowRetrieve?.(), () => scene._stopSlowRetrieve?.()),
   ])
 
   scene._rcCastDock = cast
