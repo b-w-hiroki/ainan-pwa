@@ -21,10 +21,10 @@ const BATTLE_STYLE = {
 
 const BATTLE_FISH_KEYS = {
   aji: ASSETS.fish.ajiIcon.key,
-  tai: ASSETS.fish.madaiIcon.key,
+  tai: ASSETS.fishHeroes.tai.key,
   bass: ASSETS.fish.blackBassIcon.key,
-  buri: ASSETS.fish.buriIcon.key,
-  kue: ASSETS.fish.kueIcon.key,
+  buri: ASSETS.fishHeroes.buri.key,
+  kue: ASSETS.fishHeroes.kue.key,
   saba: ASSETS.fish.sabaIcon.key,
   isaki: ASSETS.fish.isakiIcon.key,
   hirame: ASSETS.fish.hirameIcon.key,
