@@ -1,5 +1,12 @@
 import { isReducedMotion } from './feedback.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
+import { ASSETS } from '../config/assetManifest.js'
+
+const FISH_HERO_KEYS = {
+  tai: ASSETS.fishHeroes.tai.key,
+  buri: ASSETS.fishHeroes.buri.key,
+  kue: ASSETS.fishHeroes.kue.key,
+}
 
 const RARITY = {
   common: { color: 0x78d7ff, rays: 6, scale: 1.00 },
@@ -136,14 +143,18 @@ function buildResultHero(scene) {
   scene.resEmoji?.setVisible?.(false)
 
   const { width: W, height: H } = scene.scale
-  const heroSize = L.result.fish.width
-  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 22, heroSize * 0.64, heroSize * 0.18, 0x021723, 0.24)
+  const premiumKey = FISH_HERO_KEYS[scene.fish?.id]
+  const usePremiumHero = Boolean(premiumKey && scene.textures.exists(premiumKey))
+  const heroWidth = usePremiumHero ? 260 : L.result.fish.width
+  const heroHeight = usePremiumHero ? 146 : L.result.fish.height
+  const textureKey = usePremiumHero ? premiumKey : icon.texture.key
+  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 28, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
     .setDepth(131)
     .setScrollFactor(0)
     .setAlpha(0)
   scene._resultHeroShadow = shadow
-  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, icon.texture.key)
-    .setDisplaySize(L.result.fish.width, L.result.fish.height)
+  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, textureKey)
+    .setDisplaySize(heroWidth, heroHeight)
     .setDepth(132)
     .setScrollFactor(0)
     .setAlpha(0)

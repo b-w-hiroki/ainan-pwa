@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
 const source = read('fishing-game/js/game/installPlayerFishingPolish.js')
+for (const path of [
+  'fishing-game/assets/generated/hero/player_cast.svg',
+  'fishing-game/assets/generated/hero/player_retrieve.svg',
+]) {
+  assert.ok(existsSync(new URL('../' + path, import.meta.url)), 'missing Fishing player pose: ' + path)
+}
+const presentation = read('fishing-game/js/game/installFishingPresentationGuard.js')
+assert.ok(presentation.includes('fishingCastHero'), 'Cast hero must be wired')
+assert.ok(presentation.includes('fishingRetrieveHero'), 'Retrieve hero must be wired')
 
 for (const token of [
   'HIT!',
