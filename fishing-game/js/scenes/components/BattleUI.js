@@ -171,13 +171,7 @@ export class BattleUI {
     const scene = this.scene
     scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
-    const bg = scene.add.graphics()
-    bg.fillStyle(0x05283d, 0.94)
-    bg.lineStyle(2, 0xc9f4ff, 0.70)
-    bg.fillRoundedRect(10, 10, W - 20, 84, 16)
-    bg.strokeRoundedRect(10, 10, W - 20, 84, 16)
-    bg.fillStyle(0xffffff, 0.06)
-    bg.fillRoundedRect(16, 16, W - 32, 22, 10)
+    const bg = scene.add.image(W / 2, 52, ASSETS.ui.fishingBattleTopPanel.key).setDisplaySize(W - 18, 92)
 
     const title = scene.add.text(22, 31, '🐟  FISH', {
       fontFamily: FONT,
