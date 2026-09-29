@@ -314,11 +314,19 @@ function buildFinalControlChrome(scene) {
   track.fillRoundedRect(82, top + 18, 198, 10, 5)
   track.fillStyle(0x58b8df, 1)
   track.fillRoundedRect(82, top + 18, 126, 10, 5)
-  const throwBg = scene.add.circle(W / 2, top + 108, 44, 0x2f9ed4, 1)
-    .setStrokeStyle(3, 0xffffff, 0.96)
-  const throwText = scene.add.text(W / 2, top + 108, '投げる', {
+  const throwShadow = scene.add.circle(W / 2 + 2, top + 112, 49, 0x021d2e, 0.34)
+  const throwOuter = scene.add.circle(W / 2, top + 108, 48, 0x0d6ca8, 1)
+    .setStrokeStyle(3, 0xaeeaff, 0.96)
+  const throwBg = scene.add.circle(W / 2, top + 108, 41, 0x2f9ed4, 1)
+    .setStrokeStyle(2, 0xffffff, 0.92)
+  const throwGlow = scene.add.circle(W / 2 - 11, top + 96, 12, 0xffffff, 0.16)
+  const throwIcon = scene.add.text(W / 2, top + 94, '⌁', {
+    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontSize: '25px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0.5)
+  const throwText = scene.add.text(W / 2, top + 120, 'キャスト', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-    fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
+    fontSize: '14px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5)
   const throwHit = scene.add.circle(W / 2, top + 108, 48, 0x000000, 0)
     .setInteractive({ useHandCursor: true })
@@ -332,7 +340,7 @@ function buildFinalControlChrome(scene) {
       pointer?.event?.stopPropagation?.()
       if (scene.phase === 'cast' && scene.isCharging) scene._onUp?.()
     })
-  cast.add([castBg, powerLabel, track, throwBg, throwText, throwHit])
+  cast.add([castBg, powerLabel, track, throwShadow, throwOuter, throwBg, throwGlow, throwIcon, throwText, throwHit])
 
   const retrieve = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const retrieveBg = scene.add.graphics()
@@ -346,23 +354,26 @@ function buildFinalControlChrome(scene) {
   }).setOrigin(0.5)
 
   const makeAction = (x, fill, mark, label, down, up = null) => {
-    const bg = scene.add.circle(x, top + 91, 38, fill, 1).setStrokeStyle(3, 0xffffff, 0.94)
+    const shadow = scene.add.circle(x + 2, top + 95, 43, 0x011b2b, 0.42)
+    const outer = scene.add.circle(x, top + 91, 42, fill, 1).setStrokeStyle(3, 0xbcecff, 0.92)
+    const bg = scene.add.circle(x, top + 91, 35, fill, 1).setStrokeStyle(2, 0xffffff, 0.84)
+    const shine = scene.add.circle(x - 10, top + 80, 10, 0xffffff, 0.14)
     const icon = scene.add.text(x, top + 82, mark, {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-      fontSize: '24px', fontStyle: 'bold', color: '#ffffff',
+      fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+      stroke: '#08324b', strokeThickness: 2,
     }).setOrigin(0.5)
     const txt = scene.add.text(x, top + 137, label, {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
       fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5)
-    const hit = scene.add.circle(x, top + 91, 43, 0x000000, 0).setInteractive({ useHandCursor: true })
-    hit.on('pointerdown', pointer => { pointer?.event?.stopPropagation?.(); down?.() })
-    if (up) {
-      hit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); up() })
-      hit.on('pointerupoutside', up)
-      hit.on('pointerout', up)
-    }
-    return [bg, icon, txt, hit]
+    const hit = scene.add.circle(x, top + 91, 46, 0x000000, 0).setInteractive({ useHandCursor: true })
+    hit.on('pointerdown', pointer => { pointer?.event?.stopPropagation?.(); outer.setScale(0.95); bg.setScale(0.95); down?.() })
+    const release = () => { outer.setScale(1); bg.setScale(1); up?.() }
+    hit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); release() })
+    hit.on('pointerupoutside', release)
+    hit.on('pointerout', () => { outer.setScale(1); bg.setScale(1); if (up) up() })
+    return [shadow, outer, bg, shine, icon, txt, hit]
   }
   retrieve.add([
     retrieveBg, retrieveHint,
