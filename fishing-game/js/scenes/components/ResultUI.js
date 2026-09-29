@@ -12,44 +12,63 @@ export class ResultUI {
     const scene = this.scene
     scene.resultOverlay = scene.add.container(W / 2, H / 2).setDepth(120).setVisible(false).setScrollFactor(0)
 
-    const scrim = scene.add.rectangle(0, 0, W, H, 0x06395c, 0.97)
+    const scrim = scene.add.rectangle(0, 0, W, H, 0x06395c, 0.30)
     const card = scene.add.graphics()
-    card.fillStyle(0x031f33, 0.52)
-    card.lineStyle(2, 0xbcecff, 0.44)
-    card.fillRoundedRect(-176, -258, 352, 516, 30)
-    card.strokeRoundedRect(-176, -258, 352, 516, 30)
-    card.fillStyle(0xffffff, 0.045)
-    card.fillRoundedRect(-168, -250, 336, 86, 24)
+    card.fillStyle(0x031f33, 0.82)
+    card.lineStyle(2, 0xc9f4ff, 0.58)
+    card.fillRoundedRect(-168, -4, 336, 150, 22)
+    card.strokeRoundedRect(-168, -4, 336, 150, 22)
+    card.fillStyle(0xffffff, 0.05)
+    card.fillRoundedRect(-158, 6, 316, 26, 12)
 
     scene.resStripe = scene.add.graphics()
-    scene.resLabel = scene.add.text(0, -220, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '30px', fontWeight: '900', color: '#ffd95a',
-      stroke: '#6b3b00', strokeThickness: 3, shadow: SHADOW.soft,
+    scene.resLabel = scene.add.text(0, -304, '', {
+      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
+      fontSize: '58px', fontWeight: '900', color: '#ffd95a',
+      stroke: '#824400', strokeThickness: 5, shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const halo = scene.add.graphics()
-    halo.fillStyle(0x58b8df, 0.16)
-    halo.fillCircle(0, -116, 78)
-    halo.lineStyle(2, 0x8edfff, 0.38)
-    halo.strokeCircle(0, -116, 70)
+    halo.fillStyle(0xffd95a, 0.08)
+    halo.fillCircle(0, -130, 118)
+    halo.lineStyle(2, 0xffffff, 0.22)
+    halo.strokeCircle(0, -130, 104)
 
-    scene.resEmoji = scene.add.text(0, -116, '', { fontSize: '82px', resolution: TEXT_RES }).setOrigin(0.5)
-    scene.resName = scene.add.text(0, -16, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
+    scene.resEmoji = scene.add.text(0, -130, '', { fontSize: '96px', resolution: TEXT_RES }).setOrigin(0.5)
+    scene.resName = scene.add.text(0, 18, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '27px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const stats = scene.add.graphics()
-    stats.fillStyle(0x062c44, 0.86)
-    stats.lineStyle(1.5, 0xbcecff, 0.46)
-    stats.fillRoundedRect(-136, 18, 272, 76, 16)
-    stats.strokeRoundedRect(-136, 18, 272, 76, 16)
+    stats.fillStyle(0x062c44, 0.62)
+    stats.lineStyle(1.5, 0xbcecff, 0.42)
+    stats.fillRoundedRect(-150, 43, 300, 86, 16)
+    stats.strokeRoundedRect(-150, 43, 300, 86, 16)
 
-    scene.resPts = scene.add.text(0, 56, '', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 6,
+    scene.resPts = scene.add.text(0, 84, '', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 7,
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 106, 'サイズ・ポイントを確認', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: '#dff5ff',
+    scene.resHint = scene.add.text(0, 139, '釣った魚を町へ持ち帰ろう', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#dff5ff',
     }).setOrigin(0.5)
+
+    const guide = scene.add.container(0, 0).setVisible(false)
+    const bubble = scene.add.graphics()
+    bubble.fillStyle(0xffffff, 0.96)
+    bubble.lineStyle(2, 0x9bcfe5, 0.92)
+    bubble.fillRoundedRect(-158, 151, 218, 62, 17)
+    bubble.strokeRoundedRect(-158, 151, 218, 62, 17)
+    bubble.fillTriangle(48, 190, 70, 198, 52, 177)
+    const bubbleText = scene.add.text(-146, 162, 'やったー！\n立派な一匹だ！', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
+      color: '#173248', lineSpacing: 3,
+    }).setOrigin(0, 0)
+    const guideAsset = ASSETS.characters?.fishingCastHero ?? ASSETS.characters?.playerDefaultUi
+    const guideArt = guideAsset?.key && scene.textures.exists(guideAsset.key)
+      ? scene.add.image(123, 209, guideAsset.key).setOrigin(0.5, 1).setDisplaySize(82, 114)
+      : scene.add.text(125, 184, '🎣', { fontSize: '54px', resolution: TEXT_RES }).setOrigin(0.5)
+    guide.add([bubble, bubbleText, guideArt])
+    scene._resultGuideGroup = guide
 
     const makeBtn = (x, y, w, h, label, action, primary = false) => {
       const useArt = primary && scene.textures.exists(ASSETS.ui.buttonPrimary.key)
@@ -84,7 +103,7 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const town = makeBtn(-126, 132, 252, 56, '町へ持ち帰る', () => {
+    const town = makeBtn(-162, 224, 154, 58, '⌂ 町へ持ち帰る', () => {
       playSfx('select')
       haptic(10)
       const lastCatch = scene.catches?.[scene.catches.length - 1]
@@ -94,22 +113,22 @@ export class ResultUI {
       } : null
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
-    }, true)
-    const retry = makeBtn(-126, 198, 252, 46, '↻ もう一投', () => {
+    }, false)
+    const retry = makeBtn(8, 224, 154, 58, '↻ もう一投', () => {
       playSfx('select')
       haptic(12)
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
-    })
+    }, true)
 
 
-    const retrySub = scene.add.text(0, 250, '同じ釣り場・仕掛けで続ける', {
+    const retrySub = scene.add.text(0, 294, '同じ釣り場・仕掛けで続ける', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#a9d9ed',
     }).setOrigin(0.5)
 
     scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, retrySub])
-    scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, scene.resultSuccessActions])
+    scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, guide, scene.resultSuccessActions])
   }
 
   drawResultStripe(outcome) {
@@ -121,6 +140,7 @@ export class ResultUI {
     const color = isKue ? 0xffd95a : outcome === 'caught' ? 0x2f9ed4 : 0xff765a
     g.fillStyle(color, 0.96)
     g.fillRoundedRect(-92, -236, 184, 34, 15)
+    scene._resultGuideGroup?.setVisible?.(outcome === 'caught')
     if (isKue) this._showKueClearCutin()
   }
 

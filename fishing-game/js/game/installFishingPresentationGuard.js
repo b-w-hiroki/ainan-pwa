@@ -294,6 +294,75 @@ function buildRcPlayerHero(scene) {
   return hero
 }
 
+function buildMockTopChrome(scene) {
+  if (scene._mockTopChrome?.active) return scene._mockTopChrome
+  const W = scene.scale.width
+  const c = scene.add.container(0, 0).setDepth(225).setScrollFactor(0).setVisible(false)
+
+  const logo = scene.add.text(18, 18, 'AINAN\nFISHING', {
+    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
+    resolution: 1,
+    fontSize: '17px',
+    fontStyle: 'bold',
+    color: '#ffffff',
+    stroke: '#0a5f9e',
+    strokeThickness: 3,
+    lineSpacing: -5,
+  }).setOrigin(0, 0)
+
+  const menuBg = scene.add.circle(W - 29, 31, 20, 0x073754, 0.82).setStrokeStyle(2, 0xffffff, 0.78)
+  const menu = scene.add.text(W - 29, 31, '☰', {
+    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontSize: '20px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0.5)
+
+  const locBg = scene.add.graphics()
+  locBg.fillStyle(0x073754, 0.82)
+  locBg.lineStyle(1.5, 0xffffff, 0.45)
+  locBg.fillRoundedRect(17, 70, 132, 36, 16)
+  locBg.strokeRoundedRect(17, 70, 132, 36, 16)
+  const loc = scene.add.text(31, 88, '● あいなん港', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0, 0.5)
+
+  const weather = scene.add.text(W - 22, 78, '☀ 晴れ\n10:24', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+    align: 'right', stroke: '#07517d', strokeThickness: 2,
+  }).setOrigin(1, 0)
+
+  const plate = scene.add.container(W / 2, 414)
+  const plateBg = scene.add.graphics()
+  plateBg.fillStyle(0x062c44, 0.88)
+  plateBg.lineStyle(1.5, 0xc9f4ff, 0.78)
+  plateBg.fillRoundedRect(-110, -28, 220, 56, 14)
+  plateBg.strokeRoundedRect(-110, -28, 220, 56, 14)
+  const plateText = scene.add.text(0, 0, 'タップでキャスト！', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '14px', fontStyle: 'bold', color: '#ffffff', align: 'center',
+  }).setOrigin(0.5)
+  plate.add([plateBg, plateText])
+  plate._text = plateText
+
+  c.add([logo, menuBg, menu, locBg, loc, weather, plate])
+  c._plate = plate
+  c._location = loc
+  scene._mockTopChrome = c
+  return c
+}
+
+function syncMockTopChrome(scene, phase) {
+  const chrome = buildMockTopChrome(scene)
+  const visible = phase === 'cast' || phase === 'retrieve'
+  chrome?.setVisible?.(visible)
+  if (!visible) return
+  const point = scene.env?.point ?? 'pointA'
+  const loc = point === 'pointB' ? '● 内海湾' : point === 'pointC' ? '● 外泊岬' : '● あいなん港'
+  chrome._location?.setText?.(loc)
+  chrome._plate?._text?.setText?.(phase === 'retrieve' ? 'リールを巻いて\nルアーを動かそう！' : 'タップでキャスト！')
+}
+
 function buildFinalControlChrome(scene) {
   if (scene._rcCastDock || scene._rcRetrieveDock) return
   const W = scene.scale.width
@@ -301,13 +370,13 @@ function buildFinalControlChrome(scene) {
 
   const cast = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const castBg = scene.add.graphics().setScrollFactor(0)
-  castBg.fillStyle(0xf8fdff, 0.98)
+  castBg.fillStyle(0x031d2e, 0.16)
   castBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
-  castBg.lineStyle(2, 0x9bcfe5, 0.72)
+  castBg.lineStyle(1.5, 0xc9f4ff, 0.22)
   castBg.lineBetween(0, top, W, top)
   const powerLabel = scene.add.text(24, top + 23, 'パワー', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-    fontSize: '12px', fontStyle: 'bold', color: '#173248',
+    fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0, 0.5)
   const track = scene.add.graphics()
   track.fillStyle(0xd9edf6, 1)
@@ -344,9 +413,9 @@ function buildFinalControlChrome(scene) {
 
   const retrieve = scene.add.container(0, 0).setDepth(210).setScrollFactor(0).setVisible(false)
   const retrieveBg = scene.add.graphics()
-  retrieveBg.fillStyle(0x073754, 0.98)
+  retrieveBg.fillStyle(0x031d2e, 0.62)
   retrieveBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
-  retrieveBg.lineStyle(2, 0x8edfff, 0.42)
+  retrieveBg.lineStyle(1.5, 0x8edfff, 0.28)
   retrieveBg.lineBetween(0, top, W, top)
   const retrieveHint = scene.add.text(W / 2, top + 21, '魚影の反応を見ながら操作', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
@@ -496,11 +565,14 @@ function applyPhasePresentation(scene, phase = scene.phase) {
 
   hideTackleChrome(scene)
   hideLegacyGuideChrome(scene)
+  syncMockTopChrome(scene, phase)
   syncMockFieldStaging(scene, phase)
   const decor = buildLeftPierDecor(scene)
   decor?.setVisible?.(false)
   const playerHero = buildRcPlayerHero(scene)
   if (playerHero?.active) {
+    playerHero.setPosition(L.cast.player.x + 10, L.cast.player.y + 8)
+    playerHero.setDisplaySize(154, 220)
     const phaseAsset = retrieve ? ASSETS.characters?.fishingRetrieveHero : ASSETS.characters?.fishingCastHero
     if (phaseAsset?.key && scene.textures.exists(phaseAsset.key) && playerHero.texture?.key !== phaseAsset.key) {
       playerHero.setTexture(phaseAsset.key)
@@ -514,7 +586,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   if (retrieve) syncFishReadCue(scene)
   else scene._rcFishReadCue?.setVisible?.(false)
 
-  scene._mobileHudSetVisible?.(cast || retrieve)
+  scene._mobileHudSetVisible?.(false)
   clearRcBattleHero(scene)
   scene.battleHero?.setVisible?.(battle)
   scene.battleHeroGlow?.setVisible?.(battle)
@@ -688,6 +760,8 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    this._mockTopChrome?.destroy?.(true)
+    this._mockTopChrome = null
     this._rcCastDock?.destroy?.(true)
     this._rcMockFieldFish?.forEach(obj => obj?.destroy?.())
     this._rcMockFieldFish = null

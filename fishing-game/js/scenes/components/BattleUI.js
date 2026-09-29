@@ -20,7 +20,7 @@ const BATTLE_STYLE = {
 }
 
 const BATTLE_FISH_KEYS = {
-  aji: ASSETS.fish.ajiIcon.key,
+  aji: ASSETS.fishHeroes.aji.key,
   tai: ASSETS.fishHeroes.tai.key,
   bass: ASSETS.fish.blackBassIcon.key,
   buri: ASSETS.fishHeroes.buri.key,
@@ -61,23 +61,23 @@ function ensureBattleHero(scene) {
 
   clearBattleHeroVisual(scene)
   const W = scene.scale.width
-  const width = L.battle.fish.width
-  const height = L.battle.fish.height
-  const cy = L.battle.fish.y
+  const width = 304
+  const height = 171
+  const cy = 330
 
   const glow = scene.add.graphics().setDepth(82).setScrollFactor(0)
   glow.fillStyle(0x77d8ec, 0.12)
-  glow.fillEllipse(L.battle.fish.x, cy, width + 74, height + 56)
+  glow.fillEllipse(scene.scale.width / 2, cy, width + 74, height + 56)
   glow.lineStyle(2, 0xbcecff, 0.28)
-  glow.strokeEllipse(L.battle.fish.x, cy, width + 42, height + 28)
+  glow.strokeEllipse(scene.scale.width / 2, cy, width + 42, height + 28)
 
   const splash = scene.add.graphics().setDepth(83).setScrollFactor(0)
   splash.lineStyle(4, 0xeafcff, 0.86)
-  splash.strokeEllipse(L.battle.fish.x, cy + 46, width * 0.90, 30)
+  splash.strokeEllipse(scene.scale.width / 2, cy + 46, width * 0.90, 30)
   splash.lineStyle(2, 0x8edfff, 0.72)
-  splash.strokeEllipse(L.battle.fish.x, cy + 48, width * 1.12, 42)
+  splash.strokeEllipse(scene.scale.width / 2, cy + 48, width * 1.12, 42)
   ;[-74, -46, 52, 82].forEach((dx, index) => {
-    const baseX = L.battle.fish.x + dx
+    const baseX = scene.scale.width / 2 + dx
     const baseY = 372 + (index % 2) * 4
     splash.lineStyle(index % 2 ? 3 : 4, 0xffffff, 0.82)
     splash.beginPath()
@@ -88,16 +88,16 @@ function ensureBattleHero(scene) {
   })
   splash.fillStyle(0xc9f5ff, 0.92)
   ;[[-96,367,4],[-67,352,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
-    splash.fillCircle(L.battle.fish.x + dx, y, r)
+    splash.fillCircle(scene.scale.width / 2 + dx, y, r)
   })
   scene.battleHeroSplash = splash
 
-  const shadow = scene.add.ellipse(L.battle.fish.x + 7, cy + 28, width * 0.82, height * 0.38, 0x031725, 0.22)
+  const shadow = scene.add.ellipse(scene.scale.width / 2 + 7, cy + 28, width * 0.82, height * 0.38, 0x031725, 0.22)
     .setDepth(83)
     .setScrollFactor(0)
   scene.battleHeroShadow = shadow
 
-  const hero = scene.add.image(L.battle.fish.x, cy, key)
+  const hero = scene.add.image(scene.scale.width / 2, cy, key)
     .setDisplaySize(width, height)
     .setDepth(84)
     .setScrollFactor(0)
@@ -123,9 +123,10 @@ function ensureBattleHero(scene) {
     repeat: -1,
     ease: 'Sine.easeInOut',
   })
+  hero.setAngle(-8)
   scene._battleHeroAngleTween = scene.tweens.add({
     targets: hero,
-    angle,
+    angle: [-10, -3],
     duration: Math.round(duration * 0.82),
     yoyo: true,
     repeat: -1,
@@ -171,36 +172,42 @@ export class BattleUI {
     scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
     const bg = scene.add.graphics()
-    bg.fillStyle(0x073754, 1)
-    bg.fillRect(0, 0, W, 62)
-    bg.lineStyle(1.5, 0x8edfff, 0.48)
-    bg.strokeRect(0, 0, W, 62)
-    bg.fillStyle(0xffffff, 0.08)
-    bg.fillRect(0, 0, W, 4)
+    bg.fillStyle(0x05283d, 0.94)
+    bg.lineStyle(2, 0xc9f4ff, 0.70)
+    bg.fillRoundedRect(10, 10, W - 20, 84, 16)
+    bg.strokeRoundedRect(10, 10, W - 20, 84, 16)
+    bg.fillStyle(0xffffff, 0.06)
+    bg.fillRoundedRect(16, 16, W - 32, 22, 10)
 
-    const title = scene.add.text(16, 32, 'テンション', {
+    const title = scene.add.text(22, 31, '🐟  FISH', {
+      fontFamily: FONT,
+      resolution: TEXT_RES,
+      fontSize: '14px',
+      fontWeight: '900',
+      color: '#ffffff',
+    }).setOrigin(0, 0.5)
+    scene._battleFishName = title
+
+    const phase = scene.add.text(W - 22, 31, 'BATTLE', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '11px',
       fontWeight: '900',
-      color: '#ffffff',
-    }).setOrigin(0, 0.5)
+      color: '#dff5ff',
+    }).setOrigin(1, 0.5)
 
     scene.ebarFill = scene.add.graphics()
-    scene.ebarNum = scene.add.text(W - 31, 31, '', {
+    scene.ebarNum = scene.add.text(W - 24, 67, '', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '10px',
       fontWeight: '900',
-      color: '#dff5ff',
+      color: '#ffffff',
     }).setOrigin(1, 0.5).setVisible(false)
 
-    scene.ebarFishIcon = scene.add.text(W - 33, 31, '🐟', {
-      fontSize: '16px', resolution: TEXT_RES,
-    }).setOrigin(0.5)
-
-    scene.escapeBar.add([bg, title, scene.ebarFill, scene.ebarNum, scene.ebarFishIcon])
-    scene._ebarW = W - 168
+    scene.ebarFishIcon = scene.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false)
+    scene.escapeBar.add([bg, title, phase, scene.ebarFill, scene.ebarNum, scene.ebarFishIcon])
+    scene._ebarW = W - 56
   }
 
   buildBattlePanel(W, H) {
@@ -247,18 +254,18 @@ export class BattleUI {
     shade.lineBetween(0, controlsTop, W, controlsTop)
 
     const cx = W / 2
-    const cy = controlsTop + 78
+    const cy = controlsTop + 76
     const dial = scene.add.graphics()
     dial.fillStyle(0x062c44, 1)
-    dial.fillCircle(cx + 2, cy + 4, 59)
+    dial.fillCircle(cx + 2, cy + 4, 70)
     dial.lineStyle(8, 0x23b6ef, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 52, Math.PI * 0.60, Math.PI * 1.34, false); dial.strokePath()
+    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 0.60, Math.PI * 1.34, false); dial.strokePath()
     dial.lineStyle(8, 0xff9f22, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 52, Math.PI * 1.66, Math.PI * 0.40, false); dial.strokePath()
+    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 1.66, Math.PI * 0.40, false); dial.strokePath()
     dial.lineStyle(2, 0xffffff, 0.70)
-    dial.strokeCircle(cx, cy, 43)
+    dial.strokeCircle(cx, cy, 50)
     dial.fillStyle(0x0b4567, 1)
-    dial.fillCircle(cx, cy, 39)
+    dial.fillCircle(cx, cy, 45)
     dial.fillStyle(0xffffff, 0.10)
     dial.fillCircle(cx - 12, cy - 13, 13)
 
@@ -271,7 +278,7 @@ export class BattleUI {
       letterSpacing: 1,
     }).setOrigin(0.5)
 
-    const text = scene.add.text(W / 2, controlsTop + 151, 'タイミングよく下へスワイプ', {
+    const text = scene.add.text(W / 2, controlsTop + 158, 'タイミングよく下へスワイプ', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '13px',
@@ -290,22 +297,21 @@ export class BattleUI {
     const st = battleState
     if (!st) return
 
-    const tensionX = 92
-    const tensionY = 25
+    const tensionX = 28
+    const tensionY = 55
     const tw = ebarW
+    scene._battleFishName?.setText?.(`🐟  ${scene.fish?.name ?? 'FISH'}`)
     scene.ebarFill.clear()
     scene.ebarFill.fillStyle(0xdff5ff, 0.28)
     scene.ebarFill.fillRoundedRect(tensionX, tensionY, tw, 14, 7)
-    const escapeColor = st.escape >= 72 ? 0xff765a : st.escape >= 42 ? 0xffc857 : 0x58b8df
-    scene.ebarFill.fillStyle(escapeColor, 1)
+    scene.ebarFill.fillStyle(st.escape >= 72 ? 0xff514b : st.escape >= 42 ? 0xffa928 : 0x2da8e6, 1)
     scene.ebarFill.fillRoundedRect(tensionX, tensionY, Math.max(5, tw * (st.escape / 100)), 14, 7)
     scene.ebarFill.fillStyle(0xffffff, 0.32)
     scene.ebarFill.fillRoundedRect(tensionX + 4, tensionY + 3, Math.max(0, tw * (st.escape / 100) - 8), 3, 2)
     scene.ebarFill.lineStyle(1.2, 0xffffff, 0.38)
     scene.ebarFill.strokeRoundedRect(tensionX, tensionY, tw, 14, 7)
 
-    const fishX = tensionX + Math.max(7, tw * (st.escape / 100))
-    scene.ebarFishIcon?.setX(Math.min(scene.scale.width - 34, fishX))
+
 
     const rw = Math.max(4, reel.w * (st.reel / 100))
     scene.reelFill.clear()
