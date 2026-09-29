@@ -241,31 +241,48 @@ export class BattleUI {
     scene.reelCTA = scene.add.container(0, 0).setDepth(92).setVisible(false).setScrollFactor(0)
 
     const shade = scene.add.graphics()
-    shade.fillStyle(0x042238, 0.98)
+    shade.fillStyle(0x031d2e, 0.98)
     shade.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
-    shade.lineStyle(1.5, 0x8edfff, 0.28)
+    shade.lineStyle(1.5, 0x8edfff, 0.34)
     shade.lineBetween(0, controlsTop, W, controlsTop)
 
-    const arrow = scene.add.text(W / 2, controlsTop + 72, '↓', {
-      fontFamily: FONT,
-      fontSize: '46px',
-      fontWeight: '900',
-      color: '#ffffff',
-      resolution: TEXT_RES,
+    const cx = W / 2
+    const cy = controlsTop + 78
+    const dial = scene.add.graphics()
+    dial.fillStyle(0x062c44, 1)
+    dial.fillCircle(cx + 2, cy + 4, 59)
+    dial.lineStyle(8, 0x23b6ef, 0.98)
+    dial.beginPath(); dial.arc(cx, cy, 52, Math.PI * 0.60, Math.PI * 1.34, false); dial.strokePath()
+    dial.lineStyle(8, 0xff9f22, 0.98)
+    dial.beginPath(); dial.arc(cx, cy, 52, Math.PI * 1.66, Math.PI * 0.40, false); dial.strokePath()
+    dial.lineStyle(2, 0xffffff, 0.70)
+    dial.strokeCircle(cx, cy, 43)
+    dial.fillStyle(0x0b4567, 1)
+    dial.fillCircle(cx, cy, 39)
+    dial.fillStyle(0xffffff, 0.10)
+    dial.fillCircle(cx - 12, cy - 13, 13)
+
+    const fish = scene.add.text(cx, cy - 9, '🐟', {
+      fontSize: '24px', resolution: TEXT_RES,
+    }).setOrigin(0.5)
+    const tension = scene.add.text(cx, cy + 20, 'TENSION', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '10px', fontWeight: '900', color: '#ffffff',
+      letterSpacing: 1,
     }).setOrigin(0.5)
 
-    const text = scene.add.text(W / 2, controlsTop + 132, '下にスワイプで巻く', {
+    const text = scene.add.text(W / 2, controlsTop + 151, 'タイミングよく下へスワイプ', {
       fontFamily: FONT,
       resolution: TEXT_RES,
-      fontSize: '14px',
+      fontSize: '13px',
       fontWeight: '900',
       color: '#ffffff',
-      backgroundColor: 'rgba(3,27,42,0.64)',
+      backgroundColor: 'rgba(3,27,42,0.72)',
       padding: { x: 14, y: 6 },
     }).setOrigin(0.5)
 
-    scene.reelCTA.add([shade, arrow, text])
-    scene.tweens.add({ targets: arrow, y: '+=7', duration: 520, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    scene.reelCTA.add([shade, dial, fish, tension, text])
+    scene.tweens.add({ targets: [fish, tension], y: '+=3', duration: 620, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
   }
 
   sync(battleState, reel, ebarW) {
