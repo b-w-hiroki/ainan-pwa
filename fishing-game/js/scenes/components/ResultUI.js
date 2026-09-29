@@ -16,15 +16,15 @@ export class ResultUI {
     const card = scene.add.graphics()
     card.fillStyle(0x031f33, 0.82)
     card.lineStyle(2, 0xc9f4ff, 0.58)
-    card.fillRoundedRect(-168, -4, 336, 150, 22)
-    card.strokeRoundedRect(-168, -4, 336, 150, 22)
+    card.fillRoundedRect(-168, 24, 336, 148, 22)
+    card.strokeRoundedRect(-168, 24, 336, 148, 22)
     card.fillStyle(0xffffff, 0.05)
-    card.fillRoundedRect(-158, 6, 316, 26, 12)
+    card.fillRoundedRect(-158, 34, 316, 26, 12)
 
     scene.resStripe = scene.add.graphics()
-    scene.resLabel = scene.add.text(0, -304, '', {
+    scene.resLabel = scene.add.text(0, -316, '', {
       fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
-      fontSize: '58px', fontWeight: '900', color: '#ffd95a',
+      fontSize: '66px', fontWeight: '900', color: '#ffd95a',
       stroke: '#824400', strokeThickness: 5, shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
@@ -35,20 +35,20 @@ export class ResultUI {
     halo.strokeCircle(0, -130, 104)
 
     scene.resEmoji = scene.add.text(0, -130, '', { fontSize: '96px', resolution: TEXT_RES }).setOrigin(0.5)
-    scene.resName = scene.add.text(0, 18, '', {
+    scene.resName = scene.add.text(0, 47, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '27px', fontWeight: '900', color: '#ffffff', shadow: SHADOW.soft,
     }).setOrigin(0.5)
 
     const stats = scene.add.graphics()
     stats.fillStyle(0x062c44, 0.62)
     stats.lineStyle(1.5, 0xbcecff, 0.42)
-    stats.fillRoundedRect(-150, 43, 300, 86, 16)
-    stats.strokeRoundedRect(-150, 43, 300, 86, 16)
+    stats.fillRoundedRect(-150, 70, 300, 84, 16)
+    stats.strokeRoundedRect(-150, 70, 300, 84, 16)
 
-    scene.resPts = scene.add.text(0, 84, '', {
+    scene.resPts = scene.add.text(0, 111, '', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: '#ffffff', align: 'left', lineSpacing: 7,
     }).setOrigin(0.5)
-    scene.resHint = scene.add.text(0, 139, '釣った魚を町へ持ち帰ろう', {
+    scene.resHint = scene.add.text(0, 162, '釣った魚を町へ持ち帰ろう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#dff5ff',
     }).setOrigin(0.5)
 
@@ -56,17 +56,17 @@ export class ResultUI {
     const bubble = scene.add.graphics()
     bubble.fillStyle(0xffffff, 0.96)
     bubble.lineStyle(2, 0x9bcfe5, 0.92)
-    bubble.fillRoundedRect(-158, 151, 218, 62, 17)
-    bubble.strokeRoundedRect(-158, 151, 218, 62, 17)
-    bubble.fillTriangle(48, 190, 70, 198, 52, 177)
-    const bubbleText = scene.add.text(-146, 162, 'やったー！\n立派な一匹だ！', {
+    bubble.fillRoundedRect(-158, 180, 218, 62, 17)
+    bubble.strokeRoundedRect(-158, 180, 218, 62, 17)
+    bubble.fillTriangle(48, 219, 70, 227, 52, 206)
+    const bubbleText = scene.add.text(-146, 191, 'やったー！\n立派な一匹だ！', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900',
       color: '#173248', lineSpacing: 3,
     }).setOrigin(0, 0)
     const guideAsset = ASSETS.characters?.fishingCastHero ?? ASSETS.characters?.playerDefaultUi
     const guideArt = guideAsset?.key && scene.textures.exists(guideAsset.key)
-      ? scene.add.image(123, 209, guideAsset.key).setOrigin(0.5, 1).setDisplaySize(82, 114)
-      : scene.add.text(125, 184, '🎣', { fontSize: '54px', resolution: TEXT_RES }).setOrigin(0.5)
+      ? scene.add.image(123, 238, guideAsset.key).setOrigin(0.5, 1).setDisplaySize(88, 124)
+      : scene.add.text(125, 213, '🎣', { fontSize: '54px', resolution: TEXT_RES }).setOrigin(0.5)
     guide.add([bubble, bubbleText, guideArt])
     scene._resultGuideGroup = guide
 
@@ -103,7 +103,7 @@ export class ResultUI {
       return [bg, txt, hit]
     }
 
-    const town = makeBtn(-162, 224, 154, 58, '⌂ 町へ持ち帰る', () => {
+    const town = makeBtn(-162, 250, 154, 58, '⌂ 町へ持ち帰る', () => {
       playSfx('select')
       haptic(10)
       const lastCatch = scene.catches?.[scene.catches.length - 1]
@@ -114,7 +114,7 @@ export class ResultUI {
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
     }, false)
-    const retry = makeBtn(8, 224, 154, 58, '↻ もう一投', () => {
+    const retry = makeBtn(8, 250, 154, 58, '↻ もう一投', () => {
       playSfx('select')
       haptic(12)
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
@@ -123,7 +123,7 @@ export class ResultUI {
     }, true)
 
 
-    const retrySub = scene.add.text(0, 294, '同じ釣り場・仕掛けで続ける', {
+    const retrySub = scene.add.text(0, 320, '同じ釣り場・仕掛けで続ける', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: '#a9d9ed',
     }).setOrigin(0.5)
 
