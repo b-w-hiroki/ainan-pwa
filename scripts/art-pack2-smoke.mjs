@@ -11,6 +11,11 @@ const required = [
   'fishing-game/assets/fishing-field/location/location_harbor_overlay.svg',
   'fishing-game/assets/fishing-field/location/location_bay_overlay.svg',
   'fishing-game/assets/fishing-field/location/location_cape_overlay.svg',
+  'fishing-game/assets/generated/hero/fish_hero_aji.svg',
+  'fishing-game/assets/generated/hero/fish_hero_saba.svg',
+  'fishing-game/assets/generated/hero/fish_hero_bass.svg',
+  'fishing-game/assets/generated/hero/fish_hero_hirame.svg',
+  'fishing-game/assets/generated/hero/fish_hero_kanpachi.svg',
   'fishing-game/assets/generated/hero/fish_hero_tai.svg',
   'fishing-game/assets/generated/hero/fish_hero_buri.svg',
   'fishing-game/assets/generated/hero/fish_hero_kue.svg',
@@ -24,7 +29,7 @@ const manifest = readFileSync(new URL('../fishing-game/js/config/assetManifest.j
 for (const path of ['bg_fishing_harbor_v2.svg', 'bg_fishing_bay_v2.svg', 'bg_fishing_cape_v2.svg']) {
   assert.ok(manifest.includes(path), 'manifest must use v2 background: ' + path)
 }
-for (const key of ['boss_harbor_runner', 'boss_bay_hunter', 'boss_kue', 'ff_location_harbor', 'ff_location_bay', 'ff_location_cape', 'fish_hero_tai', 'fish_hero_buri', 'fish_hero_kue']) {
+for (const key of ['boss_harbor_runner', 'boss_bay_hunter', 'boss_kue', 'ff_location_harbor', 'ff_location_bay', 'ff_location_cape', 'fish_hero_aji', 'fish_hero_saba', 'fish_hero_bass', 'fish_hero_hirame', 'fish_hero_kanpachi', 'fish_hero_tai', 'fish_hero_buri', 'fish_hero_kue']) {
   assert.ok(manifest.includes(key), 'manifest missing: ' + key)
 }
 
@@ -55,7 +60,7 @@ assert.ok((main + runtime).includes('installBossArtPresentation(GameScene)'), 'b
 
 const battleUi = readFileSync(new URL('../fishing-game/js/scenes/components/BattleUI.js', import.meta.url), 'utf8')
 const resultPresentation = readFileSync(new URL('../fishing-game/js/game/installFishingResultPresentation.js', import.meta.url), 'utf8')
-for (const hero of ['fishHeroes.tai', 'fishHeroes.buri', 'fishHeroes.kue']) {
+for (const hero of ['fishHeroes.aji', 'fishHeroes.saba', 'fishHeroes.bass', 'fishHeroes.hirame', 'fishHeroes.kanpachi', 'fishHeroes.tai', 'fishHeroes.buri', 'fishHeroes.kue']) {
   assert.ok(battleUi.includes(hero), 'Battle must use premium hero: ' + hero)
 }
 assert.ok(resultPresentation.includes('FISH_HERO_KEYS'), 'Result must support premium fish heroes')
