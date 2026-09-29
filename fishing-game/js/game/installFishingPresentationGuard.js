@@ -282,7 +282,7 @@ function buildLeftPierDecor(scene) {
 
 function buildRcPlayerHero(scene) {
   if (scene._rcPlayerHero?.active) return scene._rcPlayerHero
-  const asset = ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefault
+  const asset = ASSETS.characters?.fishingCastHero ?? ASSETS.characters?.playerDefaultUi ?? ASSETS.characters?.fishingHero ?? ASSETS.characters?.playerDefault
   if (!asset?.key || !scene.textures?.exists?.(asset.key)) return null
   const hero = scene.add.image(L.cast.player.x, L.cast.player.y, asset.key)
     .setOrigin(0.5, 1)
@@ -500,7 +500,13 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const decor = buildLeftPierDecor(scene)
   decor?.setVisible?.(false)
   const playerHero = buildRcPlayerHero(scene)
-  playerHero?.setVisible?.(cast || retrieve)
+  if (playerHero?.active) {
+    const phaseAsset = retrieve ? ASSETS.characters?.fishingRetrieveHero : ASSETS.characters?.fishingCastHero
+    if (phaseAsset?.key && scene.textures.exists(phaseAsset.key) && playerHero.texture?.key !== phaseAsset.key) {
+      playerHero.setTexture(phaseAsset.key)
+    }
+    playerHero.setVisible(cast || retrieve)
+  }
   scene._blueprintCastInstruction?.setVisible?.(cast)
   scene.retrieveUI?.hide?.()
   scene._rcCastDock?.setVisible?.(cast)
@@ -561,7 +567,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
     playerAssets.forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
