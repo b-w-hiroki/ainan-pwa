@@ -171,13 +171,7 @@ export class BattleUI {
     const scene = this.scene
     scene.escapeBar = scene.add.container(0, 0).setDepth(98).setVisible(false).setScrollFactor(0)
 
-    const bg = scene.add.graphics()
-    bg.fillStyle(0x05283d, 0.94)
-    bg.lineStyle(2, 0xc9f4ff, 0.70)
-    bg.fillRoundedRect(10, 10, W - 20, 84, 16)
-    bg.strokeRoundedRect(10, 10, W - 20, 84, 16)
-    bg.fillStyle(0xffffff, 0.06)
-    bg.fillRoundedRect(16, 16, W - 32, 22, 10)
+    const bg = scene.add.image(W / 2, 52, ASSETS.ui.fishingBattleTopPanel.key).setDisplaySize(W - 18, 92)
 
     const title = scene.add.text(22, 31, '🐟  FISH', {
       fontFamily: FONT,
@@ -255,28 +249,8 @@ export class BattleUI {
 
     const cx = W / 2
     const cy = controlsTop + 76
-    const dial = scene.add.graphics()
-    dial.fillStyle(0x062c44, 1)
-    dial.fillCircle(cx + 2, cy + 4, 70)
-    dial.lineStyle(8, 0x23b6ef, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 0.60, Math.PI * 1.34, false); dial.strokePath()
-    dial.lineStyle(8, 0xff9f22, 0.98)
-    dial.beginPath(); dial.arc(cx, cy, 61, Math.PI * 1.66, Math.PI * 0.40, false); dial.strokePath()
-    dial.lineStyle(2, 0xffffff, 0.70)
-    dial.strokeCircle(cx, cy, 50)
-    dial.fillStyle(0x0b4567, 1)
-    dial.fillCircle(cx, cy, 45)
-    dial.fillStyle(0xffffff, 0.10)
-    dial.fillCircle(cx - 12, cy - 13, 13)
-
-    const fish = scene.add.text(cx, cy - 9, '🐟', {
-      fontSize: '24px', resolution: TEXT_RES,
-    }).setOrigin(0.5)
-    const tension = scene.add.text(cx, cy + 20, 'TENSION', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '10px', fontWeight: '900', color: '#ffffff',
-      letterSpacing: 1,
-    }).setOrigin(0.5)
+    const dial = scene.add.image(cx, cy, ASSETS.ui.fishingBattleDial.key)
+      .setDisplaySize(168, 168)
 
     const text = scene.add.text(W / 2, controlsTop + 158, 'タイミングよく下へスワイプ', {
       fontFamily: FONT,
@@ -288,8 +262,8 @@ export class BattleUI {
       padding: { x: 14, y: 6 },
     }).setOrigin(0.5)
 
-    scene.reelCTA.add([shade, dial, fish, tension, text])
-    scene.tweens.add({ targets: [fish, tension], y: '+=3', duration: 620, yoyo: true, repeat: -1, ease: 'Sine.inOut' })
+    scene.reelCTA.add([shade, dial, text])
+
   }
 
   sync(battleState, reel, ebarW) {
