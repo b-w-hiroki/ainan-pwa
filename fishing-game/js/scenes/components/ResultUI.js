@@ -70,10 +70,10 @@ export class ResultUI {
     guide.add([bubble, bubbleText, guideArt])
     scene._resultGuideGroup = guide
 
-    const makeBtn = (x, y, w, h, label, action, primary = false) => {
-      const useArt = primary && scene.textures.exists(ASSETS.ui.buttonPrimary.key)
+    const makeBtn = (x, y, w, h, label, action, primary = false, artAsset = null) => {
+      const useArt = Boolean(artAsset?.key && scene.textures.exists(artAsset.key))
       const bg = useArt
-        ? scene.add.image(x + w / 2, y + h / 2, ASSETS.ui.buttonPrimary.key).setDisplaySize(w, h)
+        ? scene.add.image(x + w / 2, y + h / 2, artAsset.key).setDisplaySize(w, h)
         : scene.add.graphics()
       const draw = pressed => {
         if (useArt) {
@@ -93,7 +93,7 @@ export class ResultUI {
       draw(false)
       const txt = scene.add.text(x + w / 2, y + h / 2, label, {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: primary ? '15px' : '11px', fontWeight: '900',
-        color: useArt ? '#173248' : '#ffffff',
+        color: useArt ? 'rgba(255,255,255,0)' : '#ffffff',
       }).setOrigin(0.5)
       const hit = scene.add.rectangle(x + w / 2, y + h / 2, w + 4, h + 4, 0x000000, 0)
         .setInteractive({ useHandCursor: true })
@@ -113,14 +113,14 @@ export class ResultUI {
       } : null
       scene._cleanup()
       scene.scene.start('TownScene', { catchArrival })
-    }, false)
+    }, false, ASSETS.ui.fishingTownButton)
     const retry = makeBtn(8, 250, 154, 58, '↻ もう一投', () => {
       playSfx('select')
       haptic(12)
       const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
       scene._cleanup()
       scene.scene.restart(env)
-    }, true)
+    }, true, ASSETS.ui.fishingRetryButton)
 
 
     const retrySub = scene.add.text(0, 320, '同じ釣り場・仕掛けで続ける', {
