@@ -60,6 +60,7 @@ export const ASSETS = {
     kanpachiIcon: { key: 'fish_kanpachi_icon', path: assetPath('fishing-game/assets/fish/fish_kanpachi_icon.svg'), status: 'ready' },
   },
   fishHeroes: {
+    aji: { key: 'fish_hero_aji', path: assetPath('fishing-game/assets/generated/hero/fish_hero_aji.svg'), status: 'ready' },
     tai: { key: 'fish_hero_tai', path: assetPath('fishing-game/assets/generated/hero/fish_hero_tai.svg'), status: 'ready' },
     buri: { key: 'fish_hero_buri', path: assetPath('fishing-game/assets/generated/hero/fish_hero_buri.svg'), status: 'ready' },
     kue: { key: 'fish_hero_kue', path: assetPath('fishing-game/assets/generated/hero/fish_hero_kue.svg'), status: 'ready' },
