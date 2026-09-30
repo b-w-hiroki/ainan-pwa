@@ -164,36 +164,31 @@ function buildCastInstruction(scene) {
   const items = []
 
   const panel = scene.add.graphics().setDepth(91).setScrollFactor(0)
-  panel.fillStyle(0xf8fdff, 0.95)
+  panel.fillStyle(0x031d2e, 0.54)
   panel.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
-  panel.lineStyle(2, 0x9bcfe5, 0.55)
+  panel.lineStyle(1.5, 0xc9f4ff, 0.24)
   panel.lineBetween(0, top, W, top)
   items.push(panel)
 
   const power = scene.add.text(22, top + 24, 'パワー', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif',
     resolution: TEXT_RES,
-    fontSize: '12px',
+    fontSize: '11px',
     fontStyle: 'bold',
-    color: '#173248',
+    color: '#ffffff',
   }).setOrigin(0, 0.5).setDepth(93).setScrollFactor(0)
   items.push(power)
 
-  const buttonBg = scene.add.graphics().setDepth(92).setScrollFactor(0)
-  buttonBg.fillStyle(0x2f9ed4, 1)
-  buttonBg.lineStyle(3, 0xffffff, 0.94)
-  buttonBg.fillCircle(W / 2, top + 116, 45)
-  buttonBg.strokeCircle(W / 2, top + 116, 45)
+  const buttonBg = scene.textures.exists(ASSETS.ui.fishingCastButton.key)
+    ? scene.add.image(W / 2, top + 112, ASSETS.ui.fishingCastButton.key)
+        .setDisplaySize(120, 120)
+        .setDepth(92)
+        .setScrollFactor(0)
+    : scene.add.circle(W / 2, top + 112, 48, 0x2f9ed4, 1)
+        .setStrokeStyle(3, 0xffffff, 0.94)
+        .setDepth(92)
+        .setScrollFactor(0)
   items.push(buttonBg)
-
-  const buttonText = scene.add.text(W / 2, top + 116, '投げる', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif',
-    resolution: TEXT_RES,
-    fontSize: '16px',
-    fontStyle: 'bold',
-    color: '#ffffff',
-  }).setOrigin(0.5).setDepth(93).setScrollFactor(0)
-  items.push(buttonText)
 
   const hit = scene.add.circle(W / 2, top + 116, 48, 0x000000, 0)
     .setDepth(94)
