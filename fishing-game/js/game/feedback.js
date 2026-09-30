@@ -8,6 +8,9 @@ export function setSoundEnabled(enabled) {
   return enabled
 }
 
+export function supportsHaptics() {
+  return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
+}
 export function isHapticsEnabled() { return localStorage.getItem('ainan_haptics_enabled') !== '0' }
 export function setHapticsEnabled(enabled) {
   localStorage.setItem('ainan_haptics_enabled', enabled ? '1' : '0')
@@ -80,8 +83,8 @@ export function playSfx(kind) {
 }
 
 export function haptic(pattern = 20) {
-  if (!isHapticsEnabled()) return
-  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(pattern)
+  if (!isHapticsEnabled() || !supportsHaptics()) return false
+  return navigator.vibrate(pattern)
 }
 
 export function stopAmbient() {
