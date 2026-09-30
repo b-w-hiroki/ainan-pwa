@@ -433,6 +433,40 @@ function buildFinalControlChrome(scene) {
   scene._rcRetrieveDock = retrieve
 }
 
+
+function buildFinalCastOverlay(scene) {
+  if (scene._finalCastOverlay?.active) return scene._finalCastOverlay
+  const W = scene.scale.width
+  const top = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
+  const c = scene.add.container(0, 0).setDepth(1200).setScrollFactor(0).setVisible(false)
+
+  const bg = scene.add.graphics()
+  bg.fillStyle(0x031d2e, 0.90)
+  bg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
+  bg.lineStyle(1.5, 0xc9f4ff, 0.32)
+  bg.lineBetween(0, top, W, top)
+
+  const label = scene.add.text(22, top + 24, 'パワー', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif',
+    fontSize: '11px',
+    fontStyle: 'bold',
+    color: '#ffffff',
+  }).setOrigin(0, 0.5)
+
+  const track = scene.add.graphics()
+  track.fillStyle(0xd7edf7, 0.92)
+  track.fillRoundedRect(82, top + 19, 198, 10, 5)
+  track.fillStyle(0x58b8df, 1)
+  track.fillRoundedRect(82, top + 19, 126, 10, 5)
+
+  const art = scene.add.image(W / 2, top + 107, ASSETS.ui.fishingCastButton.key)
+    .setDisplaySize(126, 126)
+
+  c.add([bg, label, track, art])
+  scene._finalCastOverlay = c
+  return c
+}
+
 function buildMockFieldStaging(scene) {
   if (scene._rcMockFieldFish || scene._rcCastAim) return
 
@@ -566,7 +600,8 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene.powerGfx?.clear?.()
     scene.powerLabel?.setVisible?.(false)
   }
-  scene._rcCastDock?.setVisible?.(cast)
+  scene._rcCastDock?.setVisible?.(false)
+  buildFinalCastOverlay(scene)?.setVisible?.(cast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
   if (retrieve) syncFishReadCue(scene)
   else scene._rcFishReadCue?.setVisible?.(false)
@@ -663,6 +698,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.create = function (...args) {
     const result = originalCreate.apply(this, args)
     buildFinalControlChrome(this)
+    buildFinalCastOverlay(this)
     buildLeftPierDecor(this)
     buildRcPlayerHero(this)
     buildMockFieldStaging(this)
@@ -750,6 +786,8 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._cleanup = function (...args) {
     this._mockTopChrome?.destroy?.(true)
     this._mockTopChrome = null
+    this._finalCastOverlay?.destroy?.(true)
+    this._finalCastOverlay = null
     this._rcCastDock?.destroy?.(true)
     this._rcMockFieldFish?.forEach(obj => obj?.destroy?.())
     this._rcMockFieldFish = null
