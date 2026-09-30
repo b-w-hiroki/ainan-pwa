@@ -55,6 +55,11 @@ export default class GameScene extends Phaser.Scene {
     // status が ready のアセットだけ読み込む（planned は 404 になるため除外）
     const wanted = [
       ASSETS.characters.playerDefault,
+      ASSETS.characters.playerDefaultUi,
+      ASSETS.characters.fishingHero,
+      ASSETS.characters.fishingCastHero,
+      ASSETS.characters.fishingRetrieveHero,
+      ASSETS.characters.fishingResultHero,
       ASSETS.backgrounds.fishingHarbor,
       ASSETS.backgrounds.fishingBay,
       ASSETS.backgrounds.fishingCape,
@@ -64,6 +69,7 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.fishingField.locationHarbor,
       ASSETS.fishingField.locationBay,
       ASSETS.fishingField.locationCape,
+      ...Object.values(ASSETS.ui),
       ASSETS.ui.resultFrame,
       ASSETS.ui.buttonPrimary,
       ASSETS.ui.panelHarbor,
