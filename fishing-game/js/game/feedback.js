@@ -8,6 +8,9 @@ export function setSoundEnabled(enabled) {
   return enabled
 }
 
+export function supportsHaptics() {
+  return typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
+}
 export function isHapticsEnabled() { return localStorage.getItem('ainan_haptics_enabled') !== '0' }
 export function setHapticsEnabled(enabled) {
   localStorage.setItem('ainan_haptics_enabled', enabled ? '1' : '0')
@@ -31,6 +34,14 @@ function getContext() {
   if (!audioContext) audioContext = new AudioCtx()
   if (audioContext.state === 'suspended') audioContext.resume?.()
   return audioContext
+}
+
+export function unlockAudio() {
+  if (!isSoundEnabled()) return false
+  const ctx = getContext()
+  if (!ctx) return false
+  if (ctx.state === 'suspended') ctx.resume?.()
+  return true
 }
 
 function tone(freq, duration = 0.12, type = 'sine', gainValue = 0.035, delay = 0) {
@@ -80,8 +91,8 @@ export function playSfx(kind) {
 }
 
 export function haptic(pattern = 20) {
-  if (!isHapticsEnabled()) return
-  if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(pattern)
+  if (!isHapticsEnabled() || !supportsHaptics()) return false
+  return navigator.vibrate(pattern)
 }
 
 export function stopAmbient() {

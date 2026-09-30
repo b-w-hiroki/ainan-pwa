@@ -28,6 +28,7 @@ import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
+import { unlockAudio } from './game/feedback.js'
 
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
@@ -55,6 +56,7 @@ const config = {
 }
 
 function startGame() {
+  document.addEventListener('pointerdown', unlockAudio, { once: true, passive: true })
   installGlobalDiagnostics()
   prepareQaState()
   ensureSaveVersion()
