@@ -4,14 +4,18 @@
 
 The release candidate must be green for all of the following:
 
+- Open PRs: 0
+- Latest Pages deploy: success on the same main SHA
+
 - RC version: 1.0.0-rc.3
-- RC baseline main: 183f82b7b08ff6368956a3a7efb4bf382dce760b
+- RC baseline main: 27f1e053375b545317e517254ba3bac91c8976b0
 
 - Production build
-- Production dependency audit (critical gate; high-severity Pixi/xmldom follow-up tracked in #58)
+- Production dependency audit (critical gate; Pixi/xmldom remediation completed)
 - All game smoke QA suites
 - 50 mobile screenshots at 390x844
 - Visual screenshot guard
+- Mock-derived Fishing visual asset pack renders without missing-texture placeholders
 - PWA manifest is served
 - App icon is served
 - Service worker is served
