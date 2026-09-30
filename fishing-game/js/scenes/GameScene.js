@@ -966,6 +966,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _cleanup() {
+    // Explicitly unbind the scene-level pointer handlers before a restart or
+    // scene transition. Phaser also shuts the InputPlugin down, but keeping
+    // ownership here prevents duplicate callbacks if cleanup is invoked
+    // manually before the shutdown lifecycle completes.
+    this.input?.off?.('pointerdown', this._onDown, this)
+    this.input?.off?.('pointermove', this._onMove, this)
+    this.input?.off?.('pointerup', this._onUp, this)
     this.tackleUI?.destroy()
     this.battleUI?.destroy()
     this._cleanupBattle()
