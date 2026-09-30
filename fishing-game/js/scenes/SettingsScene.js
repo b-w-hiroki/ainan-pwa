@@ -4,7 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { backupSave, exportSaveData, getBackupSummaries, importSaveData, restoreLatestBackup, SAVE_VERSION } from '../game/saveSystem.js'
-import { isHapticsEnabled, isReducedMotion, isSoundEnabled, setHapticsEnabled, setReducedMotion, setSoundEnabled } from '../game/feedback.js'
+import { isHapticsEnabled, isReducedMotion, isSoundEnabled, setHapticsEnabled, setReducedMotion, setSoundEnabled, supportsHaptics } from '../game/feedback.js'
 import { exportDiagnostics } from '../game/diagnostics.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -22,9 +22,13 @@ export default class SettingsScene extends Phaser.Scene {
     this._header(W)
     const backups = getBackupSummaries()
     const validBackups = backups.filter(item => item.exists && item.valid).length
+    const hapticsSupported = supportsHaptics()
     const cards = [
       ['サウンド', isSoundEnabled() ? 'ON' : 'OFF', () => { setSoundEnabled(!isSoundEnabled()); this.scene.restart() }],
-      ['振動', isHapticsEnabled() ? 'ON' : 'OFF', () => { setHapticsEnabled(!isHapticsEnabled()); this.scene.restart() }],
+      ['振動', hapticsSupported ? (isHapticsEnabled() ? 'ON' : 'OFF') : 'この端末では非対応', () => {
+        if (!hapticsSupported) { this._toast('この端末では振動APIを利用できません'); return }
+        setHapticsEnabled(!isHapticsEnabled()); this.scene.restart()
+      }],
       ['動きを減らす', isReducedMotion() ? 'ON' : 'OFF', () => { setReducedMotion(!isReducedMotion()); this.scene.restart() }],
       ['バックアップ', '3世代 / 有効 ' + validBackups, () => { backupSave(); this._toast('バックアップしました'); this.time.delayedCall(350, () => this.scene.restart()) }],
       ['最新を復旧', validBackups ? '復元可能' : 'バックアップなし', () => { if (restoreLatestBackup()) { this._toast('復元しました'); this.time.delayedCall(350, () => this.scene.start('HomeScene')) } else this._toast('復元できません') }],
