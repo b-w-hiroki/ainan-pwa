@@ -123,6 +123,7 @@ export const ASSETS = {
     fishingWeatherPanel: { key: 'ui_fishing_weather_panel', path: assetPath('fishing-game/assets/generated/mock-ui/panel_weather.svg'), status: 'ready' },
     fishingInstructionPanel: { key: 'ui_fishing_instruction_panel', path: assetPath('fishing-game/assets/generated/mock-ui/panel_instruction.svg'), status: 'ready' },
     fishingBattleTopPanel: { key: 'ui_fishing_battle_top_panel', path: assetPath('fishing-game/assets/generated/mock-ui/panel_battle_top.svg'), status: 'ready' },
+    fishingResultGet: { key: 'ui_fishing_result_get', path: assetPath('fishing-game/assets/generated/mock-ui/result_get.svg'), status: 'ready' },
     resultFrame: { key: 'ui_result_frame', path: assetPath('fishing-game/assets/ui/ui_result_frame.svg'), status: 'ready' },
     panelHarbor: { key: 'ui_panel_harbor', path: assetPath('fishing-game/assets/ui/ui_panel_harbor.svg'), status: 'ready' },
     buttonPrimary: { key: 'ui_button_primary', path: assetPath('fishing-game/assets/ui/ui_button_primary.svg'), status: 'ready' },
