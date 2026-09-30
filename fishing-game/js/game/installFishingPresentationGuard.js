@@ -601,7 +601,10 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene.powerLabel?.setVisible?.(false)
   }
   scene._rcCastDock?.setVisible?.(false)
-  buildFinalCastOverlay(scene)?.setVisible?.(cast)
+  const qaMockCast = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('qa') === '1'
+    && new URLSearchParams(window.location.search).get('qaMockPhase') === 'cast'
+  buildFinalCastOverlay(scene)?.setVisible?.(cast || qaMockCast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
   if (retrieve) syncFishReadCue(scene)
   else scene._rcFishReadCue?.setVisible?.(false)
