@@ -16,6 +16,31 @@ const RARITY = {
   legendary: { color: 0xffd95a, rays: 14, scale: 1.18 },
 }
 
+function clearResultGetAsset(scene) {
+  scene._resultGetAsset?.destroy?.()
+  scene._resultGetAsset = null
+}
+
+function ensureResultGetAsset(scene) {
+  clearResultGetAsset(scene)
+  if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
+  scene.resLabel?.setVisible?.(false)
+  const asset = ASSETS.ui?.fishingResultGet
+  if (!asset?.key || !scene.textures.exists(asset.key)) return
+  const img = scene.add.image(scene.scale.width / 2, 92, asset.key)
+    .setDisplaySize(176, 68)
+    .setDepth(151)
+    .setScrollFactor(0)
+  scene._resultGetAsset = img
+  scene.tweens.add({
+    targets: img,
+    scaleX: { from: img.scaleX * 0.82, to: img.scaleX },
+    scaleY: { from: img.scaleY * 0.82, to: img.scaleY },
+    duration: 260,
+    ease: 'Back.easeOut',
+  })
+}
+
 function clearPayoffVisuals(scene) {
   scene._payoffVisuals?.forEach(item => item?.destroy?.())
   scene._payoffVisuals = []
@@ -192,7 +217,8 @@ function polishCaughtResult(scene) {
   scene.resIcon?.setPosition?.(0, -116)
   scene.resEmoji?.setPosition?.(0, -116)
   scene.resEmoji?.setFontSize?.(108)
-  scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)?.setVisible?.(true)
+  scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)
+  ensureResultGetAsset(scene)
   scene.resName?.setY?.(47)
   scene.resPts?.setY?.(111)
   scene.resHint?.setY?.(162)
@@ -236,6 +262,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     clearResultHero(this)
+    clearResultGetAsset(this)
     clearPayoffVisuals(this)
     const result = originalFinishBattle.call(this, outcome, ...args)
     if (outcome === 'caught') {
@@ -248,6 +275,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
     clearResultHero(this)
+    clearResultGetAsset(this)
     clearPayoffVisuals(this)
     return originalEnterCast.apply(this, args)
   }
@@ -255,6 +283,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
     clearResultHero(this)
+    clearResultGetAsset(this)
     clearPayoffVisuals(this)
     return originalCleanup.apply(this, args)
   }
