@@ -557,8 +557,12 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     }
     playerHero.setVisible(cast || retrieve)
   }
-  scene._blueprintCastInstruction?.setVisible?.(cast)
+  scene._blueprintCastInstruction?.setVisible?.(false)
   scene.retrieveUI?.hide?.()
+  if (cast) {
+    scene.powerGfx?.clear?.()
+    scene.powerLabel?.setVisible?.(false)
+  }
   scene._rcCastDock?.setVisible?.(cast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
   if (retrieve) syncFishReadCue(scene)
