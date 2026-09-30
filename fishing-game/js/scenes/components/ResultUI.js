@@ -24,9 +24,9 @@ export class ResultUI {
     scene.resStripe = scene.add.graphics()
     scene.resLabel = scene.add.text(0, -316, '', {
       fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
-      fontSize: '66px', fontWeight: '900', color: '#ffd95a',
-      stroke: '#824400', strokeThickness: 5, shadow: SHADOW.soft,
-    }).setOrigin(0.5)
+      fontSize: '72px', fontWeight: '900', color: '#ffd95a',
+      stroke: '#824400', strokeThickness: 6, shadow: SHADOW.soft,
+    }).setOrigin(0.5).setDepth(30)
 
     const halo = scene.add.graphics()
     halo.fillStyle(0xffd95a, 0.08)
