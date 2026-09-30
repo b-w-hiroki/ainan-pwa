@@ -36,6 +36,14 @@ function getContext() {
   return audioContext
 }
 
+export function unlockAudio() {
+  if (!isSoundEnabled()) return false
+  const ctx = getContext()
+  if (!ctx) return false
+  if (ctx.state === 'suspended') ctx.resume?.()
+  return true
+}
+
 function tone(freq, duration = 0.12, type = 'sine', gainValue = 0.035, delay = 0) {
   const ctx = getContext()
   if (!ctx) return
