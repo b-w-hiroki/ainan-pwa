@@ -20,9 +20,17 @@ for (const token of ['book','trophy','gift','shop','rank','profile','help','sett
   assert.ok(menu.includes(`glyph: '${token}'`), 'Menu card must use shared glyph: ' + token)
 }
 
+const feedback = read('fishing-game/js/game/feedback.js')
+assert.ok(feedback.includes('export function supportsHaptics()'), 'haptics capability detection missing')
+assert.ok(feedback.includes('!supportsHaptics()'), 'haptic() must gracefully no-op on unsupported browsers')
+const settings = read('fishing-game/js/scenes/SettingsScene.js')
+assert.ok(settings.includes('supportsHaptics'), 'Settings must expose haptics capability')
+assert.ok(settings.includes('この端末では非対応'), 'Settings must label unsupported haptics')
+
 const footer = read('fishing-game/js/ui/FooterNav.js')
 assert.ok(footer.includes("import { drawGlyph } from './UiGlyph.js'"), 'Footer must share glyph renderer')
 assert.equal((footer.match(/function drawGlyph\(/g) ?? []).length, 0, 'Footer must not duplicate drawGlyph implementation')
 
 console.log('UI final unification smoke QA passed')
 console.log('  Home / Menu / Footer share UiGlyph')
+console.log('  unsupported haptics are surfaced safely in Settings')
