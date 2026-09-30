@@ -17,6 +17,9 @@ assert.ok(game.includes('safe-area-inset-top'), 'safe-area top missing')
 assert.ok(game.includes('safe-area-inset-bottom'), 'safe-area bottom missing')
 assert.ok(game.includes('100dvh'), 'dynamic viewport height missing')
 assert.ok(game.includes('touch-action: none'), 'mobile touch ownership missing')
+assert.ok(game.includes("new URLSearchParams(location.search).get('qa') === '1'"), 'QA cache bypass gate missing')
+assert.ok(game.includes('getRegistrations'), 'QA service-worker unregister missing')
+assert.ok(game.includes('caches.keys()'), 'QA Cache Storage cleanup missing')
 
 const vite = read('vite.config.ts')
 assert.ok(vite.includes("registerType: 'autoUpdate'"), 'PWA auto-update missing')
@@ -25,6 +28,11 @@ assert.ok(vite.includes("src: 'ainan-icon.svg'"), 'PWA manifest icon missing')
 assert.ok(vite.includes("purpose: 'any maskable'"), 'maskable icon purpose missing')
 assert.ok(vite.includes('cleanupOutdatedCaches: true'), 'cache cleanup missing')
 assert.ok(vite.includes('clientsClaim: true'), 'service worker clientsClaim missing')
+
+const gameScene = read('fishing-game/js/scenes/GameScene.js')
+for (const event of ['pointerdown', 'pointermove', 'pointerup']) {
+  assert.ok(gameScene.includes("this.input?.off?.('" + event + "'"), 'Fishing cleanup missing input off: ' + event)
+}
 
 const save = read('fishing-game/js/game/saveSystem.js')
 assert.ok(save.includes('SAVE_VERSION = 3'), 'Save v3 missing')
@@ -35,4 +43,5 @@ for (const token of ['ainan_save_backup_1','ainan_save_backup_2','ainan_save_bac
 console.log('Release readiness smoke QA passed')
 console.log('  safe-area / dynamic viewport: OK')
 console.log('  PWA manifest + icon + service worker: OK')
+console.log('  QA cache bypass + Fishing input cleanup: OK')
 console.log('  Save v3 + backups + checksum: OK')
