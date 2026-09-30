@@ -16,6 +16,34 @@ const RARITY = {
   legendary: { color: 0xffd95a, rays: 14, scale: 1.18 },
 }
 
+function clearMockGetHeadline(scene) {
+  scene._mockGetHeadline?.destroy?.()
+  scene._mockGetHeadline = null
+}
+
+function ensureMockGetHeadline(scene) {
+  clearMockGetHeadline(scene)
+  if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
+  const { width: W } = scene.scale
+  scene.resLabel?.setVisible?.(false)
+  const t = scene.add.text(W / 2, 78, 'GET!', {
+    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif',
+    fontSize: '64px',
+    fontStyle: 'bold',
+    color: '#ffd95a',
+    stroke: '#824400',
+    strokeThickness: 6,
+  }).setOrigin(0.5).setDepth(150).setScrollFactor(0)
+  scene._mockGetHeadline = t
+  scene.tweens.add({
+    targets: t,
+    scaleX: { from: 0.82, to: 1 },
+    scaleY: { from: 0.82, to: 1 },
+    duration: 260,
+    ease: 'Back.easeOut',
+  })
+}
+
 function clearPayoffVisuals(scene) {
   scene._payoffVisuals?.forEach(item => item?.destroy?.())
   scene._payoffVisuals = []
@@ -193,6 +221,7 @@ function polishCaughtResult(scene) {
   scene.resEmoji?.setPosition?.(0, -116)
   scene.resEmoji?.setFontSize?.(108)
   scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(66)
+  ensureMockGetHeadline(scene)
   scene.resName?.setY?.(47)
   scene.resPts?.setY?.(111)
   scene.resHint?.setY?.(162)
@@ -236,6 +265,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     clearResultHero(this)
+    clearMockGetHeadline(this)
     clearPayoffVisuals(this)
     const result = originalFinishBattle.call(this, outcome, ...args)
     if (outcome === 'caught') {
@@ -248,6 +278,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
     clearResultHero(this)
+    clearMockGetHeadline(this)
     clearPayoffVisuals(this)
     return originalEnterCast.apply(this, args)
   }
@@ -255,6 +286,7 @@ export function installFishingResultPresentation(GameScene) {
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
     clearResultHero(this)
+    clearMockGetHeadline(this)
     clearPayoffVisuals(this)
     return originalCleanup.apply(this, args)
   }
