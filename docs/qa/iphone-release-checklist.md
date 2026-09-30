@@ -8,7 +8,7 @@ The release candidate must be green for all of the following:
 - Latest Pages deploy: success on the same main SHA
 
 - RC version: 1.0.0-rc.3
-- RC baseline main: 27f1e053375b545317e517254ba3bac91c8976b0
+- RC baseline main: efcfdf29c15945064e21c631fb34fa5122001f3b
 
 - Production build
 - Production dependency audit (critical gate; Pixi/xmldom remediation completed)
@@ -45,7 +45,7 @@ Use a current iPhone and Safari.
 - First user interaction unlocks game audio.
 - Sea/harbor ambience starts only after user interaction.
 - Sound setting survives reload.
-- Haptics occur for HIT / catch / boss / growth when enabled.
+- On iPhone, vibration capability is reported as unsupported and haptic calls safely no-op. On browsers exposing navigator.vibrate(), HIT / catch / boss / growth haptics occur when enabled.
 - Reduced Motion removes decorative loops without hiding required feedback.
 
 ### PWA install
