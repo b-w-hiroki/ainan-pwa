@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 
 const required = [
+  'fishing-game/assets/generated/mock-ui/result_get.svg',
   'fishing-game/assets/generated/mock-ui/panel_battle_top.svg',
   'fishing-game/assets/generated/mock-ui/panel_instruction.svg',
   'fishing-game/assets/generated/mock-ui/panel_weather.svg',
