@@ -557,7 +557,10 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     }
     playerHero.setVisible(cast || retrieve)
   }
-  scene._blueprintCastInstruction?.setVisible?.(false)
+  if (scene._blueprintCastInstruction?.active) {
+    scene._blueprintCastInstruction.destroy(true)
+    scene._blueprintCastInstruction = null
+  }
   scene.retrieveUI?.hide?.()
   if (cast) {
     scene.powerGfx?.clear?.()
