@@ -312,6 +312,17 @@ export function installVerticalSliceQaMode(GameScene) {
     if (this._qaEnabled) {
       buildQaHud(this)
       forceQaAction(this)
+      if (qaMockPhase() === 'cast') {
+        this.time.delayedCall(0, () => {
+          if (!this.sys?.isActive?.()) return
+          this._blueprintCastInstruction?.destroy?.(true)
+          this._blueprintCastInstruction = null
+          this.powerGfx?.clear?.()
+          this.powerLabel?.setVisible?.(false)
+          this._rcCastDock?.setVisible?.(false)
+          this._finalCastOverlay?.setVisible?.(true)
+        })
+      }
     }
     return result
   }
