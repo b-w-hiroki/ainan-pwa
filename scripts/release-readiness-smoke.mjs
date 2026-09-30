@@ -10,6 +10,9 @@ const game = read('fishing-game/index.html')
 for (const [name, html] of [['root', root], ['fishing', game]]) {
   assert.ok(html.includes('viewport-fit=cover'), name + ': viewport-fit=cover missing')
   assert.ok(html.includes('apple-touch-icon'), name + ': install icon metadata missing')
+  assert.ok(html.includes('apple-mobile-web-app-capable'), name + ': iOS standalone capability metadata missing')
+  assert.ok(html.includes('apple-mobile-web-app-status-bar-style'), name + ': iOS status bar metadata missing')
+  assert.ok(html.includes('apple-mobile-web-app-title'), name + ': iOS app title metadata missing')
   assert.ok(html.includes('serviceWorker'), name + ': service worker lifecycle listener missing')
 }
 
