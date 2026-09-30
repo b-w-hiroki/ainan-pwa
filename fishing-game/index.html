@@ -91,7 +91,24 @@
   <body>
     <div id="game-container"></div>
     <script>
-      if ('serviceWorker' in navigator) {
+      const isQa = new URLSearchParams(location.search).get('qa') === '1'
+      if (isQa) {
+        // Fixed visual QA must render the current preview build, never a prior
+        // Workbox precache. Production PWA registration remains unchanged.
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations?.()
+            .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))
+            .catch(() => {})
+          try {
+            navigator.serviceWorker.register = () => Promise.reject(new Error('service worker disabled in QA'))
+          } catch {}
+        }
+        if ('caches' in window) {
+          caches.keys()
+            .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+            .catch(() => {})
+        }
+      } else if ('serviceWorker' in navigator) {
         let refreshing = false
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (refreshing) return
