@@ -399,6 +399,8 @@ function buildProposalTopChrome(scene) {
   plate._text = plateText
 
   c.add([bar, back, pin, loc, rod, distance, tackle, plate])
+  c._location = loc
+  c._plate = plate
   c._distance = distance
   scene._mockTopChrome = c
   return c
@@ -406,13 +408,15 @@ function buildProposalTopChrome(scene) {
 
 function syncMockTopChrome(scene, phase) {
   const chrome = buildProposalTopChrome(scene)
-  const visible = phase === 'cast' || phase === 'retrieve'
+  const visible = phase === 'cast' || phase === 'retrieve' || phase === 'result'
   chrome?.setVisible?.(visible)
   if (!visible) return
   const point = scene.env?.point ?? 'pointA'
-  const loc = point === 'pointB' ? '● 内海湾' : point === 'pointC' ? '● 外泊岬' : '● あいなん港'
+  const loc = point === 'pointB' ? '内海湾' : point === 'pointC' ? '外泊岬' : 'あいなん港'
   chrome._location?.setText?.(loc)
-  chrome._plate?._text?.setText?.(phase === 'retrieve' ? 'リールを巻いて\nルアーを動かそう！' : 'タップでキャスト！')
+  chrome._distance?.setText?.(phase === 'cast' ? '28m' : '18m')
+  chrome._plate?.setVisible?.(phase !== 'result')
+  chrome._plate?._text?.setText?.(phase === 'retrieve' ? '魚影の向きと動きを見る' : '狙う場所を決める')
 }
 
 function buildFinalControlChrome(scene) {
@@ -463,9 +467,19 @@ function buildFinalControlChrome(scene) {
   retrieveBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
   retrieveBg.lineStyle(1.5, 0x8edfff, 0.28)
   retrieveBg.lineBetween(0, top, W, top)
-  const retrieveHint = scene.add.text(W / 2, top + 21, '魚影の反応を見ながら操作', {
+  const retrieveModeBg = scene.add.graphics()
+  retrieveModeBg.fillStyle(0x082b45, 0.88)
+  retrieveModeBg.fillRoundedRect(18, top + 8, W - 36, 30, 15)
+  retrieveModeBg.lineStyle(1, 0x88dcff, 0.56)
+  retrieveModeBg.strokeRoundedRect(18, top + 8, W - 36, 30, 15)
+  retrieveModeBg.lineBetween(W * 0.56, top + 11, W * 0.56, top + 35)
+  const retrieveHint = scene.add.text(W * 0.30, top + 23, '魚影の向きと動きを見る', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-    fontSize: '11px', fontStyle: 'bold', color: '#dff5ff',
+    fontSize: '10px', fontStyle: 'bold', color: '#dff5ff',
+  }).setOrigin(0.5)
+  const retrieveState = scene.add.text(W * 0.76, top + 23, '追ってる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '10px', fontStyle: 'bold', color: '#7fddff',
   }).setOrigin(0.5)
 
   const makeAction = (x, fill, mark, label, asset, down, up = null) => {
@@ -485,7 +499,7 @@ function buildFinalControlChrome(scene) {
     return [shadow, art, outer, bg, shine, icon, txt, hit]
   }
   retrieve.add([
-    retrieveBg, retrieveHint,
+    retrieveBg, retrieveModeBg, retrieveHint, retrieveState,
     ...makeAction(W * 0.22, 0x248cd6, 'Ⅱ', '待つ', ASSETS.ui.fishingWaitButton, () => scene._setRetrieveIdle?.()),
     ...makeAction(W * 0.50, 0x2ebd67, '↻', 'ちょい巻き', ASSETS.ui.fishingShortButton, () => scene._twitchRetrieve?.()),
     ...makeAction(W * 0.78, 0xf2a01f, '≫', 'ゆっくり巻く', ASSETS.ui.fishingSlowButton, () => scene._startSlowRetrieve?.(), () => scene._stopSlowRetrieve?.()),
@@ -706,6 +720,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene._blueprintCastInstruction = null
   }
   scene.retrieveUI?.hide?.()
+  scene.retrieveCoach?.hide?.()
   if (cast) {
     scene.powerGfx?.clear?.()
     scene.powerLabel?.setVisible?.(false)
@@ -716,8 +731,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     && new URLSearchParams(window.location.search).get('qaMockPhase') === 'cast'
   buildProposalCastOverlay(scene)?.setVisible?.(cast || qaMockCast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
-  if (retrieve) syncFishReadCue(scene)
-  else scene._rcFishReadCue?.setVisible?.(false)
+  scene._rcFishReadCue?.setVisible?.(false)
 
   scene._mobileHudSetVisible?.(false)
   clearRcBattleHero(scene)
@@ -842,7 +856,7 @@ export function installFishingPresentationGuard(GameScene) {
       this.powerLabel?.setVisible?.(false)
     }
     buildProposalCastOverlay(this)?.setVisible?.(cast)
-    syncFishReadCue(this)
+    this._rcFishReadCue?.setVisible?.(false)
     return result
   }
 
