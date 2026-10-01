@@ -438,7 +438,7 @@ function buildFinalCastOverlay(scene) {
   if (scene._finalCastOverlay?.active) return scene._finalCastOverlay
   const W = scene.scale.width
   const top = scene.scale.height - MOBILE_FRAME.bottomControlsHeight
-  const c = scene.add.container(0, 0).setDepth(1200).setScrollFactor(0).setVisible(false)
+  const c = scene.add.container(0, 0).setDepth(5000).setScrollFactor(0).setVisible(false)
 
   const bg = scene.add.graphics()
   bg.fillStyle(0x031d2e, 0.90)
@@ -709,6 +709,20 @@ export function installFishingPresentationGuard(GameScene) {
     collectPlayerObjects(this)
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.(this.phase)
+    return result
+  }
+
+  const originalUpdate = GameScene.prototype.update
+  GameScene.prototype.update = function (...args) {
+    const result = originalUpdate?.apply(this, args)
+    const cast = this.phase === 'cast'
+    this._rcCastDock?.setVisible?.(false)
+    if (cast) {
+      this._blueprintCastInstruction?.setVisible?.(false)
+      this.powerGfx?.clear?.()
+      this.powerLabel?.setVisible?.(false)
+    }
+    buildFinalCastOverlay(this)?.setVisible?.(cast)
     return result
   }
 
