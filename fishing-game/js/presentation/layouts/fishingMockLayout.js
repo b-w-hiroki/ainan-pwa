@@ -42,12 +42,12 @@ export const FISHING_MOCK_LAYOUT = Object.freeze({
     ],
   },
   battle: {
-    fish: { x: 195, y: 334, width: 236, height: 132 },
+    fish: { x: 195, y: 338, width: 276, height: 155 },
     tension: { x: 92, y: 28, width: 222, height: 14 },
     instructionY: 790,
   },
   result: {
-    fish: { x: 195, y: 282, width: 226, height: 226 },
+    fish: { x: 195, y: 318, width: 330, height: 186 },
     labelY: 120,
     nameY: 414,
     stats: { x: 48, y: 458, width: 294, height: 84 },

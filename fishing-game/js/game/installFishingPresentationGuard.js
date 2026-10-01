@@ -5,6 +5,7 @@ import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 import { haptic } from './feedback.js'
+import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -342,15 +343,118 @@ function buildMockTopChrome(scene) {
   return c
 }
 
+function buildProposalTopChrome(scene) {
+  if (scene._mockTopChrome?.active) return scene._mockTopChrome
+  const W = scene.scale.width
+  const c = scene.add.container(0, 0).setDepth(6000).setScrollFactor(0).setVisible(false)
+  const bar = scene.add.graphics()
+  bar.fillStyle(0xffffff, 0.96)
+  bar.fillRoundedRect(10, 14, W - 20, 52, 15)
+  bar.lineStyle(2, 0x173e61, 0.92)
+  bar.strokeRoundedRect(10, 14, W - 20, 52, 15)
+  bar.lineStyle(1, 0x173e61, 0.42)
+  bar.lineBetween(54, 22, 54, 58)
+  bar.lineBetween(184, 22, 184, 58)
+  bar.lineBetween(302, 22, 302, 58)
+  const barSkin = scene.add.image(10, 14, ASSETS.ui.fishingApprovedTopHud.key)
+    .setOrigin(0, 0)
+    .setDisplaySize(W - 20, 52)
+
+  const back = scene.add.text(31, 40, '‹', {
+    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontSize: '38px', fontStyle: 'bold', color: '#173e61',
+  }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    .on('pointerdown', pointer => {
+      pointer?.event?.stopPropagation?.()
+      scene.scene.start('MapScene')
+    })
+  const pin = scene.add.text(68, 40, '●', {
+    fontFamily: 'sans-serif', resolution: 1,
+    fontSize: '13px', color: '#176499',
+  }).setOrigin(0.5)
+  const loc = scene.add.text(82, 40, '汐風港', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '14px', fontStyle: 'bold', color: '#173e61',
+  }).setOrigin(0, 0.5)
+  const rod = scene.add.text(200, 40, '◜', {
+    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontSize: '25px', fontStyle: 'bold', color: '#173e61',
+  }).setOrigin(0.5).setRotation(-0.55)
+  const distance = scene.add.text(221, 40, '28m', {
+    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '14px', fontStyle: 'bold', color: '#173e61',
+  }).setOrigin(0, 0.5)
+  const tackle = scene.add.text(338, 40, '▣', {
+    fontFamily: 'sans-serif', resolution: 1,
+    fontSize: '24px', fontStyle: 'bold', color: '#173e61',
+  }).setOrigin(0.5)
+
+  const plate = scene.add.container(W / 2, 92)
+  const plateBg = scene.add.graphics()
+  plateBg.fillStyle(0x092b43, 0.84)
+  plateBg.fillRoundedRect(-76, -13, 152, 26, 13)
+  plateBg.lineStyle(1.2, 0xffffff, 0.48)
+  plateBg.strokeRoundedRect(-76, -13, 152, 26, 13)
+  const plateSkin = scene.add.image(0, 0, ASSETS.ui.fishingApprovedInstruction.key)
+    .setDisplaySize(152, 26)
+  const plateText = scene.add.text(0, 0, '狙う場所を決める', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '11px', fontStyle: 'bold', color: '#ffffff', align: 'center',
+  }).setOrigin(0.5)
+  plate.add([plateBg, plateSkin, plateText])
+  plate._text = plateText
+
+  c.add([bar, barSkin, back, pin, loc, rod, distance, tackle, plate])
+  c._location = loc
+  c._plate = plate
+  c._distance = distance
+  scene._mockTopChrome = c
+  return c
+}
+
+function usesCastPresentationHost(scene) {
+  return scene?._castPresentationMode === 'host'
+}
+
+function hideLegacyCastPresentation(scene) {
+  hideTackleChrome(scene)
+  hideLegacyGuideChrome(scene)
+  scene.castGfx?.setVisible?.(false)
+  scene.powerGfx?.setVisible?.(false)
+  scene.powerLabel?.setVisible?.(false)
+  scene.scoreBar?.setVisible?.(false)
+  scene.schoolFx?.setVisible?.(false)
+  scene._mobileHudSetVisible?.(false)
+  scene._blueprintCastInstruction?.setVisible?.(false)
+  scene._rcCastDock?.setVisible?.(false)
+  scene._finalCastOverlay?.setVisible?.(false)
+  scene._mockTopChrome?.setVisible?.(false)
+  scene._rcMockFieldFish?.forEach?.(obj => obj?.setVisible?.(false))
+  scene._rcCastAim?.setVisible?.(false)
+  scene.retrieveUI?.hide?.()
+  scene.lineGfx?.setVisible?.(false)
+  scene.bobber?.setVisible?.(false)
+  scene.escapeBar?.setVisible?.(false)
+  scene.battlePanel?.setVisible?.(false)
+  scene.reelCTA?.setVisible?.(false)
+  scene.rageTag?.setVisible?.(false)
+  scene.resultOverlay?.setVisible?.(false)
+  scene.battleHero?.setVisible?.(false)
+  scene.battleHeroGlow?.setVisible?.(false)
+  setFishingPlayerVisible(scene, false)
+}
+
 function syncMockTopChrome(scene, phase) {
-  const chrome = buildMockTopChrome(scene)
-  const visible = phase === 'cast' || phase === 'retrieve'
+  const chrome = buildProposalTopChrome(scene)
+  const visible = phase === 'cast' || phase === 'retrieve' || phase === 'result'
   chrome?.setVisible?.(visible)
   if (!visible) return
   const point = scene.env?.point ?? 'pointA'
-  const loc = point === 'pointB' ? '● 内海湾' : point === 'pointC' ? '● 外泊岬' : '● あいなん港'
+  const loc = point === 'pointB' ? '内海湾' : point === 'pointC' ? '外泊岬' : 'あいなん港'
   chrome._location?.setText?.(loc)
-  chrome._plate?._text?.setText?.(phase === 'retrieve' ? 'リールを巻いて\nルアーを動かそう！' : 'タップでキャスト！')
+  chrome._distance?.setText?.(phase === 'cast' ? '28m' : '18m')
+  chrome._plate?.setVisible?.(phase !== 'result')
+  chrome._plate?._text?.setText?.(phase === 'retrieve' ? '魚影の向きと動きを見る' : '狙う場所を決める')
 }
 
 function buildFinalControlChrome(scene) {
@@ -401,9 +505,19 @@ function buildFinalControlChrome(scene) {
   retrieveBg.fillRect(0, top, W, MOBILE_FRAME.bottomControlsHeight)
   retrieveBg.lineStyle(1.5, 0x8edfff, 0.28)
   retrieveBg.lineBetween(0, top, W, top)
-  const retrieveHint = scene.add.text(W / 2, top + 21, '魚影の反応を見ながら操作', {
+  const retrieveModeBg = scene.add.graphics()
+  retrieveModeBg.fillStyle(0x082b45, 0.88)
+  retrieveModeBg.fillRoundedRect(18, top + 8, W - 36, 30, 15)
+  retrieveModeBg.lineStyle(1, 0x88dcff, 0.56)
+  retrieveModeBg.strokeRoundedRect(18, top + 8, W - 36, 30, 15)
+  retrieveModeBg.lineBetween(W * 0.56, top + 11, W * 0.56, top + 35)
+  const retrieveHint = scene.add.text(W * 0.30, top + 23, '魚影の向きと動きを見る', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
-    fontSize: '11px', fontStyle: 'bold', color: '#dff5ff',
+    fontSize: '10px', fontStyle: 'bold', color: '#dff5ff',
+  }).setOrigin(0.5)
+  const retrieveState = scene.add.text(W * 0.76, top + 23, '追ってる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '10px', fontStyle: 'bold', color: '#7fddff',
   }).setOrigin(0.5)
 
   const makeAction = (x, fill, mark, label, asset, down, up = null) => {
@@ -423,7 +537,7 @@ function buildFinalControlChrome(scene) {
     return [shadow, art, outer, bg, shine, icon, txt, hit]
   }
   retrieve.add([
-    retrieveBg, retrieveHint,
+    retrieveBg, retrieveModeBg, retrieveHint, retrieveState,
     ...makeAction(W * 0.22, 0x248cd6, 'Ⅱ', '待つ', ASSETS.ui.fishingWaitButton, () => scene._setRetrieveIdle?.()),
     ...makeAction(W * 0.50, 0x2ebd67, '↻', 'ちょい巻き', ASSETS.ui.fishingShortButton, () => scene._twitchRetrieve?.()),
     ...makeAction(W * 0.78, 0xf2a01f, '≫', 'ゆっくり巻く', ASSETS.ui.fishingSlowButton, () => scene._startSlowRetrieve?.(), () => scene._stopSlowRetrieve?.()),
@@ -463,6 +577,84 @@ function buildFinalCastOverlay(scene) {
     .setDisplaySize(126, 126)
 
   c.add([bg, label, track, art])
+  scene._finalCastOverlay = c
+  return c
+}
+
+function buildProposalCastOverlay(scene) {
+  if (scene._finalCastOverlay?.active) return scene._finalCastOverlay
+  const W = scene.scale.width
+  const H = scene.scale.height
+  const top = 620
+  const c = scene.add.container(0, 0).setDepth(5000).setScrollFactor(0).setVisible(false)
+  const bg = scene.add.graphics()
+  bg.fillStyle(0x031d2e, 0.94)
+  bg.fillRect(0, top, W, H - top)
+  bg.lineStyle(1.5, 0xc9f4ff, 0.34)
+  bg.lineBetween(0, top, W, top)
+
+  const instruction = scene.add.text(W / 2, top + 22, '長押し → 離して投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0.5)
+  const label = scene.add.text(22, top + 55, 'パワー', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '10px', fontStyle: 'bold', color: '#ffffff',
+  }).setOrigin(0, 0.5)
+  const track = scene.add.graphics()
+  track.fillStyle(0x082b45, 1)
+  track.fillRoundedRect(64, top + 49, 294, 14, 7)
+  track.lineStyle(1.4, 0xb8eaff, 0.72)
+  track.strokeRoundedRect(64, top + 49, 294, 14, 7)
+  track.fillStyle(0xffdc54, 1)
+  track.fillRoundedRect(67, top + 52, 184, 8, 4)
+  const buttonY = top + 128
+  const buttonBase = scene.add.circle(W / 2, buttonY, 55, 0xffd957, 1)
+    .setStrokeStyle(3, 0xfff1a1, 1)
+  const art = scene.add.image(W / 2, buttonY, ASSETS.ui.fishingApprovedCastRing.key)
+    .setDisplaySize(130, 130)
+  const castIcon = scene.add.graphics().setPosition(W / 2, buttonY - 18)
+  castIcon.lineStyle(3, 0x102b43, 1)
+  castIcon.beginPath()
+  castIcon.moveTo(-22, 12)
+  castIcon.lineTo(-14, -4)
+  castIcon.lineTo(-3, -14)
+  castIcon.lineTo(9, -19)
+  castIcon.lineTo(21, -16)
+  castIcon.lineTo(27, -10)
+  castIcon.strokePath()
+  castIcon.strokeCircle(-13, 7, 7)
+  castIcon.lineStyle(2, 0x102b43, 1)
+  castIcon.beginPath()
+  castIcon.moveTo(27, -10)
+  castIcon.lineTo(31, -2)
+  castIcon.lineTo(29, 5)
+  castIcon.lineTo(23, 8)
+  castIcon.strokePath()
+  castIcon.fillStyle(0x102b43, 1)
+  castIcon.fillCircle(22, 10, 2.5)
+  const castLabel = scene.add.text(W / 2, buttonY + 25, '投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '20px', fontStyle: 'bold', color: '#102335',
+  }).setOrigin(0.5)
+  const castHit = scene.add.circle(W / 2, buttonY, 62, 0x000000, 0)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', pointer => {
+      pointer?.event?.stopPropagation?.()
+      if (scene.phase !== 'cast' || scene.isCharging) return
+      scene.isCharging = true
+      scene.chargeStartedAt = scene.time.now
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(0.96))
+    })
+    .on('pointerup', pointer => {
+      pointer?.event?.stopPropagation?.()
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(1))
+      if (scene.phase === 'cast' && scene.isCharging) scene._onUp?.()
+    })
+    .on('pointerupoutside', () => {
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(1))
+    })
+  c.add([bg, instruction, label, track, buttonBase, art, castIcon, castLabel, castHit])
   scene._finalCastOverlay = c
   return c
 }
@@ -596,6 +788,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene._blueprintCastInstruction = null
   }
   scene.retrieveUI?.hide?.()
+  scene.retrieveCoach?.hide?.()
   if (cast) {
     scene.powerGfx?.clear?.()
     scene.powerLabel?.setVisible?.(false)
@@ -604,10 +797,9 @@ function applyPhasePresentation(scene, phase = scene.phase) {
   const qaMockCast = typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).get('qa') === '1'
     && new URLSearchParams(window.location.search).get('qaMockPhase') === 'cast'
-  buildFinalCastOverlay(scene)?.setVisible?.(cast || qaMockCast)
+  buildProposalCastOverlay(scene)?.setVisible?.(cast || qaMockCast)
   scene._rcRetrieveDock?.setVisible?.(retrieve)
-  if (retrieve) syncFishReadCue(scene)
-  else scene._rcFishReadCue?.setVisible?.(false)
+  scene._rcFishReadCue?.setVisible?.(false)
 
   scene._mobileHudSetVisible?.(false)
   clearRcBattleHero(scene)
@@ -642,6 +834,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene.battleHero?.setVisible?.(false)
     scene.battleHeroGlow?.setVisible?.(false)
     scene._mobileHudSetVisible?.(false)
+    scene._buildFishingPayoffVisuals?.()
   }
 }
 
@@ -655,6 +848,11 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.__ainanFishingPresentationGuardInstalled = true
 
   GameScene.prototype._applyRcFishingPresentation = function (phase = this.phase) {
+    if (usesCastPresentationHost(this) && ['cast', 'retrieve', 'battle', 'result'].includes(phase)) {
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost?.sync?.()
+      return
+    }
     buildFinalControlChrome(this)
     applyPhasePresentation(this, phase)
   }
@@ -663,7 +861,17 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
     const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
-    playerAssets.forEach(asset => {
+    const approvedUiAssets = [
+      ASSETS.ui?.fishingApprovedTopHud,
+      ASSETS.ui?.fishingApprovedInstruction,
+      ASSETS.ui?.fishingApprovedCastRing,
+      ASSETS.ui?.fishingApprovedRetrievePanel,
+      ASSETS.ui?.fishingApprovedBattleBase,
+      ASSETS.ui?.fishingApprovedResultBase,
+      ASSETS.ui?.fishingApprovedCleanHarbor,
+      ASSETS.ui?.fishingApprovedMadaiLive,
+    ].filter(Boolean)
+    ;[...playerAssets, ...approvedUiAssets].forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
       }
@@ -699,22 +907,43 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCreate = GameScene.prototype.create
   GameScene.prototype.create = function (...args) {
+    this._castPresentationMode = castPresentationMode()
     const result = originalCreate.apply(this, args)
-    buildFinalControlChrome(this)
-    buildFinalCastOverlay(this)
-    buildLeftPierDecor(this)
-    buildRcPlayerHero(this)
-    buildMockFieldStaging(this)
-    buildFishReadCue(this)
-    collectPlayerObjects(this)
-    setFishingPlayerVisible(this, false)
-    this._applyRcFishingPresentation?.(this.phase)
+    if (usesCastPresentationHost(this)) {
+      collectPlayerObjects(this)
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost = new CastPresentationHost(this).mount()
+    } else {
+      buildFinalControlChrome(this)
+      buildProposalCastOverlay(this)
+      buildLeftPierDecor(this)
+      buildRcPlayerHero(this)
+      buildMockFieldStaging(this)
+      buildFishReadCue(this)
+      collectPlayerObjects(this)
+      setFishingPlayerVisible(this, false)
+      this._applyRcFishingPresentation?.(this.phase)
+    }
     return result
+  }
+
+  const originalOnDown = GameScene.prototype._onDown
+  GameScene.prototype._onDown = function (pointer) {
+    if (['cast', 'retrieve'].includes(this.phase) && pointer?.x <= 58 && pointer?.y <= 70) {
+      this.scene.start('MapScene')
+      return
+    }
+    return originalOnDown.call(this, pointer)
   }
 
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
+    if (usesCastPresentationHost(this)) {
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost?.sync?.()
+      return result
+    }
     const cast = this.phase === 'cast'
     this._rcCastDock?.setVisible?.(false)
     if (cast) {
@@ -722,8 +951,8 @@ export function installFishingPresentationGuard(GameScene) {
       this.powerGfx?.clear?.()
       this.powerLabel?.setVisible?.(false)
     }
-    buildFinalCastOverlay(this)?.setVisible?.(cast)
-    syncFishReadCue(this)
+    buildProposalCastOverlay(this)?.setVisible?.(cast)
+    this._rcFishReadCue?.setVisible?.(false)
     return result
   }
 
@@ -731,7 +960,12 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
     setFishingPlayerVisible(this, false)
-    this._applyRcFishingPresentation?.('cast')
+    if (usesCastPresentationHost(this)) {
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost?.sync?.()
+    } else {
+      this._applyRcFishingPresentation?.('cast')
+    }
     return result
   }
 
@@ -746,6 +980,13 @@ export function installFishingPresentationGuard(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
+    if (usesCastPresentationHost(this)) {
+      buildFinalControlChrome(this)
+      buildLeftPierDecor(this)
+      buildRcPlayerHero(this)
+      buildMockFieldStaging(this)
+      buildFishReadCue(this)
+    }
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('retrieve')
     drawRetrieveLineToPlayfieldEdge(this)
@@ -776,6 +1017,7 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalEnterBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
+    this._castPresentationOutcome = null
     const result = originalEnterBattle.apply(this, args)
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('battle')
@@ -786,6 +1028,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
     if (result === false) return result
+    this._castPresentationOutcome = outcome
     setFishingPlayerVisible(this, false)
     this.resLabel?.setText?.('GET!')
       ?.setPosition?.(0, -304)
@@ -796,6 +1039,8 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    this._castPresentationHost?.destroy?.()
+    this._castPresentationHost = null
     this._mockTopChrome?.destroy?.(true)
     this._mockTopChrome = null
     this._finalCastOverlay?.destroy?.(true)

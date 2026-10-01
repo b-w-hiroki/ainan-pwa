@@ -385,7 +385,10 @@ export class BackgroundManager {
   }
 
   destroy() {
-    this._fishTweens.forEach(tw => { tw.stop(); tw.destroy() })
+    this._fishTweens.forEach(tw => {
+      tw?.stop?.()
+      tw?.destroy?.()
+    })
     this._fishTweens = []
   }
 }
