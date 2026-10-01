@@ -723,6 +723,7 @@ export function installFishingPresentationGuard(GameScene) {
       this.powerLabel?.setVisible?.(false)
     }
     buildFinalCastOverlay(this)?.setVisible?.(cast)
+    syncFishReadCue(this)
     return result
   }
 
@@ -784,18 +785,12 @@ export function installFishingPresentationGuard(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     setFishingPlayerVisible(this, false)
     this.resLabel?.setText?.('GET!')
       ?.setPosition?.(0, -304)
       ?.setFontSize?.(58)
     this._applyRcFishingPresentation?.('result')
-    return result
-  }
-
-  const originalUpdate = GameScene.prototype.update
-  GameScene.prototype.update = function (...args) {
-    const result = originalUpdate?.apply(this, args)
-    syncFishReadCue(this)
     return result
   }
 

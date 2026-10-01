@@ -166,6 +166,7 @@ export function installBossArtPresentation(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const meta = getBossMetaForScene(this)
     const result = originalFinish.call(this, outcome, ...args)
+    if (result === false) return result
     clearBossBattleArt(this)
     if (outcome === 'caught' && meta) this.time.delayedCall(0, () => buildBossResult(this, meta))
     return result

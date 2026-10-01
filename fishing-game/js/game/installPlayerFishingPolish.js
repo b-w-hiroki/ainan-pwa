@@ -173,6 +173,7 @@ export function installPlayerFishingPolish(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     clearReaction(this)
     const result = originalFinish.call(this, outcome, ...args)
+    if (result === false) return result
     clearResultPartner(this)
     return result
   }

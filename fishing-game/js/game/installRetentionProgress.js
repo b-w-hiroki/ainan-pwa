@@ -13,6 +13,7 @@ export function installRetentionProgress(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const before = this.catches?.length ?? 0
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught' && (this.catches?.length ?? 0) > before) {
       const item = this.catches[this.catches.length - 1]
       item.point = this.env?.point ?? item.point ?? 'pointA'

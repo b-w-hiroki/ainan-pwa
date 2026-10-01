@@ -298,6 +298,7 @@ export function installFishingVisualUpgrade(GameScene) {
     clearBattleFocus(this)
     clearResultAccent(this)
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught') buildResultAccent(this)
     return result
   }

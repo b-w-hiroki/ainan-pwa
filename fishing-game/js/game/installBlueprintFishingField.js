@@ -418,6 +418,7 @@ export function installBlueprintFishingField(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught') setPlayer(this, true, PLAYER_SCALE.catch)
     else setPlayer(this, false)
     showCastInstruction(this, false); this._assetLureRipple?.setVisible(false)

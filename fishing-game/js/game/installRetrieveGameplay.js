@@ -599,6 +599,7 @@ export function installRetrieveGameplay(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome) {
     const result = originalFinishBattle.call(this, outcome)
+    if (result === false) return result
     if (outcome === 'caught') this.fishingCamera?.focusCatch()
     else this.fishingCamera?.focusPlayer(false)
     return result

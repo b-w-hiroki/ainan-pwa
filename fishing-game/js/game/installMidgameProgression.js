@@ -76,6 +76,7 @@ export function installMidgameProgression(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const before = this.catches?.length ?? 0
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught' && (this.catches?.length ?? 0) > before) {
       const lastCatch = this.catches[this.catches.length - 1]
       const loot = grantCatchLoot(this.fish, lastCatch, this.env?.point)
