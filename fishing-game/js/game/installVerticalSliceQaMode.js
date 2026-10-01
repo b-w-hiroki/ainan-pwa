@@ -70,7 +70,7 @@ function forceCatch(scene) {
     scene._stopRetrieveRuntime?.()
     scene._enterBattle?.()
   }
-  scene.time.delayedCall(40, () => {
+  scheduleQaCall(scene, 40, () => {
     if (scene.phase === 'battle') scene._finishBattle?.('caught')
   })
 }
@@ -122,13 +122,71 @@ function prepareQaBattleSubject(scene) {
   }
 }
 
+function isHistoryRestore() {
+  if (typeof performance === 'undefined') return false
+  return performance.getEntriesByType?.('navigation')?.[0]?.type === 'back_forward'
+}
+
+function qaSceneReady(scene) {
+  const resultTextReady = [
+    scene.scoreValText,
+    scene.resLabel,
+    scene.resEmoji,
+    scene.resName,
+    scene.resPts,
+    scene.resHint,
+  ].every(text => text?.active && text.frame?.data?.drawImage)
+  return Boolean(
+    scene._qaSceneAlive &&
+    scene.sys?.isActive?.() &&
+    scene.cameras?.main?.scene &&
+    scene.hintText?.active &&
+    scene.hintText?.canvas &&
+    scene.hintText?.frame?.data?.drawImage &&
+    scene._battleFishName?.active &&
+    scene._battleFishName?.frame?.data?.drawImage &&
+    scene.rageTag?.active &&
+    scene.rageTag?.frame?.data?.drawImage &&
+    resultTextReady
+  )
+}
+
+function cancelQaTimers(scene) {
+  scene._qaTimers?.forEach(timer => timer?.remove?.(false))
+  scene._qaTimers?.clear?.()
+}
+
+function stopQaScene(scene) {
+  if (!scene._qaSceneAlive) return
+  scene._qaSceneAlive = false
+  scene._qaLifecycleToken = (scene._qaLifecycleToken ?? 0) + 1
+  cancelQaTimers(scene)
+  scene._battleTimer?.remove?.(false)
+  scene._battleTimer = null
+}
+
+function scheduleQaCall(scene, delay, callback) {
+  const lifecycleToken = scene._qaLifecycleToken
+  let timer = null
+  timer = scene.time.delayedCall(delay, () => {
+    scene._qaTimers?.delete?.(timer)
+    if (scene._qaLifecycleToken !== lifecycleToken || !qaSceneReady(scene)) return
+    callback()
+  })
+  scene._qaTimers ??= new Set()
+  scene._qaTimers.add(timer)
+  return timer
+}
+
 function forceQaAction(scene) {
-  if (qaMockPhase()) return
+  if (qaMockPhase() || isHistoryRestore()) return
   const { action, player } = qaActionState()
   if (!action && !player) return
+  const forceToken = (scene._qaForceToken ?? 0) + 1
+  scene._qaForceToken = forceToken
 
-  scene.time.delayedCall(650, () => {
-    if (!scene.sys?.isActive?.()) return
+  scheduleQaCall(scene, 650, () => {
+    if (scene._qaForceToken !== forceToken) return
 
     if (action === 'battle') {
       prepareQaBattleSubject(scene)
@@ -143,8 +201,8 @@ function forceQaAction(scene) {
       scene._killWaitTimers?.()
       scene._stopRetrieveRuntime?.()
       if (scene.phase !== 'battle') scene._enterBattle?.()
-      scene.time.delayedCall(180, () => {
-        if (scene.phase === 'battle') scene._finishBattle?.('caught')
+      scheduleQaCall(scene, 180, () => {
+        if (scene._qaForceToken === forceToken && scene.phase === 'battle') scene._finishBattle?.('caught')
       })
       return
     }
@@ -171,8 +229,7 @@ function forceMockPhase(scene) {
   const phase = qaMockPhase()
   if (!phase || phase === 'cast') return
 
-  scene.time.delayedCall(700, () => {
-    if (!scene.sys?.isActive?.()) return
+  scheduleQaCall(scene, 700, () => {
     if (phase === 'retrieve') {
       const x = scene.anchorX + 210
       const y = scene.anchorY - 300
@@ -192,7 +249,7 @@ function forceMockPhase(scene) {
 
     scene._enterBattle?.()
     if (phase === 'result') {
-      scene.time.delayedCall(260, () => {
+      scheduleQaCall(scene, 260, () => {
         if (scene.phase === 'battle') scene._finishBattle?.('caught')
       })
     }
@@ -307,6 +364,17 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalCreate = GameScene.prototype.create
   GameScene.prototype.create = function (...args) {
+    this._qaSceneAlive = true
+    this._qaLifecycleToken = (this._qaLifecycleToken ?? 0) + 1
+    this._qaTimers = new Set()
+    this._qaStopScene = () => stopQaScene(this)
+    this._qaStopOnHidden = () => {
+      if (document.hidden) stopQaScene(this)
+    }
+    this.events.once('shutdown', this._qaStopScene)
+    document.addEventListener('visibilitychange', this._qaStopOnHidden)
+    window.addEventListener('pagehide', this._qaStopScene)
+    window.addEventListener('beforeunload', this._qaStopScene)
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) {
@@ -345,6 +413,15 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    stopQaScene(this)
+    if (this._qaStopScene) {
+      document.removeEventListener('visibilitychange', this._qaStopOnHidden)
+      window.removeEventListener('pagehide', this._qaStopScene)
+      window.removeEventListener('beforeunload', this._qaStopScene)
+      this._qaStopScene = null
+      this._qaStopOnHidden = null
+    }
+    this._qaForceToken = (this._qaForceToken ?? 0) + 1
     this._qaHudObjects?.forEach(obj => obj?.destroy?.())
     this._qaHudObjects = null
     this._qaStatusText = null

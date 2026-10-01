@@ -92,6 +92,9 @@ export function playSfx(kind) {
 
 export function haptic(pattern = 20) {
   if (!isHapticsEnabled() || !supportsHaptics()) return false
+  // Chromium exposes vibrate() on desktop but blocks it before a user gesture.
+  // Treat that state as an unsupported no-op during scripted presentation.
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return false
   return navigator.vibrate(pattern)
 }
 

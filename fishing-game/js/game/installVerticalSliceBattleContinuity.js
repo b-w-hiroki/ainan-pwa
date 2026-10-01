@@ -7,7 +7,7 @@ const FIRST_RAGE_MAX_DELAY_MS = 1800
 function setTextInContainer(container, matcher, text) {
   if (!container?.list) return
   const target = container.list.find(obj => obj?.text && matcher(obj.text))
-  target?.setText(text)
+  if (target?.active && target.frame?.data?.drawImage) target.setText(text)
 }
 
 function battleSplash(scene, x, y, strong = false) {
@@ -58,6 +58,7 @@ export function installVerticalSliceBattleContinuity(GameScene) {
   const originalEnterBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
+    if (!this.rageTag?.active || !this.rageTag?.frame?.data?.drawImage) return result
     clearBattleContinuity(this)
 
     // Guarantee that even an easy/common fish demonstrates the core Battle
@@ -115,6 +116,7 @@ export function installVerticalSliceBattleContinuity(GameScene) {
   const originalSyncBattleUI = GameScene.prototype._syncBattleUI
   GameScene.prototype._syncBattleUI = function (...args) {
     const result = originalSyncBattleUI.apply(this, args)
+    if (!this.rageTag?.frame?.data?.drawImage) return result
     this.ebarNum?.setVisible(false)
     this.reelValText?.setVisible(false)
     this.rageTag?.setText('魚が暴れてる！ 今は待つ')

@@ -48,8 +48,16 @@ export class FishingCameraController {
     this.focusPlayer(true)
   }
 
+  _canMove() {
+    // Scene restart / browser Back can briefly leave wrappers holding the
+    // camera that Phaser has just destroyed. A destroyed camera keeps
+    // `useBounds` but clears `_bounds`, and pan() then throws in clampX/Y.
+    return Boolean(this.camera?.scene && this.camera?._bounds)
+  }
+
   focusPlayer(immediate = false) {
     this.state = 'playerFocus'
+    if (!this._canMove()) return
     const desiredX = clamp(this.player.x - 118, 0, this.world.width - this.camera.width)
     const desiredY = clamp(this.player.y - 650, 0, this.world.height - this.camera.height)
     if (immediate) {
@@ -64,11 +72,13 @@ export class FishingCameraController {
 
   updateCastFollow(x, y) {
     this.state = 'castFollow'
+    if (!this._canMove()) return
     this._followSafePoint(x, y, 0.12)
   }
 
   updateRetrieveFollow(lureX, lureY) {
     this.state = 'retrieveFollow'
+    if (!this._canMove()) return
     const focusX = lerp(lureX, this.player.x, 0.24)
     const focusY = lerp(lureY, this.player.y, 0.18)
     this._followSafePoint(focusX, focusY, 0.07)
@@ -76,11 +86,13 @@ export class FishingCameraController {
 
   holdLure(x, y) {
     this.state = 'lureFocus'
+    if (!this._canMove()) return
     this._followSafePoint(x, y, 0.10)
   }
 
   focusBite(lureX, lureY, fishX = lureX, fishY = lureY) {
     this.state = 'biteFocus'
+    if (!this._canMove()) return
     const focusX = lerp(lureX, fishX, 0.42)
     const focusY = lerp(lureY, fishY, 0.42)
     const desiredX = clamp(focusX - this.camera.width * 0.54, 0, this.world.width - this.camera.width)
@@ -92,6 +104,7 @@ export class FishingCameraController {
 
   composeBattle(fishX, fishY) {
     this.state = 'battleCompose'
+    if (!this._canMove()) return
     const centerX = lerp(this.player.x, fishX ?? this.player.x + 180, 0.42)
     const centerY = lerp(this.player.y - 160, fishY ?? this.player.y - 360, 0.42)
     this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
@@ -99,12 +112,14 @@ export class FishingCameraController {
 
   focusCatch() {
     this.state = 'catchFocus'
+    if (!this._canMove()) return
     const centerX = this.player.x + 70
     const centerY = this.player.y - 292
     this.camera.pan(centerX, centerY, 280, 'Sine.easeInOut', true)
   }
 
   _followSafePoint(worldX, worldY, amount) {
+    if (!this._canMove()) return
     const sx = worldX - this.camera.scrollX
     const sy = worldY - this.camera.scrollY
     let targetX = this.camera.scrollX
@@ -122,6 +137,7 @@ export class FishingCameraController {
   }
 
   _moveToward(x, y, amount) {
+    if (!this._canMove()) return
     this.camera.scrollX = lerp(this.camera.scrollX, x, amount)
     this.camera.scrollY = lerp(this.camera.scrollY, y, amount)
   }

@@ -133,6 +133,7 @@ export function installCatchRewardPolish(GameScene) {
     const oldBest = fish ? previousBest(before, fish.id) : 0
     const first = fish ? !before.some(item => item.fishId === fish.id) : false
     const result = originalFinish.call(this, outcome, ...args)
+    if (result === false) return result
 
     if (outcome === 'caught' && fish && (!boss || rewardKind)) {
       const latest = [...(this.catches ?? [])].reverse().find(item => item.fishId === fish.id)

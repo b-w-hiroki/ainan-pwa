@@ -244,6 +244,7 @@ export function installBossEventPolish(GameScene) {
     const beforeBest = beforeState?.sizeCm ?? 0
     clearEncounter(this)
     const result = originalFinish.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught' && meta) {
       this.time.delayedCall(30, () => {
         const after = getBossStates()[meta.id]

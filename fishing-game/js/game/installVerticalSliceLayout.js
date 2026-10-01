@@ -120,6 +120,7 @@ export function installVerticalSliceLayout(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught') {
       resizePlayer(this, PLAYER_SCALE.catch, { shadow: true, depth: 70 })
     } else {

@@ -69,6 +69,7 @@ export function installVerticalSliceResultRouting(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     const escaped = outcome !== 'caught'
     this._escapeRetryOverlay?.setVisible(escaped)
     this.resultSuccessActions?.setVisible(!escaped)

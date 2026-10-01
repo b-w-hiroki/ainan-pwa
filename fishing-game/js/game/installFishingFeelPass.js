@@ -121,6 +121,7 @@ export function installFishingFeelPass(GameScene) {
   const originalFinish = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinish.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught') {
       this.cameras?.main?.flash?.(180, 255, 246, 190, true)
       this.cameras?.main?.shake?.(130, 0.003)

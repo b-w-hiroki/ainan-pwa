@@ -241,6 +241,7 @@ export function installPlayerAnimations(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (outcome) {
     const result = originalFinishBattle.call(this, outcome)
+    if (result === false) return result
 
     if (!this._playerSprite) return result
 

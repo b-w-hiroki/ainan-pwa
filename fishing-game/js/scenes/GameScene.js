@@ -286,7 +286,7 @@ export default class GameScene extends Phaser.Scene {
     this.scoreBar.setY(16)
     this.scoreBar?.setVisible(false)
     this.schoolFx?.setVisible(false)
-    this.hintText.setText('画面を長押し → 方向を狙って離す')
+    this.hintText.setVisible(true).setText('画面を長押し → 方向を狙って離す')
 
     // 魚を開始位置にリセットして Tween を再生成
     this._targetFishIndex = null
@@ -302,7 +302,7 @@ export default class GameScene extends Phaser.Scene {
     this.bobber.setPosition(landX, landY).setVisible(true)
     this._bobberBaseY = landY    // 浮きの基準Y（ドリフト防止・_onMiss でのリセット用）
     this.hitHint.setVisible(false)
-    this.hintText.setText('食いつき待ち…')
+    this.hintText.setVisible(true).setText('食いつき待ち…')
 
     // 魚種をここで決定（魚影の種類と無関係に env 基準で選ぶ）
     this.fish = selectFish(this.env)
@@ -563,7 +563,7 @@ export default class GameScene extends Phaser.Scene {
     this.tackleUI?.disable()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.hitHint.setVisible(false)
-    this.hintText.setText('')
+    this.hintText.setVisible(false)
     this.castGfx.clear()
     this.powerGfx.clear()
     this.powerLabel.setVisible(false)
@@ -631,6 +631,18 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _finishBattle(outcome) {
+    const resultUiReady = [
+      this.scoreValText,
+      this.resLabel,
+      this.resEmoji,
+      this.resName,
+      this.resPts,
+      this.resHint,
+    ].every(text => text?.active && text.frame?.data?.drawImage)
+    if (!this.sys?.isActive?.() || !resultUiReady) {
+      this._cleanupBattle()
+      return false
+    }
     this._cleanupBattle()
     // バトル終了後、接近していた魚影を通常の泳ぎに戻す
     this._resetFishToStart(this._targetFishIndex)
@@ -642,7 +654,7 @@ export default class GameScene extends Phaser.Scene {
     this.reelCTA.setVisible(false)
     this.rageTag.setVisible(false)
     this.dangerFx.setAlpha(0)
-    this.hintText.setText('')
+    this.hintText.setVisible(false)
     this.scoreBar.setY(16)
     this.scoreBar?.setVisible(false)
     this.schoolFx?.setVisible(false)
@@ -737,6 +749,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _syncBattleUI() {
+    if (
+      !this.sys?.isActive?.() ||
+      !this._battleFishName?.frame?.data?.drawImage ||
+      !this.rageTag?.frame?.data?.drawImage
+    ) return
     this.battleUI.sync(this.battleState, this._reel, this._ebarW)
   }
 

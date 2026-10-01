@@ -139,6 +139,7 @@ export function installMobileFishingShell(GameScene) {
   const originalFinishBattle = GameScene.prototype._finishBattle
   GameScene.prototype._finishBattle = function (...args) {
     const result = originalFinishBattle.apply(this, args)
+    if (result === false) return result
     this._mobileHudSetVisible?.(false)
     return result
   }

@@ -265,6 +265,7 @@ export function installFishingResultPresentation(GameScene) {
     clearResultGetAsset(this)
     clearPayoffVisuals(this)
     const result = originalFinishBattle.call(this, outcome, ...args)
+    if (result === false) return result
     if (outcome === 'caught') {
       polishCaughtResult(this)
       this.time.delayedCall(0, () => buildPayoffVisuals(this))
