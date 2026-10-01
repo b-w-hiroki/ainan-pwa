@@ -48,6 +48,32 @@ export class CastSceneAdapter {
     this.scene._stopSlowRetrieve?.()
   }
 
+  resultTown() {
+    const scene = this.scene
+    if (scene.phase !== 'result' || scene._castPresentationOutcome !== 'caught') return false
+    const lastCatch = scene.catches?.[scene.catches.length - 1]
+    const catchArrival = lastCatch && scene.fish ? {
+      fishId: scene.fish.id,
+      name: scene.fish.name,
+      emoji: scene.fish.emoji,
+      rarity: scene.fish.rarity,
+      sizeCm: lastCatch.sizeCm,
+      score: lastCatch.score,
+    } : null
+    scene._cleanup?.()
+    scene.scene.start('TownScene', { catchArrival })
+    return true
+  }
+
+  resultRetry() {
+    const scene = this.scene
+    if (scene.phase !== 'result') return false
+    const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
+    scene._cleanup?.()
+    scene.scene.restart(env)
+    return true
+  }
+
   back() {
     this.cancelCharge()
     this.scene.scene.start('MapScene')

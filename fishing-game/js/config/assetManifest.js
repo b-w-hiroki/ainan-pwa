@@ -113,6 +113,10 @@ export const ASSETS = {
   ui: {
     fishingApprovedCastHarborBase: { key: 'ui_fishing_approved_cast_harbor_base', path: assetPath('fishing-game/assets/approved-mock/cast-harbor-composite-base.png'), status: 'ready' },
     fishingApprovedRetrievePanel: { key: 'ui_fishing_approved_retrieve_panel', path: assetPath('fishing-game/assets/approved-mock/retrieve-approved-panel.png'), status: 'ready' },
+    fishingApprovedBattleBase: { key: 'ui_fishing_approved_battle_base', path: assetPath('fishing-game/assets/approved-mock/battle-approved-base.png'), status: 'ready' },
+    fishingApprovedResultBase: { key: 'ui_fishing_approved_result_base', path: assetPath('fishing-game/assets/approved-mock/result-approved-base.png'), status: 'ready' },
+    fishingApprovedCleanHarbor: { key: 'ui_fishing_approved_clean_harbor', path: assetPath('fishing-game/assets/approved-mock/harbor-clean-water-390x844.png'), status: 'ready' },
+    fishingApprovedMadaiLive: { key: 'ui_fishing_approved_madai_live', path: assetPath('fishing-game/assets/approved-mock/madai-approved-live-768x512.png'), status: 'ready' },
     fishingApprovedCastSceneFragments: { key: 'ui_fishing_approved_cast_scene_fragments', path: assetPath('fishing-game/assets/approved-mock/cast-scene-fragments.png'), status: 'ready' },
     fishingApprovedCastPlayerVisible: { key: 'ui_fishing_approved_cast_player_visible', path: assetPath('fishing-game/assets/approved-mock/cast-player-visible.png'), status: 'ready' },
     fishingApprovedTopHud: { key: 'ui_fishing_approved_top_hud', path: assetPath('fishing-game/assets/approved-mock/top-hud-frame.png'), status: 'ready' },

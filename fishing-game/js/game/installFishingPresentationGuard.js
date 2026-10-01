@@ -434,6 +434,13 @@ function hideLegacyCastPresentation(scene) {
   scene.retrieveUI?.hide?.()
   scene.lineGfx?.setVisible?.(false)
   scene.bobber?.setVisible?.(false)
+  scene.escapeBar?.setVisible?.(false)
+  scene.battlePanel?.setVisible?.(false)
+  scene.reelCTA?.setVisible?.(false)
+  scene.rageTag?.setVisible?.(false)
+  scene.resultOverlay?.setVisible?.(false)
+  scene.battleHero?.setVisible?.(false)
+  scene.battleHeroGlow?.setVisible?.(false)
   setFishingPlayerVisible(scene, false)
 }
 
@@ -841,7 +848,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.__ainanFishingPresentationGuardInstalled = true
 
   GameScene.prototype._applyRcFishingPresentation = function (phase = this.phase) {
-    if (usesCastPresentationHost(this) && ['cast', 'retrieve'].includes(phase)) {
+    if (usesCastPresentationHost(this) && ['cast', 'retrieve', 'battle', 'result'].includes(phase)) {
       hideLegacyCastPresentation(this)
       this._castPresentationHost?.sync?.()
       return
@@ -854,7 +861,16 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
     const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
-    const approvedUiAssets = [ASSETS.ui?.fishingApprovedTopHud, ASSETS.ui?.fishingApprovedInstruction, ASSETS.ui?.fishingApprovedCastRing].filter(Boolean)
+    const approvedUiAssets = [
+      ASSETS.ui?.fishingApprovedTopHud,
+      ASSETS.ui?.fishingApprovedInstruction,
+      ASSETS.ui?.fishingApprovedCastRing,
+      ASSETS.ui?.fishingApprovedRetrievePanel,
+      ASSETS.ui?.fishingApprovedBattleBase,
+      ASSETS.ui?.fishingApprovedResultBase,
+      ASSETS.ui?.fishingApprovedCleanHarbor,
+      ASSETS.ui?.fishingApprovedMadaiLive,
+    ].filter(Boolean)
     ;[...playerAssets, ...approvedUiAssets].forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
@@ -924,6 +940,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
     if (usesCastPresentationHost(this)) {
+      hideLegacyCastPresentation(this)
       this._castPresentationHost?.sync?.()
       return result
     }
@@ -1000,6 +1017,7 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalEnterBattle = GameScene.prototype._enterBattle
   GameScene.prototype._enterBattle = function (...args) {
+    this._castPresentationOutcome = null
     const result = originalEnterBattle.apply(this, args)
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('battle')
@@ -1010,6 +1028,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._finishBattle = function (outcome, ...args) {
     const result = originalFinishBattle.call(this, outcome, ...args)
     if (result === false) return result
+    this._castPresentationOutcome = outcome
     setFishingPlayerVisible(this, false)
     this.resLabel?.setText?.('GET!')
       ?.setPosition?.(0, -304)

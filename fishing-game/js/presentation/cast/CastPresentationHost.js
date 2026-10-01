@@ -7,6 +7,18 @@ const DESIGN_WIDTH = 390
 const DESIGN_HEIGHT = 844
 const DOCK_TOP = 620
 
+const FISH_ART = Object.freeze({
+  aji: ASSETS.fishHeroes.aji,
+  tai: ASSETS.ui.fishingApprovedMadaiLive,
+  bass: ASSETS.fish.blackBassIcon,
+  buri: ASSETS.fishHeroes.buri,
+  kue: ASSETS.fishHeroes.kue,
+  saba: ASSETS.fish.sabaIcon,
+  isaki: ASSETS.fish.isakiIcon,
+  hirame: ASSETS.fish.hirameIcon,
+  kanpachi: ASSETS.fish.kanpachiIcon,
+})
+
 export function castPresentationMode() {
   if (typeof window === 'undefined') return 'host'
   return new URLSearchParams(window.location.search).get('castPresentation') === 'legacy'
@@ -50,11 +62,13 @@ export class CastPresentationHost {
     root.add([field, chrome, dock, interaction])
     const castField = scene.add.container(0, 0)
     const retrieveField = scene.add.container(0, 0)
+    const battleField = scene.add.container(0, 0)
+    const resultField = scene.add.container(0, 0)
     const castDock = scene.add.container(0, 0)
     const retrieveDock = scene.add.container(0, 0)
     const castInteraction = scene.add.container(0, 0)
     const retrieveInteraction = scene.add.container(0, 0)
-    field.add([castField, retrieveField])
+    field.add([castField, retrieveField, battleField, resultField])
     dock.add([castDock, retrieveDock])
     interaction.add([castInteraction, retrieveInteraction])
 
@@ -142,6 +156,80 @@ export class CastPresentationHost {
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
     retrieveField.add(retrieveBase)
+
+    const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
+      .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const battleSplash = scene.add.graphics()
+    battleSplash.lineStyle(6, 0xeafcff, 0.90)
+    battleSplash.strokeEllipse(214, 360, 340, 112)
+    battleSplash.lineStyle(3, 0x8edfff, 0.74)
+    battleSplash.strokeEllipse(214, 364, 372, 142)
+    const battleLine = scene.add.graphics()
+    battleLine.lineStyle(2, 0xffffff, 0.92)
+    battleLine.lineBetween(0, 480, 164, 348)
+    const battleFish = scene.add.image(224, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
+    const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
+      .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const battleHeaderBg = scene.add.graphics()
+    battleHeaderBg.fillStyle(0xffffff, 0.98)
+    battleHeaderBg.fillRoundedRect(18, 19, 354, 40, 16)
+    const battleFishName = scene.add.text(54, 39, '', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#173e61',
+    }).setOrigin(0, 0.5)
+    const battlePhase = scene.add.text(146, 39, 'BATTLE', {
+      fontFamily: 'Nunito, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173e61',
+    }).setOrigin(0, 0.5)
+    const battleTensionTrack = scene.add.graphics()
+    battleTensionTrack.fillStyle(0x092b43, 1)
+    battleTensionTrack.fillRoundedRect(205, 31, 154, 17, 9)
+    const battleTensionFill = scene.add.graphics()
+    const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+      backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
+    }).setOrigin(0.5)
+    const battleRage = scene.add.text(DESIGN_WIDTH / 2, 104, '', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
+      backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
+    }).setOrigin(0.5).setVisible(false)
+    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, battleTensionFill, battleReel, battleRage])
+
+    const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
+      .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const resultTint = scene.add.rectangle(DESIGN_WIDTH / 2, 320, DESIGN_WIDTH, 510, 0x042a42, 0.58)
+    const resultGlow = scene.add.graphics()
+    resultGlow.fillStyle(0xffd95a, 0.18)
+    resultGlow.fillCircle(DESIGN_WIDTH / 2, 302, 138)
+    resultGlow.lineStyle(3, 0xffef9a, 0.58)
+    resultGlow.strokeCircle(DESIGN_WIDTH / 2, 302, 122)
+    const resultFish = scene.add.image(DESIGN_WIDTH / 2, 304, FISH_ART.tai.key).setDisplaySize(292, 184).setAngle(-4)
+    const resultBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedResultBase.key)
+      .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const resultGet = scene.add.text(DESIGN_WIDTH / 2, 150, 'GET!', {
+      fontFamily: 'Nunito, sans-serif', fontSize: '68px', fontStyle: 'bold', color: '#ffdf5a',
+      stroke: '#824400', strokeThickness: 6,
+    }).setOrigin(0.5)
+    const resultCard = scene.add.graphics()
+    resultCard.fillStyle(0x062c44, 0.94)
+    resultCard.lineStyle(2, 0xdff5ff, 0.92)
+    resultCard.fillRoundedRect(31, 440, 328, 132, 24)
+    resultCard.strokeRoundedRect(31, 440, 328, 132, 24)
+    resultCard.lineStyle(1, 0xffffff, 0.62)
+    resultCard.lineBetween(53, 492, 337, 492)
+    resultCard.lineBetween(195, 504, 195, 554)
+    const resultName = scene.add.text(DESIGN_WIDTH / 2, 469, '', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '28px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5)
+    const resultSize = scene.add.text(119, 526, '', {
+      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '23px', fontStyle: 'bold', color: '#ffffff', align: 'center',
+    }).setOrigin(0.5)
+    const resultScore = scene.add.text(274, 526, '', {
+      fontFamily: 'Nunito, sans-serif', fontSize: '27px', fontStyle: 'bold', color: '#ffdf5a',
+    }).setOrigin(0.5)
+    const resultTownMask = scene.add.rectangle(DESIGN_WIDTH / 2, 655, 372, 78, 0x031d2e, 0.97).setVisible(false)
+    const resultTownMaskText = scene.add.text(DESIGN_WIDTH / 2, 655, 'もう一度釣る', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setVisible(false)
+    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText])
 
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
@@ -244,11 +332,26 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      battleField,
+      resultField,
       castDock,
       retrieveDock,
       castInteraction,
       retrieveInteraction,
       chrome,
+      battleFish,
+      battleFishName,
+      battleTensionFill,
+      battleReel,
+      battleRage,
+      resultGlow,
+      resultFish,
+      resultGet,
+      resultName,
+      resultSize,
+      resultScore,
+      resultTownMask,
+      resultTownMaskText,
     }
     this.layout()
     this.sync()
@@ -264,10 +367,19 @@ export class CastPresentationHost {
   }
 
   _onHostPointerDown(pointer) {
-    if (!['cast', 'retrieve'].includes(this.scene.phase) || !this.root?.visible) return
+    if (!['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase) || !this.root?.visible) return
     const point = this._designPoint(pointer)
-    if (point.x <= 58 && point.y <= 68) {
+    if (['cast', 'retrieve', 'result'].includes(this.scene.phase) && point.x <= 58 && point.y <= 68) {
       this.adapter.back()
+      return
+    }
+    if (this.scene.phase === 'result') {
+      if (point.y >= 610 && point.y <= 696) {
+        if (this.scene._castPresentationOutcome === 'caught') this.adapter.resultTown()
+        else this.adapter.resultRetry()
+      } else if (point.y >= 700 && point.y <= 790) {
+        this.adapter.resultRetry()
+      }
       return
     }
     if (this.scene.phase !== 'retrieve') return
@@ -293,16 +405,25 @@ export class CastPresentationHost {
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
   }
 
+  _syncFishImage(image, fishId) {
+    const asset = FISH_ART[fishId] ?? FISH_ART.tai
+    if (asset?.key && this.scene.textures.exists(asset.key) && image.texture.key !== asset.key) image.setTexture(asset.key)
+  }
+
   sync() {
     if (!this.root?.active) return
     const view = readCastViewModel(this.scene)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
-    const visible = castVisible || retrieveVisible
+    const battleVisible = view.phase === 'battle'
+    const resultVisible = view.phase === 'result'
+    const visible = castVisible || retrieveVisible || battleVisible || resultVisible
     this.root.setVisible(visible)
     if (!visible) return
     this.nodes.castField.setVisible(castVisible)
     this.nodes.retrieveField.setVisible(retrieveVisible)
+    this.nodes.battleField.setVisible(battleVisible)
+    this.nodes.resultField.setVisible(resultVisible)
     this.nodes.castDock.setVisible(castVisible)
     this.nodes.retrieveDock.setVisible(false)
     this.nodes.castInteraction.setVisible(castVisible)
@@ -315,6 +436,29 @@ export class CastPresentationHost {
       this.nodes.powerFill.clear()
       this.nodes.powerFill.fillStyle(0xffdc54, 1)
       this.nodes.powerFill.fillRoundedRect(67, DOCK_TOP + 52, 288 * view.charge01, 8, 4)
+    }
+    if (battleVisible) {
+      const battle = view.battle
+      this._syncFishImage(this.nodes.battleFish, battle.fishId)
+      this.nodes.battleFishName.setText(battle.fishName)
+      this.nodes.battleTensionFill.clear()
+      this.nodes.battleTensionFill.fillStyle(battle.tension01 >= 0.72 ? 0xff564b : 0xffa62e, 1)
+      this.nodes.battleTensionFill.fillRoundedRect(208, 34, Math.max(7, 148 * battle.tension01), 11, 6)
+      this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
+      this.nodes.battleRage.setText('暴れている… 待つ').setVisible(battle.isRaging)
+    }
+    if (resultVisible) {
+      const result = view.result
+      const caught = result.outcome === 'caught'
+      this._syncFishImage(this.nodes.resultFish, result.fishId)
+      this.nodes.resultGlow.setVisible(caught)
+      this.nodes.resultFish.setVisible(caught)
+      this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
+      this.nodes.resultName.setText(caught ? result.fishName : '逃げられた…')
+      this.nodes.resultSize.setText(caught ? `サイズ\n${result.sizeCm} cm` : 'タイミングを\n整えよう')
+      this.nodes.resultScore.setText(caught ? `${result.score} pt` : '')
+      this.nodes.resultTownMask.setVisible(!caught)
+      this.nodes.resultTownMaskText.setVisible(!caught)
     }
   }
 

@@ -12,6 +12,11 @@ export function readCastViewModel(scene) {
     ? oscillatePower(scene.time.now - scene.chargeStartedAt)
     : 0.62
 
+  const fish = scene.fish ?? null
+  const lastCatch = scene.catches?.[scene.catches.length - 1] ?? null
+  const outcome = scene._castPresentationOutcome ?? null
+  const caught = outcome === 'caught' && lastCatch?.fishId === fish?.id
+
   return Object.freeze({
     phase: scene.phase,
     locationLabel: LOCATION_LABELS[scene.env?.point] ?? LOCATION_LABELS.pointA,
@@ -23,6 +28,21 @@ export function readCastViewModel(scene) {
       appeal01: scene.retrieveState?.appeal ?? 0,
       lureX: scene.bobber?.x ?? scene.retrieveState?.lureX ?? 205,
       lureY: scene.bobber?.y ?? scene.retrieveState?.lureY ?? 370,
+    }),
+    battle: Object.freeze({
+      fishId: fish?.id ?? 'tai',
+      fishName: fish?.name ?? 'FISH',
+      tension01: Math.max(0, Math.min(1, (scene.battleState?.escape ?? 0) / 100)),
+      reel01: Math.max(0, Math.min(1, (scene.battleState?.reel ?? 0) / 100)),
+      isRaging: Boolean(scene.battleState?.isRaging),
+    }),
+    result: Object.freeze({
+      outcome,
+      fishId: fish?.id ?? 'tai',
+      fishName: fish?.name ?? 'FISH',
+      sizeCm: caught ? lastCatch.sizeCm : null,
+      score: caught ? lastCatch.score : null,
+      totalScore: scene.totalScore ?? 0,
     }),
     charge01,
     aim: Object.freeze({
