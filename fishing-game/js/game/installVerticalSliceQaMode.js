@@ -310,7 +310,7 @@ export function installVerticalSliceQaMode(GameScene) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) {
-      buildQaHud(this)
+      if (!qaMockPhase()) buildQaHud(this)
       forceQaAction(this)
       if (qaMockPhase() === 'cast') {
         this.time.delayedCall(0, () => {
@@ -329,7 +329,7 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
-    if (this._qaEnabled && pointer?.y <= (this._qaPanelHeight ?? 92)) return
+    if (this._qaEnabled && !qaMockPhase() && pointer?.y <= (this._qaPanelHeight ?? 92)) return
     return originalOnDown.call(this, pointer)
   }
 
