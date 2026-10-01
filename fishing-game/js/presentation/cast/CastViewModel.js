@@ -15,9 +15,15 @@ export function readCastViewModel(scene) {
   return Object.freeze({
     phase: scene.phase,
     locationLabel: LOCATION_LABELS[scene.env?.point] ?? LOCATION_LABELS.pointA,
-    distanceLabel: '28m',
+    distanceLabel: scene.phase === 'cast' ? '28m' : '18m',
     tackleLabel: scene.rod?.name ?? '',
     isCharging,
+    retrieve: Object.freeze({
+      action: scene.retrieveState?.action ?? 'idle',
+      appeal01: scene.retrieveState?.appeal ?? 0,
+      lureX: scene.bobber?.x ?? scene.retrieveState?.lureX ?? 205,
+      lureY: scene.bobber?.y ?? scene.retrieveState?.lureY ?? 370,
+    }),
     charge01,
     aim: Object.freeze({
       x: scene._rcCastAimX ?? 278,

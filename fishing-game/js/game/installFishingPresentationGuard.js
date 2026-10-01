@@ -431,6 +431,9 @@ function hideLegacyCastPresentation(scene) {
   scene._mockTopChrome?.setVisible?.(false)
   scene._rcMockFieldFish?.forEach?.(obj => obj?.setVisible?.(false))
   scene._rcCastAim?.setVisible?.(false)
+  scene.retrieveUI?.hide?.()
+  scene.lineGfx?.setVisible?.(false)
+  scene.bobber?.setVisible?.(false)
   setFishingPlayerVisible(scene, false)
 }
 
@@ -838,7 +841,7 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.__ainanFishingPresentationGuardInstalled = true
 
   GameScene.prototype._applyRcFishingPresentation = function (phase = this.phase) {
-    if (usesCastPresentationHost(this) && phase === 'cast') {
+    if (usesCastPresentationHost(this) && ['cast', 'retrieve'].includes(phase)) {
       hideLegacyCastPresentation(this)
       this._castPresentationHost?.sync?.()
       return

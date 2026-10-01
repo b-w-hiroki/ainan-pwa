@@ -26,6 +26,28 @@ export class CastSceneAdapter {
     this.scene._onMove?.(pointer)
   }
 
+  retrieveWait() {
+    if (this.scene.phase !== 'retrieve') return false
+    this.scene._setRetrieveIdle?.()
+    return true
+  }
+
+  retrieveTwitch() {
+    if (this.scene.phase !== 'retrieve') return false
+    this.scene._twitchRetrieve?.()
+    return true
+  }
+
+  beginSlowRetrieve() {
+    if (this.scene.phase !== 'retrieve') return false
+    this.scene._startSlowRetrieve?.()
+    return true
+  }
+
+  endSlowRetrieve() {
+    this.scene._stopSlowRetrieve?.()
+  }
+
   back() {
     this.cancelCharge()
     this.scene.scene.start('MapScene')

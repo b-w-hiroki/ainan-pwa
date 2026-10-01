@@ -48,10 +48,19 @@ export class CastPresentationHost {
     const dock = scene.add.container(0, 0)
     const interaction = scene.add.container(0, 0)
     root.add([field, chrome, dock, interaction])
+    const castField = scene.add.container(0, 0)
+    const retrieveField = scene.add.container(0, 0)
+    const castDock = scene.add.container(0, 0)
+    const retrieveDock = scene.add.container(0, 0)
+    const castInteraction = scene.add.container(0, 0)
+    const retrieveInteraction = scene.add.container(0, 0)
+    field.add([castField, retrieveField])
+    dock.add([castDock, retrieveDock])
+    interaction.add([castInteraction, retrieveInteraction])
 
     const useApprovedComposite = castCompositePrototypeEnabled()
     if (useApprovedComposite) {
-      field.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
+      castField.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
         .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT))
     }
 
@@ -61,7 +70,7 @@ export class CastPresentationHost {
         DESIGN_HEIGHT / 2,
         ASSETS.ui.fishingApprovedCastSceneFragments.key,
       ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
-      field.add(approvedSceneFragments)
+      castField.add(approvedSceneFragments)
     }
 
     const fishLayout = useApprovedComposite
@@ -128,7 +137,11 @@ export class CastPresentationHost {
           .setOrigin(0.5, 1)
           .setDisplaySize(154, 220)
       : null
-    field.add([...fishShadows, target, ...(player ? [player] : [])])
+    castField.add([...fishShadows, target, ...(player ? [player] : [])])
+
+    const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
+      .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    retrieveField.add(retrieveBase)
 
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
@@ -203,11 +216,10 @@ export class CastPresentationHost {
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#102335',
     }).setOrigin(0.5)
-    dock.add([dockBase, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
+    castDock.add([dockBase, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
-    const backHit = scene.add.rectangle(31, 40, 54, 52, 0x000000, 0).setInteractive({ useHandCursor: true })
-    backHit.on('pointerdown', pointer => { pointer?.event?.stopPropagation?.(); this.adapter.back() })
-    const castHit = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 62, 0x000000, 0).setInteractive({ useHandCursor: true })
+    const backHit = scene.add.rectangle(31, 40, 54, 52, 0x000000, 0.001).setInteractive({ useHandCursor: true })
+    const castHit = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 62, 0x000000, 0.001).setInteractive({ useHandCursor: true })
     const pressables = [buttonBase, buttonRing, castIcon, castLabel]
     const resetScale = () => pressables.forEach(item => item.setScale(1))
     castHit.on('pointerdown', pointer => {
@@ -216,7 +228,8 @@ export class CastPresentationHost {
     })
     castHit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); resetScale(); this.adapter.releaseCharge() })
     castHit.on('pointerupoutside', () => { resetScale(); this.adapter.cancelCharge() })
-    interaction.add([backHit, castHit])
+    castInteraction.add(castHit)
+    interaction.add(backHit)
 
     this.root = root
     this.nodes = {
@@ -229,10 +242,46 @@ export class CastPresentationHost {
       buttonRing,
       castHit,
       backHit,
+      castField,
+      retrieveField,
+      castDock,
+      retrieveDock,
+      castInteraction,
+      retrieveInteraction,
+      chrome,
     }
     this.layout()
     this.sync()
+    scene.scale.on('resize', this.layout, this)
+    scene.input.on('pointerdown', this._onHostPointerDown, this)
+    scene.input.on('pointerup', this._onHostPointerUp, this)
     return this
+  }
+
+  _designPoint(pointer) {
+    const scale = this.root?.scaleX || 1
+    return { x: (pointer.x - this.root.x) / scale, y: (pointer.y - this.root.y) / scale }
+  }
+
+  _onHostPointerDown(pointer) {
+    if (!['cast', 'retrieve'].includes(this.scene.phase) || !this.root?.visible) return
+    const point = this._designPoint(pointer)
+    if (point.x <= 58 && point.y <= 68) {
+      this.adapter.back()
+      return
+    }
+    if (this.scene.phase !== 'retrieve') return
+    if (Math.hypot(point.x - 72, point.y - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveWait()
+    else if (Math.hypot(point.x - 195, point.y - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveTwitch()
+    else if (Math.hypot(point.x - 318, point.y - (DOCK_TOP + 126)) <= 48) {
+      this._slowPointerHeld = this.adapter.beginSlowRetrieve()
+    }
+  }
+
+  _onHostPointerUp() {
+    if (!this._slowPointerHeld) return
+    this._slowPointerHeld = false
+    this.adapter.endSlowRetrieve()
   }
 
   layout() {
@@ -247,17 +296,33 @@ export class CastPresentationHost {
   sync() {
     if (!this.root?.active) return
     const view = readCastViewModel(this.scene)
-    const visible = view.phase === 'cast'
+    const castVisible = view.phase === 'cast'
+    const retrieveVisible = view.phase === 'retrieve'
+    const visible = castVisible || retrieveVisible
     this.root.setVisible(visible)
     if (!visible) return
+    this.nodes.castField.setVisible(castVisible)
+    this.nodes.retrieveField.setVisible(retrieveVisible)
+    this.nodes.castDock.setVisible(castVisible)
+    this.nodes.retrieveDock.setVisible(false)
+    this.nodes.castInteraction.setVisible(castVisible)
+    this.nodes.retrieveInteraction.setVisible(retrieveVisible)
+    this.nodes.chrome.setVisible(castVisible)
+    this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)
     this.nodes.distance.setText(view.distanceLabel)
-    this.nodes.powerFill.clear()
-    this.nodes.powerFill.fillStyle(0xffdc54, 1)
-    this.nodes.powerFill.fillRoundedRect(67, DOCK_TOP + 52, 288 * view.charge01, 8, 4)
+    if (castVisible) {
+      this.nodes.powerFill.clear()
+      this.nodes.powerFill.fillStyle(0xffdc54, 1)
+      this.nodes.powerFill.fillRoundedRect(67, DOCK_TOP + 52, 288 * view.charge01, 8, 4)
+    }
   }
 
   destroy() {
+    this.scene.scale?.off?.('resize', this.layout, this)
+    this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
+    this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
+    this._slowPointerHeld = false
     this.root?.destroy?.(true)
     this.root = null
     this.nodes = null
