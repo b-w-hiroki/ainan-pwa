@@ -19,6 +19,11 @@ function castFragmentPrototypeEnabled() {
   return new URLSearchParams(window.location.search).get('castFragments') === '1'
 }
 
+function castPlayerCutoutPrototypeEnabled() {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('castPlayerCutout') === '1'
+}
+
 export class CastPresentationHost {
   constructor(scene) {
     this.scene = scene
@@ -76,11 +81,17 @@ export class CastPresentationHost {
       target.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
     }
 
-    const playerAsset = ASSETS.characters?.fishingCastHero
+    const useApprovedPlayerCutout = castPlayerCutoutPrototypeEnabled()
+    const playerAsset = useApprovedPlayerCutout
+      ? ASSETS.ui.fishingApprovedCastPlayerVisible
+      : ASSETS.characters?.fishingCastHero
     const player = playerAsset?.key && scene.textures.exists(playerAsset.key)
-      ? scene.add.image(L.cast.player.x + 10, L.cast.player.y + 8, playerAsset.key)
-        .setOrigin(0.5, 1)
-        .setDisplaySize(154, 220)
+      ? useApprovedPlayerCutout
+        ? scene.add.image(90 * (390 / 391), 465 * (844 / 783), playerAsset.key)
+          .setDisplaySize(180 * (390 / 391), 230 * (844 / 783))
+        : scene.add.image(L.cast.player.x + 10, L.cast.player.y + 8, playerAsset.key)
+          .setOrigin(0.5, 1)
+          .setDisplaySize(154, 220)
       : null
     field.add([...fishShadows, target, ...(player ? [player] : [])])
 

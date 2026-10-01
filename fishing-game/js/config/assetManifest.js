@@ -112,6 +112,7 @@ export const ASSETS = {
   },
   ui: {
     fishingApprovedCastSceneFragments: { key: 'ui_fishing_approved_cast_scene_fragments', path: assetPath('fishing-game/assets/approved-mock/cast-scene-fragments.png'), status: 'ready' },
+    fishingApprovedCastPlayerVisible: { key: 'ui_fishing_approved_cast_player_visible', path: assetPath('fishing-game/assets/approved-mock/cast-player-visible.png'), status: 'ready' },
     fishingApprovedTopHud: { key: 'ui_fishing_approved_top_hud', path: assetPath('fishing-game/assets/approved-mock/top-hud-frame.png'), status: 'ready' },
     fishingApprovedInstruction: { key: 'ui_fishing_approved_instruction', path: assetPath('fishing-game/assets/approved-mock/cast-instruction-frame.png'), status: 'ready' },
     fishingApprovedCastRing: { key: 'ui_fishing_approved_cast_ring', path: assetPath('fishing-game/assets/approved-mock/cast-button-ring.png'), status: 'ready' },
