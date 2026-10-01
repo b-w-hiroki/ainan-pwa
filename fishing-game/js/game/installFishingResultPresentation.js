@@ -109,7 +109,7 @@ function buildPayoffVisuals(scene) {
   const sizeCm = Number(latest?.sizeCm ?? 0)
   const bigCatch = Number.isFinite(sizeCm) && sizeCm >= (scene.fish?.rarity === 'legendary' ? 100 : scene.fish?.rarity === 'rare' ? 70 : 55)
   if (bigCatch) {
-    const badge = scene.add.container(cx, cy + 126).setDepth(135).setScrollFactor(0)
+    const badge = scene.add.container(cx, cy + 110).setDepth(135).setScrollFactor(0)
     const bg = scene.add.graphics()
     bg.fillStyle(0xffb51f, 0.96)
     bg.lineStyle(2, 0xffef9a, 0.95)
@@ -289,6 +289,10 @@ export function installFishingResultPresentation(GameScene) {
 
   GameScene.prototype._polishCaughtResultPresentation = function () {
     polishCaughtResult(this)
+  }
+
+  GameScene.prototype._buildFishingPayoffVisuals = function () {
+    buildPayoffVisuals(this)
   }
 
   const originalFinishBattle = GameScene.prototype._finishBattle

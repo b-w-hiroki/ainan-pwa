@@ -766,6 +766,7 @@ function applyPhasePresentation(scene, phase = scene.phase) {
     scene.battleHero?.setVisible?.(false)
     scene.battleHeroGlow?.setVisible?.(false)
     scene._mobileHudSetVisible?.(false)
+    scene._buildFishingPayoffVisuals?.()
   }
 }
 
