@@ -24,6 +24,11 @@ function castPlayerCutoutPrototypeEnabled() {
   return new URLSearchParams(window.location.search).get('castPlayerCutout') === '1'
 }
 
+function castCompositePrototypeEnabled() {
+  if (typeof window === 'undefined') return true
+  return new URLSearchParams(window.location.search).get('castComposite') !== '0'
+}
+
 export class CastPresentationHost {
   constructor(scene) {
     this.scene = scene
@@ -44,7 +49,13 @@ export class CastPresentationHost {
     const interaction = scene.add.container(0, 0)
     root.add([field, chrome, dock, interaction])
 
-    if (castFragmentPrototypeEnabled()) {
+    const useApprovedComposite = castCompositePrototypeEnabled()
+    if (useApprovedComposite) {
+      field.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
+        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT))
+    }
+
+    if (!useApprovedComposite && castFragmentPrototypeEnabled()) {
       const approvedSceneFragments = scene.add.image(
         DESIGN_WIDTH / 2,
         DESIGN_HEIGHT / 2,
@@ -53,7 +64,14 @@ export class CastPresentationHost {
       field.add(approvedSceneFragments)
     }
 
-    const fishShadows = L.cast.fish.map((fish, index) => {
+    const fishLayout = useApprovedComposite
+      ? [
+          { x: 133, y: 193, width: 88 },
+          { x: 98, y: 318, width: 78 },
+          { x: 309, y: 368, width: 72 },
+        ]
+      : L.cast.fish
+    const fishShadows = fishLayout.map((fish, index) => {
       const asset = ASSETS.fishingField.fishShadowMediumIdle
       if (asset?.key && scene.textures.exists(asset.key)) {
         return scene.add.image(fish.x, fish.y, asset.key)
@@ -64,24 +82,41 @@ export class CastPresentationHost {
       return fallback
     })
 
+    const targetX = useApprovedComposite ? 310 : L.cast.target.x
+    const targetY = useApprovedComposite ? 235 : L.cast.target.y
     const target = scene.add.graphics()
     target.fillStyle(0xffd95a, 0.10)
-    target.fillEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+    target.fillEllipse(targetX, targetY, 74, 34)
     target.lineStyle(3, 0xffe88a, 0.92)
-    target.strokeEllipse(L.cast.target.x, L.cast.target.y, 74, 34)
+    target.strokeEllipse(targetX, targetY, 74, 34)
     target.lineStyle(1.4, 0xffffff, 0.74)
-    target.strokeEllipse(L.cast.target.x, L.cast.target.y, 42, 20)
+    target.strokeEllipse(targetX, targetY, 42, 20)
+    const castStartX = useApprovedComposite ? 169 : L.cast.player.x + 34
+    const castStartY = useApprovedComposite ? 379 : L.cast.player.y - 112
     for (let i = 0; i < 5; i += 1) {
       const t = (i + 1) / 6
-      const sx = L.cast.player.x + 34
-      const sy = L.cast.player.y - 112
-      const x = sx + (L.cast.target.x - sx) * t
-      const y = sy + (L.cast.target.y - sy) * t - Math.sin(Math.PI * t) * 74
+      const x = castStartX + (targetX - castStartX) * t
+      const y = castStartY + (targetY - castStartY) * t - Math.sin(Math.PI * t) * (useApprovedComposite ? 26 : 74)
       target.fillStyle(0xffffff, 0.76 - i * 0.08)
       target.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
     }
 
-    const useApprovedPlayerCutout = castPlayerCutoutPrototypeEnabled()
+    if (useApprovedComposite) {
+      target.lineStyle(5, 0x122434, 0.98)
+      target.beginPath()
+      target.moveTo(130, 486)
+      target.lineTo(151, 429)
+      target.lineTo(169, 379)
+      target.strokePath()
+      target.lineStyle(1.5, 0xef8c37, 1)
+      target.beginPath()
+      target.moveTo(130, 486)
+      target.lineTo(151, 429)
+      target.lineTo(169, 379)
+      target.strokePath()
+    }
+
+    const useApprovedPlayerCutout = useApprovedComposite || castPlayerCutoutPrototypeEnabled()
     const playerAsset = useApprovedPlayerCutout
       ? ASSETS.ui.fishingApprovedCastPlayerVisible
       : ASSETS.characters?.fishingCastHero
