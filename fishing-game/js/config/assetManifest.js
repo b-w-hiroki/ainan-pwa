@@ -111,6 +111,9 @@ export const ASSETS = {
     baitSpecial: { key: 'equip_bait_special', path: assetPath('fishing-game/assets/equipment/bait_special.svg'), status: 'ready' },
   },
   ui: {
+    fishingApprovedTopHud: { key: 'ui_fishing_approved_top_hud', path: assetPath('fishing-game/assets/approved-mock/top-hud-frame.png'), status: 'ready' },
+    fishingApprovedInstruction: { key: 'ui_fishing_approved_instruction', path: assetPath('fishing-game/assets/approved-mock/cast-instruction-frame.png'), status: 'ready' },
+    fishingApprovedCastRing: { key: 'ui_fishing_approved_cast_ring', path: assetPath('fishing-game/assets/approved-mock/cast-button-ring.png'), status: 'ready' },
     fishingLogo: { key: 'ui_fishing_logo', path: assetPath('fishing-game/assets/generated/mock-ui/logo_ainan_fishing.svg'), status: 'ready' },
     fishingCastButton: { key: 'ui_fishing_cast_button', path: assetPath('fishing-game/assets/generated/mock-ui/button_cast.svg'), status: 'ready' },
     fishingWaitButton: { key: 'ui_fishing_wait_button', path: assetPath('fishing-game/assets/generated/mock-ui/button_wait.svg'), status: 'ready' },

@@ -355,6 +355,9 @@ function buildProposalTopChrome(scene) {
   bar.lineBetween(54, 22, 54, 58)
   bar.lineBetween(184, 22, 184, 58)
   bar.lineBetween(302, 22, 302, 58)
+  const barSkin = scene.add.image(10, 14, ASSETS.ui.fishingApprovedTopHud.key)
+    .setOrigin(0, 0)
+    .setDisplaySize(W - 20, 52)
 
   const back = scene.add.text(31, 40, '‹', {
     fontFamily: 'Nunito, sans-serif', resolution: 1,
@@ -391,14 +394,16 @@ function buildProposalTopChrome(scene) {
   plateBg.fillRoundedRect(-76, -13, 152, 26, 13)
   plateBg.lineStyle(1.2, 0xffffff, 0.48)
   plateBg.strokeRoundedRect(-76, -13, 152, 26, 13)
+  const plateSkin = scene.add.image(0, 0, ASSETS.ui.fishingApprovedInstruction.key)
+    .setDisplaySize(152, 26)
   const plateText = scene.add.text(0, 0, '狙う場所を決める', {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
     fontSize: '11px', fontStyle: 'bold', color: '#ffffff', align: 'center',
   }).setOrigin(0.5)
-  plate.add([plateBg, plateText])
+  plate.add([plateBg, plateSkin, plateText])
   plate._text = plateText
 
-  c.add([bar, back, pin, loc, rod, distance, tackle, plate])
+  c.add([bar, barSkin, back, pin, loc, rod, distance, tackle, plate])
   c._location = loc
   c._plate = plate
   c._distance = distance
@@ -570,23 +575,53 @@ function buildProposalCastOverlay(scene) {
   track.strokeRoundedRect(64, top + 49, 294, 14, 7)
   track.fillStyle(0xffdc54, 1)
   track.fillRoundedRect(67, top + 52, 184, 8, 4)
-  const art = scene.add.image(W / 2, top + 128, ASSETS.ui.fishingCastButton.key)
-    .setDisplaySize(134, 134)
+  const buttonY = top + 128
+  const buttonBase = scene.add.circle(W / 2, buttonY, 55, 0xffd957, 1)
+    .setStrokeStyle(3, 0xfff1a1, 1)
+  const art = scene.add.image(W / 2, buttonY, ASSETS.ui.fishingApprovedCastRing.key)
+    .setDisplaySize(130, 130)
+  const castIcon = scene.add.graphics().setPosition(W / 2, buttonY - 18)
+  castIcon.lineStyle(3, 0x102b43, 1)
+  castIcon.beginPath()
+  castIcon.moveTo(-22, 12)
+  castIcon.lineTo(-14, -4)
+  castIcon.lineTo(-3, -14)
+  castIcon.lineTo(9, -19)
+  castIcon.lineTo(21, -16)
+  castIcon.lineTo(27, -10)
+  castIcon.strokePath()
+  castIcon.strokeCircle(-13, 7, 7)
+  castIcon.lineStyle(2, 0x102b43, 1)
+  castIcon.beginPath()
+  castIcon.moveTo(27, -10)
+  castIcon.lineTo(31, -2)
+  castIcon.lineTo(29, 5)
+  castIcon.lineTo(23, 8)
+  castIcon.strokePath()
+  castIcon.fillStyle(0x102b43, 1)
+  castIcon.fillCircle(22, 10, 2.5)
+  const castLabel = scene.add.text(W / 2, buttonY + 25, '投げる', {
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontSize: '20px', fontStyle: 'bold', color: '#102335',
+  }).setOrigin(0.5)
+  const castHit = scene.add.circle(W / 2, buttonY, 62, 0x000000, 0)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', pointer => {
       pointer?.event?.stopPropagation?.()
       if (scene.phase !== 'cast' || scene.isCharging) return
       scene.isCharging = true
       scene.chargeStartedAt = scene.time.now
-      art.setScale(0.96)
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(0.96))
     })
     .on('pointerup', pointer => {
       pointer?.event?.stopPropagation?.()
-      art.setScale(1)
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(1))
       if (scene.phase === 'cast' && scene.isCharging) scene._onUp?.()
     })
-    .on('pointerupoutside', () => art.setScale(1))
-  c.add([bg, instruction, label, track, art])
+    .on('pointerupoutside', () => {
+      ;[buttonBase, art, castIcon, castLabel].forEach(item => item.setScale(1))
+    })
+  c.add([bg, instruction, label, track, buttonBase, art, castIcon, castLabel, castHit])
   scene._finalCastOverlay = c
   return c
 }
@@ -788,7 +823,8 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
     const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
-    playerAssets.forEach(asset => {
+    const approvedUiAssets = [ASSETS.ui?.fishingApprovedTopHud, ASSETS.ui?.fishingApprovedInstruction, ASSETS.ui?.fishingApprovedCastRing].filter(Boolean)
+    ;[...playerAssets, ...approvedUiAssets].forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
       }
