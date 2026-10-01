@@ -58,10 +58,42 @@ function buildPayoffVisuals(scene) {
   const tweens = []
   const reduced = isReducedMotion()
 
+  const veil = scene.add.rectangle(W / 2, H / 2, W, H, 0x031d2e, 0.18).setDepth(127).setScrollFactor(0)
+  const goldBack = scene.add.circle(cx, cy, 126 * rarity.scale, 0xffd95a, 0.24).setDepth(128).setScrollFactor(0)
   const back = scene.add.circle(cx, cy, 104 * rarity.scale, rarity.color, 0.10).setDepth(129).setScrollFactor(0)
   const ring1 = scene.add.circle(cx, cy, 84 * rarity.scale, rarity.color, 0).setStrokeStyle(3, rarity.color, 0.38).setDepth(130).setScrollFactor(0)
   const ring2 = scene.add.circle(cx, cy, 98 * rarity.scale, 0xffffff, 0).setStrokeStyle(1.5, 0xffffff, 0.22).setDepth(130).setScrollFactor(0)
-  objects.push(back, ring1, ring2)
+  objects.push(veil, goldBack, back, ring1, ring2)
+
+  const goldRays = scene.add.graphics().setDepth(128).setScrollFactor(0)
+  for (let i = 0; i < 14; i++) {
+    const a = (Math.PI * 2 * i) / 14
+    const r1 = (92 + (i % 2) * 8) * rarity.scale
+    const r2 = (148 + (i % 3) * 12) * rarity.scale
+    goldRays.lineStyle(i % 2 ? 2 : 4, 0xffd95a, i % 2 ? 0.32 : 0.46)
+    goldRays.lineBetween(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1, cx + Math.cos(a) * r2, cy + Math.sin(a) * r2)
+  }
+  objects.push(goldRays)
+
+  const sparkleOffsets = [[-126,-72],[-112,58],[-76,-116],[78,-110],[116,-54],[126,68],[-38,122],[48,126]]
+  sparkleOffsets.forEach(([dx, dy], index) => {
+    const sparkle = scene.add.graphics().setDepth(133).setScrollFactor(0)
+    const x = cx + dx * rarity.scale
+    const y = cy + dy * rarity.scale
+    const size = index % 3 === 0 ? 9 : 6
+    sparkle.lineStyle(index % 2 ? 2 : 3, 0xffef9a, 0.78)
+    sparkle.lineBetween(x - size, y, x + size, y)
+    sparkle.lineBetween(x, y - size, x, y + size)
+    objects.push(sparkle)
+    if (!reduced) tweens.push(scene.tweens.add({
+      targets: sparkle,
+      alpha: { from: 0.34, to: 0.92 },
+      duration: 620 + index * 70,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    }))
+  })
 
   const rays = scene.add.graphics().setDepth(129).setScrollFactor(0)
   for (let i = 0; i < rarity.rays; i++) {

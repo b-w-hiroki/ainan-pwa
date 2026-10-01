@@ -76,6 +76,8 @@ function ensureBattleHero(scene) {
   splash.strokeEllipse(scene.scale.width / 2, cy + 46, width * 0.90, 30)
   splash.lineStyle(3, 0x8edfff, 0.80)
   splash.strokeEllipse(scene.scale.width / 2, cy + 48, width * 1.12, 42)
+  splash.lineStyle(2, 0xffffff, 0.62)
+  splash.strokeEllipse(scene.scale.width / 2, cy + 42, width * 0.68, 18)
   ;[-74, -46, 52, 82].forEach((dx, index) => {
     const baseX = scene.scale.width / 2 + dx
     const baseY = 372 + (index % 2) * 4
@@ -88,6 +90,10 @@ function ensureBattleHero(scene) {
   })
   splash.fillStyle(0xc9f5ff, 0.92)
   ;[[-96,367,4],[-67,352,3],[71,354,3],[101,369,4]].forEach(([dx,y,r]) => {
+    splash.fillCircle(scene.scale.width / 2 + dx, y, r)
+  })
+  splash.fillStyle(0xffffff, 0.82)
+  ;[[-118,342,3],[-88,329,2],[-52,318,2],[58,320,2],[91,333,2],[119,347,3]].forEach(([dx,y,r]) => {
     splash.fillCircle(scene.scale.width / 2 + dx, y, r)
   })
   scene.battleHeroSplash = splash
