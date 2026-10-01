@@ -14,6 +14,11 @@ export function castPresentationMode() {
     : 'host'
 }
 
+function castFragmentPrototypeEnabled() {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('castFragments') === '1'
+}
+
 export class CastPresentationHost {
   constructor(scene) {
     this.scene = scene
@@ -33,6 +38,15 @@ export class CastPresentationHost {
     const dock = scene.add.container(0, 0)
     const interaction = scene.add.container(0, 0)
     root.add([field, chrome, dock, interaction])
+
+    if (castFragmentPrototypeEnabled()) {
+      const approvedSceneFragments = scene.add.image(
+        DESIGN_WIDTH / 2,
+        DESIGN_HEIGHT / 2,
+        ASSETS.ui.fishingApprovedCastSceneFragments.key,
+      ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+      field.add(approvedSceneFragments)
+    }
 
     const fishShadows = L.cast.fish.map((fish, index) => {
       const asset = ASSETS.fishingField.fishShadowMediumIdle
