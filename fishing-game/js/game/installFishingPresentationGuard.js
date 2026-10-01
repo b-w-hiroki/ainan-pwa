@@ -5,6 +5,7 @@ import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 import { haptic } from './feedback.js'
+import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -411,6 +412,28 @@ function buildProposalTopChrome(scene) {
   return c
 }
 
+function usesCastPresentationHost(scene) {
+  return scene?._castPresentationMode === 'host'
+}
+
+function hideLegacyCastPresentation(scene) {
+  hideTackleChrome(scene)
+  hideLegacyGuideChrome(scene)
+  scene.castGfx?.setVisible?.(false)
+  scene.powerGfx?.setVisible?.(false)
+  scene.powerLabel?.setVisible?.(false)
+  scene.scoreBar?.setVisible?.(false)
+  scene.schoolFx?.setVisible?.(false)
+  scene._mobileHudSetVisible?.(false)
+  scene._blueprintCastInstruction?.setVisible?.(false)
+  scene._rcCastDock?.setVisible?.(false)
+  scene._finalCastOverlay?.setVisible?.(false)
+  scene._mockTopChrome?.setVisible?.(false)
+  scene._rcMockFieldFish?.forEach?.(obj => obj?.setVisible?.(false))
+  scene._rcCastAim?.setVisible?.(false)
+  setFishingPlayerVisible(scene, false)
+}
+
 function syncMockTopChrome(scene, phase) {
   const chrome = buildProposalTopChrome(scene)
   const visible = phase === 'cast' || phase === 'retrieve' || phase === 'result'
@@ -815,6 +838,11 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype.__ainanFishingPresentationGuardInstalled = true
 
   GameScene.prototype._applyRcFishingPresentation = function (phase = this.phase) {
+    if (usesCastPresentationHost(this) && phase === 'cast') {
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost?.sync?.()
+      return
+    }
     buildFinalControlChrome(this)
     applyPhasePresentation(this, phase)
   }
@@ -860,16 +888,23 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCreate = GameScene.prototype.create
   GameScene.prototype.create = function (...args) {
+    this._castPresentationMode = castPresentationMode()
     const result = originalCreate.apply(this, args)
-    buildFinalControlChrome(this)
-    buildProposalCastOverlay(this)
-    buildLeftPierDecor(this)
-    buildRcPlayerHero(this)
-    buildMockFieldStaging(this)
-    buildFishReadCue(this)
-    collectPlayerObjects(this)
-    setFishingPlayerVisible(this, false)
-    this._applyRcFishingPresentation?.(this.phase)
+    if (usesCastPresentationHost(this)) {
+      collectPlayerObjects(this)
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost = new CastPresentationHost(this).mount()
+    } else {
+      buildFinalControlChrome(this)
+      buildProposalCastOverlay(this)
+      buildLeftPierDecor(this)
+      buildRcPlayerHero(this)
+      buildMockFieldStaging(this)
+      buildFishReadCue(this)
+      collectPlayerObjects(this)
+      setFishingPlayerVisible(this, false)
+      this._applyRcFishingPresentation?.(this.phase)
+    }
     return result
   }
 
@@ -885,6 +920,10 @@ export function installFishingPresentationGuard(GameScene) {
   const originalUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = originalUpdate?.apply(this, args)
+    if (usesCastPresentationHost(this)) {
+      this._castPresentationHost?.sync?.()
+      return result
+    }
     const cast = this.phase === 'cast'
     this._rcCastDock?.setVisible?.(false)
     if (cast) {
@@ -901,7 +940,12 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._enterCast = function (...args) {
     const result = originalEnterCast.apply(this, args)
     setFishingPlayerVisible(this, false)
-    this._applyRcFishingPresentation?.('cast')
+    if (usesCastPresentationHost(this)) {
+      hideLegacyCastPresentation(this)
+      this._castPresentationHost?.sync?.()
+    } else {
+      this._applyRcFishingPresentation?.('cast')
+    }
     return result
   }
 
@@ -916,6 +960,13 @@ export function installFishingPresentationGuard(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
+    if (usesCastPresentationHost(this)) {
+      buildFinalControlChrome(this)
+      buildLeftPierDecor(this)
+      buildRcPlayerHero(this)
+      buildMockFieldStaging(this)
+      buildFishReadCue(this)
+    }
     setFishingPlayerVisible(this, false)
     this._applyRcFishingPresentation?.('retrieve')
     drawRetrieveLineToPlayfieldEdge(this)
@@ -966,6 +1017,8 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    this._castPresentationHost?.destroy?.()
+    this._castPresentationHost = null
     this._mockTopChrome?.destroy?.(true)
     this._mockTopChrome = null
     this._finalCastOverlay?.destroy?.(true)
