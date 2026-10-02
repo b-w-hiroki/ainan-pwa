@@ -4,6 +4,7 @@ import { readCastViewModel } from './CastViewModel.js'
 import { CastSceneAdapter } from './CastSceneAdapter.js'
 import { CAST_LAYER_CONFIG, readCastLayerDevOptions } from './castLayerConfig.js'
 import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredScene.js'
+import { CharacterMotionController } from './CharacterMotionController.js'
 
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
@@ -239,6 +240,13 @@ export class CastPresentationHost {
     }).setOrigin(0.5).setVisible(false)
     resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText])
 
+    const characterMotion = new CharacterMotionController(scene).mount(field)
+    if (characterMotion.ready) {
+      player?.setVisible(false)
+      layeredScene?.nodes?.character?.setVisible(false)
+      layeredScene?.nodes?.heldRod?.setVisible(false)
+    }
+
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
     hudBase.fillRoundedRect(10, 14, DESIGN_WIDTH - 20, 52, 15)
@@ -391,6 +399,8 @@ export class CastPresentationHost {
       resultScore,
       resultTownMask,
       resultTownMaskText,
+      player,
+      characterMotion,
     }
     this.layout()
     this.sync()
@@ -452,6 +462,7 @@ export class CastPresentationHost {
   sync() {
     if (!this.root?.active) return
     const view = readCastViewModel(this.scene)
+    this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
     const battleVisible = view.phase === 'battle'
@@ -491,8 +502,9 @@ export class CastPresentationHost {
       const result = view.result
       const caught = result.outcome === 'caught'
       this._syncFishImage(this.nodes.resultFish, result.fishId)
+      this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught)
-      this.nodes.resultFish.setVisible(caught)
+      this.nodes.resultFish.setVisible(caught && this.nodes.characterMotion?.currentAction !== 'joy')
       this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
       this.nodes.resultName.setText(caught ? result.fishName : '逃げられた…')
       this.nodes.resultSize.setText(caught ? `サイズ\n${result.sizeCm} cm` : 'タイミングを\n整えよう')
@@ -507,6 +519,7 @@ export class CastPresentationHost {
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
     this._slowPointerHeld = false
+    this.nodes?.characterMotion?.destroy?.()
     this.root?.destroy?.(true)
     this.root = null
     this.nodes = null

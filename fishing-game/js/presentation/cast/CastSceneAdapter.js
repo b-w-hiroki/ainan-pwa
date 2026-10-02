@@ -5,7 +5,7 @@ export class CastSceneAdapter {
 
   beginCharge() {
     const scene = this.scene
-    if (scene.phase !== 'cast' || scene.isCharging) return false
+    if (scene.phase !== 'cast' || scene.isCharging || scene._castMotionInputLocked) return false
     scene.isCharging = true
     scene.chargeStartedAt = scene.time.now
     return true

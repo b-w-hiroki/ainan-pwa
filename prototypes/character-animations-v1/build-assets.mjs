@@ -7,27 +7,31 @@ const outputDir = path.join(root, 'assets');
 await fs.mkdir(outputDir, { recursive: true });
 
 const inputs = [
-  ['cast-windup', 'sources/cast-poses-sheet.png', 0],
-  ['cast-release', 'sources/cast-poses-sheet.png', 1],
-  ['fight-left', 'sources/fight-poses-sheet.png', 0],
-  ['fight-right', 'sources/fight-poses-sheet.png', 1],
-  ['joy-lift', 'sources/joy-poses-sheet.png', 0],
-  ['joy-hold', 'sources/joy-poses-sheet.png', 1],
-  ['sad-drop', 'sources/sad-poses-sheet.png', 0],
-  ['sad-slump', 'sources/sad-poses-sheet.png', 1],
-  ['idle', '../cast-layer-set-v2/assets/character-390x844.png', null],
+  ['cast-windup', 'sources/cast-poses-sheet.png', 0, 2],
+  ['cast-mid', 'sources/inbetween-poses-sheet.png', 0, 4],
+  ['cast-release', 'sources/cast-poses-sheet.png', 1, 2],
+  ['fight-left', 'sources/fight-poses-sheet.png', 0, 2],
+  ['fight-mid', 'sources/inbetween-poses-sheet.png', 1, 4],
+  ['fight-right', 'sources/fight-poses-sheet.png', 1, 2],
+  ['joy-lift', 'sources/joy-poses-sheet.png', 0, 2],
+  ['joy-mid', 'sources/inbetween-poses-sheet.png', 2, 4],
+  ['joy-hold', 'sources/joy-poses-sheet.png', 1, 2],
+  ['sad-drop', 'sources/sad-poses-sheet.png', 0, 2],
+  ['sad-mid', 'sources/inbetween-poses-sheet.png', 3, 4],
+  ['sad-slump', 'sources/sad-poses-sheet.png', 1, 2],
+  ['idle', '../cast-layer-set-v2/assets/character-390x844.png', null, 1],
 ];
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
-for (const [name, relativeFile, half] of inputs) {
+for (const [name, relativeFile, half, segments] of inputs) {
   const data = await fs.readFile(path.join(root, relativeFile));
-  const result = await page.evaluate(async ({ uri, half, name, relativeFile }) => {
+  const result = await page.evaluate(async ({ uri, half, name, relativeFile, segments }) => {
     const image = new Image();
     image.src = uri;
     await image.decode();
     const source = document.createElement('canvas');
-    source.width = half === null ? image.naturalWidth : Math.floor(image.naturalWidth / 2);
+    source.width = half === null ? image.naturalWidth : Math.floor(image.naturalWidth / segments);
     source.height = image.naturalHeight;
     const sourceContext = source.getContext('2d', { willReadFrequently: true });
     const sx = half === null ? 0 : half * source.width;
@@ -107,7 +111,7 @@ for (const [name, relativeFile, half] of inputs) {
       data: target.toDataURL('image/png').split(',')[1],
       ledger: { source: relativeFile, half, sourceBounds: [minX, minY, maxX, maxY], frame: [320, 420], pivot: [160, 400], renderedBounds: [Math.round(dx), Math.round(dy), Math.round(dx + drawWidth), 400] },
     };
-  }, { uri: `data:image/png;base64,${data.toString('base64')}`, half, name, relativeFile });
+  }, { uri: `data:image/png;base64,${data.toString('base64')}`, half, name, relativeFile, segments });
   await fs.writeFile(path.join(outputDir, `${name}.png`), Buffer.from(result.data, 'base64'));
   console.log(name, JSON.stringify(result.ledger));
 }

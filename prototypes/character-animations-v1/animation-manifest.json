@@ -3,18 +3,22 @@
   "poses": {
     "idle": { "file": "assets/idle.png", "grip": [214, 193], "rodTip": [261, 58] },
     "cast-windup": { "file": "assets/cast-windup.png", "grip": [75, 139], "rodTip": [23, 38] },
+    "cast-mid": { "file": "assets/cast-mid.png", "grip": [250, 151], "rodTip": [291, 47] },
     "cast-release": { "file": "assets/cast-release.png", "grip": [282, 147], "rodTip": [316, 42] },
     "fight-left": { "file": "assets/fight-left.png", "grip": [242, 202], "rodTip": [302, 52] },
+    "fight-mid": { "file": "assets/fight-mid.png", "grip": [250, 188], "rodTip": [306, 48] },
     "fight-right": { "file": "assets/fight-right.png", "grip": [242, 202], "rodTip": [304, 70] },
     "joy-lift": { "file": "assets/joy-lift.png", "fishAnchor": [225, 204] },
+    "joy-mid": { "file": "assets/joy-mid.png", "fishAnchor": [247, 202] },
     "joy-hold": { "file": "assets/joy-hold.png", "fishAnchor": [250, 210] },
     "sad-drop": { "file": "assets/sad-drop.png", "grip": [230, 308], "rodTip": [302, 380] },
+    "sad-mid": { "file": "assets/sad-mid.png", "grip": [247, 296], "rodTip": [306, 388] },
     "sad-slump": { "file": "assets/sad-slump.png", "grip": [225, 315], "rodTip": [292, 402] }
   },
   "animations": {
-    "cast": { "mode": "one-shot", "durationMs": 1420, "phases": [["idle", 120], ["cast-windup", 360], ["cast-release", 310], ["cast-release", 260], ["idle", 370]] },
-    "fight": { "mode": "loop", "durationMs": 920, "phases": [["fight-left", 220], ["fight-right", 240], ["fight-left", 240], ["fight-right", 220]] },
-    "joy": { "mode": "one-shot", "durationMs": 1780, "phases": [["idle", 120], ["joy-lift", 350], ["joy-hold", 460], ["joy-hold", 380], ["idle", 470]] },
-    "sad": { "mode": "one-shot", "durationMs": 1920, "phases": [["idle", 120], ["sad-drop", 400], ["sad-slump", 520], ["sad-slump", 400], ["idle", 480]] }
+    "cast": { "mode": "one-shot", "durationMs": 1330, "phases": [["idle", 120], ["cast-windup", 350], ["cast-mid", 110], ["cast-release", 300], ["cast-release", 220], ["idle", 230]] },
+    "fight": { "mode": "loop", "durationMs": 580, "phases": [["fight-left", 170], ["fight-mid", 120], ["fight-right", 170], ["fight-mid", 120]] },
+    "joy": { "mode": "one-shot", "durationMs": 1380, "phases": [["idle", 120], ["joy-lift", 220], ["joy-mid", 170], ["joy-hold", 470], ["joy-mid", 160], ["idle", 240]] },
+    "sad": { "mode": "one-shot", "durationMs": 1560, "phases": [["idle", 120], ["sad-drop", 240], ["sad-mid", 230], ["sad-slump", 510], ["sad-mid", 180], ["idle", 280]] }
   }
 }
