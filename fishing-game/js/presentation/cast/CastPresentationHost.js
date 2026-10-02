@@ -2,10 +2,12 @@ import { ASSETS } from '../../config/assetManifest.js'
 import { FISHING_MOCK_LAYOUT as L } from '../layouts/fishingMockLayout.js'
 import { readCastViewModel } from './CastViewModel.js'
 import { CastSceneAdapter } from './CastSceneAdapter.js'
+import { CAST_LAYER_CONFIG, readCastLayerDevOptions } from './castLayerConfig.js'
+import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredScene.js'
 
-const DESIGN_WIDTH = 390
-const DESIGN_HEIGHT = 844
-const DOCK_TOP = 620
+const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
+const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
+const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
 
 const FISH_ART = Object.freeze({
   aji: ASSETS.fishHeroes.aji,
@@ -73,7 +75,13 @@ export class CastPresentationHost {
     interaction.add([castInteraction, retrieveInteraction])
 
     const useApprovedComposite = castCompositePrototypeEnabled()
-    if (useApprovedComposite) {
+    const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
+    const useLayeredScene = layerOptions.enabled
+    let layeredScene = null
+    if (useLayeredScene) {
+      layeredScene = createLayeredCastScene(scene)
+      castField.add(layeredScene.root)
+    } else if (useApprovedComposite) {
       castField.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
         .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT))
     }
@@ -87,12 +95,8 @@ export class CastPresentationHost {
       castField.add(approvedSceneFragments)
     }
 
-    const fishLayout = useApprovedComposite
-      ? [
-          { x: 133, y: 193, width: 88 },
-          { x: 98, y: 318, width: 78 },
-          { x: 309, y: 368, width: 72 },
-        ]
+    const fishLayout = useApprovedComposite || useLayeredScene
+      ? CAST_LAYER_CONFIG.fish
       : L.cast.fish
     const fishShadows = fishLayout.map((fish, index) => {
       const asset = ASSETS.fishingField.fishShadowMediumIdle
@@ -105,8 +109,8 @@ export class CastPresentationHost {
       return fallback
     })
 
-    const targetX = useApprovedComposite ? 310 : L.cast.target.x
-    const targetY = useApprovedComposite ? 235 : L.cast.target.y
+    const targetX = useApprovedComposite || useLayeredScene ? CAST_LAYER_CONFIG.target.x : L.cast.target.x
+    const targetY = useApprovedComposite || useLayeredScene ? CAST_LAYER_CONFIG.target.y : L.cast.target.y
     const target = scene.add.graphics()
     target.fillStyle(0xffd95a, 0.10)
     target.fillEllipse(targetX, targetY, 74, 34)
@@ -114,36 +118,35 @@ export class CastPresentationHost {
     target.strokeEllipse(targetX, targetY, 74, 34)
     target.lineStyle(1.4, 0xffffff, 0.74)
     target.strokeEllipse(targetX, targetY, 42, 20)
-    const castStartX = useApprovedComposite ? 169 : L.cast.player.x + 34
-    const castStartY = useApprovedComposite ? 379 : L.cast.player.y - 112
+    const castStartX = useApprovedComposite || useLayeredScene ? CAST_LAYER_CONFIG.rod.lineStart.x : L.cast.player.x + 34
+    const castStartY = useApprovedComposite || useLayeredScene ? CAST_LAYER_CONFIG.rod.lineStart.y : L.cast.player.y - 112
     for (let i = 0; i < 5; i += 1) {
       const t = (i + 1) / 6
       const x = castStartX + (targetX - castStartX) * t
-      const y = castStartY + (targetY - castStartY) * t - Math.sin(Math.PI * t) * (useApprovedComposite ? 26 : 74)
+      const y = castStartY + (targetY - castStartY) * t - Math.sin(Math.PI * t) * (useApprovedComposite || useLayeredScene ? 26 : 74)
       target.fillStyle(0xffffff, 0.76 - i * 0.08)
       target.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
     }
 
-    if (useApprovedComposite) {
-      target.lineStyle(5, 0x122434, 0.98)
+    if (useApprovedComposite && !useLayeredScene) {
+      const rod = CAST_LAYER_CONFIG.rod
+      target.lineStyle(rod.shaftWidth, rod.shaftColor, 0.98)
       target.beginPath()
-      target.moveTo(130, 486)
-      target.lineTo(151, 429)
-      target.lineTo(169, 379)
+      target.moveTo(rod.joints[0].x, rod.joints[0].y)
+      rod.joints.slice(1).forEach(point => target.lineTo(point.x, point.y))
       target.strokePath()
-      target.lineStyle(1.5, 0xef8c37, 1)
+      target.lineStyle(rod.accentWidth, rod.accentColor, 1)
       target.beginPath()
-      target.moveTo(130, 486)
-      target.lineTo(151, 429)
-      target.lineTo(169, 379)
+      target.moveTo(rod.joints[0].x, rod.joints[0].y)
+      rod.joints.slice(1).forEach(point => target.lineTo(point.x, point.y))
       target.strokePath()
     }
 
-    const useApprovedPlayerCutout = useApprovedComposite || castPlayerCutoutPrototypeEnabled()
+    const useApprovedPlayerCutout = !useLayeredScene && (useApprovedComposite || castPlayerCutoutPrototypeEnabled())
     const playerAsset = useApprovedPlayerCutout
       ? ASSETS.ui.fishingApprovedCastPlayerVisible
       : ASSETS.characters?.fishingCastHero
-    const player = playerAsset?.key && scene.textures.exists(playerAsset.key)
+    const player = !useLayeredScene && playerAsset?.key && scene.textures.exists(playerAsset.key)
       ? useApprovedPlayerCutout
         ? scene.add.image(90 * (390 / 391), 465 * (844 / 783), playerAsset.key)
           .setDisplaySize(180 * (390 / 391), 230 * (844 / 783))
@@ -151,7 +154,12 @@ export class CastPresentationHost {
           .setOrigin(0.5, 1)
           .setDisplaySize(154, 220)
       : null
-    castField.add([...fishShadows, target, ...(player ? [player] : [])])
+    if (useLayeredScene) {
+      layeredScene.nodes.fish.add(fishShadows)
+      layeredScene.nodes.target.add(target)
+    } else {
+      castField.add([...fishShadows, target, ...(player ? [player] : [])])
+    }
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -295,13 +303,14 @@ export class CastPresentationHost {
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
     const powerTrack = scene.add.graphics()
     powerTrack.fillStyle(0x082b45, 1)
-    powerTrack.fillRoundedRect(36, DOCK_TOP + 49, 320, 14, 7)
+    const gaugeConfig = CAST_LAYER_CONFIG.controls.gauge
+    powerTrack.fillRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
     powerTrack.lineStyle(1.4, 0xb8eaff, 0.72)
-    powerTrack.strokeRoundedRect(36, DOCK_TOP + 49, 320, 14, 7)
+    powerTrack.strokeRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
     const powerFill = scene.add.graphics()
 
-    const buttonY = DOCK_TOP + 128
-    const buttonBase = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 55, 0xffd957, 1)
+    const buttonY = CAST_LAYER_CONFIG.controls.castButton.y
+    const buttonBase = scene.add.circle(CAST_LAYER_CONFIG.controls.castButton.x, buttonY, 55, 0xffd957, 1)
       .setStrokeStyle(3, 0xfff1a1, 1)
     const buttonRing = scene.add.image(DESIGN_WIDTH / 2, buttonY, ASSETS.ui.fishingApprovedCastRing.key)
       .setDisplaySize(130, 130)
@@ -321,8 +330,10 @@ export class CastPresentationHost {
     }).setOrigin(0.5).setResolution(2).setScale(1.6)
     castDock.add([dockBase, dockInstruction, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
-    const backHit = scene.add.rectangle(31, 40, 54, 52, 0x000000, 0.001).setInteractive({ useHandCursor: true })
-    const castHit = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 62, 0x000000, 0.001).setInteractive({ useHandCursor: true })
+    const backConfig = CAST_LAYER_CONFIG.controls.back
+    const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
+    const backHit = scene.add.rectangle(backConfig.x, backConfig.y, backConfig.width, backConfig.height, 0x000000, 0.001).setInteractive({ useHandCursor: true })
+    const castHit = scene.add.circle(castButtonConfig.x, castButtonConfig.y, castButtonConfig.radius, 0x000000, 0.001).setInteractive({ useHandCursor: true })
     const pressables = [
       { item: buttonBase, scale: 1 },
       { item: buttonRing, scale: 1 },
@@ -340,6 +351,11 @@ export class CastPresentationHost {
     castHit.on('pointerupoutside', () => { resetScale(); this.adapter.cancelCharge() })
     castInteraction.add(castHit)
     interaction.add(backHit)
+    if (useLayeredScene) {
+      applyCastLayerAdjustment(chrome, 'hud', layerOptions)
+      applyCastLayerAdjustment(castDock, 'controls', layerOptions)
+      applyCastLayerAdjustment(castInteraction, 'controls', layerOptions)
+    }
 
     this.root = root
     this.nodes = {
@@ -360,6 +376,7 @@ export class CastPresentationHost {
       retrieveDock,
       castInteraction,
       retrieveInteraction,
+      layeredScene,
       chrome,
       battleFish,
       battleFishName,
@@ -457,7 +474,8 @@ export class CastPresentationHost {
     if (castVisible) {
       this.nodes.powerFill.clear()
       this.nodes.powerFill.fillStyle(0xffdc54, 1)
-      this.nodes.powerFill.fillRoundedRect(39, DOCK_TOP + 52, 314 * view.charge01, 8, 4)
+      const gauge = CAST_LAYER_CONFIG.controls.gauge
+      this.nodes.powerFill.fillRoundedRect(gauge.x + 3, gauge.y + 3, (gauge.width - 6) * view.charge01, gauge.height - 6, (gauge.height - 6) / 2)
     }
     if (battleVisible) {
       const battle = view.battle

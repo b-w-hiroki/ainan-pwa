@@ -860,8 +860,13 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingCastRodless, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
     const approvedUiAssets = [
+      ASSETS.ui?.fishingLayerSky,
+      ASSETS.ui?.fishingLayerClouds,
+      ASSETS.ui?.fishingLayerSea,
+      ASSETS.ui?.fishingLayerDistantHarbor,
+      ASSETS.ui?.fishingLayerPlatform,
       ASSETS.ui?.fishingApprovedTopHud,
       ASSETS.ui?.fishingApprovedInstruction,
       ASSETS.ui?.fishingApprovedCastRing,

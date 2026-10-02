@@ -14,12 +14,13 @@
     "qa:rarity-reward": "node scripts/rarity-reward-smoke.mjs",
     "qa:location-atmosphere": "node scripts/location-atmosphere-smoke.mjs",
     "qa:player-fishing": "node scripts/player-fishing-polish-smoke.mjs",
+    "qa:cast-layering": "node scripts/cast-layering-smoke.mjs",
     "qa:reward-language": "node scripts/reward-language-smoke.mjs",
     "qa:ui-final": "node scripts/ui-final-smoke.mjs",
     "qa:release-readiness": "node scripts/release-readiness-smoke.mjs",
     "qa:diagnostics": "node scripts/diagnostics-smoke.mjs",
     "qa:first10-balance": "node scripts/first10-balance-baseline.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:reward-language && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && tsc -b && vite build",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:cast-layering && npm run qa:reward-language && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
