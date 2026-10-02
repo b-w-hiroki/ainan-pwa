@@ -115,7 +115,15 @@ await page.waitForTimeout(1500)
 state = await sceneState(page)
 if (state.pose !== 'idle' || state.action) throw new Error(`sadness did not return idle: ${JSON.stringify(state)}`)
 const resultBox = await page.locator('canvas').last().boundingBox()
-await page.mouse.click(resultBox.x + resultBox.width * 0.5, resultBox.y + resultBox.height * 0.88)
+const primaryCenter = await page.evaluate(() => {
+  const metrics = window.__game.scene.getScene('GameScene')._resultActionMetrics
+  const [x, y, width, height] = metrics.primaryHit
+  return { x: x + width / 2, y: y + height / 2 }
+})
+await page.mouse.click(
+  resultBox.x + resultBox.width * (primaryCenter.x / 390),
+  resultBox.y + resultBox.height * (primaryCenter.y / 844),
+)
 await page.waitForFunction(() => window.__game.scene.getScene('GameScene')?.phase === 'cast', null, { timeout: 4000 })
 state = await sceneState(page)
 if (state.pose !== 'idle') throw new Error(`retry did not reset idle: ${JSON.stringify(state)}`)

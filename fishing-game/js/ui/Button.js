@@ -25,6 +25,16 @@ export class Button {
   }) {
     h = Math.max(BUTTON_SPEC.minHeight, h)
     const v = VARIANTS[variant] ?? VARIANTS.primary
+    const defaultArt = scene.textures.exists('ui_art_button_primary')
+      ? variant === 'primary'
+        ? { idle: 'ui_art_button_primary', pressed: 'ui_art_button_pressed', disabled: 'ui_art_button_disabled' }
+        : variant === 'secondary'
+          ? { idle: 'ui_art_button_secondary', pressed: 'ui_art_button_secondary', disabled: 'ui_art_button_disabled' }
+          : variant === 'ghost' && scene.textures.exists('ui_art_back_shell_v2')
+            ? { idle: 'ui_art_back_shell_v2', pressed: 'ui_art_back_shell_v2', disabled: 'ui_art_button_disabled' }
+            : null
+      : null
+    artKeys ??= defaultArt
     const container = scene.add.container(x, y).setDepth(depth)
     const shadow = scene.add.graphics()
     const surface = scene.add.graphics()

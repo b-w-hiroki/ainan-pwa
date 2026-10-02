@@ -6,6 +6,7 @@ import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { createBackButton } from '../ui/Button.js'
+import { addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 import { getFishingPreparation } from '../game/fishingJourney.js'
@@ -55,6 +56,7 @@ export default class MapScene extends Phaser.Scene {
   constructor() { super({ key: 'MapScene' }) }
 
   preload() {
+    loadUiArt(this)
     const wanted = [ASSETS.backgrounds.mapTown, ...Object.values(POINT_PIN), ...Object.values(FISH_ART), ...Object.values(ASSETS.bosses)]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
@@ -80,13 +82,16 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildHeader(W) {
+    const art = addArtPanel(this, { x: 72, y: 46, w: W - 92, h: 60, depth: 4 })
     const g = this.add.graphics().setDepth(4)
-    g.fillStyle(0x173248, 0.10)
-    g.fillRoundedRect(72, 50, W - 92, 56, 18)
-    g.fillStyle(0xf8fdff, 0.94)
-    g.lineStyle(2, 0xffffff, 0.82)
-    g.fillRoundedRect(72, 46, W - 92, 56, 18)
-    g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+    if (!art) {
+      g.fillStyle(0x173248, 0.10)
+      g.fillRoundedRect(72, 50, W - 92, 56, 18)
+      g.fillStyle(0xf8fdff, 0.94)
+      g.lineStyle(2, 0xffffff, 0.82)
+      g.fillRoundedRect(72, 46, W - 92, 56, 18)
+      g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+    }
     this.add.text(W / 2 + 18, 64, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
@@ -351,6 +356,7 @@ export default class MapScene extends Phaser.Scene {
     const items = []
     this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(19).setInteractive().on('pointerdown', () => this._closePointDetail())
 
+    const dialogArt = addArtDialog(this, { x, y, w, h, depth: 20 })
     const sh = this.add.graphics()
     sh.fillStyle(0x173248, 0.16)
     sh.fillRoundedRect(x + 3, y + 5, w, h, 22)
@@ -361,6 +367,7 @@ export default class MapScene extends Phaser.Scene {
     bg.strokeRoundedRect(x, y, w, h, 22)
     bg.fillStyle(unlock.unlocked ? point.accent : 0x88979e, 0.12)
     bg.fillRoundedRect(x + 12, y + 12, 66, 72, 18)
+    if (dialogArt) items.push(dialogArt)
     items.push(sh, bg)
 
     const pinAsset = POINT_PIN[point.id]

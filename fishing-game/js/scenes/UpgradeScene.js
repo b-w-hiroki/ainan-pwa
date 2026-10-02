@@ -4,6 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { drawCardSurface } from '../ui/UiPrimitives.js'
+import { addArtCard, addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
 import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
@@ -65,6 +66,7 @@ export default class UpgradeScene extends Phaser.Scene {
   }
 
   preload() {
+    loadUiArt(this)
     const wanted = [
       ASSETS.backgrounds.homeBase,
       ASSETS.characters.playerDefaultUi,
@@ -129,15 +131,18 @@ export default class UpgradeScene extends Phaser.Scene {
     const baitType = BAIT_META[equipment.baitType] ? equipment.baitType : 'worm'
     const y = 132
 
-    const panel = this.add.graphics().setDepth(4)
-    panel.fillStyle(0x173248, 0.12)
-    panel.fillRoundedRect(18 + 3, y + 5, W - 36, 248, 24)
-    panel.fillStyle(0xf8fdff, 0.96)
-    panel.lineStyle(1.8, 0x9bcfe5, 0.88)
-    panel.fillRoundedRect(18, y, W - 36, 248, 24)
-    panel.strokeRoundedRect(18, y, W - 36, 248, 24)
-    panel.fillStyle(0xdff5ff, 0.55)
-    panel.fillRoundedRect(28, y + 12, W - 56, 28, 13)
+    const panelArt = addArtPanel(this, { x: 18, y, w: W - 36, h: 248, depth: 4 })
+    if (!panelArt) {
+      const panel = this.add.graphics().setDepth(4)
+      panel.fillStyle(0x173248, 0.12)
+      panel.fillRoundedRect(18 + 3, y + 5, W - 36, 248, 24)
+      panel.fillStyle(0xf8fdff, 0.96)
+      panel.lineStyle(1.8, 0x9bcfe5, 0.88)
+      panel.fillRoundedRect(18, y, W - 36, 248, 24)
+      panel.strokeRoundedRect(18, y, W - 36, 248, 24)
+      panel.fillStyle(0xdff5ff, 0.55)
+      panel.fillRoundedRect(28, y + 12, W - 56, 28, 13)
+    }
 
     this.add.text(W / 2, y + 26, 'CURRENT LOADOUT', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep,
@@ -216,8 +221,9 @@ export default class UpgradeScene extends Phaser.Scene {
     const size = 78
     const isDefault = (type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm')
     const qtyLabel = type === 'bait' ? (id === 'worm' ? '標準装備' : `x${qty}`) : '装備中'
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', depth: 7 })
     const g = this.add.graphics().setDepth(7)
-    drawCardSurface(g, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', accent: 0xffd95a })
+    if (!cardArt) drawCardSurface(g, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', accent: 0xffd95a })
     g.fillStyle(0xffffff, 0.72)
     g.fillCircle(x, y - 9, 27)
 
@@ -237,22 +243,28 @@ export default class UpgradeScene extends Phaser.Scene {
   _accessorySlot(x, y, label, accessoryId) {
     const meta = accessoryId ? ACCESSORY_META[accessoryId] : null
     const size = 62
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(meta ? 0xfff5d9 : 0x173248, meta ? 1 : 0.05)
-    g.lineStyle(meta ? 2 : 1.5, meta ? 0xffd95a : 0x9bb3c0, meta ? 0.92 : 0.40)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: meta ? 'selected' : 'disabled', depth: 5 })
+    if (!cardArt) {
+      const g = this.add.graphics().setDepth(5)
+      g.fillStyle(meta ? 0xfff5d9 : 0x173248, meta ? 1 : 0.05)
+      g.lineStyle(meta ? 2 : 1.5, meta ? 0xffd95a : 0x9bb3c0, meta ? 0.92 : 0.40)
+      g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+      g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    }
     this.add.text(x, y - 7, meta?.mark ?? '＋', { fontFamily: FONT, resolution: TEXT_RES, fontSize: meta ? '16px' : '20px', fontWeight: '900', color: meta ? UI_COLORS.oceanDeep : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
     this.add.text(x, y + 18, meta?.name ?? label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: meta ? UI_COLORS.ink : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
     this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('WorkshopScene'))
   }
   _emptySlot(x, y, label) {
     const size = 62
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0x173248, 0.05)
-    g.lineStyle(1.5, 0x9bb3c0, 0.40)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'disabled', depth: 5 })
+    if (!cardArt) {
+      const g = this.add.graphics().setDepth(5)
+      g.fillStyle(0x173248, 0.05)
+      g.lineStyle(1.5, 0x9bb3c0, 0.40)
+      g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+      g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    }
     this.add.text(x, y - 6, '＋', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '20px', fontWeight: '700', color: UI_COLORS.muted,
     }).setOrigin(0.5).setDepth(6)
@@ -263,13 +275,16 @@ export default class UpgradeScene extends Phaser.Scene {
 
   _inventoryPanel(W, H) {
     const x = 18, y = 400, w = W - 36, h = 262
-    const panel = this.add.graphics().setDepth(4)
-    panel.fillStyle(0x173248, 0.10)
-    panel.fillRoundedRect(x + 3, y + 5, w, h, 24)
-    panel.fillStyle(0xf8fdff, 0.97)
-    panel.lineStyle(1.8, 0x9bcfe5, 0.88)
-    panel.fillRoundedRect(x, y, w, h, 24)
-    panel.strokeRoundedRect(x, y, w, h, 24)
+    const panelArt = addArtPanel(this, { x, y, w, h, depth: 4 })
+    if (!panelArt) {
+      const panel = this.add.graphics().setDepth(4)
+      panel.fillStyle(0x173248, 0.10)
+      panel.fillRoundedRect(x + 3, y + 5, w, h, 24)
+      panel.fillStyle(0xf8fdff, 0.97)
+      panel.lineStyle(1.8, 0x9bcfe5, 0.88)
+      panel.fillRoundedRect(x, y, w, h, 24)
+      panel.strokeRoundedRect(x, y, w, h, 24)
+    }
     this.add.text(x + 18, y + 24, '所持品', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
@@ -343,8 +358,9 @@ export default class UpgradeScene extends Phaser.Scene {
     const insufficient = !owned && !unavailable && Number.isFinite(entry.item.cost) && getScore() < entry.item.cost
     const cardState = equipped ? 'selected' : unavailable ? 'locked' : insufficient ? 'shortage' : owned ? 'idle' : 'disabled'
 
+    const cardArt = addArtCard(this, { x, y, w: size, h: size, state: cardState, parent })
     const g = add(this.add.graphics())
-    drawCardSurface(g, { x, y, w: size, h: size, state: cardState, accent: equipped ? 0xffd95a : entry.rank.color })
+    if (!cardArt) drawCardSurface(g, { x, y, w: size, h: size, state: cardState, accent: equipped ? 0xffd95a : entry.rank.color })
     g.fillStyle(0xffffff, owned ? 0.78 : 0.45)
     g.fillCircle(x + size / 2, y + 26, 24)
 
@@ -395,17 +411,21 @@ export default class UpgradeScene extends Phaser.Scene {
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.48).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
     const x = 30, y = 160, w = W - 60, h = 366
+    const dialogArt = addArtDialog(this, { x, y, w, h })
     const bg = this.add.graphics()
-    bg.fillStyle(0x173248, 0.14)
-    bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
-    bg.fillStyle(0xf8fdff, 0.99)
-    bg.lineStyle(2.2, 0x9bcfe5, 0.9)
-    bg.fillRoundedRect(x, y, w, h, 24)
-    bg.strokeRoundedRect(x, y, w, h, 24)
+    if (!dialogArt) {
+      bg.fillStyle(0x173248, 0.14)
+      bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
+      bg.fillStyle(0xf8fdff, 0.99)
+      bg.lineStyle(2.2, 0x9bcfe5, 0.9)
+      bg.fillRoundedRect(x, y, w, h, 24)
+      bg.strokeRoundedRect(x, y, w, h, 24)
+    }
     bg.fillStyle(rank.glow, 1)
     bg.fillRoundedRect(x + 16, y + 16, w - 32, 126, 20)
     bg.lineStyle(1.8, rank.color, 0.72)
     bg.strokeRoundedRect(x + 16, y + 16, w - 32, 126, 20)
+    if (dialogArt) items.push(dialogArt)
     items.push(bg)
 
     if (art?.key && owned && this.textures.exists(art.key)) {

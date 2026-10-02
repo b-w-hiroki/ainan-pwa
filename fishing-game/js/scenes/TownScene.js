@@ -19,6 +19,7 @@ import {
 import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityArt.js'
 import { REWARD_THEME } from '../game/rewardPresentation.js'
 import { getFishingJourney } from '../game/fishingJourney.js'
+import { addArtPanel, loadUiArt } from '../ui/UiArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -55,6 +56,7 @@ export default class TownScene extends Phaser.Scene {
   constructor() { super({ key: 'TownScene' }) }
 
   preload() {
+    loadUiArt(this)
     const assets = [
       ASSETS.backgrounds.townQuiet,
       ASSETS.backgrounds.townGrowing,
@@ -181,16 +183,19 @@ export default class TownScene extends Phaser.Scene {
   }
 
   _header(W) {
+    const art = addArtPanel(this, { x: 12, y: 10, w: W - 24, h: 64, depth: 8 })
     const g = this.add.graphics().setDepth(8)
     const border = this._hasKue ? 0xe5b83b : 0x9bcfe5
-    g.fillStyle(0x173248, 0.12)
-    g.fillRoundedRect(12, 14, W - 24, 60, 20)
-    g.fillStyle(0xf8fdff, 0.96)
-    g.lineStyle(2, border, 0.94)
-    g.fillRoundedRect(12, 10, W - 24, 60, 20)
-    g.strokeRoundedRect(12, 10, W - 24, 60, 20)
-    g.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.78)
-    g.fillRoundedRect(20, 18, W - 40, 10, 5)
+    if (!art) {
+      g.fillStyle(0x173248, 0.12)
+      g.fillRoundedRect(12, 14, W - 24, 60, 20)
+      g.fillStyle(0xf8fdff, 0.96)
+      g.lineStyle(2, border, 0.94)
+      g.fillRoundedRect(12, 10, W - 24, 60, 20)
+      g.strokeRoundedRect(12, 10, W - 24, 60, 20)
+      g.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.78)
+      g.fillRoundedRect(20, 18, W - 40, 10, 5)
+    }
 
     this.add.text(26, 40, 'みんなの港町', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,

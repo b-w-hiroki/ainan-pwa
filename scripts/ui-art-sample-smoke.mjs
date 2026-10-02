@@ -20,10 +20,10 @@ for (const token of ['artFooterShell', 'artTabSelected', 'artIconHome', 'artButt
 }
 if (!home.includes("buildFooterNav(this, W, H, 'home', { useArt: true })")) throw new Error('Home must opt in to the art footer explicitly')
 if (!home.includes('artKeys: waiting')) throw new Error('Home CTA must select live art state keys')
-if (!footer.includes('options.useArt')) throw new Error('Footer art must remain opt-in for this checkpoint')
+if (!footer.includes('options.useArt !== false')) throw new Error('Footer art must be the default with an explicit fallback')
 if (!button.includes('artSurface') || !button.includes('artIconKey')) throw new Error('Button must layer code-native content over optional art')
 
 console.log('UI art sample smoke QA passed')
 console.log('  generated raster inventory: OK')
-console.log('  Home-only opt-in boundary: OK')
+console.log('  approved Home foundation retained for global rollout: OK')
 console.log('  live text / interaction layer retained: OK')

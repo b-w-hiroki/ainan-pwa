@@ -3,6 +3,7 @@ import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { loadUiArt } from '../ui/UiArt.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -14,6 +15,7 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   preload() {
+    loadUiArt(this)
     const bg = ASSETS.backgrounds.titleHarborMorning
     if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }

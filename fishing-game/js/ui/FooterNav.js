@@ -30,7 +30,7 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   const h = FOOTER_NAV_SPEC.height
   const y = H - h - FOOTER_NAV_SPEC.bottomInset
   const bar = scene.add.graphics().setDepth(90)
-  const useArt = Boolean(options.useArt && scene.textures.exists('ui_art_footer_shell'))
+  const useArt = Boolean(options.useArt !== false && scene.textures.exists('ui_art_footer_shell'))
 
   if (useArt) {
     scene.add.image(W / 2, y + h / 2 + 2, 'ui_art_footer_shell').setDisplaySize(W - 8, h + 13).setDepth(90)

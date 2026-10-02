@@ -195,6 +195,9 @@ export class CastPresentationHost {
     const battleTensionTrack = scene.add.graphics()
     battleTensionTrack.fillStyle(0x092b43, 1)
     battleTensionTrack.fillRoundedRect(205, 31, 154, 17, 9)
+    const battleTensionSkin = scene.textures.exists(ASSETS.ui.artGaugeTrackV2.key)
+      ? scene.add.image(282, 39.5, ASSETS.ui.artGaugeTrackV2.key).setDisplaySize(164, 25)
+      : null
     const battleTensionFill = scene.add.graphics()
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
@@ -204,7 +207,7 @@ export class CastPresentationHost {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setVisible(false)
-    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, battleTensionFill, battleReel, battleRage])
+    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, battleReel, battleRage])
 
     const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -229,14 +232,17 @@ export class CastPresentationHost {
     resultCard.lineStyle(1, 0xffffff, 0.62)
     resultCard.lineBetween(53, 492, 337, 492)
     resultCard.lineBetween(195, 504, 195, 554)
+    const resultInfoSkin = scene.textures.exists(ASSETS.ui.artResultCardV2.key)
+      ? scene.add.image(DESIGN_WIDTH / 2, 506, ASSETS.ui.artResultCardV2.key).setDisplaySize(340, 142)
+      : null
     const resultName = scene.add.text(DESIGN_WIDTH / 2, 469, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '28px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '28px', fontStyle: 'bold', color: resultInfoSkin ? '#173248' : '#ffffff',
     }).setOrigin(0.5)
     const resultSize = scene.add.text(119, 526, '', {
-      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '23px', fontStyle: 'bold', color: '#ffffff', align: 'center',
+      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '23px', fontStyle: 'bold', color: resultInfoSkin ? '#173248' : '#ffffff', align: 'center',
     }).setOrigin(0.5)
     const resultScore = scene.add.text(274, 526, '', {
-      fontFamily: 'Nunito, sans-serif', fontSize: '27px', fontStyle: 'bold', color: '#ffdf5a',
+      fontFamily: 'Nunito, sans-serif', fontSize: '27px', fontStyle: 'bold', color: resultInfoSkin ? '#9a6500' : '#ffdf5a',
     }).setOrigin(0.5)
     const resultTownMask = scene.add.graphics().setVisible(false)
     const resultTownMaskText = scene.add.text(DESIGN_WIDTH / 2, 655, 'もう一度釣る', {
@@ -261,7 +267,19 @@ export class CastPresentationHost {
     const resultFailurePort = scene.add.text(289, 746, '港へ戻る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setVisible(false)
-    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort])
+    const resultPrimarySkin = scene.textures.exists(ASSETS.ui.artButtonPrimary.key)
+      ? scene.add.image(DESIGN_WIDTH / 2, 655, ASSETS.ui.artButtonPrimary.key).setDisplaySize(382, 88)
+      : null
+    const resultSecondarySkin = scene.textures.exists(ASSETS.ui.artButtonSecondary.key)
+      ? scene.add.image(DESIGN_WIDTH / 2, 746, ASSETS.ui.artButtonSecondary.key).setDisplaySize(382, 88)
+      : null
+    const resultFailureLeftSkin = scene.textures.exists(ASSETS.ui.artButtonSecondary.key)
+      ? scene.add.image(101, 746, ASSETS.ui.artButtonSecondary.key).setDisplaySize(186, 88).setVisible(false)
+      : null
+    const resultFailureRightSkin = scene.textures.exists(ASSETS.ui.artButtonSecondary.key)
+      ? scene.add.image(289, 746, ASSETS.ui.artButtonSecondary.key).setDisplaySize(186, 88).setVisible(false)
+      : null
+    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort])
 
     const characterMotion = new CharacterMotionController(scene).mount(field)
     if (characterMotion.ready) {
@@ -270,11 +288,11 @@ export class CastPresentationHost {
       layeredScene?.nodes?.heldRod?.setVisible(false)
     }
     const battleForeground = scene.add.container(0, 0).setVisible(false)
-    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, battleTensionFill, battleReel, battleRage]
+    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, battleReel, battleRage]
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
-    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
+    const resultUi = [resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
     resultForeground.add(resultUi)
     field.add([battleForeground, resultForeground])
@@ -338,6 +356,10 @@ export class CastPresentationHost {
     dockBase.fillRect(0, DOCK_TOP, DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP)
     dockBase.lineStyle(1.5, 0xc9f4ff, 0.34)
     dockBase.lineBetween(0, DOCK_TOP, DESIGN_WIDTH, DOCK_TOP)
+    const dockSkin = scene.textures.exists(ASSETS.ui.artOperationDockV2.key)
+      ? scene.add.image(DESIGN_WIDTH / 2, DOCK_TOP + (DESIGN_HEIGHT - DOCK_TOP) / 2, ASSETS.ui.artOperationDockV2.key)
+        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP + 8)
+      : null
     const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 22, '長押し → 離して投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
@@ -347,6 +369,10 @@ export class CastPresentationHost {
     powerTrack.fillRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
     powerTrack.lineStyle(1.4, 0xb8eaff, 0.72)
     powerTrack.strokeRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
+    const powerTrackSkin = scene.textures.exists(ASSETS.ui.artGaugeTrackV2.key)
+      ? scene.add.image(gaugeConfig.x + gaugeConfig.width / 2, gaugeConfig.y + gaugeConfig.height / 2, ASSETS.ui.artGaugeTrackV2.key)
+        .setDisplaySize(gaugeConfig.width + 12, gaugeConfig.height + 10)
+      : null
     const powerFill = scene.add.graphics()
 
     const buttonY = CAST_LAYER_CONFIG.controls.castButton.y
@@ -368,7 +394,7 @@ export class CastPresentationHost {
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#102335',
     }).setOrigin(0.5).setResolution(2).setScale(1.6)
-    castDock.add([dockBase, dockInstruction, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
+    castDock.add([dockBase, ...(dockSkin ? [dockSkin] : []), dockInstruction, powerTrack, ...(powerTrackSkin ? [powerTrackSkin] : []), powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backConfig = CAST_LAYER_CONFIG.controls.back
     const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
@@ -435,6 +461,10 @@ export class CastPresentationHost {
       resultFailureOptions,
       resultFailureEquip,
       resultFailurePort,
+      resultPrimarySkin,
+      resultSecondarySkin,
+      resultFailureLeftSkin,
+      resultFailureRightSkin,
       player,
       characterMotion,
       battleForeground,
@@ -470,8 +500,15 @@ export class CastPresentationHost {
         else this._resultPointerAction = point.x < DESIGN_WIDTH / 2 ? 'prepare' : 'port'
       }
       if (this._resultPointerAction) {
-        this.nodes.resultTownMask?.setAlpha?.(0.84)
-        this.nodes.resultFailureOptions?.setAlpha?.(0.84)
+        if (this.nodes.resultPrimarySkin) {
+          this.nodes.resultPrimarySkin.setAlpha(0.84)
+          this.nodes.resultSecondarySkin?.setAlpha?.(0.84)
+          this.nodes.resultFailureLeftSkin?.setAlpha?.(0.84)
+          this.nodes.resultFailureRightSkin?.setAlpha?.(0.84)
+        } else {
+          this.nodes.resultTownMask?.setAlpha?.(0.84)
+          this.nodes.resultFailureOptions?.setAlpha?.(0.84)
+        }
       }
       return
     }
@@ -487,8 +524,12 @@ export class CastPresentationHost {
     if (this._resultPointerAction) {
       const action = this._resultPointerAction
       this._resultPointerAction = null
-      this.nodes.resultTownMask?.setAlpha?.(1)
-      this.nodes.resultFailureOptions?.setAlpha?.(1)
+      this.nodes.resultTownMask?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
+      this.nodes.resultFailureOptions?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
+      this.nodes.resultPrimarySkin?.setAlpha?.(1)
+      this.nodes.resultSecondarySkin?.setAlpha?.(1)
+      this.nodes.resultFailureLeftSkin?.setAlpha?.(1)
+      this.nodes.resultFailureRightSkin?.setAlpha?.(1)
       this._activateResultAction(action)
       return
     }
@@ -616,6 +657,14 @@ export class CastPresentationHost {
       this.nodes.resultRetryText.setVisible(caught)
       this.nodes.resultFailureEquip.setVisible(!caught).setFontSize(18).setText('装備を見直す')
       this.nodes.resultFailurePort.setVisible(!caught).setFontSize(18).setText('港へ戻る')
+      if (this.nodes.resultPrimarySkin) {
+        this.nodes.resultPrimarySkin.setVisible(true).setTexture(caught ? ASSETS.ui.artButtonPrimary.key : ASSETS.ui.artButtonSecondary.key)
+        this.nodes.resultSecondarySkin?.setVisible(caught)
+        this.nodes.resultFailureLeftSkin?.setVisible(!caught)
+        this.nodes.resultFailureRightSkin?.setVisible(!caught)
+        this.nodes.resultTownMask.setAlpha(0)
+        this.nodes.resultFailureOptions.setAlpha(0)
+      }
       this.scene._resultActionMetrics = Object.freeze({ primaryHit: [9, 616, 372, 78], secondaryHitHeight: 80, labelsAreLiveText: true })
     }
   }

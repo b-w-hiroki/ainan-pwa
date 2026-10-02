@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\ui-art-system-v2\\ainan-ui-art-system-flow.webm",
+  "output": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\ui-art-system-v2\\ainan-ui-art-system-flow.mp4",
+  "recording": {
+    "mimeType": "video/mp4;codecs=avc1.42001f",
+    "sourceDuration": 17.4,
+    "width": 390,
+    "height": 844,
+    "bytes": 2188789
+  },
+  "playback": {
+    "duration": 17.4478,
+    "width": 390,
+    "height": 844,
+    "frames": 523,
+    "droppedFrames": 0
+  },
+  "boxes": {
+    "ftyp": 4,
+    "moov": 40,
+    "moof": 757,
+    "mdat": 1013,
+    "avc1": 28,
+    "avcC": 656
+  },
+  "faststart": true,
+  "hasH264": true,
+  "size": 2188789
+}
