@@ -9,7 +9,7 @@ import { ACCESSORY_META, MATERIAL_META, equipAccessory, getAccessoryState, getMa
 import { markWorkshopSeen } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
-const ROD_ART = { basic: ASSETS.equipment.rodBasic, carbon: ASSETS.equipment.rodCarbon, premium: ASSETS.equipment.rodPremium }
+const ROD_ART = { basic: ASSETS.equipment.rodBasicPartV1, carbon: ASSETS.equipment.rodCarbonPartV1, premium: ASSETS.equipment.rodPremiumPartV1 }
 
 export default class WorkshopScene extends Phaser.Scene {
   constructor() { super({ key: 'WorkshopScene' }) }

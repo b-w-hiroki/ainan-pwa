@@ -39,15 +39,15 @@ const ROD_POWER = { basic: 80, carbon: 130, premium: 220 }
 const BAIT_POWER = { worm: 20, shrimp: 55, special: 95 }
 
 const ROD_ART = {
-  basic: ASSETS.equipment.rodBasic,
-  carbon: ASSETS.equipment.rodCarbon,
-  premium: ASSETS.equipment.rodPremium,
+  basic: ASSETS.equipment.rodBasicPartV1,
+  carbon: ASSETS.equipment.rodCarbonPartV1,
+  premium: ASSETS.equipment.rodPremiumPartV1,
 }
 
 const BAIT_ART = {
-  worm: ASSETS.equipment.baitWorm,
-  shrimp: ASSETS.equipment.baitShrimp,
-  special: ASSETS.equipment.baitSpecial,
+  worm: ASSETS.equipment.baitWormPartV1,
+  shrimp: ASSETS.equipment.baitShrimpPartV1,
+  special: ASSETS.equipment.baitSpecialPartV1,
 }
 
 const MATERIAL_ITEMS = [

@@ -15,13 +15,13 @@ const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
 const FISH_ART = Object.freeze({
   aji: ASSETS.fishHeroes.aji,
   tai: ASSETS.ui.fishingApprovedMadaiLive,
-  bass: ASSETS.fish.blackBassIcon,
+  bass: ASSETS.fish.blackBassPartV1,
   buri: ASSETS.fishHeroes.buri,
   kue: ASSETS.fishHeroes.kue,
-  saba: ASSETS.fish.sabaIcon,
-  isaki: ASSETS.fish.isakiIcon,
-  hirame: ASSETS.fish.hirameIcon,
-  kanpachi: ASSETS.fish.kanpachiIcon,
+  saba: ASSETS.fish.sabaPartV1,
+  isaki: ASSETS.fish.isakiPartV1,
+  hirame: ASSETS.fish.hiramePartV1,
+  kanpachi: ASSETS.fish.kanpachiPartV1,
 })
 
 export function castPresentationMode() {
@@ -199,6 +199,9 @@ export class CastPresentationHost {
       ? scene.add.image(282, 39.5, ASSETS.ui.artGaugeTrackV2.key).setDisplaySize(164, 25)
       : null
     const battleTensionFill = scene.add.graphics()
+    const battleTensionStatus = scene.textures.exists(ASSETS.gameplayFx.tensionSafe.key)
+      ? scene.add.image(373, 39, ASSETS.gameplayFx.tensionSafe.key).setDisplaySize(31, 31)
+      : null
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
@@ -207,7 +210,7 @@ export class CastPresentationHost {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setVisible(false)
-    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, battleReel, battleRage])
+    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage])
 
     const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -217,6 +220,9 @@ export class CastPresentationHost {
     resultGlow.fillCircle(DESIGN_WIDTH / 2, 302, 138)
     resultGlow.lineStyle(3, 0xffef9a, 0.58)
     resultGlow.strokeCircle(DESIGN_WIDTH / 2, 302, 122)
+    const resultOutcomeFx = scene.textures.exists(ASSETS.gameplayFx.resultCaught.key)
+      ? scene.add.image(DESIGN_WIDTH / 2, 304, ASSETS.gameplayFx.resultCaught.key).setDisplaySize(360, 360)
+      : null
     const resultFish = scene.add.image(DESIGN_WIDTH / 2, 304, FISH_ART.tai.key).setDisplaySize(292, 184).setAngle(-4)
     const resultBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedResultBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -279,7 +285,7 @@ export class CastPresentationHost {
     const resultFailureRightSkin = scene.textures.exists(ASSETS.ui.artButtonSecondary.key)
       ? scene.add.image(289, 746, ASSETS.ui.artButtonSecondary.key).setDisplaySize(186, 88).setVisible(false)
       : null
-    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort])
+    resultField.add([resultBackground, resultTint, resultGlow, ...(resultOutcomeFx ? [resultOutcomeFx] : []), resultFish, resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort])
 
     const characterMotion = new CharacterMotionController(scene).mount(field)
     if (characterMotion.ready) {
@@ -288,7 +294,7 @@ export class CastPresentationHost {
       layeredScene?.nodes?.heldRod?.setVisible(false)
     }
     const battleForeground = scene.add.container(0, 0).setVisible(false)
-    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, battleReel, battleRage]
+    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage]
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
@@ -447,9 +453,11 @@ export class CastPresentationHost {
       battleFish,
       battleFishName,
       battleTensionFill,
+      battleTensionStatus,
       battleReel,
       battleRage,
       resultGlow,
+      resultOutcomeFx,
       resultFish,
       resultGet,
       resultName,
@@ -604,6 +612,14 @@ export class CastPresentationHost {
       this.nodes.battleFishName.setText(battle.fishName)
       this.nodes.battleTensionFill.clear()
       drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : 'sun' })
+      if (this.nodes.battleTensionStatus) {
+        const statusAsset = battle.tension01 >= 0.72
+          ? ASSETS.gameplayFx.tensionDanger
+          : battle.tension01 >= 0.48
+            ? ASSETS.gameplayFx.tensionWarning
+            : ASSETS.gameplayFx.tensionSafe
+        this.nodes.battleTensionStatus.setTexture(statusAsset.key)
+      }
       this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
       this.nodes.battleRage.setText('暴れている… 待つ').setVisible(battle.isRaging)
     }
@@ -613,7 +629,10 @@ export class CastPresentationHost {
       const retry = getRetryJourneyCopy(this.scene.env?.point)
       this._syncFishImage(this.nodes.resultFish, result.fishId)
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
-      this.nodes.resultGlow.setVisible(caught)
+      this.nodes.resultGlow.setVisible(caught && !this.nodes.resultOutcomeFx)
+      this.nodes.resultOutcomeFx?.setVisible(true)
+        .setTexture(caught ? ASSETS.gameplayFx.resultCaught.key : ASSETS.gameplayFx.resultEscaped.key)
+        .setAlpha(caught ? 0.9 : 0.78)
       this.nodes.resultFish.setVisible(caught && this.nodes.characterMotion?.currentAction !== 'joy')
       this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
       this.nodes.resultName.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)

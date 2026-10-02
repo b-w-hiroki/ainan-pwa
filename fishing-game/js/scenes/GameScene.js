@@ -39,13 +39,13 @@ const RARITY_SIZE = {
 const FISH_ICON_KEYS = {
   aji:  'fish_aji_icon',
   tai:  'fish_madai_icon',
-  bass: 'fish_black_bass_icon',
+  bass: 'fish_part_v1_bass',
   buri: 'fish_buri_icon',
   kue:  'fish_kue_icon',
-  saba: 'fish_saba_icon',
-  isaki: 'fish_isaki_icon',
-  hirame: 'fish_hirame_icon',
-  kanpachi: 'fish_kanpachi_icon',
+  saba: 'fish_part_v1_saba',
+  isaki: 'fish_part_v1_isaki',
+  hirame: 'fish_part_v1_hirame',
+  kanpachi: 'fish_part_v1_kanpachi',
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -65,6 +65,7 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.backgrounds.fishingCape,
       ...Object.values(ASSETS.fish),
       ...Object.values(ASSETS.fishHeroes),
+      ...Object.values(ASSETS.gameplayFx),
       ...Object.values(ASSETS.bosses),
       ASSETS.fishingField.locationHarbor,
       ASSETS.fishingField.locationBay,
