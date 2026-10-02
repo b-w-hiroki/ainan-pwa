@@ -7,6 +7,7 @@ import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.j
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
+import { getFishingPreparation } from '../game/fishingJourney.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -343,6 +344,7 @@ export default class MapScene extends Phaser.Scene {
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
+    const preparation = getFishingPreparation(point.id)
 
     const x = W * 0.05, y = H - 288, w = W * 0.90, h = 204
     const items = []
@@ -401,7 +403,15 @@ export default class MapScene extends Phaser.Scene {
     items.push(this.add.text(x + 18, y + 96, unlock.unlocked
       ? `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`
       : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+    }))
+    const baitStock = preparation.bait.count === Infinity ? '∞' : preparation.bait.count
+    const prepText = unlock.unlocked
+      ? `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`
+      : `釣り場 未解放 / 準備判定は解放後`
+    items.push(this.add.text(x + 18, y + 114, prepText, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: 2, wordWrap: { width: w - 158 },
     }))
 
     point.fishIds.slice(0, 4).forEach((id, i) => {
@@ -433,12 +443,18 @@ export default class MapScene extends Phaser.Scene {
     btn.lineStyle(2, 0x173248, 0.82)
     btn.fillRoundedRect(x + w - 138, y + 121, 116, 54, 16)
     btn.strokeRoundedRect(x + w - 138, y + 121, 116, 54, 16)
-    const btnText = this.add.text(x + w - 80, y + 148, unlock.unlocked ? 'ここで釣る' : '町を育てる', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
+    const blocker = preparation.primaryBlocker
+    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? 'ここで釣る −1ST' : blocker.label
+    const btnText = this.add.text(x + w - 80, y + 148, actionLabel, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: actionLabel.length > 9 ? '10px' : '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
     const hit = this.add.rectangle(x + w - 80, y + 148, 124, 60, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => unlock.unlocked ? this._goToFishing(point.id) : this.scene.start('TownScene'))
+      .on('pointerdown', () => {
+        if (!unlock.unlocked) return this.scene.start('TownScene')
+        if (!preparation.ready) return this.scene.start(blocker.scene)
+        this._goToFishing(point.id)
+      })
     items.push(btn, btnText, hit)
 
     this._detailPanel = this.add.container(0, 20, items).setDepth(20).setAlpha(0)

@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\fishing-journey-v1\\ainan-fishing-journey-real-cta.webm",
+  "output": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\fishing-journey-v1\\ainan-fishing-journey-real-cta.mp4",
+  "recording": {
+    "mimeType": "video/mp4;codecs=avc1.42001f",
+    "sourceDuration": 11.6,
+    "width": 390,
+    "height": 844,
+    "bytes": 1421229
+  },
+  "playback": {
+    "duration": 11.591567,
+    "width": 390,
+    "height": 844,
+    "frames": 348,
+    "droppedFrames": 1
+  },
+  "boxes": {
+    "ftyp": 4,
+    "moov": 40,
+    "moof": 757,
+    "mdat": 997,
+    "avc1": 28,
+    "avcC": 656
+  },
+  "faststart": true,
+  "hasH264": true,
+  "size": 1421229
+}

@@ -2,6 +2,7 @@ import { FISH_META, getCatches, getGems, getScore, getTownFacilities, getTownSum
 import { FISH_LIST, calcFishWeight } from './fish.js'
 import { getWorldConditions } from './worldConditions.js'
 import { getBossStates, getRodLevels } from './midgameProgression.js'
+import { getFishingJourney } from './fishingJourney.js'
 
 const readJson = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)) } catch { return fallback }
@@ -9,32 +10,33 @@ const readJson = (key, fallback) => {
 const writeJson = (key, value) => localStorage.setItem(key, JSON.stringify(value))
 
 export const ONBOARDING_STEPS = [
-  { id: 'fish', title: 'まず1匹釣ろう', desc: '釣り場へ行き、キャスト→誘い→HIT→釣果まで体験', scene: 'MapScene' },
-  { id: 'town', title: '釣果を町へ', desc: '町おこし画面で施設と次の海を確認', scene: 'TownScene' },
-  { id: 'service', title: '魚を町で活かそう', desc: '魚市場Lv.2で魚屋が開き、釣果を売れる', scene: 'HarborServicesScene' },
-  { id: 'workshop', title: '工房で強くなろう', desc: '釣果素材を使い、竿やアクセサリを育成', scene: 'WorkshopScene' },
-  { id: 'boss', title: '海の主へ挑戦', desc: '大物挑戦でエリアボスの記録サイズを狙う', scene: 'ChallengeScene' },
+  { id: 'first-catch', title: 'まず1匹釣ろう', desc: '釣果カードまで確認する', scene: 'MapScene' },
+  { id: 'review-catch', title: '釣果を理解しよう', desc: '獲得済みの得点と魚を港で確認する', scene: 'TownScene' },
+  { id: 'grow-town', title: '港で使い道を選ぼう', desc: '獲得した釣果ptで次の海を目指す', scene: 'TownScene' },
+  { id: 'challenge', title: '次の目標へ挑戦', desc: '場所・装備・餌・STを整えて釣り場へ', scene: 'MapScene' },
 ]
 
 export function getOnboardingState() {
+  const journey = getFishingJourney()
   const catches = getCatches()
-  const facilities = getTownFacilities()
-  const bosses = Object.values(getBossStates())
+  const seenTown = localStorage.getItem('ainan_seen_town') === '1'
   const done = {
-    fish: catches.length >= 1,
-    town: localStorage.getItem('ainan_seen_town') === '1',
-    service: localStorage.getItem('ainan_seen_services') === '1' || (facilities.market ?? 0) >= 2,
-    workshop: localStorage.getItem('ainan_seen_workshop') === '1',
-    boss: bosses.some(item => item.cleared),
+    'first-catch': catches.length >= 1,
+    'review-catch': seenTown,
+    'grow-town': journey.id !== 'grow-town' && seenTown,
+    challenge: journey.id === 'challenge',
   }
   const skipped = localStorage.getItem('ainan_onboarding_skipped') === '1'
-  const currentIndex = ONBOARDING_STEPS.findIndex(step => !done[step.id])
+  const currentIndex = ONBOARDING_STEPS.findIndex(step => step.id === journey.id)
+  const fallbackIndex = ONBOARDING_STEPS.findIndex(step => !done[step.id])
+  const resolvedIndex = currentIndex >= 0 ? currentIndex : fallbackIndex
   return {
     steps: ONBOARDING_STEPS.map((step, index) => ({ ...step, done: !!done[step.id], index })),
-    current: currentIndex >= 0 ? ONBOARDING_STEPS[currentIndex] : null,
-    completed: currentIndex < 0,
+    current: resolvedIndex >= 0 ? { ...ONBOARDING_STEPS[resolvedIndex], title: journey.title, desc: journey.body, scene: journey.scene } : null,
+    completed: journey.id === 'challenge',
     skipped,
     doneCount: Object.values(done).filter(Boolean).length,
+    journey,
   }
 }
 

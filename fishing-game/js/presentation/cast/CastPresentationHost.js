@@ -5,6 +5,7 @@ import { CastSceneAdapter } from './CastSceneAdapter.js'
 import { CAST_LAYER_CONFIG, readCastLayerDevOptions } from './castLayerConfig.js'
 import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredScene.js'
 import { CharacterMotionController } from './CharacterMotionController.js'
+import { getRetryJourneyCopy } from '../../game/fishingJourney.js'
 
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
@@ -238,7 +239,20 @@ export class CastPresentationHost {
     const resultTownMaskText = scene.add.text(DESIGN_WIDTH / 2, 655, 'もう一度釣る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setVisible(false)
-    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText])
+    const resultFailureOptions = scene.add.graphics().setVisible(false)
+    resultFailureOptions.fillStyle(0x0b5c91, 0.98)
+    resultFailureOptions.lineStyle(2, 0xdff5ff, 0.92)
+    resultFailureOptions.fillRoundedRect(10, 706, 182, 80, 22)
+    resultFailureOptions.strokeRoundedRect(10, 706, 182, 80, 22)
+    resultFailureOptions.fillRoundedRect(198, 706, 182, 80, 22)
+    resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
+    const resultFailureEquip = scene.add.text(101, 746, '装備を見直す', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setVisible(false)
+    const resultFailurePort = scene.add.text(289, 746, '港へ戻る', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setVisible(false)
+    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultFailureEquip, resultFailurePort])
 
     const characterMotion = new CharacterMotionController(scene).mount(field)
     if (characterMotion.ready) {
@@ -251,7 +265,7 @@ export class CastPresentationHost {
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
-    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText]
+    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
     resultForeground.add(resultUi)
     field.add([battleForeground, resultForeground])
@@ -408,6 +422,9 @@ export class CastPresentationHost {
       resultScore,
       resultTownMask,
       resultTownMaskText,
+      resultFailureOptions,
+      resultFailureEquip,
+      resultFailurePort,
       player,
       characterMotion,
       battleForeground,
@@ -438,7 +455,9 @@ export class CastPresentationHost {
         if (this.scene._castPresentationOutcome === 'caught') this.adapter.resultTown()
         else this.adapter.resultRetry()
       } else if (point.y >= 700 && point.y <= 790) {
-        this.adapter.resultRetry()
+        if (this.scene._castPresentationOutcome === 'caught') this.adapter.resultRetry()
+        else if (point.x < DESIGN_WIDTH / 2) this.adapter.resultPrepare()
+        else this.adapter.resultPort()
       }
       return
     }
@@ -514,16 +533,26 @@ export class CastPresentationHost {
     if (resultVisible) {
       const result = view.result
       const caught = result.outcome === 'caught'
+      const retry = getRetryJourneyCopy(this.scene.env?.point)
       this._syncFishImage(this.nodes.resultFish, result.fishId)
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught)
       this.nodes.resultFish.setVisible(caught && this.nodes.characterMotion?.currentAction !== 'joy')
       this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
-      this.nodes.resultName.setText(caught ? result.fishName : '逃げられた…')
-      this.nodes.resultSize.setText(caught ? `サイズ\n${result.sizeCm} cm` : 'タイミングを\n整えよう')
-      this.nodes.resultScore.setText(caught ? `${result.score} pt` : '')
-      this.nodes.resultTownMask.setVisible(!caught)
-      this.nodes.resultTownMaskText.setVisible(!caught)
+      this.nodes.resultName.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)
+      this.nodes.resultSize.setPosition(caught ? 119 : DESIGN_WIDTH / 2, 526)
+        .setFontSize(caught ? 23 : 13)
+        .setWordWrapWidth(caught ? 0 : 284)
+        .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
+      this.nodes.resultScore.setText(caught ? `${result.score} pt\n獲得済み` : '').setFontSize(caught ? 22 : 27)
+      this.nodes.resultTownMask.setVisible(true).setFillStyle(caught ? 0xffd95a : 0x0b62a0, 0.98)
+      this.nodes.resultTownMaskText.setVisible(true)
+        .setColor(caught ? '#173248' : '#ffffff')
+        .setFontSize(caught ? 16 : 18)
+        .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
+      this.nodes.resultFailureOptions.setVisible(!caught)
+      this.nodes.resultFailureEquip.setVisible(!caught)
+      this.nodes.resultFailurePort.setVisible(!caught)
     }
   }
 

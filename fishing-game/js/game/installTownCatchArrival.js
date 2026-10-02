@@ -148,13 +148,13 @@ export function installTownCatchArrival(TownScene) {
       wordWrap: { width: w - 70 },
     }).setOrigin(0.5, 0))
 
-    const deliver = this._actionButton(W / 2, y + h - 76, '町のみんなに届ける', () => {
+    const confirm = this._actionButton(W / 2, y + h - 76, '釣果は登録済み・港を見る', () => {
       container.destroy(true)
       this.cameras.main.flash(180, 235, 250, 255, true)
     }, 226, 48)
-    items.push(deliver)
+    items.push(confirm)
 
-    const returnFishing = this._actionButton(W / 2, y + h - 24, 'もう一度釣りへ', () => {
+    const returnFishing = this._actionButton(W / 2, y + h - 24, '次の釣り場を選ぶ', () => {
       container.destroy(true)
       this.scene.start('MapScene')
     }, 226, 40)

@@ -22,6 +22,7 @@ import {
 } from '../game/progress.js'
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { getDailyChallengeState, getOnboardingState } from '../game/retentionProgress.js'
+import { getFishingJourney } from '../game/fishingJourney.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -54,6 +55,7 @@ export default class HomeScene extends Phaser.Scene {
     this._town = getTownSummary()
     this._catches = getCatches()
     this._hasKue = this._catches.some(c => c.fishId === 'kue')
+    this._journey = getFishingJourney()
 
     this._buildBackground(W, H)
     this._buildTownAtmosphere(W, H)
@@ -203,7 +205,13 @@ export default class HomeScene extends Phaser.Scene {
     let accent = 0x71d6a2
     let action = () => this.scene.start('TownScene')
 
-    if (this._hasKue) {
+    if (this._journey.id === 'first-catch' || this._journey.id === 'review-catch') {
+      label = this._journey.id === 'first-catch' ? 'FIRST CATCH' : 'CATCH SAVED'
+      title = this._journey.title
+      lead = this._journey.body
+      accent = this._journey.id === 'first-catch' ? 0x5bb5d8 : 0x71d6a2
+      action = () => this.scene.start(this._journey.scene)
+    } else if (this._hasKue) {
       label = 'LEGEND PORT'
       title = '黒潮伝説の港になった！'
       lead = 'クエ捕獲記念祭を町で開催中'
@@ -308,10 +316,9 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildGuideBubble(W, H) {
     const x = 16, y = H * 0.36, w = 154, h = 66
-    const next = this._nextUnlock
-    let title = next ? `次は ${next.name}` : `${this._town.rank}になったよ`
-    let body = next ? `${next.unlockedBy}で新しい海へ` : `にぎわい ${this._town.bustle}/100 ・ 町を見に行こう`
-    let color = next ? UI_COLORS.warning : UI_COLORS.success
+    let title = this._journey.title
+    let body = this._journey.progress
+    let color = this._journey.mode === 'first' ? UI_COLORS.warning : UI_COLORS.success
 
     if (this._hasKue) {
       title = '港中がクエの話でもちきり！'
@@ -330,12 +337,14 @@ export default class HomeScene extends Phaser.Scene {
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
     this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '10px' : '12px' })).setDepth(15)
     this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color })).setDepth(15)
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(this._journey.scene))
   }
 
   _buildMainCTA(W, H) {
     const stamina = getStaminaState()
-    const waiting = stamina.current <= 0
+    const waiting = this._journey.preparation?.primaryBlocker?.id === 'stamina' || (
+      this._journey.scene === 'MapScene' && stamina.current <= 0
+    )
     const x = W / 2, y = H * 0.805, w = 300, h = 68
     const c = this.add.container(x, y).setDepth(18)
     const g = this.add.graphics()
@@ -361,16 +370,16 @@ export default class HomeScene extends Phaser.Scene {
     }
     draw(false)
     const rod = this.add.text(-w / 2 + 38, 0, waiting ? '⚡' : ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
-    const title = this.add.text(18, -7, waiting ? 'スタミナ回復待ち' : T.goFishing, uiText('button', { fontSize: waiting ? '19px' : '24px', color: UI_COLORS.ink })).setOrigin(0.5)
+    const title = this.add.text(18, -7, waiting ? 'スタミナ回復待ち' : this._journey.shortCta, uiText('button', { fontSize: waiting ? '19px' : '22px', color: UI_COLORS.ink })).setOrigin(0.5)
     const waitMin = Math.max(1, Math.ceil(stamina.nextRegenMs / 60000))
     const subText = waiting
       ? `あと約${waitMin}分 ・ ◆${STAMINA_REFILL_GEM_COST}で全回復`
-      : `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} ・ 町 ${this._town.bustle}/100`
+      : this._journey.progress
     const sub = this.add.text(18, 16, subText, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
     const arrow = this.add.text(w / 2 - 28, 0, '›', uiText('button', { fontSize: '32px', color: UI_COLORS.ink })).setOrigin(0.5)
     const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { draw(true); c.setScale(0.985) })
-      .on('pointerup', () => waiting ? this._showStaminaModal(W, H) : this.scene.start('MapScene'))
+      .on('pointerup', () => waiting ? this._showStaminaModal(W, H) : this.scene.start(this._journey.scene))
       .on('pointerout', () => { draw(false); c.setScale(1) })
     c.add([g, rod, title, sub, arrow, hit])
     this.tweens.add({ targets: c, scaleX: 1.014, scaleY: 1.014, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })
