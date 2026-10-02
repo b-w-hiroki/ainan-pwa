@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
+import { CHARACTER_MOTION_LAYOUTS, CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
 
 const root = new URL('../', import.meta.url)
 const read = path => readFileSync(new URL(path, root), 'utf8')
@@ -26,6 +26,8 @@ assert.ok(CHARACTER_MOTION_TIMING.release.some(frame => frame.pose === 'castMid'
 assert.ok(CHARACTER_MOTION_TIMING.fight.some(frame => frame.pose === 'fightMid'), 'fight loop must use an in-between')
 assert.ok(CHARACTER_MOTION_TIMING.joy.some(frame => frame.pose === 'joyMid'), 'joy must use an in-between')
 assert.ok(CHARACTER_MOTION_TIMING.sad.some(frame => frame.pose === 'sadMid'), 'sadness must use an in-between')
+assert.ok(CHARACTER_MOTION_LAYOUTS.battle.y < CHARACTER_MOTION_LAYOUTS.cast.y, 'battle actor must stay above the control dock')
+assert.ok(CHARACTER_MOTION_LAYOUTS.result.y < CHARACTER_MOTION_LAYOUTS.battle.y, 'result actor must stay above result actions')
 
 const controller = read('fishing-game/js/presentation/cast/CharacterMotionController.js')
 for (const token of ['isReducedMotion', "phase === 'battle'", "phase === 'result'", 'this.previous.charging', 'this.token += 1', 'fishingMotionHeldRod']) {
@@ -38,6 +40,7 @@ for (const forbidden of ['_saveProgress', 'localStorage.setItem', 'totalScore +=
 const host = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
 assert.ok(host.includes('new CharacterMotionController(scene).mount(field)'), 'motion controller not mounted in real Cast host')
 assert.ok(host.includes('characterMotion?.sync(view)'), 'game phase is not connected to motion controller')
+assert.ok(host.includes('battleForeground') && host.includes('resultForeground'), 'battle/result UI must render in front of character motion')
 const guard = read('fishing-game/js/game/installFishingPresentationGuard.js')
 assert.ok(guard.includes('...characterMotionAssets()'), 'motion assets are not preloaded')
 assert.ok(guard.includes('_castMotionInputLocked'), 'cast double-input guard missing')

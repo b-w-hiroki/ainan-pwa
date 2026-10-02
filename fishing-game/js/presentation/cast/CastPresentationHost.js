@@ -246,6 +246,15 @@ export class CastPresentationHost {
       layeredScene?.nodes?.character?.setVisible(false)
       layeredScene?.nodes?.heldRod?.setVisible(false)
     }
+    const battleForeground = scene.add.container(0, 0).setVisible(false)
+    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, battleTensionFill, battleReel, battleRage]
+    battleField.remove(battleUi)
+    battleForeground.add(battleUi)
+    const resultForeground = scene.add.container(0, 0).setVisible(false)
+    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText]
+    resultField.remove(resultUi)
+    resultForeground.add(resultUi)
+    field.add([battleForeground, resultForeground])
 
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
@@ -401,6 +410,8 @@ export class CastPresentationHost {
       resultTownMaskText,
       player,
       characterMotion,
+      battleForeground,
+      resultForeground,
     }
     this.layout()
     this.sync()
@@ -474,6 +485,8 @@ export class CastPresentationHost {
     this.nodes.retrieveField.setVisible(retrieveVisible)
     this.nodes.battleField.setVisible(battleVisible)
     this.nodes.resultField.setVisible(resultVisible)
+    this.nodes.battleForeground.setVisible(battleVisible)
+    this.nodes.resultForeground.setVisible(resultVisible)
     this.nodes.castDock.setVisible(castVisible)
     this.nodes.retrieveDock.setVisible(false)
     this.nodes.castInteraction.setVisible(castVisible)

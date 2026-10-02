@@ -1,7 +1,13 @@
 import { ASSETS } from '../../config/assetManifest.js'
 import { isReducedMotion } from '../../game/feedback.js'
 
-const FRAME = Object.freeze({ width: 320, height: 420, x: 101, y: 670, displayWidth: 218, displayHeight: 286 })
+const FRAME = Object.freeze({ width: 320, height: 420 })
+export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
+  cast: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
+  retrieve: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
+  battle: Object.freeze({ x: 100, y: 600, displayWidth: 190, displayHeight: 249 }),
+  result: Object.freeze({ x: 86, y: 540, displayWidth: 190, displayHeight: 249 }),
+})
 const ROD_SOURCE = Object.freeze({ grip: [130, 515], tip: [169, 379], width: 390, height: 844 })
 
 export const CHARACTER_MOTION_POSES = Object.freeze({
@@ -51,6 +57,8 @@ export class CharacterMotionController {
     this.token = 0
     this.timer = null
     this.previous = { phase: null, charging: false, outcome: null }
+    this.layout = CHARACTER_MOTION_LAYOUTS.cast
+    this.layoutPhase = 'cast'
     this.ready = false
   }
 
@@ -60,10 +68,10 @@ export class CharacterMotionController {
     this.ready = requiredAssets().every(asset => asset?.key && scene.textures.exists(asset.key))
     if (!this.ready) return this
     this.root = scene.add.container(0, 0).setDepth(75)
-    this.poseBack = scene.add.image(FRAME.x, FRAME.y, ASSETS.characters.fishingMotionIdle.key)
-      .setOrigin(0.5, 1).setDisplaySize(FRAME.displayWidth, FRAME.displayHeight).setAlpha(0)
-    this.poseFront = scene.add.image(FRAME.x, FRAME.y, ASSETS.characters.fishingMotionIdle.key)
-      .setOrigin(0.5, 1).setDisplaySize(FRAME.displayWidth, FRAME.displayHeight)
+    this.poseBack = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
+      .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight).setAlpha(0)
+    this.poseFront = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
+      .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight)
     this.rod = scene.add.image(0, 0, ASSETS.characters.fishingMotionHeldRod.key)
       .setOrigin(ROD_SOURCE.grip[0] / ROD_SOURCE.width, ROD_SOURCE.grip[1] / ROD_SOURCE.height)
       .setScale(ROD_SOURCE.scale)
@@ -77,10 +85,21 @@ export class CharacterMotionController {
   }
 
   _point([x, y]) {
+    const layout = this.layout
     return {
-      x: FRAME.x - FRAME.displayWidth / 2 + x * (FRAME.displayWidth / FRAME.width),
-      y: FRAME.y - FRAME.displayHeight + y * (FRAME.displayHeight / FRAME.height),
+      x: layout.x - layout.displayWidth / 2 + x * (layout.displayWidth / FRAME.width),
+      y: layout.y - layout.displayHeight + y * (layout.displayHeight / FRAME.height),
     }
+  }
+
+  _applyLayout(phase) {
+    const next = CHARACTER_MOTION_LAYOUTS[phase] ?? CHARACTER_MOTION_LAYOUTS.cast
+    if (this.layoutPhase === phase && this.layout === next) return
+    this.layout = next
+    this.layoutPhase = phase
+    ;[this.poseFront, this.poseBack].forEach(image => image?.setPosition(next.x, next.y).setDisplaySize(next.displayWidth, next.displayHeight))
+    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    if (pose) { this._applyRod(pose); this._applyFish(pose) }
   }
 
   _applyRod(pose) {
@@ -187,7 +206,8 @@ export class CharacterMotionController {
   sync(view) {
     if (!this.ready || !this.root?.active) return
     const { phase, isCharging, result } = view
-    this.root.setVisible(['cast', 'retrieve', 'battle', 'result'].includes(phase))
+    this._applyLayout(phase)
+    this.root.setVisible(['cast', 'battle', 'result'].includes(phase) || (phase === 'retrieve' && this.currentAction === 'release'))
     if (phase === 'cast') {
       if (isCharging && !this.previous.charging) this.play('charge', { hold: true })
       else if (!isCharging && this.previous.charging) this.play('release')
@@ -203,7 +223,9 @@ export class CharacterMotionController {
   }
 
   setFishTexture(asset) {
-    if (asset?.key && this.scene.textures.exists(asset.key) && this.fish.texture?.key !== asset.key) this.fish.setTexture(asset.key)
+    if (asset?.key && this.scene.textures.exists(asset.key) && this.fish.texture?.key !== asset.key) {
+      this.fish.setTexture(asset.key).setDisplaySize(88, 50)
+    }
   }
 
   destroy() {
