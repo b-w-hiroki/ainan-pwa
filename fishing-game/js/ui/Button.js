@@ -21,14 +21,20 @@ const VARIANTS = {
 export class Button {
   constructor(scene, {
     x, y, w = 260, h = 60, label, subLabel = '', icon, glyph, trailing = '', variant = 'primary',
-    fontSize = 20, depth = 10, disabled = false, keyboard = false, pulse = false, onClick,
+    fontSize = 20, depth = 10, disabled = false, keyboard = false, pulse = false, artKeys = null, artIconKey = '', onClick,
   }) {
     h = Math.max(BUTTON_SPEC.minHeight, h)
     const v = VARIANTS[variant] ?? VARIANTS.primary
     const container = scene.add.container(x, y).setDepth(depth)
     const shadow = scene.add.graphics()
     const surface = scene.add.graphics()
+    const artSurface = artKeys?.idle && scene.textures.exists(artKeys.idle)
+      ? scene.add.image(0, 1, artKeys.idle).setDisplaySize(w + 18, h + 16)
+      : null
     const glyphGfx = scene.add.graphics()
+    const artIcon = artIconKey && scene.textures.exists(artIconKey)
+      ? scene.add.image(-w / 2 + 39, 0, artIconKey).setDisplaySize(36, 49)
+      : null
     const labelX = glyph || icon ? 15 : 0
     const titleY = subLabel ? -8 : 0
     const title = scene.add.text(labelX, titleY, label, {
@@ -54,25 +60,34 @@ export class Button {
       const focused = mode === 'focus' && !isDisabled
       const dy = pressed ? 2 : 0
       surface.clear(); shadow.clear(); glyphGfx.clear()
-      shadow.fillStyle(0x173248, isDisabled ? 0.08 : pressed ? 0.10 : 0.20)
-      shadow.fillRoundedRect(-w / 2 + 2, -h / 2 + (pressed ? 3 : 6), w, h, BUTTON_SPEC.radius)
-      surface.fillStyle(isDisabled ? 0xdce8ed : hover || focused ? v.hover : v.fill, 1)
-      surface.lineStyle(focused ? 3 : pressed ? 2 : 2.5, isDisabled ? 0xa9bdc7 : v.border, isDisabled ? 0.62 : pressed ? 0.68 : 0.92)
-      surface.fillRoundedRect(-w / 2, -h / 2 + dy, w, h, BUTTON_SPEC.radius)
-      surface.strokeRoundedRect(-w / 2, -h / 2 + dy, w, h, BUTTON_SPEC.radius)
-      surface.fillStyle(isDisabled ? 0xffffff : v.glow, isDisabled ? 0.20 : pressed ? 0.20 : 0.44)
-      surface.fillRoundedRect(-w / 2 + 13, -h / 2 + 8 + dy, w - 26, 9, 5)
+      if (artSurface) {
+        const texture = isDisabled ? artKeys.disabled : pressed ? artKeys.pressed : artKeys.idle
+        if (texture && scene.textures.exists(texture)) artSurface.setTexture(texture)
+        artSurface.setY(dy).setTint(focused ? 0xffffff : 0xffffff).setAlpha(isDisabled ? 0.82 : 1)
+      } else {
+        shadow.fillStyle(0x173248, isDisabled ? 0.08 : pressed ? 0.10 : 0.20)
+        shadow.fillRoundedRect(-w / 2 + 2, -h / 2 + (pressed ? 3 : 6), w, h, BUTTON_SPEC.radius)
+        surface.fillStyle(isDisabled ? 0xdce8ed : hover || focused ? v.hover : v.fill, 1)
+        surface.lineStyle(focused ? 3 : pressed ? 2 : 2.5, isDisabled ? 0xa9bdc7 : v.border, isDisabled ? 0.62 : pressed ? 0.68 : 0.92)
+        surface.fillRoundedRect(-w / 2, -h / 2 + dy, w, h, BUTTON_SPEC.radius)
+        surface.strokeRoundedRect(-w / 2, -h / 2 + dy, w, h, BUTTON_SPEC.radius)
+        surface.fillStyle(isDisabled ? 0xffffff : v.glow, isDisabled ? 0.20 : pressed ? 0.20 : 0.44)
+        surface.fillRoundedRect(-w / 2 + 13, -h / 2 + 8 + dy, w - 26, 9, 5)
+      }
       if (glyph || icon) {
-        glyphGfx.fillStyle(isDisabled ? 0xa9bdc7 : v.disc, 1)
-        glyphGfx.lineStyle(2, 0xffffff, 0.74)
-        glyphGfx.fillCircle(-w / 2 + 39, dy, 23)
-        glyphGfx.strokeCircle(-w / 2 + 39, dy, 23)
-        if (glyph) {
+        if (!artIcon) {
+          glyphGfx.fillStyle(isDisabled ? 0xa9bdc7 : v.disc, 1)
+          glyphGfx.lineStyle(2, 0xffffff, 0.74)
+          glyphGfx.fillCircle(-w / 2 + 39, dy, 23)
+          glyphGfx.strokeCircle(-w / 2 + 39, dy, 23)
+        }
+        if (glyph && !artIcon) {
           glyphGfx.fillStyle(isDisabled ? 0xeaf0f2 : v.icon, 1)
           glyphGfx.lineStyle(2.5, isDisabled ? 0xeaf0f2 : v.icon, 1)
           drawGlyph(glyphGfx, glyph, -w / 2 + 39, dy, 0.9)
         }
       }
+      artIcon?.setY(dy).setAlpha(isDisabled ? 0.55 : 1)
       title.setY(titleY + dy); sub?.setY(15 + dy); trail?.setY(dy); iconText?.setY(dy)
       const alpha = isDisabled ? 0.68 : 1
       title.setAlpha(alpha); sub?.setAlpha(alpha); trail?.setAlpha(alpha); iconText?.setAlpha(alpha)
@@ -109,7 +124,7 @@ export class Button {
       })
     }
 
-    container.add([shadow, surface, glyphGfx, title, ...(sub ? [sub] : []), ...(trail ? [trail] : []), ...(iconText ? [iconText] : []), hit])
+    container.add([shadow, ...(artSurface ? [artSurface] : []), surface, glyphGfx, ...(artIcon ? [artIcon] : []), title, ...(sub ? [sub] : []), ...(trail ? [trail] : []), ...(iconText ? [iconText] : []), hit])
     container.setData('uiRole', 'button').setData('minHitHeight', Math.max(BUTTON_SPEC.minHitHeight, h + 8)).setData('state', isDisabled ? 'disabled' : 'idle')
     draw()
     if (pulse && !isReducedMotion() && !isDisabled) scene.tweens.add({ targets: container, scaleX: 1.012, scaleY: 1.012, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })

@@ -30,29 +30,35 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   const h = FOOTER_NAV_SPEC.height
   const y = H - h - FOOTER_NAV_SPEC.bottomInset
   const bar = scene.add.graphics().setDepth(90)
+  const useArt = Boolean(options.useArt && scene.textures.exists('ui_art_footer_shell'))
 
-  bar.fillStyle(0x173248, 0.24)
-  bar.fillRoundedRect(8, y + 7, W - 16, h, 24)
+  if (useArt) {
+    scene.add.image(W / 2, y + h / 2 + 2, 'ui_art_footer_shell').setDisplaySize(W - 8, h + 13).setDepth(90)
+  } else {
+    bar.fillStyle(0x173248, 0.24)
+    bar.fillRoundedRect(8, y + 7, W - 16, h, 24)
 
-  bar.fillStyle(0xf8fdff, 0.985)
-  bar.lineStyle(2, 0x68bee3, 0.94)
-  bar.fillRoundedRect(8, y, W - 16, h, 24)
-  bar.strokeRoundedRect(8, y, W - 16, h, 24)
+    bar.fillStyle(0xf8fdff, 0.985)
+    bar.lineStyle(2, 0x68bee3, 0.94)
+    bar.fillRoundedRect(8, y, W - 16, h, 24)
+    bar.strokeRoundedRect(8, y, W - 16, h, 24)
 
-  bar.fillStyle(0xffffff, 0.92)
-  bar.fillRoundedRect(18, y + 7, W - 36, 9, 5)
-  bar.fillStyle(0xdff5ff, 0.70)
-  bar.fillRoundedRect(16, y + 17, W - 32, 5, 3)
+    bar.fillStyle(0xffffff, 0.92)
+    bar.fillRoundedRect(18, y + 7, W - 36, 9, 5)
+    bar.fillStyle(0xdff5ff, 0.70)
+    bar.fillRoundedRect(16, y + 17, W - 32, 5, 3)
 
-  bar.lineStyle(1, 0x9bcfe5, 0.28)
-  ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
-    const x = W * f
-    bar.lineBetween(x, y + 22, x, y + h - 14)
-  })
+    bar.lineStyle(1, 0x9bcfe5, 0.28)
+    ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
+      const x = W * f
+      bar.lineBetween(x, y + 22, x, y + h - 14)
+    })
+  }
 
   const tabs = FOOTER_TABS.map(tab => createFooterTab(scene, W * tab.x, y, tab, {
     active: tab.key === activeKey,
     disabled: disabledKeys.has(tab.key),
+    useArt,
   }))
   scene._footerKeyboardFocus = false
   let focusIndex = Math.max(0, FOOTER_TABS.findIndex(tab => tab.key === activeKey))
@@ -88,11 +94,18 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   })
   scene._footerTabs = tabs
 }
-function createFooterTab(scene, x, y, tab, { active, disabled }) {
+function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
   const width = 68
   const centerY = y + 38
   const surface = scene.add.graphics().setDepth(91)
   const icon = scene.add.graphics().setDepth(93)
+  const artKey = `ui_art_icon_${tab.key === 'shop' ? 'exchange' : tab.key}`
+  const selectedArt = useArt && active
+    ? scene.add.image(x, y + 37, 'ui_art_tab_selected').setDisplaySize(64, 72).setDepth(91)
+    : null
+  const artIcon = useArt && scene.textures.exists(artKey)
+    ? scene.add.image(x, y + 28, artKey).setDisplaySize(tab.key === 'town' ? 39 : 35, tab.key === 'equip' ? 42 : 35).setDepth(93)
+    : null
   const label = scene.add.text(x, y + FOOTER_NAV_SPEC.labelBaseline, tab.label, {
     fontFamily: FONT, resolution: TEXT_RES, fontSize: active ? '12px' : '11px', fontWeight: '900',
     color: active ? UI_COLORS.oceanDeep : disabled ? '#a9b9c3' : UI_COLORS.muted,
@@ -106,7 +119,7 @@ function createFooterTab(scene, x, y, tab, { active, disabled }) {
     const focused = mode === 'focus'
     const dy = pressed ? 2 : 0
     surface.clear(); icon.clear()
-    if (active || focused) {
+    if (!useArt && (active || focused)) {
       surface.fillStyle(active ? 0x2f9ed4 : 0xffd95a, active ? 0.14 : 0.13)
       surface.fillRoundedRect(x - 32, y + 6 + dy, 64, 66, 20)
       surface.lineStyle(2, active ? 0x2f9ed4 : 0xe5b83b, focused ? 0.92 : 0.74)
@@ -114,18 +127,26 @@ function createFooterTab(scene, x, y, tab, { active, disabled }) {
       surface.fillStyle(active ? 0xffd95a : 0xffffff, 1)
       surface.fillRoundedRect(x - 13, y + 68 + dy, 26, 4, 2)
     }
-    const radius = active ? 21 : 19
-    icon.fillStyle(disabled ? 0xe9f0f3 : active ? 0xdff5ff : 0xffffff, disabled ? 0.72 : 1)
-    icon.lineStyle(active ? 2.2 : 1.4, disabled ? 0xcbd6db : active ? 0x2f9ed4 : 0xb9dce9, 1)
-    icon.fillCircle(x, y + 29 + dy, radius)
-    icon.strokeCircle(x, y + 29 + dy, radius)
-    if (active) {
-      icon.fillStyle(0xffffff, 0.78)
-      icon.fillEllipse(x - 6, y + 22 + dy, 17, 7)
+    if (!artIcon) {
+      const radius = active ? 21 : 19
+      icon.fillStyle(disabled ? 0xe9f0f3 : active ? 0xdff5ff : 0xffffff, disabled ? 0.72 : 1)
+      icon.lineStyle(active ? 2.2 : 1.4, disabled ? 0xcbd6db : active ? 0x2f9ed4 : 0xb9dce9, 1)
+      icon.fillCircle(x, y + 29 + dy, radius)
+      icon.strokeCircle(x, y + 29 + dy, radius)
+      if (active) {
+        icon.fillStyle(0xffffff, 0.78)
+        icon.fillEllipse(x - 6, y + 22 + dy, 17, 7)
+      }
+      const fg = disabled ? 0x9baab3 : active ? 0x1f6f9f : 0x718392
+      icon.fillStyle(fg, 1); icon.lineStyle(2.7, fg, 1)
+      drawGlyph(icon, tab.glyph, x, y + 29 + dy, active ? 1.02 : 0.9)
     }
-    const fg = disabled ? 0x9baab3 : active ? 0x1f6f9f : 0x718392
-    icon.fillStyle(fg, 1); icon.lineStyle(2.7, fg, 1)
-    drawGlyph(icon, tab.glyph, x, y + 29 + dy, active ? 1.02 : 0.9)
+    artIcon?.setY(y + 28 + dy).setAlpha(disabled ? 0.34 : active ? 1 : focused ? 0.9 : 0.68)
+    selectedArt?.setY(y + 37 + dy)
+    if (useArt && focused && !active) {
+      surface.lineStyle(2, 0xffd95a, 0.92)
+      surface.strokeRoundedRect(x - 29, y + 7 + dy, 58, 64, 18)
+    }
     label.setY(y + FOOTER_NAV_SPEC.labelBaseline + dy)
   }
   const activate = () => {

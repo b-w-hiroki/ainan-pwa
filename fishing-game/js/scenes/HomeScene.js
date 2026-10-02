@@ -45,7 +45,21 @@ export default class HomeScene extends Phaser.Scene {
   constructor() { super({ key: 'HomeScene' }) }
 
   preload() {
-    const wanted = [ASSETS.backgrounds.homeBase, ASSETS.characters.guideDefault]
+    const wanted = [
+      ASSETS.backgrounds.homeBase,
+      ASSETS.characters.guideDefault,
+      ASSETS.ui.artFooterShell,
+      ASSETS.ui.artTabSelected,
+      ASSETS.ui.artIconHome,
+      ASSETS.ui.artIconEquip,
+      ASSETS.ui.artIconTown,
+      ASSETS.ui.artIconExchange,
+      ASSETS.ui.artIconMenu,
+      ASSETS.ui.artButtonPrimary,
+      ASSETS.ui.artButtonSecondary,
+      ASSETS.ui.artButtonPressed,
+      ASSETS.ui.artButtonDisabled,
+    ]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
     })
@@ -68,7 +82,7 @@ export default class HomeScene extends Phaser.Scene {
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
     this._buildMainCTA(W, H)
-    buildFooterNav(this, W, H, 'home')
+    buildFooterNav(this, W, H, 'home', { useArt: true })
     this._maybeShowDailyBonus(W, H)
   }
 
@@ -358,6 +372,10 @@ export default class HomeScene extends Phaser.Scene {
       variant: waiting ? 'secondary' : 'primary',
       fontSize: waiting ? 18 : 21,
       depth: 18, keyboard: true, pulse: true,
+      artKeys: waiting
+        ? { idle: ASSETS.ui.artButtonSecondary.key, pressed: ASSETS.ui.artButtonSecondary.key, disabled: ASSETS.ui.artButtonDisabled.key }
+        : { idle: ASSETS.ui.artButtonPrimary.key, pressed: ASSETS.ui.artButtonPressed.key, disabled: ASSETS.ui.artButtonDisabled.key },
+      artIconKey: ASSETS.ui.artIconEquip.key,
       onClick: () => waiting ? this._showStaminaModal(W, H) : this.scene.start(this._journey.scene),
     })
   }

@@ -20,11 +20,12 @@
     "qa:fishing-journey": "node scripts/fishing-journey-smoke.mjs",
     "qa:reward-language": "node scripts/reward-language-smoke.mjs",
     "qa:ui-components": "node scripts/ui-component-system-smoke.mjs",
+    "qa:ui-art-sample": "node scripts/ui-art-sample-smoke.mjs",
     "qa:ui-final": "node scripts/ui-final-smoke.mjs",
     "qa:release-readiness": "node scripts/release-readiness-smoke.mjs",
     "qa:diagnostics": "node scripts/diagnostics-smoke.mjs",
     "qa:first10-balance": "node scripts/first10-balance-baseline.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:cast-layering && npm run qa:character-motion && npm run qa:equipment-visual && npm run qa:fishing-journey && npm run qa:reward-language && npm run qa:ui-components && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && tsc -b && vite build",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:cast-layering && npm run qa:character-motion && npm run qa:equipment-visual && npm run qa:fishing-journey && npm run qa:reward-language && npm run qa:ui-components && npm run qa:ui-art-sample && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
