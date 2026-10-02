@@ -1,0 +1,259 @@
+{
+  "version": 2,
+  "status": "prototype-review-only",
+  "generatedAt": "2026-10-02T04:11:09.405Z",
+  "anchors": {
+    "design": {
+      "width": 390,
+      "height": 844
+    },
+    "horizonY": 258,
+    "dockTop": 500,
+    "character": {
+      "foot": {
+        "x": 92,
+        "y": 670
+      },
+      "hand": {
+        "x": 130,
+        "y": 515
+      },
+      "bounds": {
+        "x": 15,
+        "y": 450,
+        "width": 154,
+        "height": 220
+      }
+    },
+    "heldRod": {
+      "grip": {
+        "x": 130,
+        "y": 515
+      },
+      "tip": {
+        "x": 169,
+        "y": 379
+      },
+      "bounds": {
+        "x": 124,
+        "y": 376,
+        "width": 48,
+        "height": 143
+      }
+    },
+    "line": {
+      "start": {
+        "x": 169,
+        "y": 379
+      },
+      "target": {
+        "x": 310,
+        "y": 235
+      }
+    }
+  },
+  "variants": [
+    {
+      "id": "normal",
+      "label": "通常配置",
+      "seaTop": 240,
+      "characterDx": 0,
+      "characterDy": 0,
+      "rodRotation": 0
+    },
+    {
+      "id": "wide-sea",
+      "label": "海を広く",
+      "seaTop": 188,
+      "characterDx": 0,
+      "characterDy": 0,
+      "rodRotation": 0
+    },
+    {
+      "id": "character-moved",
+      "label": "キャラ位置変更",
+      "seaTop": 240,
+      "characterDx": 42,
+      "characterDy": -22,
+      "rodRotation": 0
+    },
+    {
+      "id": "rod-only",
+      "label": "竿単独変更",
+      "seaTop": 240,
+      "characterDx": 0,
+      "characterDy": 0,
+      "rodRotation": -8
+    }
+  ],
+  "layers": {
+    "sky": {
+      "source": "assets/sky-source.png",
+      "normalized": "assets/sky-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 853,
+        "sourceHeight": 1844,
+        "left": 0,
+        "top": 0,
+        "right": 852,
+        "bottom": 929,
+        "width": 853,
+        "height": 930,
+        "alphaCoverage": 0.5043
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 237458,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    },
+    "clouds": {
+      "source": "assets/clouds-source.png",
+      "normalized": "assets/clouds-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 853,
+        "sourceHeight": 1844,
+        "left": 0,
+        "top": 98,
+        "right": 838,
+        "bottom": 448,
+        "width": 839,
+        "height": 351,
+        "alphaCoverage": 0.0265
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 313984,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    },
+    "distantHarbor": {
+      "source": "assets/distant-harbor-source.png",
+      "normalized": "assets/distantHarbor-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 853,
+        "sourceHeight": 1843,
+        "left": 0,
+        "top": 260,
+        "right": 852,
+        "bottom": 535,
+        "width": 853,
+        "height": 276,
+        "alphaCoverage": 0.0448
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 314016,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    },
+    "sea": {
+      "source": "assets/sea-source.png",
+      "normalized": "assets/sea-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 853,
+        "sourceHeight": 1844,
+        "left": 0,
+        "top": 0,
+        "right": 852,
+        "bottom": 1843,
+        "width": 853,
+        "height": 1844,
+        "alphaCoverage": 1
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 93600,
+        "opaquePixels": 235560,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": true
+    },
+    "platform": {
+      "source": "assets/platform-source.png",
+      "normalized": "assets/platform-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 886,
+        "sourceHeight": 1775,
+        "left": 0,
+        "top": 1064,
+        "right": 885,
+        "bottom": 1774,
+        "width": 886,
+        "height": 711,
+        "alphaCoverage": 0.1787
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 271404,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    },
+    "character": {
+      "source": "assets/character-rodless-source.png",
+      "normalized": "assets/character-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 1111,
+        "sourceHeight": 1416,
+        "left": 99,
+        "top": 195,
+        "right": 1021,
+        "bottom": 1278,
+        "width": 923,
+        "height": 1084,
+        "alphaCoverage": 0.3584
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 309389,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    },
+    "heldRod": {
+      "source": "assets/held-rod-source.png",
+      "normalized": "assets/heldRod-390x844.png",
+      "sourcePixels": {
+        "sourceWidth": 1110,
+        "sourceHeight": 1417,
+        "left": 69,
+        "top": 65,
+        "right": 1066,
+        "bottom": 1338,
+        "width": 998,
+        "height": 1274,
+        "alphaCoverage": 0.0273
+      },
+      "normalizedCanvas": {
+        "width": 390,
+        "height": 844,
+        "transparentPixels": 328773,
+        "opaquePixels": 0,
+        "hasTransparency": true
+      },
+      "transparent": true,
+      "sourceOpaque": false
+    }
+  }
+}
