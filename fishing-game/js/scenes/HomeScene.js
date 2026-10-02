@@ -23,6 +23,7 @@ import {
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { getDailyChallengeState, getOnboardingState } from '../game/retentionProgress.js'
 import { getFishingJourney } from '../game/fishingJourney.js'
+import { createAccessoryAccent, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -56,6 +57,7 @@ export default class HomeScene extends Phaser.Scene {
     this._catches = getCatches()
     this._hasKue = this._catches.some(c => c.fishId === 'kue')
     this._journey = getFishingJourney()
+    this._visualLoadout = getVisualLoadout()
 
     this._buildBackground(W, H)
     this._buildTownAtmosphere(W, H)
@@ -137,7 +139,7 @@ export default class HomeScene extends Phaser.Scene {
     profile.lineStyle(1.8, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.9)
     profile.fillRoundedRect(18, 22, 154, 46, 15)
     profile.strokeRoundedRect(18, 22, 154, 46, 15)
-    profile.fillStyle(0xffd95a, 1)
+    profile.fillStyle(this._visualLoadout.rod.accent, 1)
     profile.fillCircle(42, 45, 16)
     profile.lineStyle(2, 0xffffff, 0.75)
     profile.strokeCircle(42, 45, 16)
@@ -146,6 +148,10 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(64, 38, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
     this.add.text(64, 55, this._hasKue ? `RANK ${String(rank).padStart(2, '0')}  LEGEND` : `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
     this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ProfileScene'))
+
+    Object.values(this._visualLoadout.accessories).filter(Boolean).forEach((id, index) => {
+      createAccessoryAccent(this, id).setVisible(true).setPosition(158, 34 + index * 22).setScale(0.34).setDepth(22)
+    })
 
     this._buildResourceChip(W - 116, 26, 'trophy', this._shortNum(totalScore), 0xfff5d9)
     this._buildResourceChip(W - 62, 26, 'fish', this._shortNum(catches.length), 0xdff5ff)

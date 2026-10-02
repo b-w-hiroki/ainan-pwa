@@ -1,5 +1,13 @@
 import { ASSETS } from '../../config/assetManifest.js'
 import { isReducedMotion } from '../../game/feedback.js'
+import {
+  ACCESSORY_VISUALS,
+  DEFAULT_ROD_VISUAL_ID,
+  ROD_VISUALS,
+  createAccessoryAccent,
+} from '../equipmentVisuals.js'
+
+export { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS } from '../equipmentVisuals.js'
 
 const FRAME = Object.freeze({ width: 320, height: 420 })
 export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
@@ -7,31 +15,6 @@ export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
   retrieve: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
   battle: Object.freeze({ x: 100, y: 600, displayWidth: 190, displayHeight: 249 }),
   result: Object.freeze({ x: 86, y: 540, displayWidth: 190, displayHeight: 249 }),
-})
-const ROD_SOURCE = Object.freeze({ grip: [130, 515], tip: [169, 379], width: 390, height: 844 })
-export const DEFAULT_ROD_VISUAL_ID = 'carbon'
-export const ROD_VISUALS = Object.freeze({
-  basic: Object.freeze({
-    asset: 'fishingMotionRodBasic',
-    source: ROD_SOURCE,
-    lengthScale: 0.94,
-    flex: Object.freeze({ cast: 0.002, retrieve: 0.004, battle: 0.026, result: 0.012 }),
-    line: Object.freeze({ color: 0xf5f0d8, width: 1.3, alpha: 0.82, curve: 14 }),
-  }),
-  carbon: Object.freeze({
-    asset: 'fishingMotionRodCarbon',
-    source: ROD_SOURCE,
-    lengthScale: 1,
-    flex: Object.freeze({ cast: 0.002, retrieve: 0.004, battle: 0.02, result: 0.01 }),
-    line: Object.freeze({ color: 0xeafcff, width: 1.35, alpha: 0.86, curve: 18 }),
-  }),
-  premium: Object.freeze({
-    asset: 'fishingMotionRodPremium',
-    source: ROD_SOURCE,
-    lengthScale: 1.08,
-    flex: Object.freeze({ cast: 0.001, retrieve: 0.003, battle: 0.014, result: 0.008 }),
-    line: Object.freeze({ color: 0xffefaa, width: 1.5, alpha: 0.9, curve: 22 }),
-  }),
 })
 
 export const CHARACTER_MOTION_POSES = Object.freeze({
@@ -80,6 +63,8 @@ export class CharacterMotionController {
     this.rodType = DEFAULT_ROD_VISUAL_ID
     this.rodVisual = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
     this.rodTextureFallback = false
+    this.accessoryAccents = {}
+    this.accessoryIds = { hat: null, bag: null }
     this.line = null
     this.fish = null
     this.currentPose = 'idle'
@@ -102,13 +87,16 @@ export class CharacterMotionController {
       .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight).setAlpha(0)
     this.poseFront = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
       .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight)
+    const defaultSource = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID].source
     this.rod = scene.add.image(0, 0, ASSETS.characters.fishingMotionHeldRod.key)
-      .setOrigin(ROD_SOURCE.grip[0] / ROD_SOURCE.width, ROD_SOURCE.grip[1] / ROD_SOURCE.height)
+      .setOrigin(defaultSource.grip[0] / defaultSource.width, defaultSource.grip[1] / defaultSource.height)
       .setScale(1)
+    this.accessoryAccents.cap = createAccessoryAccent(scene, 'cap')
+    this.accessoryAccents.bag = createAccessoryAccent(scene, 'bag')
     this.line = scene.add.graphics()
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
       .setDisplaySize(88, 50).setVisible(false).setAngle(-4)
-    this.root.add([this.poseBack, this.poseFront, this.rod, this.line, this.fish])
+    this.root.add([this.poseBack, this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
     parent.add(this.root)
     this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
     this._applyPose('idle', true)
@@ -130,7 +118,7 @@ export class CharacterMotionController {
     this.layoutPhase = phase
     ;[this.poseFront, this.poseBack].forEach(image => image?.setPosition(next.x, next.y).setDisplaySize(next.displayWidth, next.displayHeight))
     const pose = CHARACTER_MOTION_POSES[this.currentPose]
-    if (pose) { this._applyRod(pose); this._applyFish(pose) }
+    if (pose) { this._applyRod(pose); this._applyAccessories(pose); this._applyFish(pose) }
   }
 
   _applyRod(pose) {
@@ -205,6 +193,27 @@ export class CharacterMotionController {
     if (pose) this._applyRod(pose)
   }
 
+  _setAccessoryVisuals(accessories = {}) {
+    const next = { hat: accessories.hat ?? null, bag: accessories.bag ?? null }
+    if (this.accessoryIds.hat === next.hat && this.accessoryIds.bag === next.bag) return
+    this.accessoryIds = next
+    this.root.setData('accessories', { ...next })
+    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    if (pose) this._applyAccessories(pose)
+  }
+
+  _applyAccessories(_pose) {
+    for (const [id, accent] of Object.entries(this.accessoryAccents)) {
+      const visual = ACCESSORY_VISUALS[id]
+      const equipped = this.accessoryIds[visual.slot] === id
+      const anchor = visual.anchors[this.currentPose]
+      if (!equipped || !anchor) { accent.setVisible(false); continue }
+      const point = this._point(anchor)
+      const sourceScale = this.layout.displayWidth / FRAME.width
+      accent.setVisible(true).setPosition(point.x, point.y).setRotation((anchor[2] ?? 0) * Math.PI / 180).setScale(sourceScale)
+    }
+  }
+
   _applyFish(pose) {
     if (!pose.fish) { this.fish.setVisible(false); return }
     const point = this._point(pose.fish)
@@ -229,6 +238,7 @@ export class CharacterMotionController {
     this.poseFront = next
     this.poseBack = previous
     this.currentPose = name
+    this._applyAccessories(pose)
     this._applyRod(pose)
     this._applyFish(pose)
     this.root.setData('pose', name)
@@ -281,8 +291,11 @@ export class CharacterMotionController {
 
   sync(view) {
     if (!this.ready || !this.root?.active) return
-    const { phase, isCharging, result, rodType } = view
+    const { phase, isCharging, result, rodType, accessories } = view
+    this.root.setData('rodRequestedType', view.rodRequestedType)
+    this.root.setData('rodStateFallback', Boolean(view.rodVisualFallback))
     this._setRodVisual(rodType)
+    this._setAccessoryVisuals(accessories)
     this._applyLayout(phase)
     this.root.setVisible(['cast', 'battle', 'result'].includes(phase) || (phase === 'retrieve' && this.currentAction === 'release'))
     if (phase === 'cast') {

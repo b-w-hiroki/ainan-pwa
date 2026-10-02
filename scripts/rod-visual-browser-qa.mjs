@@ -121,7 +121,10 @@ await page.setViewportSize({ width: 390, height: 844 })
 await context.close()
 
 const fallbackContext = await browser.newContext({ viewport: { width: 390, height: 844 } })
-await fallbackContext.addInitScript(() => localStorage.setItem('ainan_equipment', JSON.stringify({ rodType: 'premium', baitType: 'worm' })))
+await fallbackContext.addInitScript(() => {
+  localStorage.setItem('ainan_equipment', JSON.stringify({ rodType: 'premium', baitType: 'worm' }))
+  localStorage.setItem('ainan_inventory', JSON.stringify({ rods: { basic: 1, carbon: 1, premium: 1 }, baits: { worm: 12, shrimp: 5, special: 2 } }))
+})
 await fallbackContext.route('**/held-rod-premium.svg', route => route.abort())
 const fallbackPage = await fallbackContext.newPage()
 await fallbackPage.goto(`${base}?qa=1&scene=GameScene&qaMockPhase=cast`, { waitUntil: 'domcontentloaded' })

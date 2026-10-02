@@ -6,6 +6,7 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
 import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
+import { ACCESSORY_VISUALS, ROD_VISUALS, createAccessoryAccent, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 import {
   BAIT_META,
   ROD_META,
@@ -66,6 +67,8 @@ export default class UpgradeScene extends Phaser.Scene {
     const wanted = [
       ASSETS.backgrounds.homeBase,
       ASSETS.characters.playerDefaultUi,
+      ASSETS.characters.fishingMotionIdle,
+      ...Object.values(ROD_VISUALS).map(visual => ASSETS.characters[visual.asset]),
       ...Object.values(ROD_ART),
       ...Object.values(BAIT_ART),
     ]
@@ -119,8 +122,10 @@ export default class UpgradeScene extends Phaser.Scene {
   _loadout(W) {
     const equipment = getEquipment()
     const inventory = getInventory()
-    const rodType = equipment.rodType ?? 'basic'
-    const baitType = equipment.baitType ?? 'worm'
+    const visualLoadout = getVisualLoadout(equipment.rodType)
+    this._previewLoadout = visualLoadout
+    const rodType = visualLoadout.rod.id
+    const baitType = BAIT_META[equipment.baitType] ? equipment.baitType : 'worm'
     const y = 132
 
     const panel = this.add.graphics().setDepth(4)
@@ -138,7 +143,7 @@ export default class UpgradeScene extends Phaser.Scene {
       letterSpacing: 1,
     }).setOrigin(0.5).setDepth(5)
 
-    this._character(W / 2, y + 142)
+    this._character(W / 2, y + 142, visualLoadout)
     this._equipSlot(70, y + 89, '竿', rodType, ROD_META[rodType], ROD_RANK[rodType], inventory.rods?.[rodType] ?? 0, 'rod', ROD_ART[rodType])
     this._equipSlot(320, y + 89, 'エサ', baitType, BAIT_META[baitType], BAIT_RANK[baitType], inventory.baits?.[baitType] ?? 0, 'bait', BAIT_ART[baitType])
     const accessoryState = getAccessoryState()
@@ -171,14 +176,37 @@ export default class UpgradeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(6)
   }
 
-  _character(x, y) {
+  _character(x, y, loadout) {
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x5cc8ff, 0.12)
     g.fillEllipse(x, y + 78, 128, 26)
-    const player = this.add.image(x, y - 13, ASSETS.characters.playerDefaultUi.key)
-      .setOrigin(0.5, 0.55).setDisplaySize(92, 230).setDepth(7)
-    this.textures.get(ASSETS.characters.playerDefaultUi.key)?.setFilter(Phaser.Textures.FilterMode.LINEAR)
-    this.add.text(x, y + 92, '港の釣り人', {
+    const displayWidth = 126, displayHeight = 165
+    const left = x - displayWidth / 2, top = y + 70 - displayHeight
+    const scale = displayWidth / 320
+    const player = this.add.image(x, y + 70, ASSETS.characters.fishingMotionIdle.key)
+      .setOrigin(0.5, 1).setDisplaySize(displayWidth, displayHeight).setDepth(7)
+    this.textures.get(ASSETS.characters.fishingMotionIdle.key)?.setFilter(Phaser.Textures.FilterMode.LINEAR)
+
+    const rodVisual = ROD_VISUALS[loadout.rod.id]
+    const grip = { x: left + 214 * scale, y: top + 193 * scale }
+    const tip = { x: left + 261 * scale, y: top + 58 * scale }
+    const source = rodVisual.source
+    const sourceLength = Math.hypot(source.tip[0] - source.grip[0], source.tip[1] - source.grip[1])
+    const targetLength = Math.hypot(tip.x - grip.x, tip.y - grip.y) * rodVisual.lengthScale
+    const sourceAngle = Math.atan2(source.tip[1] - source.grip[1], source.tip[0] - source.grip[0])
+    const targetAngle = Math.atan2(tip.y - grip.y, tip.x - grip.x)
+    this.add.image(grip.x, grip.y, ASSETS.characters[rodVisual.asset].key)
+      .setOrigin(source.grip[0] / source.width, source.grip[1] / source.height)
+      .setScale(targetLength / sourceLength).setRotation(targetAngle - sourceAngle).setDepth(8)
+
+    for (const id of Object.values(loadout.accessories).filter(Boolean)) {
+      const accent = createAccessoryAccent(this, id)
+      const anchor = ACCESSORY_VISUALS[id].anchors.idle
+      accent.setVisible(true).setPosition(left + anchor[0] * scale, top + anchor[1] * scale)
+        .setRotation((anchor[2] ?? 0) * Math.PI / 180).setScale(scale).setDepth(9)
+    }
+
+    this.add.text(x, y + 92, loadout.rod.fallback ? `${rodVisual.name}（安全表示）` : `${rodVisual.name} 装備`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5).setDepth(7)
   }
