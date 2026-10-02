@@ -22,6 +22,7 @@ export function readCastViewModel(scene) {
     locationLabel: LOCATION_LABELS[scene.env?.point] ?? LOCATION_LABELS.pointA,
     distanceLabel: scene.phase === 'cast' ? '28m' : '18m',
     tackleLabel: scene.rod?.name ?? '',
+    rodType: scene.rod?.id ?? scene.env?.player?.rodType ?? 'carbon',
     isCharging,
     retrieve: Object.freeze({
       action: scene.retrieveState?.action ?? 'idle',

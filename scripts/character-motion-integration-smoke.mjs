@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { CHARACTER_MOTION_LAYOUTS, CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
+import { CHARACTER_MOTION_LAYOUTS, CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING, DEFAULT_ROD_VISUAL_ID, ROD_VISUALS } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
+import { ROD_STATS } from '../fishing-game/js/game/params.js'
 
 const root = new URL('../', import.meta.url)
 const read = path => readFileSync(new URL(path, root), 'utf8')
@@ -16,6 +17,25 @@ for (const name of ['idle', 'cast-windup', 'cast-mid', 'cast-release', 'fight-le
     assert.equal(bytes.readUInt32BE(20), 420, `${name}: frame height drift`)
   }
 }
+
+for (const id of ['basic', 'carbon', 'premium']) {
+  const file = new URL(`held-rod-${id}.svg`, assetDirectory)
+  assert.ok(existsSync(file), `missing held rod visual: ${id}`)
+  const svg = readFileSync(file, 'utf8')
+  assert.ok(svg.includes('viewBox="0 0 390 844"'), `${id}: held rod canvas drift`)
+  const visual = ROD_VISUALS[id]
+  assert.ok(visual, `${id}: declarative visual missing`)
+  assert.deepEqual(visual.source.grip, [130, 515], `${id}: grip anchor drift`)
+  assert.deepEqual(visual.source.tip, [169, 379], `${id}: tip anchor drift`)
+  assert.ok(visual.lengthScale > 0.9 && visual.lengthScale < 1.1, `${id}: unsafe display length`)
+  assert.ok(visual.line.width >= 1.3, `${id}: line treatment missing`)
+}
+assert.equal(DEFAULT_ROD_VISUAL_ID, 'carbon', 'existing default rod must remain carbon')
+assert.deepEqual(ROD_STATS, {
+  basic: { castRange: 1, pullPower: 1, attractRadius: 1 },
+  carbon: { castRange: 1.4, pullPower: 1.2, attractRadius: 1.2 },
+  premium: { castRange: 2, pullPower: 1.5, attractRadius: 1.5 },
+}, 'visual integration must not change rod performance')
 
 for (const [name, pose] of Object.entries(CHARACTER_MOTION_POSES)) {
   for (const anchor of [pose.grip, pose.tip, pose.fish].filter(Boolean)) {
@@ -33,6 +53,9 @@ const controller = read('fishing-game/js/presentation/cast/CharacterMotionContro
 for (const token of ['isReducedMotion', "phase === 'battle'", "phase === 'result'", 'this.previous.charging', 'this.token += 1', 'fishingMotionHeldRod']) {
   assert.ok(controller.includes(token), `motion controller missing: ${token}`)
 }
+for (const token of ['ROD_VISUALS', 'rodTextureFallback', 'this._setRodVisual(rodType)', 'curveSteps = 8']) {
+  assert.ok(controller.includes(token), `rod visual integration missing: ${token}`)
+}
 for (const forbidden of ['_saveProgress', 'localStorage.setItem', 'totalScore +=', '_consumeBaitForCast']) {
   assert.ok(!controller.includes(forbidden), `presentation must not alter gameplay: ${forbidden}`)
 }
@@ -44,8 +67,11 @@ assert.ok(host.includes('battleForeground') && host.includes('resultForeground')
 const guard = read('fishing-game/js/game/installFishingPresentationGuard.js')
 assert.ok(guard.includes('...characterMotionAssets()'), 'motion assets are not preloaded')
 assert.ok(guard.includes('_castMotionInputLocked'), 'cast double-input guard missing')
+const viewModel = read('fishing-game/js/presentation/cast/CastViewModel.js')
+assert.ok(viewModel.includes("rodType: scene.rod?.id"), 'equipped rod is not exposed to the real presentation view')
 
 console.log('Character motion integration smoke QA passed')
 console.log('  charge/release, fight loop, caught/escaped one-shots: wired')
 console.log('  4 authored in-betweens + separated rod: OK')
+console.log('  Basic / Carbon / Premium held visuals + fallback: OK')
 console.log('  gameplay/reward/save mutation isolation: OK')

@@ -9,6 +9,30 @@ export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
   result: Object.freeze({ x: 86, y: 540, displayWidth: 190, displayHeight: 249 }),
 })
 const ROD_SOURCE = Object.freeze({ grip: [130, 515], tip: [169, 379], width: 390, height: 844 })
+export const DEFAULT_ROD_VISUAL_ID = 'carbon'
+export const ROD_VISUALS = Object.freeze({
+  basic: Object.freeze({
+    asset: 'fishingMotionRodBasic',
+    source: ROD_SOURCE,
+    lengthScale: 0.94,
+    flex: Object.freeze({ cast: 0.002, retrieve: 0.004, battle: 0.026, result: 0.012 }),
+    line: Object.freeze({ color: 0xf5f0d8, width: 1.3, alpha: 0.82, curve: 14 }),
+  }),
+  carbon: Object.freeze({
+    asset: 'fishingMotionRodCarbon',
+    source: ROD_SOURCE,
+    lengthScale: 1,
+    flex: Object.freeze({ cast: 0.002, retrieve: 0.004, battle: 0.02, result: 0.01 }),
+    line: Object.freeze({ color: 0xeafcff, width: 1.35, alpha: 0.86, curve: 18 }),
+  }),
+  premium: Object.freeze({
+    asset: 'fishingMotionRodPremium',
+    source: ROD_SOURCE,
+    lengthScale: 1.08,
+    flex: Object.freeze({ cast: 0.001, retrieve: 0.003, battle: 0.014, result: 0.008 }),
+    line: Object.freeze({ color: 0xffefaa, width: 1.5, alpha: 0.9, curve: 22 }),
+  }),
+})
 
 export const CHARACTER_MOTION_POSES = Object.freeze({
   idle: { asset: 'fishingMotionIdle', grip: [214, 193], tip: [261, 58] },
@@ -40,7 +64,10 @@ const requiredAssets = () => [
 ]
 
 export function characterMotionAssets() {
-  return requiredAssets().filter(Boolean)
+  return [...new Set([
+    ...requiredAssets(),
+    ...Object.values(ROD_VISUALS).map(visual => ASSETS.characters[visual.asset]),
+  ])].filter(Boolean)
 }
 
 export class CharacterMotionController {
@@ -50,6 +77,9 @@ export class CharacterMotionController {
     this.poseFront = null
     this.poseBack = null
     this.rod = null
+    this.rodType = DEFAULT_ROD_VISUAL_ID
+    this.rodVisual = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
+    this.rodTextureFallback = false
     this.line = null
     this.fish = null
     this.currentPose = 'idle'
@@ -74,12 +104,13 @@ export class CharacterMotionController {
       .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight)
     this.rod = scene.add.image(0, 0, ASSETS.characters.fishingMotionHeldRod.key)
       .setOrigin(ROD_SOURCE.grip[0] / ROD_SOURCE.width, ROD_SOURCE.grip[1] / ROD_SOURCE.height)
-      .setScale(ROD_SOURCE.scale)
+      .setScale(1)
     this.line = scene.add.graphics()
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
       .setDisplaySize(88, 50).setVisible(false).setAngle(-4)
     this.root.add([this.poseBack, this.poseFront, this.rod, this.line, this.fish])
     parent.add(this.root)
+    this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
     this._applyPose('idle', true)
     return this
   }
@@ -109,24 +140,69 @@ export class CharacterMotionController {
       return
     }
     const grip = this._point(pose.grip)
-    const tip = this._point(pose.tip)
-    const sourceAngle = Math.atan2(ROD_SOURCE.tip[1] - ROD_SOURCE.grip[1], ROD_SOURCE.tip[0] - ROD_SOURCE.grip[0])
+    const poseTip = this._point(pose.tip)
+    const visual = this.rodVisual ?? ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
+    const source = visual.source
+    const poseDx = poseTip.x - grip.x
+    const poseDy = poseTip.y - grip.y
+    const poseLength = Math.max(1, Math.hypot(poseDx, poseDy))
+    const phase = this.scene.phase ?? this.layoutPhase
+    const flex = visual.flex[phase] ?? 0
+    const tip = {
+      x: grip.x + poseDx * visual.lengthScale - (poseDy / poseLength) * poseLength * flex,
+      y: grip.y + poseDy * visual.lengthScale + (poseDx / poseLength) * poseLength * flex,
+    }
+    const sourceAngle = Math.atan2(source.tip[1] - source.grip[1], source.tip[0] - source.grip[0])
     const targetAngle = Math.atan2(tip.y - grip.y, tip.x - grip.x)
-    const sourceLength = Math.hypot(ROD_SOURCE.tip[0] - ROD_SOURCE.grip[0], ROD_SOURCE.tip[1] - ROD_SOURCE.grip[1])
+    const sourceLength = Math.hypot(source.tip[0] - source.grip[0], source.tip[1] - source.grip[1])
     const targetLength = Math.hypot(tip.x - grip.x, tip.y - grip.y)
     this.rod.setVisible(true).setPosition(grip.x, grip.y).setScale(targetLength / sourceLength).setRotation(targetAngle - sourceAngle)
-    const phase = this.scene.phase
     const target = phase === 'battle'
       ? { x: 228, y: 330 }
       : phase === 'result'
         ? { x: tip.x + 14, y: tip.y + 24 }
         : { x: 310, y: 235 }
-    this.line.lineStyle(1.35, 0xeafcff, 0.82)
+    const line = visual.line
+    const lineDx = target.x - tip.x
+    const lineDy = target.y - tip.y
+    const lineLength = Math.max(1, Math.hypot(lineDx, lineDy))
+    const control = {
+      x: (tip.x + target.x) / 2 - (lineDy / lineLength) * line.curve,
+      y: (tip.y + target.y) / 2 + (lineDx / lineLength) * line.curve,
+    }
+    this.line.lineStyle(line.width, line.color, line.alpha)
     this.line.beginPath()
     this.line.moveTo(tip.x, tip.y)
-    this.line.lineTo((tip.x + target.x) / 2 + 18, Math.min(tip.y, target.y) - 18)
-    this.line.lineTo(target.x, target.y)
+    const curveSteps = 8
+    for (let index = 1; index <= curveSteps; index += 1) {
+      const t = index / curveSteps
+      const inverse = 1 - t
+      this.line.lineTo(
+        inverse * inverse * tip.x + 2 * inverse * t * control.x + t * t * target.x,
+        inverse * inverse * tip.y + 2 * inverse * t * control.y + t * t * target.y,
+      )
+    }
     this.line.strokePath()
+    this.root.setData('rodTip', { x: Math.round(tip.x), y: Math.round(tip.y) })
+  }
+
+  _setRodVisual(rodType, force = false) {
+    const resolvedType = ROD_VISUALS[rodType] ? rodType : DEFAULT_ROD_VISUAL_ID
+    if (!force && this.rodType === resolvedType) return
+    const visual = ROD_VISUALS[resolvedType]
+    const preferred = ASSETS.characters[visual.asset]
+    const fallback = ASSETS.characters.fishingMotionHeldRod
+    const texture = preferred?.key && this.scene.textures.exists(preferred.key) ? preferred : fallback
+    this.rodType = resolvedType
+    this.rodVisual = visual
+    this.rodTextureFallback = texture !== preferred
+    this.rod.setTexture(texture.key)
+      .setOrigin(visual.source.grip[0] / visual.source.width, visual.source.grip[1] / visual.source.height)
+    this.root.setData('rodType', resolvedType)
+    this.root.setData('rodTexture', texture.key)
+    this.root.setData('rodTextureFallback', this.rodTextureFallback)
+    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    if (pose) this._applyRod(pose)
   }
 
   _applyFish(pose) {
@@ -205,7 +281,8 @@ export class CharacterMotionController {
 
   sync(view) {
     if (!this.ready || !this.root?.active) return
-    const { phase, isCharging, result } = view
+    const { phase, isCharging, result, rodType } = view
+    this._setRodVisual(rodType)
     this._applyLayout(phase)
     this.root.setVisible(['cast', 'battle', 'result'].includes(phase) || (phase === 'retrieve' && this.currentAction === 'release'))
     if (phase === 'cast') {

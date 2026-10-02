@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\rod-visual-v1\\ainan-equipped-rod-real-flow.webm",
+  "output": "C:\\Users\\kojac\\Documents\\Codex\\2026-10-01\\task-2\\ainan-layered-cast\\qa-artifacts\\rod-visual-v1\\ainan-equipped-rod-real-flow-ios.mp4",
+  "recording": {
+    "mimeType": "video/mp4;codecs=avc1.42001f",
+    "sourceDuration": 18.28,
+    "width": 390,
+    "height": 844,
+    "bytes": 2080268
+  },
+  "playback": {
+    "duration": 18.318933,
+    "width": 390,
+    "height": 844,
+    "frames": 549,
+    "droppedFrames": 8
+  },
+  "boxes": {
+    "ftyp": 4,
+    "moov": 40,
+    "moof": 757,
+    "mdat": 1149,
+    "avc1": 28,
+    "avcC": 656
+  },
+  "faststart": true,
+  "hasH264": true,
+  "size": 2080268
+}
