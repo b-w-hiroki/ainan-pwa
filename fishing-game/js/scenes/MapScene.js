@@ -5,6 +5,7 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { createBackButton } from '../ui/Button.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 import { getFishingPreparation } from '../game/fishingJourney.js'
@@ -478,6 +479,10 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildBackBtn() {
+    this._backButton = createBackButton(this, { onClick: () => this.scene.start('HomeScene') })
+  }
+
+  _buildBackBtnLegacy() {
     const c = this.add.container(16, 16).setDepth(200)
     const bg = this.add.graphics()
     bg.fillStyle(0xf8fdff, 0.95)

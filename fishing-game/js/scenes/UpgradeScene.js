@@ -3,6 +3,7 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { drawCardSurface } from '../ui/UiPrimitives.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
 import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
@@ -216,12 +217,7 @@ export default class UpgradeScene extends Phaser.Scene {
     const isDefault = (type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm')
     const qtyLabel = type === 'bait' ? (id === 'worm' ? '標準装備' : `x${qty}`) : '装備中'
     const g = this.add.graphics().setDepth(7)
-    g.fillStyle(0x173248, 0.10)
-    g.fillRoundedRect(x - size / 2 + 2, y - size / 2 + 3, size, size, 18)
-    g.fillStyle(rank.glow, 1)
-    g.lineStyle(3, 0xffd95a, 0.95)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 18)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 18)
+    drawCardSurface(g, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', accent: 0xffd95a })
     g.fillStyle(0xffffff, 0.72)
     g.fillCircle(x, y - 9, 27)
 
@@ -343,14 +339,12 @@ export default class UpgradeScene extends Phaser.Scene {
     const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (entry.id === 'worm' ? Infinity : (inventory.baits?.[entry.id] ?? 0)) : (owned ? 1 : 0)
     const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : entry.type === 'bait' ? equipment.baitType === entry.id : false
     const shopUnlock = entry.type === 'bait' ? getBaitShopUnlock(entry.id) : null
+    const unavailable = entry.type === 'bait' && !owned && !shopUnlock?.unlocked
+    const insufficient = !owned && !unavailable && Number.isFinite(entry.item.cost) && getScore() < entry.item.cost
+    const cardState = equipped ? 'selected' : unavailable ? 'locked' : insufficient ? 'shortage' : owned ? 'idle' : 'disabled'
 
     const g = add(this.add.graphics())
-    g.fillStyle(0x173248, 0.08)
-    g.fillRoundedRect(x + 2, y + 3, size, size, 17)
-    g.fillStyle(owned ? entry.rank.glow : 0xf0f3f5, 1)
-    g.lineStyle(equipped ? 3 : 1.6, equipped ? 0xffd95a : entry.rank.color, owned ? 0.95 : 0.45)
-    g.fillRoundedRect(x, y, size, size, 17)
-    g.strokeRoundedRect(x, y, size, size, 17)
+    drawCardSurface(g, { x, y, w: size, h: size, state: cardState, accent: equipped ? 0xffd95a : entry.rank.color })
     g.fillStyle(0xffffff, owned ? 0.78 : 0.45)
     g.fillCircle(x + size / 2, y + 26, 24)
 
@@ -377,7 +371,7 @@ export default class UpgradeScene extends Phaser.Scene {
             ? '町で解放'
             : `x${qty}`
     add(this.add.text(x + size / 2, y + size - 8, footer, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.inkSoft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: equipped ? UI_COLORS.warning : insufficient ? UI_COLORS.coral : UI_COLORS.inkSoft,
     }).setOrigin(0.5))
     add(this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.art, owned, qty, equipped, entry.rank, entry.mark)))

@@ -3,6 +3,8 @@ import { UI_COLORS, uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { Button } from '../ui/Button.js'
+import { drawStatusMeter } from '../ui/UiPrimitives.js'
 import { drawUiGlyph } from '../ui/UiGlyph.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import {
@@ -167,13 +169,7 @@ export default class HomeScene extends Phaser.Scene {
     bar.fillRoundedRect(22, 73, W - 44, 18, 9)
 
     const staminaMaxW = W * 0.27
-    const staminaW = staminaMaxW * Math.max(0, Math.min(1, stamina / staminaMax))
-    bar.fillStyle(0xe9f6ee, 1)
-    bar.fillRoundedRect(28, 76, staminaMaxW, 12, 6)
-    bar.fillStyle(0x71d6a2, 1)
-    bar.fillRoundedRect(28, 76, Math.max(6, staminaW), 12, 6)
-    bar.fillStyle(0xffffff, 0.34)
-    bar.fillRoundedRect(31, 78, Math.max(0, staminaW - 6), 3, 2)
+    drawStatusMeter(bar, { x: 28, y: 76, w: staminaMaxW, h: 12, value: stamina, max: staminaMax, tone: 'mint' })
 
     const staminaLabel = nextRegenMs > 0 ? `${stamina}/${staminaMax}  ${Math.ceil(nextRegenMs / 60000)}分` : `${stamina}/${staminaMax}`
     this.add.text(20, 82, 'ST', uiText('micro', { fontSize: '8px', color: UI_COLORS.success })).setOrigin(0.5).setDepth(22)
@@ -347,6 +343,26 @@ export default class HomeScene extends Phaser.Scene {
   }
 
   _buildMainCTA(W, H) {
+    const stamina = getStaminaState()
+    const waiting = this._journey.preparation?.primaryBlocker?.id === 'stamina' || (
+      this._journey.scene === 'MapScene' && stamina.current <= 0
+    )
+    const waitMin = Math.max(1, Math.ceil(stamina.nextRegenMs / 60000))
+    const subLabel = waiting
+      ? `あと約${waitMin}分・ジェム${STAMINA_REFILL_GEM_COST}で全回復`
+      : this._journey.progress
+    this._mainCta = new Button(this, {
+      x: W / 2, y: H * 0.805, w: 300, h: 68,
+      label: waiting ? 'スタミナ回復待ち' : this._journey.shortCta,
+      subLabel, glyph: 'rod', trailing: '›',
+      variant: waiting ? 'secondary' : 'primary',
+      fontSize: waiting ? 18 : 21,
+      depth: 18, keyboard: true, pulse: true,
+      onClick: () => waiting ? this._showStaminaModal(W, H) : this.scene.start(this._journey.scene),
+    })
+  }
+
+  _buildMainCTALegacy(W, H) {
     const stamina = getStaminaState()
     const waiting = this._journey.preparation?.primaryBlocker?.id === 'stamina' || (
       this._journey.scene === 'MapScene' && stamina.current <= 0

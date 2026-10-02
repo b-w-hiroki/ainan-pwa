@@ -6,6 +6,7 @@ import { CAST_LAYER_CONFIG, readCastLayerDevOptions } from './castLayerConfig.js
 import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredScene.js'
 import { CharacterMotionController } from './CharacterMotionController.js'
 import { getRetryJourneyCopy } from '../../game/fishingJourney.js'
+import { drawStatusMeter } from '../../ui/UiPrimitives.js'
 
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
@@ -51,6 +52,8 @@ export class CastPresentationHost {
     this.adapter = new CastSceneAdapter(scene)
     this.root = null
     this.nodes = null
+    this._resultPointerAction = null
+    this._resultInputLocked = false
   }
 
   mount() {
@@ -235,11 +238,17 @@ export class CastPresentationHost {
     const resultScore = scene.add.text(274, 526, '', {
       fontFamily: 'Nunito, sans-serif', fontSize: '27px', fontStyle: 'bold', color: '#ffdf5a',
     }).setOrigin(0.5)
-    const resultTownMask = scene.add.rectangle(DESIGN_WIDTH / 2, 655, 372, 78, 0x031d2e, 0.97).setVisible(false)
+    const resultTownMask = scene.add.graphics().setVisible(false)
     const resultTownMaskText = scene.add.text(DESIGN_WIDTH / 2, 655, 'もう一度釣る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setVisible(false)
+    const resultRetryText = scene.add.text(DESIGN_WIDTH / 2, 746, 'もう一度釣る', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setVisible(false)
     const resultFailureOptions = scene.add.graphics().setVisible(false)
+    resultFailureOptions.fillStyle(0x031d2e, 0.24)
+    resultFailureOptions.fillRoundedRect(12, 710, 182, 80, 22)
+    resultFailureOptions.fillRoundedRect(200, 710, 182, 80, 22)
     resultFailureOptions.fillStyle(0x0b5c91, 0.98)
     resultFailureOptions.lineStyle(2, 0xdff5ff, 0.92)
     resultFailureOptions.fillRoundedRect(10, 706, 182, 80, 22)
@@ -252,7 +261,7 @@ export class CastPresentationHost {
     const resultFailurePort = scene.add.text(289, 746, '港へ戻る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setVisible(false)
-    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultFailureEquip, resultFailurePort])
+    resultField.add([resultBackground, resultTint, resultGlow, resultFish, resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort])
 
     const characterMotion = new CharacterMotionController(scene).mount(field)
     if (characterMotion.ready) {
@@ -265,7 +274,7 @@ export class CastPresentationHost {
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
-    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultFailureEquip, resultFailurePort]
+    const resultUi = [resultBase, resultGet, resultCard, resultName, resultSize, resultScore, resultTownMask, resultTownMaskText, resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
     resultForeground.add(resultUi)
     field.add([battleForeground, resultForeground])
@@ -422,6 +431,7 @@ export class CastPresentationHost {
       resultScore,
       resultTownMask,
       resultTownMaskText,
+      resultRetryText,
       resultFailureOptions,
       resultFailureEquip,
       resultFailurePort,
@@ -435,6 +445,7 @@ export class CastPresentationHost {
     scene.scale.on('resize', this.layout, this)
     scene.input.on('pointerdown', this._onHostPointerDown, this)
     scene.input.on('pointerup', this._onHostPointerUp, this)
+    scene.input.keyboard?.on('keydown-ENTER', this._onResultKeyboard, this)
     return this
   }
 
@@ -451,13 +462,16 @@ export class CastPresentationHost {
       return
     }
     if (this.scene.phase === 'result') {
+      this._resultPointerAction = null
       if (point.y >= 610 && point.y <= 696) {
-        if (this.scene._castPresentationOutcome === 'caught') this.adapter.resultTown()
-        else this.adapter.resultRetry()
+        this._resultPointerAction = this.scene._castPresentationOutcome === 'caught' ? 'town' : 'retry'
       } else if (point.y >= 700 && point.y <= 790) {
-        if (this.scene._castPresentationOutcome === 'caught') this.adapter.resultRetry()
-        else if (point.x < DESIGN_WIDTH / 2) this.adapter.resultPrepare()
-        else this.adapter.resultPort()
+        if (this.scene._castPresentationOutcome === 'caught') this._resultPointerAction = 'retry'
+        else this._resultPointerAction = point.x < DESIGN_WIDTH / 2 ? 'prepare' : 'port'
+      }
+      if (this._resultPointerAction) {
+        this.nodes.resultTownMask?.setAlpha?.(0.84)
+        this.nodes.resultFailureOptions?.setAlpha?.(0.84)
       }
       return
     }
@@ -470,9 +484,33 @@ export class CastPresentationHost {
   }
 
   _onHostPointerUp() {
+    if (this._resultPointerAction) {
+      const action = this._resultPointerAction
+      this._resultPointerAction = null
+      this.nodes.resultTownMask?.setAlpha?.(1)
+      this.nodes.resultFailureOptions?.setAlpha?.(1)
+      this._activateResultAction(action)
+      return
+    }
     if (!this._slowPointerHeld) return
     this._slowPointerHeld = false
     this.adapter.endSlowRetrieve()
+  }
+
+  _activateResultAction(action) {
+    if (this._resultInputLocked || this.scene.phase !== 'result') return
+    this._resultInputLocked = true
+    if (action === 'town') this.adapter.resultTown()
+    else if (action === 'retry') this.adapter.resultRetry()
+    else if (action === 'prepare') this.adapter.resultPrepare()
+    else if (action === 'port') this.adapter.resultPort()
+    this.scene.time.delayedCall(220, () => { this._resultInputLocked = false })
+  }
+
+  _onResultKeyboard(event) {
+    if (event?.repeat || this.scene.phase !== 'result') return
+    event?.preventDefault?.()
+    this._activateResultAction(this.scene._castPresentationOutcome === 'caught' ? 'town' : 'retry')
   }
 
   layout() {
@@ -516,17 +554,15 @@ export class CastPresentationHost {
     this.nodes.distance.setText(view.distanceLabel)
     if (castVisible) {
       this.nodes.powerFill.clear()
-      this.nodes.powerFill.fillStyle(0xffdc54, 1)
       const gauge = CAST_LAYER_CONFIG.controls.gauge
-      this.nodes.powerFill.fillRoundedRect(gauge.x + 3, gauge.y + 3, (gauge.width - 6) * view.charge01, gauge.height - 6, (gauge.height - 6) / 2)
+      drawStatusMeter(this.nodes.powerFill, { x: gauge.x + 3, y: gauge.y + 3, w: gauge.width - 6, h: gauge.height - 6, value: view.charge01, max: 1, tone: 'sun' })
     }
     if (battleVisible) {
       const battle = view.battle
       this._syncFishImage(this.nodes.battleFish, battle.fishId)
       this.nodes.battleFishName.setText(battle.fishName)
       this.nodes.battleTensionFill.clear()
-      this.nodes.battleTensionFill.fillStyle(battle.tension01 >= 0.72 ? 0xff564b : 0xffa62e, 1)
-      this.nodes.battleTensionFill.fillRoundedRect(208, 34, Math.max(7, 148 * battle.tension01), 11, 6)
+      drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : 'sun' })
       this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
       this.nodes.battleRage.setText('暴れている… 待つ').setVisible(battle.isRaging)
     }
@@ -545,14 +581,42 @@ export class CastPresentationHost {
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
       this.nodes.resultScore.setText(caught ? `${result.score} pt\n獲得済み` : '').setFontSize(caught ? 22 : 27)
-      this.nodes.resultTownMask.setVisible(true).setFillStyle(caught ? 0xffd95a : 0x0b62a0, 0.98)
+      this.nodes.resultTownMask.clear().setVisible(true)
+      this.nodes.resultTownMask.fillStyle(0x031d2e, 0.24)
+      this.nodes.resultTownMask.fillRoundedRect(11, 620, 372, 78, 22)
+      this.nodes.resultTownMask.fillStyle(caught ? 0xffd95a : 0x0b62a0, 0.98)
+      this.nodes.resultTownMask.lineStyle(2, caught ? 0xffef9a : 0xdff5ff, 0.92)
+      this.nodes.resultTownMask.fillRoundedRect(9, 616, 372, 78, 22)
+      this.nodes.resultTownMask.strokeRoundedRect(9, 616, 372, 78, 22)
+      this.nodes.resultTownMask.fillStyle(0xffffff, 0.18)
+      this.nodes.resultTownMask.fillRoundedRect(22, 625, 346, 9, 5)
       this.nodes.resultTownMaskText.setVisible(true)
         .setColor(caught ? '#173248' : '#ffffff')
         .setFontSize(caught ? 16 : 18)
         .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
-      this.nodes.resultFailureOptions.setVisible(!caught)
-      this.nodes.resultFailureEquip.setVisible(!caught)
-      this.nodes.resultFailurePort.setVisible(!caught)
+      this.nodes.resultTownMaskText.setFontSize(caught ? 20 : 22).setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
+      this.nodes.resultFailureOptions.clear().setVisible(true)
+      this.nodes.resultFailureOptions.fillStyle(0x031d2e, 0.25)
+      if (caught) {
+        this.nodes.resultFailureOptions.fillRoundedRect(12, 710, 370, 80, 22)
+        this.nodes.resultFailureOptions.fillStyle(0x0b78c5, 1)
+        this.nodes.resultFailureOptions.lineStyle(2.5, 0xdff5ff, 0.96)
+        this.nodes.resultFailureOptions.fillRoundedRect(10, 706, 370, 80, 22)
+        this.nodes.resultFailureOptions.strokeRoundedRect(10, 706, 370, 80, 22)
+      } else {
+        this.nodes.resultFailureOptions.fillRoundedRect(12, 710, 182, 80, 22)
+        this.nodes.resultFailureOptions.fillRoundedRect(200, 710, 182, 80, 22)
+        this.nodes.resultFailureOptions.fillStyle(0x0b5c91, 1)
+        this.nodes.resultFailureOptions.lineStyle(2, 0xdff5ff, 0.92)
+        this.nodes.resultFailureOptions.fillRoundedRect(10, 706, 182, 80, 22)
+        this.nodes.resultFailureOptions.strokeRoundedRect(10, 706, 182, 80, 22)
+        this.nodes.resultFailureOptions.fillRoundedRect(198, 706, 182, 80, 22)
+        this.nodes.resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
+      }
+      this.nodes.resultRetryText.setVisible(caught)
+      this.nodes.resultFailureEquip.setVisible(!caught).setFontSize(18).setText('装備を見直す')
+      this.nodes.resultFailurePort.setVisible(!caught).setFontSize(18).setText('港へ戻る')
+      this.scene._resultActionMetrics = Object.freeze({ primaryHit: [9, 616, 372, 78], secondaryHitHeight: 80, labelsAreLiveText: true })
     }
   }
 
@@ -560,6 +624,7 @@ export class CastPresentationHost {
     this.scene.scale?.off?.('resize', this.layout, this)
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
+    this.scene.input.keyboard?.off('keydown-ENTER', this._onResultKeyboard, this)
     this._slowPointerHeld = false
     this.nodes?.characterMotion?.destroy?.()
     this.root?.destroy?.(true)
