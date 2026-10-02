@@ -240,21 +240,39 @@ export class CastPresentationHost {
     const back = scene.add.text(31, 40, '‹', {
       fontFamily: 'Nunito, sans-serif', fontSize: '38px', fontStyle: 'bold', color: '#173e61',
     }).setOrigin(0.5)
-    const pin = scene.add.text(68, 40, '●', {
-      fontFamily: 'sans-serif', fontSize: '12px', color: '#176499',
-    }).setOrigin(0.5)
+    const pin = scene.add.graphics().setPosition(68, 40)
+    pin.fillStyle(0x176499, 1)
+    pin.fillCircle(0, -3, 6)
+    pin.fillTriangle(-4, 1, 4, 1, 0, 9)
+    pin.fillStyle(0xffffff, 1)
+    pin.fillCircle(0, -3, 2)
     const location = scene.add.text(82, 40, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0, 0.5)
-    const rod = scene.add.text(200, 40, '⌇', {
-      fontFamily: 'Nunito, sans-serif', fontSize: '25px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0.5).setRotation(-0.55)
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#173e61',
+    }).setOrigin(0, 0.5).setResolution(2).setScale(1.25)
+    const rod = scene.add.graphics().setPosition(199, 40)
+    rod.lineStyle(3, 0x173e61, 1)
+    rod.beginPath()
+    rod.moveTo(-8, 10)
+    rod.lineTo(5, -10)
+    rod.strokePath()
+    rod.lineStyle(2, 0x173e61, 1)
+    rod.beginPath()
+    rod.moveTo(5, -10)
+    rod.lineTo(11, -6)
+    rod.lineTo(12, 0)
+    rod.lineTo(8, 5)
+    rod.strokePath()
+    rod.strokeCircle(-8, 10, 3)
     const distance = scene.add.text(221, 40, '', {
-      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0, 0.5)
-    const tackle = scene.add.text(338, 40, '▣', {
-      fontFamily: 'sans-serif', fontSize: '21px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0.5)
+      fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#173e61',
+    }).setOrigin(0, 0.5).setResolution(2).setScale(1.25)
+    const tackle = scene.add.graphics().setPosition(338, 40)
+    tackle.fillStyle(0x173e61, 1)
+    tackle.fillRoundedRect(-10, -7, 20, 15, 3)
+    tackle.fillRect(-5, -11, 10, 5)
+    tackle.lineStyle(1.5, 0xffffff, 0.9)
+    tackle.lineBetween(-8, -1, 8, -1)
+    tackle.lineBetween(0, -1, 0, 4)
 
     const instruction = scene.add.container(DESIGN_WIDTH / 2, 92)
     const instructionBase = scene.add.graphics()
@@ -262,8 +280,8 @@ export class CastPresentationHost {
     instructionBase.fillRoundedRect(-76, -13, 152, 26, 13)
     const instructionSkin = scene.add.image(0, 0, ASSETS.ui.fishingApprovedInstruction.key).setDisplaySize(152, 26)
     const instructionText = scene.add.text(0, 0, '狙う場所を決める', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5)
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setResolution(2).setScale(1.25)
     instruction.add([instructionBase, instructionSkin, instructionText])
     chrome.add([hudBase, hudSkin, back, pin, location, rod, distance, tackle, instruction])
 
@@ -274,15 +292,12 @@ export class CastPresentationHost {
     dockBase.lineBetween(0, DOCK_TOP, DESIGN_WIDTH, DOCK_TOP)
     const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 22, '長押し → 離して投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5)
-    const powerLabel = scene.add.text(22, DOCK_TOP + 55, 'パワー', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '10px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0, 0.5)
+    }).setOrigin(0.5).setResolution(2).setScale(1.25)
     const powerTrack = scene.add.graphics()
     powerTrack.fillStyle(0x082b45, 1)
-    powerTrack.fillRoundedRect(64, DOCK_TOP + 49, 294, 14, 7)
+    powerTrack.fillRoundedRect(36, DOCK_TOP + 49, 320, 14, 7)
     powerTrack.lineStyle(1.4, 0xb8eaff, 0.72)
-    powerTrack.strokeRoundedRect(64, DOCK_TOP + 49, 294, 14, 7)
+    powerTrack.strokeRoundedRect(36, DOCK_TOP + 49, 320, 14, 7)
     const powerFill = scene.add.graphics()
 
     const buttonY = DOCK_TOP + 128
@@ -302,17 +317,24 @@ export class CastPresentationHost {
     castIcon.strokePath()
     castIcon.strokeCircle(-13, 7, 7)
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#102335',
-    }).setOrigin(0.5)
-    castDock.add([dockBase, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#102335',
+    }).setOrigin(0.5).setResolution(2).setScale(1.6)
+    castDock.add([dockBase, dockInstruction, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backHit = scene.add.rectangle(31, 40, 54, 52, 0x000000, 0.001).setInteractive({ useHandCursor: true })
     const castHit = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 62, 0x000000, 0.001).setInteractive({ useHandCursor: true })
-    const pressables = [buttonBase, buttonRing, castIcon, castLabel]
-    const resetScale = () => pressables.forEach(item => item.setScale(1))
+    const pressables = [
+      { item: buttonBase, scale: 1 },
+      { item: buttonRing, scale: 1 },
+      { item: castIcon, scale: 1 },
+      { item: castLabel, scale: 1.6 },
+    ]
+    const resetScale = () => pressables.forEach(({ item, scale }) => item.setScale(scale))
     castHit.on('pointerdown', pointer => {
       pointer?.event?.stopPropagation?.()
-      if (this.adapter.beginCharge()) pressables.forEach(item => item.setScale(0.96))
+      if (this.adapter.beginCharge()) {
+        pressables.forEach(({ item, scale }) => item.setScale(scale * 0.96))
+      }
     })
     castHit.on('pointerup', pointer => { pointer?.event?.stopPropagation?.(); resetScale(); this.adapter.releaseCharge() })
     castHit.on('pointerupoutside', () => { resetScale(); this.adapter.cancelCharge() })
@@ -435,7 +457,7 @@ export class CastPresentationHost {
     if (castVisible) {
       this.nodes.powerFill.clear()
       this.nodes.powerFill.fillStyle(0xffdc54, 1)
-      this.nodes.powerFill.fillRoundedRect(67, DOCK_TOP + 52, 288 * view.charge01, 8, 4)
+      this.nodes.powerFill.fillRoundedRect(39, DOCK_TOP + 52, 314 * view.charge01, 8, 4)
     }
     if (battleVisible) {
       const battle = view.battle
