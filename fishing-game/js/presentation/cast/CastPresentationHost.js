@@ -11,6 +11,7 @@ import { drawStatusMeter } from '../../ui/UiPrimitives.js'
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
+const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
 
 const FISH_ART = Object.freeze({
   aji: ASSETS.fishHeroes.aji,
@@ -571,9 +572,16 @@ export class CastPresentationHost {
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
   }
 
-  _syncFishImage(image, fishId) {
+  _syncFishImage(image, fishId, slot = 'battle') {
     const asset = FISH_ART[fishId] ?? FISH_ART.tai
     if (asset?.key && this.scene.textures.exists(asset.key) && image.texture.key !== asset.key) image.setTexture(asset.key)
+    if (slot === 'result') {
+      const source = image.texture?.getSourceImage?.()
+      const width = source?.naturalWidth ?? source?.width ?? 1
+      const height = source?.naturalHeight ?? source?.height ?? 1
+      const scale = Math.min(RESULT_FISH_BOUNDS.width / width, RESULT_FISH_BOUNDS.height / height)
+      image.setDisplaySize(Math.round(width * scale), Math.round(height * scale))
+    }
   }
 
   sync() {
@@ -611,7 +619,7 @@ export class CastPresentationHost {
       this._syncFishImage(this.nodes.battleFish, battle.fishId)
       this.nodes.battleFishName.setText(battle.fishName)
       this.nodes.battleTensionFill.clear()
-      drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : 'sun' })
+      drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : battle.tension01 >= 0.48 ? 'sun' : 'mint' })
       if (this.nodes.battleTensionStatus) {
         const statusAsset = battle.tension01 >= 0.72
           ? ASSETS.gameplayFx.tensionDanger
@@ -627,7 +635,7 @@ export class CastPresentationHost {
       const result = view.result
       const caught = result.outcome === 'caught'
       const retry = getRetryJourneyCopy(this.scene.env?.point)
-      this._syncFishImage(this.nodes.resultFish, result.fishId)
+      this._syncFishImage(this.nodes.resultFish, result.fishId, 'result')
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught && !this.nodes.resultOutcomeFx)
       this.nodes.resultOutcomeFx?.setVisible(true)
@@ -651,7 +659,7 @@ export class CastPresentationHost {
       this.nodes.resultTownMask.fillStyle(0xffffff, 0.18)
       this.nodes.resultTownMask.fillRoundedRect(22, 625, 346, 9, 5)
       this.nodes.resultTownMaskText.setVisible(true)
-        .setColor(caught ? '#173248' : '#ffffff')
+        .setColor('#173248')
         .setFontSize(caught ? 16 : 18)
         .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
       this.nodes.resultTownMaskText.setFontSize(caught ? 20 : 22).setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
@@ -677,7 +685,7 @@ export class CastPresentationHost {
       this.nodes.resultFailureEquip.setVisible(!caught).setFontSize(18).setText('装備を見直す')
       this.nodes.resultFailurePort.setVisible(!caught).setFontSize(18).setText('港へ戻る')
       if (this.nodes.resultPrimarySkin) {
-        this.nodes.resultPrimarySkin.setVisible(true).setTexture(caught ? ASSETS.ui.artButtonPrimary.key : ASSETS.ui.artButtonSecondary.key)
+        this.nodes.resultPrimarySkin.setVisible(true).setTexture(ASSETS.ui.artButtonPrimary.key)
         this.nodes.resultSecondarySkin?.setVisible(caught)
         this.nodes.resultFailureLeftSkin?.setVisible(!caught)
         this.nodes.resultFailureRightSkin?.setVisible(!caught)

@@ -10,6 +10,7 @@ import {
 export { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS } from '../equipmentVisuals.js'
 
 const FRAME = Object.freeze({ width: 320, height: 420 })
+const HELD_FISH_BOUNDS = Object.freeze({ width: 150, height: 86, offsetX: 44, liftY: 22 })
 export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
   cast: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
   retrieve: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
@@ -95,7 +96,8 @@ export class CharacterMotionController {
     this.accessoryAccents.bag = createAccessoryAccent(scene, 'bag')
     this.line = scene.add.graphics()
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
-      .setDisplaySize(88, 50).setVisible(false).setAngle(-4)
+      .setVisible(false).setAngle(-4)
+    this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
     this.root.add([this.poseBack, this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
     parent.add(this.root)
     this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
@@ -217,7 +219,15 @@ export class CharacterMotionController {
   _applyFish(pose) {
     if (!pose.fish) { this.fish.setVisible(false); return }
     const point = this._point(pose.fish)
-    this.fish.setVisible(true).setPosition(point.x, point.y)
+    this.fish.setVisible(true).setPosition(point.x + HELD_FISH_BOUNDS.offsetX, point.y - HELD_FISH_BOUNDS.liftY)
+  }
+
+  _fitFish(maxWidth, maxHeight) {
+    const source = this.fish?.texture?.getSourceImage?.()
+    const width = source?.naturalWidth ?? source?.width ?? 1
+    const height = source?.naturalHeight ?? source?.height ?? 1
+    const scale = Math.min(maxWidth / width, maxHeight / height)
+    this.fish?.setDisplaySize(Math.round(width * scale), Math.round(height * scale))
   }
 
   _applyPose(name, immediate = false) {
@@ -314,8 +324,9 @@ export class CharacterMotionController {
 
   setFishTexture(asset) {
     if (asset?.key && this.scene.textures.exists(asset.key) && this.fish.texture?.key !== asset.key) {
-      this.fish.setTexture(asset.key).setDisplaySize(88, 50)
+      this.fish.setTexture(asset.key)
     }
+    this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
   }
 
   destroy() {
