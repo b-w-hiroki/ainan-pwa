@@ -2,6 +2,31 @@ import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
+const readBinary = path => readFileSync(new URL('../' + path, import.meta.url))
+
+const assertValidWebpContainer = path => {
+  const data = readBinary(path)
+  assert.equal(data.toString('ascii', 0, 4), 'RIFF', `${path}: missing RIFF header`)
+  assert.equal(data.toString('ascii', 8, 12), 'WEBP', `${path}: missing WEBP signature`)
+  assert.equal(data.readUInt32LE(4) + 8, data.length, `${path}: truncated RIFF payload`)
+
+  let offset = 12
+  const chunks = []
+  while (offset + 8 <= data.length) {
+    const type = data.toString('ascii', offset, offset + 4)
+    const size = data.readUInt32LE(offset + 4)
+    chunks.push(type)
+    offset += 8 + size + (size & 1)
+    assert.ok(offset <= data.length, `${path}: truncated ${type} chunk`)
+  }
+  assert.equal(offset, data.length, `${path}: malformed chunk boundary`)
+  assert.ok(chunks.includes('VP8 ') || chunks.includes('VP8L'), `${path}: image payload missing`)
+}
+
+for (const name of ['cast', 'fight', 'catch']) {
+  assertValidWebpContainer(`fishing-game/assets/characters/player_${name}_anim.webp`)
+}
+
 const source = read('fishing-game/js/game/installPlayerFishingPolish.js')
 for (const path of [
   'fishing-game/assets/generated/hero/player_cast.svg',
