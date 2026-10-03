@@ -2,15 +2,11 @@ import { ASSETS } from '../config/assetManifest.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 
 const enabled = () => typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).get('cameraPan') === '1'
+  && ['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan') ?? '')
+  || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('coneLoop') === '1')
 
 const fieldAssets = () => [
-  ASSETS.fishingField.waterBase,
-  ASSETS.fishingField.waterPattern,
-  ASSETS.fishingField.waterHighlight,
-  ASSETS.fishingField.underwaterDepth,
-  ASSETS.fishingField.locationHarbor,
-  ASSETS.ui.fishingLayerPlatform,
+  ASSETS.ui.fishingApprovedCleanHarbor,
   ASSETS.characters.fishingMotionIdle,
   ASSETS.characters.fishingMotionCastWindup,
   ASSETS.characters.fishingMotionCastMid,
@@ -26,6 +22,12 @@ function hideFixedPresentation(scene) {
   scene._mockTopChrome?.setVisible?.(false)
   scene._blueprintCastInstruction?.setVisible?.(false)
   scene._rcRetrieveLine?.setVisible?.(false)
+  scene.escapeBar?.setVisible?.(false)
+  scene._bossEncounterCutin?.setVisible?.(false)
+  // The legacy battle hero is an SVG rendered above the world fish. In the
+  // panning WebGL composition its transparent canvas is promoted as an opaque
+  // rectangle, so keep the authored in-world target as the single battle fish.
+  scene.battleHero?.removeFromDisplayList?.()
   scene._qaHudObjects?.forEach?.(obj => obj?.setVisible?.(false))
 }
 
@@ -42,21 +44,19 @@ function buildWorld(scene) {
     scene.bg._blueprintWaterLayers.push(image)
     return image
   }
-  addLayer(ASSETS.fishingField.waterBase, 0)
-  addLayer(ASSETS.fishingField.waterPattern, 1, 0.48)
-  addLayer(ASSETS.fishingField.waterHighlight, 2, 0.56)
-  addLayer(ASSETS.fishingField.underwaterDepth, 3, 0.58)
-  addLayer(ASSETS.fishingField.locationHarbor, 4, 0.72)
-
-  const platformAsset = ASSETS.ui.fishingLayerPlatform
-  if (platformAsset?.key && scene.textures.exists(platformAsset.key)) {
-    const platform = scene.add.image(0, 520, platformAsset.key)
-      .setOrigin(0)
-      .setDisplaySize(390, 844)
-      .setDepth(6)
-      .setScrollFactor(1)
-    scene.bg._blueprintWaterLayers.push(platform)
-  }
+  addLayer(ASSETS.ui.fishingApprovedCleanHarbor, 0)
+  const platform = scene.add.graphics().setDepth(6).setScrollFactor(1)
+  platform.fillStyle(0x8a7357, 1).lineStyle(4, 0x4c4135, 1)
+  platform.fillPoints([
+    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
+    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
+  ], true).strokePoints([
+    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
+    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
+  ], true)
+  platform.fillStyle(0x2788cf, 1).fillRoundedRect(22, FISHING_WORLD.player.y + 62, 86, 58, 9)
+  platform.fillStyle(0xeef9ff, 1).fillRect(22, FISHING_WORLD.player.y + 72, 86, 10)
+  scene.bg._blueprintWaterLayers.push(platform)
 
   scene._cameraPanPlayerShadow?.destroy?.()
   scene._cameraPanPlayer?.destroy?.()
@@ -105,8 +105,13 @@ function syncHud(scene) {
 }
 
 function showWorldPlayer(scene) {
-  scene._playerSprite?.setVisible?.(false)
-  scene._playerShadow?.setVisible?.(false)
+  scene._playerSprite?.removeFromDisplayList?.()
+  scene._playerShadow?.removeFromDisplayList?.()
+  if ((scene._cameraPanHidePlayerUntil ?? 0) > (scene.time?.now ?? 0)) {
+    scene._cameraPanPlayer?.removeFromDisplayList?.()
+    return
+  }
+  scene._cameraPanPlayer?.addToDisplayList?.()
   scene._cameraPanPlayer?.setVisible?.(true)
   scene._cameraPanPlayerShadow?.setVisible?.(true)
 }
@@ -182,7 +187,16 @@ export function installCastCameraPanPrototype(GameScene) {
     this.time?.delayedCall?.(120, () => {
       if (this._cameraPanCasting) setWorldPlayerPose(this, ASSETS.characters.fishingMotionCastRelease)
     })
-    return originalFireCast.apply(this, args)
+    const result = originalFireCast.apply(this, args)
+    // Legacy _fireCast returns undefined both after a successful cast and when
+    // bait is unavailable. The bobber is made visible synchronously only for a
+    // successful cast, so release the camera/input lock on the shortage path.
+    if (!this.bobber?.visible && this.phase === 'cast') {
+      this._cameraPanCasting = false
+      setWorldPlayerPose(this, ASSETS.characters.fishingMotionIdle)
+      return false
+    }
+    return result
   }
 
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
@@ -201,6 +215,8 @@ export function installCastCameraPanPrototype(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     if (!enabled()) return result
+    this.cameras.main.resetFX?.()
+    this._cameraPanHidePlayerUntil = (this.time?.now ?? 0) + 900
     hideFixedPresentation(this)
     showWorldPlayer(this)
     return result

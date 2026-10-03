@@ -23,7 +23,8 @@ export const FISHING_WORLD = {
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
 const lerp = (a, b, t) => a + (b - a) * t
 const cameraPanPrototypeEnabled = () => typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).get('cameraPan') === '1'
+  && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
+    || new URLSearchParams(window.location.search).get('coneLoop') === '1')
 
 export class FishingCameraController {
   constructor(scene, world = FISHING_WORLD) {

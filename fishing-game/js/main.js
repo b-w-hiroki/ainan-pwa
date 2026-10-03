@@ -31,7 +31,8 @@ import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 
 const cameraPanPrototype = typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).get('cameraPan') === '1'
+  && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
+    || new URLSearchParams(window.location.search).get('coneLoop') === '1')
 
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
