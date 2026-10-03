@@ -221,8 +221,9 @@ function setWorldPlayerBlend(scene, rawFrom, rawTo, amount) {
     scaleX: baseScale.x * lerp(from.bodyScale, to.bodyScale, t),
     scaleY: baseScale.y * lerp(from.bodyScale, to.bodyScale, t),
   }
-  player.setTexture(fromAsset.key).setPosition(transform.x, transform.y).setAngle(transform.angle).setScale(transform.scaleX, transform.scaleY).setAlpha(1 - t)
-  blend.setTexture(toAsset.key).setPosition(transform.x, transform.y).setAngle(transform.angle).setScale(transform.scaleX, transform.scaleY).setAlpha(t)
+  const activeAsset = t < 0.5 ? fromAsset : toAsset
+  player.setTexture(activeAsset.key).setPosition(transform.x, transform.y).setAngle(transform.angle).setScale(transform.scaleX, transform.scaleY).setAlpha(1)
+  blend.setAlpha(0)
   scene._cameraPanPose = t < 0.5 ? from.pose : to.pose
   scene._cameraPanPoseBlend = { from, to, amount: t }
   scene._cameraPanRodAngleOffset = lerp(from.rodAngleOffsetDeg, to.rodAngleOffsetDeg, t)

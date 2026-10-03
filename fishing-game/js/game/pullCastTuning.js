@@ -4,8 +4,9 @@ export const PULL_CAST_TUNING = freeze({
   gesture: freeze({
     minPullDistancePx: 64,
     fullPullDistancePx: 112,
-    maxHorizontalRatio: 0.72,
+    maxHorizontalRatio: 1.2,
     shortTapDistancePx: 18,
+    originRadiusPx: 62,
   }),
   gauge: freeze({
     fillMs: 900,
@@ -39,6 +40,25 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
 export function pullChargeRatio(elapsedMs) {
   return clamp(elapsedMs / PULL_CAST_TUNING.gauge.fillMs, 0, PULL_CAST_TUNING.gauge.lateThreshold)
+}
+
+export function slingshotAimFromPull(pullDx, pullDy, {
+  minDistancePx = 180,
+  maxDistancePx = 780,
+  halfAngleDeg = 52,
+} = {}) {
+  const down = Math.max(0, pullDy)
+  const pullDistance = Math.hypot(pullDx, down)
+  const pullProgress = clamp(pullDistance / PULL_CAST_TUNING.gesture.fullPullDistancePx, 0, 1)
+  const directionOk = down > 0
+    && Math.abs(pullDx) <= Math.max(24, down * PULL_CAST_TUNING.gesture.maxHorizontalRatio)
+  const angleDeg = clamp(
+    Math.atan2(-pullDx, Math.max(1, down)) * 180 / Math.PI,
+    -halfAngleDeg,
+    halfAngleDeg,
+  )
+  const distancePx = minDistancePx + (maxDistancePx - minDistancePx) * pullProgress
+  return freeze({ angleDeg, distancePx, pullDistance, pullProgress, directionOk })
 }
 
 export function classifyPullRelease(ratio, directionSign = 1) {
