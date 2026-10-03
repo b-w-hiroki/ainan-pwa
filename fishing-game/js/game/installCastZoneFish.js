@@ -60,7 +60,13 @@ function assignCastZoneFish(scene) {
 
     const visualType = fish.rarity === 'legendary' ? 'rare' : fish.rarity
     const sizeBoost = 0.88 + Math.min(3, fish.size ?? 1) * 0.12
-    manager._drawFish(gfx, visualType, fd.sc * sizeBoost)
+    if (gfx._assetImage) {
+      const baseW = visualType === 'rare' ? 52 : visualType === 'uncommon' ? 48 : 44
+      const width = Math.max(32, Math.min(116, baseW * fd.sc * sizeBoost))
+      gfx._assetImage.setDisplaySize(width, width * 0.5)
+    } else {
+      manager._drawFish(gfx, visualType, fd.sc * sizeBoost)
+    }
     gfx.setScale(fd.rtl ? -1 : 1, 1)
   })
 }

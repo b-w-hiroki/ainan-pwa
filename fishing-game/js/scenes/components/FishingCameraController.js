@@ -1,4 +1,5 @@
 import { MOBILE_FRAME } from '../../config/mobileFrame.js'
+import { isReducedMotion } from '../../game/feedback.js'
 
 const WATER_BOUNDS = {
   left: 70,
@@ -21,6 +22,8 @@ export const FISHING_WORLD = {
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
 const lerp = (a, b, t) => a + (b - a) * t
+const cameraPanPrototypeEnabled = () => typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('cameraPan') === '1'
 
 export class FishingCameraController {
   constructor(scene, world = FISHING_WORLD) {
@@ -58,8 +61,9 @@ export class FishingCameraController {
   focusPlayer(immediate = false) {
     this.state = 'playerFocus'
     if (!this._canMove()) return
-    const desiredX = clamp(this.player.x - 118, 0, this.world.width - this.camera.width)
-    const desiredY = clamp(this.player.y - 650, 0, this.world.height - this.camera.height)
+    const responsive = cameraPanPrototypeEnabled()
+    const desiredX = clamp(this.player.x - (responsive ? this.camera.width * 0.30 : 118), 0, this.world.width - this.camera.width)
+    const desiredY = clamp(this.player.y - (responsive ? this.camera.height * 0.78 : 650), 0, this.world.height - this.camera.height)
     if (immediate) {
       this.camera.setScroll(desiredX, desiredY)
       return
@@ -67,18 +71,39 @@ export class FishingCameraController {
 
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
-    this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
+    this.camera.pan(centerX, centerY, responsive && isReducedMotion() ? 90 : 320, 'Sine.easeInOut', true)
   }
 
   updateCastFollow(x, y) {
     this.state = 'castFollow'
     if (!this._canMove()) return
+    if (cameraPanPrototypeEnabled()) {
+      const distance = Math.hypot(x - this.player.x, y - this.player.y)
+      const travel = clamp((distance - 480) / 260, 0, 1)
+      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, this.world.width - this.camera.width)
+      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, this.world.height - this.camera.height)
+      const lureX = clamp(x - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
+      const lureY = clamp(y - this.camera.height * 0.71, 0, this.world.height - this.camera.height)
+      const amount = isReducedMotion() ? 0.52 : 0.18
+      this._moveToward(lerp(playerX, lureX, travel), lerp(playerY, lureY, travel), amount)
+      return
+    }
     this._followSafePoint(x, y, 0.12)
   }
 
   updateRetrieveFollow(lureX, lureY) {
     this.state = 'retrieveFollow'
     if (!this._canMove()) return
+    if (cameraPanPrototypeEnabled()) {
+      const distance = Math.hypot(lureX - this.player.x, lureY - this.player.y)
+      const travel = clamp((distance - 480) / 260, 0, 1)
+      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, this.world.width - this.camera.width)
+      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, this.world.height - this.camera.height)
+      const lureTargetX = clamp(lureX - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
+      const lureTargetY = clamp(lureY - this.camera.height * 0.68, 0, this.world.height - this.camera.height)
+      this._moveToward(lerp(playerX, lureTargetX, travel), lerp(playerY, lureTargetY, travel), isReducedMotion() ? 0.48 : 0.08)
+      return
+    }
     const focusX = lerp(lureX, this.player.x, 0.24)
     const focusY = lerp(lureY, this.player.y, 0.18)
     this._followSafePoint(focusX, focusY, 0.07)
@@ -87,6 +112,16 @@ export class FishingCameraController {
   holdLure(x, y) {
     this.state = 'lureFocus'
     if (!this._canMove()) return
+    if (cameraPanPrototypeEnabled()) {
+      const desiredX = clamp(x - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
+      const desiredY = clamp(y - this.camera.height * 0.68, 0, this.world.height - this.camera.height)
+      if (isReducedMotion()) {
+        this.camera.setScroll(desiredX, desiredY)
+      } else {
+        this.camera.pan(desiredX + this.camera.width / 2, desiredY + this.camera.height / 2, 220, 'Sine.easeOut', true)
+      }
+      return
+    }
     this._followSafePoint(x, y, 0.10)
   }
 

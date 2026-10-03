@@ -30,6 +30,9 @@ import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 
+const cameraPanPrototype = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('cameraPan') === '1'
+
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
 installTownSensoryFeedback(TownScene, HomeScene)
@@ -47,7 +50,7 @@ const config = {
     resolution: Math.min(window.devicePixelRatio ?? 1, 2),
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,
