@@ -49,19 +49,19 @@ export function classifyPullRelease(ratio, directionSign = 1) {
     const progress = value / successStart
     return freeze({
       rating: 'early',
-      label: 'EARLY / 早い',
+      label: '早すぎ',
       distanceScale: PULL_CAST_TUNING.error.earlyMinDistanceScale + (1 - PULL_CAST_TUNING.error.earlyMinDistanceScale) * progress,
       angleOffsetDeg: sign * PULL_CAST_TUNING.error.earlyMaxAngleDeg * (1 - progress),
       chargeRatio: value,
     })
   }
   if (value <= successEnd) {
-    return freeze({ rating: 'good', label: 'GOOD / 成功', distanceScale: 1, angleOffsetDeg: 0, chargeRatio: value })
+    return freeze({ rating: 'good', label: '成功', distanceScale: 1, angleOffsetDeg: 0, chargeRatio: value })
   }
   const late = (value - successEnd) / (1 - successEnd)
   return freeze({
     rating: 'late',
-    label: 'LATE / 遅い',
+    label: '遅すぎ',
     distanceScale: 1 - (1 - PULL_CAST_TUNING.error.lateMinDistanceScale) * late,
     angleOffsetDeg: sign * PULL_CAST_TUNING.error.lateMaxAngleDeg * late,
     chargeRatio: value,

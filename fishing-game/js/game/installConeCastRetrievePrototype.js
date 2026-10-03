@@ -90,8 +90,8 @@ function buildOverlay(scene) {
   reelChrome.fillStyle(0x062c44, 0.38).fillCircle(buttonX + 2, reelY + 4, radius + 3)
   reelChrome.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(buttonX, reelY, radius).strokeCircle(buttonX, reelY, radius)
   const charge = scene.add.graphics()
-  const label = scene.add.text(buttonX, castY, 'PULL', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248', align: 'center' }).setOrigin(0.5)
-  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, 'GOOD', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
+  const label = scene.add.text(buttonX, castY, '引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248', align: 'center' }).setOrigin(0.5)
+  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
   const mode = scene.add.text(18, H - (compact ? 35 : 48), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0, 0.5)
   const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
@@ -140,9 +140,9 @@ function syncHud(scene) {
   if (!nodes) return
   const selection = readSelection(scene)
   const remaining = scene.bobber?.visible ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter : 0
-  nodes.label.setText(scene.phase === 'retrieve' ? 'REEL' : 'CAST')
+  nodes.label.setText(scene.phase === 'retrieve' ? '巻く' : '投げる')
   nodes.mode.setText(scene.phase === 'cast'
-    ? `狙い ${scene._coneCastState.angleDeg.toFixed(0)}° / ${(Math.hypot(selection.raw.x - scene.anchorX, selection.raw.y - scene.anchorY) / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ドラッグで照準`
+    ? `狙い ${scene._coneCastState.angleDeg.toFixed(0)}° / ${(Math.hypot(selection.raw.x - scene.anchorX, selection.raw.y - scene.anchorY) / FISHING_WORLD.pxPerMeter).toFixed(0)}m  水面をなぞって狙う`
     : scene.phase === 'retrieve' ? `長押しで巻く  残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
 }
@@ -187,17 +187,17 @@ function syncPullHud(scene) {
     nodes.charge.fillStyle(0x062c44, 0.38).fillCircle(nodes.buttonX + 2, handleY + 4, nodes.radius + 3)
     nodes.charge.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(nodes.buttonX, handleY, nodes.radius).strokeCircle(nodes.buttonX, handleY, nodes.radius)
     nodes.label.setPosition(nodes.buttonX, handleY)
-      .setText(state.pullArmedAt == null ? 'PULL' : 'HOLD')
+      .setText(state.pullArmedAt == null ? '引く' : 'ためる')
     nodes.gaugeLabel.setVisible(showPullControls)
     nodes.feedback.setPosition(nodes.gaugeX + nodes.gaugeW / 2, nodes.gaugeY - 40)
-      .setText(state.pullFeedback || (pulling ? (state.pullArmedAt == null ? '下へ引いてセット' : inGood ? 'GOODで放す' : 'ため中…') : ''))
+      .setText(state.pullFeedback || (pulling ? (state.pullArmedAt == null ? '下へ引いてセット' : inGood ? '今！ 放す' : 'ため中…') : ''))
   } else {
-    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setText('REEL')
+    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setText('巻く')
     nodes.gaugeLabel.setVisible(false)
     nodes.feedback.setText('')
   }
   nodes.mode.setText(scene.phase === 'cast'
-    ? `狙い ${state.angleDeg.toFixed(0)}° / ${(selection.requestedDistance / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ${selection.abilityLimited ? `能力上限 ${(selection.range / FISHING_WORLD.pxPerMeter).toFixed(0)}m` : '狙点内'}`
+    ? `狙い ${state.angleDeg.toFixed(0)}° / ${(selection.requestedDistance / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ${selection.abilityLimited ? `能力上限 ${(selection.range / FISHING_WORLD.pxPerMeter).toFixed(0)}m` : '射程内'}`
     : scene.phase === 'retrieve' ? `長押しで巻く  残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (nodes.qaEnabled) {
@@ -460,7 +460,7 @@ export function installConeCastRetrievePrototype(GameScene) {
   GameScene.prototype._onDown = function (pointer) {
     if (!enabled() || ['battle', 'wait', 'result'].includes(this.phase)) return originalOnDown.call(this, pointer)
     if (pointer?.x <= 58 && pointer?.y <= 70) {
-      if (ensureState(this).inputMode === 'pull') cancelPull(this, 'CANCEL / 戻る')
+      if (ensureState(this).inputMode === 'pull') cancelPull(this, '中止 / 戻る')
       this.scene.start('MapScene')
       return true
     }
