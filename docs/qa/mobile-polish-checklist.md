@@ -32,5 +32,17 @@ Target viewport: **390 × 844**. Run once per fishing spot after a visual/gamepl
 - [ ] コンソールエラー0
 - [ ] 目立つフレーム落ち・入力遅延なし
 
+## Shared product-quality checks
+- [ ] Readability is judged from the final CSS pixels at the real viewport and device-pixel ratio, not from nominal design coordinates.
+- [ ] Spacing expresses meaningful grouping and hierarchy; avoid mechanically equal empty gutters.
+- [ ] Visuals, labels, and hit areas share the same perceived alignment.
+- [ ] Each phase gives the primary action clear priority; irrelevant controls are hidden or disabled.
+- [ ] Every interactive hit area is at least 44 x 44 CSS pixels.
+- [ ] State changes use color plus shape, text, or motion; color is never the only signal.
+- [ ] Art assets remain independent from live text, values, and hitboxes so content can change safely.
+- [ ] Input motion, gauge, character pose, and outcome are driven by one timeline/state clock.
+- [ ] Interruptions are regression-tested: `pointercancel`, release outside, multi-touch, rapid repeat, Back, resize/rotation, reduced motion, and keyboard input.
+- [ ] Reuse interaction and layout principles across products, but do not copy AINAN fish or sea visuals into another product.
+
 ## CI
 - [ ] PRの `CI / build` が成功している

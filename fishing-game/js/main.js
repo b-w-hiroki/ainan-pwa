@@ -33,6 +33,10 @@ import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGua
 
 const pwaUpdate = installPwaUpdateGuard()
 
+const cameraPanPrototype = typeof window !== 'undefined'
+  && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
+    || new URLSearchParams(window.location.search).get('coneLoop') === '1')
+
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
 installTownSensoryFeedback(TownScene, HomeScene)
@@ -50,7 +54,7 @@ const config = {
     resolution: Math.min(window.devicePixelRatio ?? 1, 2),
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,

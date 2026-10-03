@@ -77,6 +77,17 @@
         touch-action: none;
       }
 
+      html[data-camera-pan-prototype='1'] #game-container {
+        align-items: stretch;
+        justify-content: stretch;
+      }
+
+      html[data-camera-pan-prototype='1'] #game-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        aspect-ratio: auto;
+      }
       @supports not (height: 100dvh) {
         body,
         #game-container {
@@ -95,7 +106,9 @@
   <body>
     <div id="game-container"></div>
     <script>
+      const pageParams = new URLSearchParams(location.search)
       const isQa = new URLSearchParams(location.search).get('qa') === '1'
+      if (pageParams.get('cameraPan') === '1') document.documentElement.dataset.cameraPanPrototype = '1'
       if (isQa) {
         // Fixed visual QA must render the current preview build, never a prior
         // Workbox precache. Production PWA registration remains unchanged.

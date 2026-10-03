@@ -6,6 +6,7 @@ import { FISH_LIST } from './fish.js'
 import { updateFishInterest, fishReactionSymbol, FISH_INTEREST_STATE } from './fishInterest.js'
 import { buildTrajectory, clampLanding, computeCastAngle } from './cast.js'
 import { getTownBonuses } from './progress.js'
+import { CAST_FLIGHT_TUNING, castFlightDurationMs } from './castMotionTuning.js'
 
 const BASE_CAST_WORLD_PX = 420
 const TWITCH_DISTANCE_PX = 30
@@ -262,7 +263,7 @@ export function installRetrieveGameplay(GameScene) {
     clampLanding(pts, FISHING_WORLD.waterBounds)
     const end = pts[pts.length - 1]
     const castDistance = Phaser.Math.Distance.Between(this.anchorX, this.anchorY, end.x, end.y)
-    const duration = clamp(620 + castDistance * 0.42, 720, 1080)
+    const duration = castFlightDurationMs(castDistance)
 
     this.bobber.setPosition(this.anchorX, this.anchorY).setVisible(true)
     const path = { u: 0 }
@@ -270,7 +271,7 @@ export function installRetrieveGameplay(GameScene) {
       targets: path,
       u: pts.length - 1,
       duration,
-      ease: 'Quad.out',
+      ease: CAST_FLIGHT_TUNING.ease,
       onUpdate: () => {
         const i = Math.min(Math.floor(path.u), pts.length - 2)
         const f = path.u - i

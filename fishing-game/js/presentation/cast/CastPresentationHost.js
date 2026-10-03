@@ -27,7 +27,9 @@ const FISH_ART = Object.freeze({
 
 export function castPresentationMode() {
   if (typeof window === 'undefined') return 'host'
-  return new URLSearchParams(window.location.search).get('castPresentation') === 'legacy'
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('cameraPan') === '1') return 'legacy'
+  return params.get('castPresentation') === 'legacy'
     ? 'legacy'
     : 'host'
 }
