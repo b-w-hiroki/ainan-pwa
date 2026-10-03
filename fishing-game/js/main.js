@@ -29,6 +29,9 @@ import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
+import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
+
+const pwaUpdate = installPwaUpdateGuard()
 
 const cameraPanPrototype = typeof window !== 'undefined'
   && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
@@ -66,6 +69,21 @@ function startGame() {
   ensureSaveVersion()
   const game = new Phaser.Game(config)
   window.__game = game
+  let lastUpdateCheck = 0
+  const applyPendingPwaUpdate = () => {
+    if (!pwaUpdate.pending || pwaUpdate.refreshing) return
+    const activeScenes = game.scene.getScenes(true).map(scene => scene.sys.settings.key)
+    if (!shouldApplyPwaUpdate(activeScenes)) return
+    backupSave()
+    pwaUpdate.refreshing = true
+    location.reload()
+  }
+  window.addEventListener('ainan-pwa-update-ready', applyPendingPwaUpdate)
+  game.events.on(Phaser.Core.Events.POST_STEP, time => {
+    if (time - lastUpdateCheck < 250) return
+    lastUpdateCheck = time
+    applyPendingPwaUpdate()
+  })
   routeQaScene(game)
   document.addEventListener('visibilitychange', () => { if (document.hidden) backupSave() })
 }
