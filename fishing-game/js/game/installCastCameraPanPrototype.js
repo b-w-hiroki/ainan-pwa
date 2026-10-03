@@ -2,6 +2,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { isReducedMotion } from './feedback.js'
 import { resolveCastMotionProfile } from './castMotionTuning.js'
+import { PULL_CAST_TUNING } from './pullCastTuning.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
 import { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
@@ -19,6 +20,8 @@ const fieldAssets = () => [
 ]
 
 const rad = degrees => degrees * Math.PI / 180
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+const lerp = (from, to, amount) => from + (to - from) * amount
 
 function hideFixedPresentation(scene) {
   scene._finalCastOverlay?.setVisible?.(false)
@@ -67,6 +70,7 @@ function buildWorld(scene) {
 
   scene._cameraPanPlayerShadow?.destroy?.()
   scene._cameraPanPlayer?.destroy?.()
+  scene._cameraPanPlayerBlend?.destroy?.()
   scene._cameraPanPlayerShadow = scene.add.ellipse(FISHING_WORLD.player.x, FISHING_WORLD.player.y - 5, 118, 24, 0x062c44, 0.20)
     .setDepth(40)
     .setScrollFactor(1)
@@ -75,6 +79,12 @@ function buildWorld(scene) {
     .setDisplaySize(150, 195)
     .setDepth(41)
     .setScrollFactor(1)
+  scene._cameraPanPlayerBlend = scene.add.image(FISHING_WORLD.player.x, FISHING_WORLD.player.y, ASSETS.characters.fishingMotionIdle.key)
+    .setOrigin(0.5, 1)
+    .setDisplaySize(150, 195)
+    .setDepth(41.1)
+    .setScrollFactor(1)
+    .setAlpha(0)
   scene._cameraPanPlayerBaseScale = { x: scene._cameraPanPlayer.scaleX, y: scene._cameraPanPlayer.scaleY }
   const loadout = getVisualLoadout(scene.env?.player?.rodType)
   const visual = ROD_VISUALS[loadout.rod.id] ?? ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
@@ -130,14 +140,17 @@ function showWorldPlayer(scene) {
   scene._playerShadow?.removeFromDisplayList?.()
   if ((scene._cameraPanHidePlayerUntil ?? 0) > (scene.time?.now ?? 0)) {
     scene._cameraPanPlayer?.removeFromDisplayList?.()
+    scene._cameraPanPlayerBlend?.removeFromDisplayList?.()
     scene._cameraPanRod?.removeFromDisplayList?.()
     scene._cameraPanRodLine?.removeFromDisplayList?.()
     return
   }
   scene._cameraPanPlayer?.addToDisplayList?.()
+  scene._cameraPanPlayerBlend?.addToDisplayList?.()
   scene._cameraPanRod?.addToDisplayList?.()
   scene._cameraPanRodLine?.addToDisplayList?.()
   scene._cameraPanPlayer?.setVisible?.(true)
+  scene._cameraPanPlayerBlend?.setVisible?.(true)
   scene._cameraPanPlayerShadow?.setVisible?.(true)
   scene._cameraPanRod?.setVisible?.(true)
 }
@@ -145,6 +158,75 @@ function showWorldPlayer(scene) {
 function rotateLocal(x, y, angleDeg) {
   const angle = rad(angleDeg)
   return { x: x * Math.cos(angle) - y * Math.sin(angle), y: x * Math.sin(angle) + y * Math.cos(angle) }
+}
+
+function phaseDefaults(phase = {}) {
+  return { offsetX: 0, offsetY: 0, bodyScale: 1, bodyAngleDeg: 0, rodAngleOffsetDeg: 0, ...phase }
+}
+
+function poseWorldAnchor(scene, poseName, anchorName) {
+  const pose = CHARACTER_MOTION_POSES[poseName]
+  const player = scene._cameraPanPlayer
+  const anchor = pose?.[anchorName]
+  if (!anchor || !player) return null
+  const frame = { width: 320, height: 420 }
+  const local = {
+    x: (anchor[0] - frame.width / 2) * (player.displayWidth / frame.width),
+    y: (anchor[1] - frame.height) * (player.displayHeight / frame.height),
+  }
+  const rotated = rotateLocal(local.x, local.y, player.angle)
+  return { x: player.x + rotated.x, y: player.y + rotated.y }
+}
+
+function applyWorldRodBlend(scene, fromPhase, toPhase, amount) {
+  const rod = scene._cameraPanRod
+  const visual = scene._cameraPanRodVisual
+  const fromGrip = poseWorldAnchor(scene, fromPhase.pose, 'grip')
+  const fromTip = poseWorldAnchor(scene, fromPhase.pose, 'tip')
+  const toGrip = poseWorldAnchor(scene, toPhase.pose, 'grip')
+  const toTip = poseWorldAnchor(scene, toPhase.pose, 'tip')
+  if (!rod?.active || !visual || !fromGrip || !fromTip || !toGrip || !toTip) return
+  const t = clamp(amount, 0, 1)
+  const grip = { x: lerp(fromGrip.x, toGrip.x, t), y: lerp(fromGrip.y, toGrip.y, t) }
+  const poseTip = { x: lerp(fromTip.x, toTip.x, t), y: lerp(fromTip.y, toTip.y, t) }
+  const poseAngle = Math.atan2(poseTip.y - grip.y, poseTip.x - grip.x) + rad(lerp(fromPhase.rodAngleOffsetDeg, toPhase.rodAngleOffsetDeg, t))
+  const poseLength = Math.max(1, Math.hypot(poseTip.x - grip.x, poseTip.y - grip.y) * visual.lengthScale)
+  const tip = { x: grip.x + Math.cos(poseAngle) * poseLength, y: grip.y + Math.sin(poseAngle) * poseLength }
+  const handle = { x: grip.x + (tip.x - grip.x) * 0.22, y: grip.y + (tip.y - grip.y) * 0.22 }
+  rod.clear().setVisible(true)
+  rod.lineStyle(6, 0x173248, 0.96).beginPath().moveTo(grip.x, grip.y).lineTo(tip.x, tip.y).strokePath()
+  rod.lineStyle(3.2, visual.accent, 1).beginPath().moveTo(handle.x, handle.y).lineTo(tip.x, tip.y).strokePath()
+  rod.lineStyle(7, 0x263847, 1).beginPath().moveTo(grip.x, grip.y).lineTo(handle.x, handle.y).strokePath()
+  rod.fillStyle(0xeef9ff, 1).lineStyle(2, 0x173248, 1).fillCircle(handle.x, handle.y, 4).strokeCircle(handle.x, handle.y, 4)
+  scene._cameraPanRodTip = tip
+}
+
+function setWorldPlayerBlend(scene, rawFrom, rawTo, amount) {
+  const from = phaseDefaults(rawFrom)
+  const to = phaseDefaults(rawTo)
+  const fromPose = CHARACTER_MOTION_POSES[from.pose]
+  const toPose = CHARACTER_MOTION_POSES[to.pose]
+  const fromAsset = fromPose ? ASSETS.characters[fromPose.asset] : null
+  const toAsset = toPose ? ASSETS.characters[toPose.asset] : null
+  const player = scene._cameraPanPlayer
+  const blend = scene._cameraPanPlayerBlend
+  if (!fromAsset?.key || !toAsset?.key || !player?.active || !blend?.active) return
+  const t = clamp(amount, 0, 1)
+  scene.tweens.killTweensOf([player, blend, scene._cameraPanRodMotion])
+  const baseScale = scene._cameraPanPlayerBaseScale
+  const transform = {
+    x: FISHING_WORLD.player.x + lerp(from.offsetX, to.offsetX, t),
+    y: FISHING_WORLD.player.y + lerp(from.offsetY, to.offsetY, t),
+    angle: lerp(from.bodyAngleDeg, to.bodyAngleDeg, t),
+    scaleX: baseScale.x * lerp(from.bodyScale, to.bodyScale, t),
+    scaleY: baseScale.y * lerp(from.bodyScale, to.bodyScale, t),
+  }
+  player.setTexture(fromAsset.key).setPosition(transform.x, transform.y).setAngle(transform.angle).setScale(transform.scaleX, transform.scaleY).setAlpha(1 - t)
+  blend.setTexture(toAsset.key).setPosition(transform.x, transform.y).setAngle(transform.angle).setScale(transform.scaleX, transform.scaleY).setAlpha(t)
+  scene._cameraPanPose = t < 0.5 ? from.pose : to.pose
+  scene._cameraPanPoseBlend = { from, to, amount: t }
+  scene._cameraPanRodAngleOffset = lerp(from.rodAngleOffsetDeg, to.rodAngleOffsetDeg, t)
+  applyWorldRodBlend(scene, from, to, t)
 }
 
 function applyWorldRod(scene, poseName, rodAngleOffsetDeg = scene._cameraPanRodAngleOffset ?? 0) {
@@ -190,6 +272,9 @@ function setWorldPlayerPhase(scene, phase, immediate = false) {
   const player = scene._cameraPanPlayer
   if (!asset?.key || !player?.active || !scene.textures.exists(asset.key)) return
   player.setTexture(asset.key)
+  player.setAlpha(1)
+  scene._cameraPanPlayerBlend?.setAlpha?.(0)
+  scene._cameraPanPoseBlend = null
   scene._cameraPanPose = phase.pose
   scene.tweens.killTweensOf([player, scene._cameraPanRodMotion])
   const baseScale = scene._cameraPanPlayerBaseScale
@@ -223,6 +308,8 @@ function setWorldPlayerPhase(scene, phase, immediate = false) {
 }
 
 function cancelCastMotion(scene, { idle = false } = {}) {
+  if (scene._pullCastTimeline?.releasedAt != null) scene._pullCastLastTimeline = { ...scene._pullCastTimeline }
+  scene._pullCastTimeline = null
   scene._pullCastPreviewPhase = null
   scene._cameraPanMotionToken = (scene._cameraPanMotionToken ?? 0) + 1
   scene._cameraPanMotionTimers?.forEach(timer => timer?.remove?.(false))
@@ -273,50 +360,130 @@ function chargedPullProfile() {
   return resolveCastMotionProfile('?castMotion=charged', isReducedMotion())
 }
 
-function previewPullCastMotion(scene, phaseId) {
+function emitPullPhase(scene, timeline, phase) {
+  if (timeline.phase === phase) return
+  timeline.phase = phase
+  scene.events.emit('ainan-cast-motion-phase', {
+    profile: timeline.profile.name,
+    phase,
+    source: timeline.mode === 'release' ? 'pullRelease' : 'pullGesture',
+    atSceneMs: scene.time?.now ?? 0,
+  })
+}
+
+function syncPullCastMotion(scene, snapshot) {
   const profile = chargedPullProfile()
-  const phase = profile.phases.find(item => item.id === phaseId)
-  if (!phase || scene._cameraPanCasting) return false
-  if (scene._pullCastPreviewPhase === phaseId) return true
+  if (scene._cameraPanCasting || snapshot.mode !== 'pull') return false
+  const ready = phaseDefaults(profile.phases.find(item => item.id === 'ready'))
+  const drawBack = phaseDefaults(profile.phases.find(item => item.id === 'drawBack'))
+  const charge = phaseDefaults(profile.phases.find(item => item.id === 'charge'))
+  const timeline = scene._pullCastTimeline?.mode === 'gesture'
+    ? scene._pullCastTimeline
+    : { mode: 'gesture', phase: null, profile, startedAt: scene.time?.now ?? 0 }
+  Object.assign(timeline, snapshot, { mode: 'gesture', profile, updatedAt: scene.time?.now ?? 0 })
+  scene._pullCastTimeline = timeline
   scene._castMotionProfile = profile
-  scene._pullCastPreviewPhase = phaseId
-  setWorldPlayerPhase(scene, phase, scene._cameraPanPose !== phase.pose)
-  scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: phase.id, source: 'pullGesture' })
+  if (!snapshot.armed) {
+    const armProgress = PULL_CAST_TUNING.gesture.minPullDistancePx / PULL_CAST_TUNING.gesture.fullPullDistancePx
+    const blend = clamp(snapshot.pullProgress / armProgress, 0, 1)
+    timeline.visualPose = blend < 0.08 ? 'idle' : `idle>castMid ${Math.round(blend * 100)}%`
+    emitPullPhase(scene, timeline, blend < 0.08 ? 'ready' : 'drawBack')
+    setWorldPlayerBlend(scene, ready, drawBack, blend)
+  } else {
+    const blend = clamp(snapshot.chargeRatio / PULL_CAST_TUNING.motion.chargePoseBlendEnd, 0, 1)
+    timeline.visualPose = blend < 1 ? `castMid>castWindup ${Math.round(blend * 100)}%` : 'castWindup'
+    emitPullPhase(scene, timeline, 'charge')
+    setWorldPlayerBlend(scene, drawBack, charge, blend)
+  }
   return true
 }
 
 function playPrechargedRelease(scene, args, originalFireCast, releaseContext) {
-  cancelCastMotion(scene)
-  scene._pullCastPreviewPhase = null
   const profile = chargedPullProfile()
+  scene._cameraPanMotionToken = (scene._cameraPanMotionToken ?? 0) + 1
+  scene._cameraPanMotionTimers?.forEach(timer => timer?.remove?.(false))
+  scene._cameraPanMotionTimers = []
+  scene.tweens.killTweensOf([scene._cameraPanPlayer, scene._cameraPanPlayerBlend, scene._cameraPanRodMotion])
   scene._castMotionProfile = profile
-  const swing = profile.phases.find(phase => phase.id === 'swing')
-  const follow = profile.phases.find(phase => phase.id === 'followThrough')
-  setWorldPlayerPhase(scene, swing, true)
-  scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: 'swing', source: 'pullRelease' })
-  scene.fishingCamera?.beginCastPan(args[0], args[1], profile.camera)
-  scene.events.emit('ainan-cast-camera-pan', { profile: profile.name, atMs: 0, bobberVisible: Boolean(scene.bobber?.visible), source: 'pullRelease' })
-  const result = originalFireCast.apply(scene, args)
-  if (!scene.bobber?.visible) {
-    scene._cameraPanCasting = false
-    cancelCastMotion(scene, { idle: true })
-    return false
+  const now = scene.time?.now ?? 0
+  scene._pullCastTimeline = {
+    mode: 'release', phase: null, profile, releasedAt: now, updatedAt: now,
+    releaseOffsetMs: profile.releaseEventMs - profile.phaseStartMs.swing,
+    args, originalFireCast, releaseContext,
+    lureReleasedAt: null, cameraStartedAt: null, result: true,
   }
-  scene.events.emit('ainan-cast-release', { profile: profile.name, atMs: 0, result, source: 'pullRelease', releaseContext })
-  const token = scene._cameraPanMotionToken
-  scene._cameraPanMotionTimers = [
-    scene.time.delayedCall(swing.durationMs, () => {
-      if (token !== scene._cameraPanMotionToken) return
-      setWorldPlayerPhase(scene, follow)
-      scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: 'followThrough', source: 'pullRelease' })
-    }),
-    scene.time.delayedCall(swing.durationMs + follow.durationMs, () => {
-      if (token === scene._cameraPanMotionToken && scene.phase === 'cast') {
-        setWorldPlayerPhase(scene, { pose: 'idle', durationMs: 90, ease: 'Sine.easeOut' })
+  emitPullPhase(scene, scene._pullCastTimeline, 'swing')
+  return true
+}
+
+function updatePullCastTimeline(scene) {
+  const timeline = scene._pullCastTimeline
+  if (!timeline || timeline.mode !== 'release') return
+  const now = scene.time?.now ?? 0
+  const elapsed = now - timeline.releasedAt
+  const profile = timeline.profile
+  const charge = phaseDefaults(profile.phases.find(phase => phase.id === 'charge'))
+  const swing = phaseDefaults(profile.phases.find(phase => phase.id === 'swing'))
+  const follow = phaseDefaults(profile.phases.find(phase => phase.id === 'followThrough'))
+  const idle = phaseDefaults({ pose: 'idle' })
+  const followStart = swing.durationMs
+  const recoverStart = followStart + follow.durationMs
+  const recoverEnd = recoverStart + PULL_CAST_TUNING.motion.recoveryMs
+
+  if (elapsed < followStart) {
+    emitPullPhase(scene, timeline, 'swing')
+    const blend = clamp(elapsed / swing.durationMs, 0, 1)
+    timeline.visualPose = `castWindup>castRelease ${Math.round(blend * 100)}%`
+    setWorldPlayerBlend(scene, charge, swing, blend)
+  } else if (elapsed < recoverStart) {
+    emitPullPhase(scene, timeline, 'followThrough')
+    const blend = clamp((elapsed - followStart) / follow.durationMs, 0, 1)
+    timeline.visualPose = 'castRelease'
+    setWorldPlayerBlend(scene, swing, follow, blend)
+  } else if (elapsed < recoverEnd) {
+    emitPullPhase(scene, timeline, 'recover')
+    const blend = clamp((elapsed - recoverStart) / PULL_CAST_TUNING.motion.recoveryMs, 0, 1)
+    timeline.visualPose = `castRelease>idle ${Math.round(blend * 100)}%`
+    setWorldPlayerBlend(scene, follow, idle, blend)
+  } else if (timeline.phase !== 'flight') {
+    setWorldPlayerPhase(scene, { ...idle, durationMs: 1, ease: 'Linear' }, true)
+    emitPullPhase(scene, timeline, 'flight')
+    timeline.visualPose = 'idle'
+  }
+
+  if (timeline.lureReleasedAt == null && elapsed >= timeline.releaseOffsetMs) {
+    const result = timeline.originalFireCast.apply(scene, timeline.args)
+    if (!scene.bobber?.visible) {
+      scene._cameraPanCasting = false
+      if (scene._coneCastState) {
+        scene._coneCastState.castLocked = false
+        scene._coneCastState.inputMode = 'aim'
       }
-    }),
-  ]
-  return result ?? true
+      cancelCastMotion(scene, { idle: true })
+      return
+    }
+    timeline.result = result
+    timeline.lureReleasedAt = now
+    timeline.lureOrigin = { ...(scene._cameraPanRodTip ?? { x: scene.anchorX, y: scene.anchorY }) }
+    scene.bobber.setPosition(timeline.lureOrigin.x, timeline.lureOrigin.y)
+    scene.events.emit('ainan-cast-release', { profile: profile.name, atMs: elapsed, atSceneMs: now, result, source: 'pullRelease', releaseContext: timeline.releaseContext })
+  }
+
+  if (timeline.lureReleasedAt != null) {
+    const detachElapsed = now - timeline.lureReleasedAt
+    if (detachElapsed < PULL_CAST_TUNING.motion.lureDetachBlendMs) {
+      const target = { x: scene.bobber.x, y: scene.bobber.y }
+      const blend = clamp(detachElapsed / PULL_CAST_TUNING.motion.lureDetachBlendMs, 0, 1)
+      scene.bobber.setPosition(lerp(timeline.lureOrigin.x, target.x, blend), lerp(timeline.lureOrigin.y, target.y, blend))
+    }
+  }
+
+  if (timeline.cameraStartedAt == null && timeline.lureReleasedAt != null && now - timeline.lureReleasedAt >= PULL_CAST_TUNING.motion.cameraDelayAfterLureMs) {
+    timeline.cameraStartedAt = now
+    scene.fishingCamera?.beginCastPan(timeline.args[0], timeline.args[1], profile.camera)
+    scene.events.emit('ainan-cast-camera-pan', { profile: profile.name, atMs: elapsed, atSceneMs: now, bobberVisible: Boolean(scene.bobber?.visible), source: 'pullRelease' })
+  }
+  timeline.updatedAt = now
 }
 
 export function installCastCameraPanPrototype(GameScene) {
@@ -344,7 +511,7 @@ export function installCastCameraPanPrototype(GameScene) {
     this.fishingCamera?.focusPlayer(true)
     this._cameraPanCasting = false
     this._pullCastPreviewPhase = null
-    this._previewPullCastMotion = phaseId => previewPullCastMotion(this, phaseId)
+    this._syncPullCastMotion = snapshot => syncPullCastMotion(this, snapshot)
     this._cancelPullCastMotion = () => cancelCastMotion(this, { idle: true })
     this._cameraPanResize = () => {
       buildHud(this)
@@ -434,7 +601,9 @@ export function installCastCameraPanPrototype(GameScene) {
     if (this.phase === 'retrieve' && this.bobber?.visible) {
       this._rcRetrieveLine?.setVisible?.(false)
     }
-    applyWorldRod(this, this._cameraPanPose ?? 'idle')
+    updatePullCastTimeline(this)
+    if (this._cameraPanPoseBlend) applyWorldRodBlend(this, this._cameraPanPoseBlend.from, this._cameraPanPoseBlend.to, this._cameraPanPoseBlend.amount)
+    else applyWorldRod(this, this._cameraPanPose ?? 'idle')
     if (this.bobber?.visible && ['cast', 'retrieve'].includes(this.phase)) {
       this._cameraPanRodLine?.setVisible?.(true).clear().lineStyle(2, 0xffffff, 0.82)
         .lineBetween(this._cameraPanRodTip?.x ?? this.anchorX, this._cameraPanRodTip?.y ?? this.anchorY, this.bobber.x, this.bobber.y)
@@ -451,6 +620,8 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanHudNodes = null
     this._cameraPanPlayer?.destroy?.()
     this._cameraPanPlayer = null
+    this._cameraPanPlayerBlend?.destroy?.()
+    this._cameraPanPlayerBlend = null
     this._cameraPanPlayerShadow?.destroy?.()
     this._cameraPanPlayerShadow = null
     this._cameraPanRod?.destroy?.()
@@ -459,7 +630,7 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanRodLine = null
     this.scale?.off?.('resize', this._cameraPanResize)
     this._cameraPanResize = null
-    this._previewPullCastMotion = null
+    this._syncPullCastMotion = null
     this._cancelPullCastMotion = null
     return originalCleanup.apply(this, args)
   }

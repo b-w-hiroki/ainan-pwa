@@ -23,6 +23,8 @@ const ensureState = scene => (scene._coneCastState ??= {
   pullPointerId: null,
   pullStartX: 0,
   pullStartY: 0,
+  pullPointerX: 0,
+  pullPointerY: 0,
   pullDx: 0,
   pullDy: 0,
   pullArmedAt: null,
@@ -92,9 +94,12 @@ function buildOverlay(scene) {
   const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, 'GOOD', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
   const mode = scene.add.text(18, H - (compact ? 35 : 48), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0, 0.5)
-  root.add([castChrome, reelChrome, charge, label, gaugeLabel, feedback, mode])
+  const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
+  const qaPointer = scene.add.graphics().setVisible(false)
+  const qaTimeline = scene.add.text(12, 86, '', { fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
+  root.add([castChrome, reelChrome, charge, label, gaugeLabel, feedback, mode, qaPointer, qaTimeline])
   scene._coneCastHud = root
-  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome }
+  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, qaEnabled, qaPointer, qaTimeline }
 }
 
 function drawAim(scene) {
@@ -157,6 +162,14 @@ function syncPullHud(scene) {
   const showPullControls = scene.phase === 'cast' && state.inputMode !== 'released' && !scene._cameraPanCasting
   const charge = pulling && state.pullArmedAt != null ? pullChargeRatio((scene.time?.now ?? 0) - state.pullArmedAt) : state.pullCharge
   state.pullCharge = charge
+  scene._syncPullCastMotion?.({
+    mode: pulling ? 'pull' : state.inputMode,
+    pullProgress: clamp(state.pullDy / PULL_CAST_TUNING.gesture.fullPullDistancePx, 0, 1),
+    chargeRatio: charge,
+    armed: state.pullArmedAt != null,
+    pointerX: state.pullPointerX,
+    pointerY: state.pullPointerY,
+  })
   nodes.charge.clear()
   nodes.castChrome.setVisible(showPullControls)
   nodes.reelChrome.setVisible(scene.phase === 'retrieve')
@@ -187,6 +200,22 @@ function syncPullHud(scene) {
     ? `狙い ${state.angleDeg.toFixed(0)}° / ${(selection.requestedDistance / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ${selection.abilityLimited ? `能力上限 ${(selection.range / FISHING_WORLD.pxPerMeter).toFixed(0)}m` : '狙点内'}`
     : scene.phase === 'retrieve' ? `長押しで巻く  残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
+  if (nodes.qaEnabled) {
+    const timeline = scene._pullCastTimeline ?? scene._pullCastLastTimeline ?? {}
+    const now = scene.time?.now ?? 0
+    const releaseElapsed = timeline.releasedAt == null ? null : now - timeline.releasedAt
+    nodes.qaTimeline.setText([
+      `gesture ${state.inputMode}${state.pullArmedAt != null ? '/armed' : ''}`,
+      `pull ${Math.round(clamp(state.pullDy / PULL_CAST_TUNING.gesture.fullPullDistancePx, 0, 1) * 100)}%  charge ${Math.round(charge * 100)}%`,
+      `pose ${timeline.visualPose ?? scene._cameraPanPose ?? 'idle'}  phase ${timeline.phase ?? 'aim'}`,
+      `release ${releaseElapsed == null ? '--' : `${Math.round(releaseElapsed)}ms`}  lure ${timeline.lureReleasedAt == null ? '--' : `${Math.round(timeline.lureReleasedAt - timeline.releasedAt)}ms`}  camera ${timeline.cameraStartedAt == null ? '--' : `${Math.round(timeline.cameraStartedAt - timeline.releasedAt)}ms`}`,
+    ])
+    nodes.qaPointer.clear().setVisible(pulling)
+    if (pulling) {
+      nodes.qaPointer.lineStyle(3, 0xff765a, 1).strokeCircle(state.pullPointerX, state.pullPointerY, 16)
+      nodes.qaPointer.lineStyle(2, 0xffffff, 0.95).lineBetween(state.pullPointerX - 23, state.pullPointerY, state.pullPointerX + 23, state.pullPointerY).lineBetween(state.pullPointerX, state.pullPointerY - 23, state.pullPointerX, state.pullPointerY + 23)
+    }
+  }
 }
 
 function inPullActionButton(scene, pointer) {
@@ -203,6 +232,8 @@ function cancelPull(scene, feedback = '') {
   state.pullPointerId = null
   state.pullDx = 0
   state.pullDy = 0
+  state.pullPointerX = 0
+  state.pullPointerY = 0
   state.pullArmedAt = null
   state.pullCharge = 0
   state.pullFeedback = feedback
@@ -217,12 +248,14 @@ function startPull(scene, pointer) {
   state.pullPointerId = pointerId(pointer)
   state.pullStartX = pointer.x
   state.pullStartY = pointer.y
+  state.pullPointerX = pointer.x
+  state.pullPointerY = pointer.y
   state.pullDx = 0
   state.pullDy = 0
   state.pullArmedAt = null
   state.pullCharge = 0
   state.pullFeedback = '下へ引いてセット'
-  scene._previewPullCastMotion?.('ready')
+  scene._syncPullCastMotion?.({ mode: 'pull', pullProgress: 0, chargeRatio: 0, armed: false, pointerX: pointer.x, pointerY: pointer.y })
   return true
 }
 
@@ -231,16 +264,18 @@ function movePull(scene, pointer) {
   if (state.inputMode !== 'pull' || pointerId(pointer) !== state.pullPointerId) return false
   state.pullDx = pointer.x - state.pullStartX
   state.pullDy = Math.max(0, pointer.y - state.pullStartY)
+  state.pullPointerX = pointer.x
+  state.pullPointerY = pointer.y
   const pullProgress = clamp(state.pullDy / PULL_CAST_TUNING.gesture.fullPullDistancePx, 0, 1)
-  if (pullProgress > 0.14) scene._previewPullCastMotion?.('drawBack')
   const directionOk = Math.abs(state.pullDx) <= Math.max(18, state.pullDy * PULL_CAST_TUNING.gesture.maxHorizontalRatio)
   if (!directionOk) state.pullFeedback = 'まっすぐ下へ引く'
   if (directionOk && state.pullDy >= PULL_CAST_TUNING.gesture.minPullDistancePx && state.pullArmedAt == null) {
     state.pullArmedAt = scene.time?.now ?? 0
     state.pullFeedback = ''
-    scene._previewPullCastMotion?.('charge')
     scene.events.emit('ainan-pull-cast-armed', { at: state.pullArmedAt })
   }
+  const charge = state.pullArmedAt == null ? 0 : pullChargeRatio((scene.time?.now ?? 0) - state.pullArmedAt)
+  scene._syncPullCastMotion?.({ mode: 'pull', pullProgress, chargeRatio: charge, armed: state.pullArmedAt != null, pointerX: pointer.x, pointerY: pointer.y })
   return true
 }
 
@@ -394,6 +429,8 @@ export function installConeCastRetrievePrototype(GameScene) {
     state.pullCharge = 0
     state.pullDx = 0
     state.pullDy = 0
+    state.pullPointerX = 0
+    state.pullPointerY = 0
     return result
   }
 

@@ -13,6 +13,12 @@ export const PULL_CAST_TUNING = freeze({
     successEnd: 0.82,
     lateThreshold: 1,
   }),
+  motion: freeze({
+    chargePoseBlendEnd: 0.18,
+    cameraDelayAfterLureMs: 36,
+    lureDetachBlendMs: 48,
+    recoveryMs: 90,
+  }),
   error: freeze({
     earlyMinDistanceScale: 0.72,
     earlyMaxAngleDeg: 8,

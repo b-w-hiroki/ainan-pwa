@@ -145,6 +145,7 @@ async function runCase({ id, viewport = { width: 390, height: 844 }, holdMs, rod
       casting: scene._cameraPanCasting,
       range: scene.castRangePx,
       inputMode: scene._coneCastState.inputMode,
+      timeline: scene._pullCastTimeline ?? scene._pullCastLastTimeline,
     }
   })
   const gradeEvents = final.events.filter(event => event.name === 'ainan-pull-cast-release-grade')
@@ -162,6 +163,10 @@ const early = await runCase({ id: 'early-carbon', holdMs: 0 })
 const late = await runCase({ id: 'late-carbon', holdMs: 940, releaseOutside: true })
 const limited = await runCase({ id: 'range-limited-basic', holdMs: 350, rod: 'basic', aimRatio: [0.84, 0.18], forceDistance: 760, forceAngle: 20 })
 if (success.final.release.rating !== 'good' || early.final.release.rating !== 'early' || late.final.release.rating !== 'late') throw new Error(`release grades do not match hold timing: ${JSON.stringify({ good: success.final.release, early: early.final.release, late: late.final.release })}`)
+for (const run of [success, early, late]) {
+  if (run.final.timeline?.releaseContext?.rating !== run.final.release.rating) throw new Error(`${run.id}: visual timeline/result mismatch`)
+  if (!(run.final.timeline?.lureReleasedAt > run.final.timeline?.releasedAt && run.final.timeline?.cameraStartedAt > run.final.timeline?.lureReleasedAt)) throw new Error(`${run.id}: release/lure/camera order mismatch`)
+}
 if (!limited.target.abilityLimited) throw new Error(`basic range limit was not visible: ${JSON.stringify(limited.target)}`)
 if (Math.hypot(success.final.bobber.x - success.target.clampedX, success.final.bobber.y - success.target.clampedY) > 8) throw new Error('GOOD landing missed selected target tolerance')
 if (!(early.final.release.adjustedPower < success.final.release.adjustedPower && late.final.release.angleOffsetDeg !== 0)) throw new Error('early/late errors are not directional and progressive')
