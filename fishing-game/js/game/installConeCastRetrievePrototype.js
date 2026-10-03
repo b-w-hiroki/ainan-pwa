@@ -96,7 +96,7 @@ function buildOverlay(scene) {
   reelChrome.fillStyle(0x062c44, 0.38).fillCircle(buttonX + 2, reelY + 4, radius + 3)
   reelChrome.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(buttonX, reelY, radius).strokeCircle(buttonX, reelY, radius)
   const charge = scene.add.graphics()
-  const label = scene.add.text(W / 2, H - (compact ? 18 : 28), 'キャラから左下へ引いて、離す', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
+  const label = scene.add.text(W / 2, H - (compact ? 18 : 28), '起点を左下へ引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
   const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
   const mode = scene.add.text(18, H - (compact ? 35 : 48), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0, 0.5)
@@ -135,21 +135,15 @@ function drawAim(scene) {
   }
   overlay.fillStyle(0x47c8ff, 0.18).lineStyle(2, 0xb7f1ff, 0.78)
   overlay.fillPoints(points, true).strokePoints(points, true)
-  const shownTarget = abilityLimited ? requestedRaw : raw
-  overlay.lineStyle(3, valid && !abilityLimited ? 0xffe26b : 0xff9a5a, 0.96)
-  overlay.lineBetween(cx, cy, shownTarget.x, shownTarget.y)
-  const pullWorld = pointerWorld(scene, { x: state.pullPointerX, y: state.pullPointerY })
-  overlay.lineStyle(7, 0x062c44, 0.42).lineBetween(cx, cy, pullWorld.x, pullWorld.y)
-  overlay.lineStyle(3, 0xffffff, 0.94).lineBetween(cx, cy, pullWorld.x, pullWorld.y)
-  target.lineStyle(4, 0xffd95a, 0.96).strokeCircle(pullWorld.x, pullWorld.y, 18)
+  overlay.lineStyle(4, valid ? 0xffe26b : 0xff765a, 0.96)
+  overlay.lineBetween(cx, cy, raw.x, raw.y)
   if (abilityLimited) {
-    target.lineStyle(3, 0xffffff, 0.92).strokeCircle(raw.x, raw.y, 14)
-    target.lineStyle(2, 0xff9a5a, 0.82).lineBetween(raw.x, raw.y, shownTarget.x, shownTarget.y)
+    target.lineStyle(3, 0xff9a5a, 0.9).strokeCircle(raw.x, raw.y, 27)
   }
-  target.lineStyle(4, valid && !abilityLimited ? 0xffe26b : 0xff765a, 1).strokeCircle(shownTarget.x, shownTarget.y, state.dragging ? 25 : 20)
-  target.lineStyle(2, 0xffffff, 0.9).strokeCircle(shownTarget.x, shownTarget.y, 8)
-  target.fillStyle(valid && !abilityLimited ? 0xffe26b : 0xff765a, 0.25).fillCircle(shownTarget.x, shownTarget.y, 17)
-  scene._coneCastPreview = { x: shownTarget.x, y: shownTarget.y, clampedX: raw.x, clampedY: raw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: readSelection(scene).power }
+  target.lineStyle(4, valid ? 0xffe26b : 0xff765a, 1).strokeCircle(raw.x, raw.y, 20)
+  target.lineStyle(2, 0xffffff, 0.9).strokeCircle(raw.x, raw.y, 8)
+  target.fillStyle(valid ? 0xffe26b : 0xff765a, 0.25).fillCircle(raw.x, raw.y, 17)
+  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: readSelection(scene).power }
 }
 
 function syncHud(scene) {
@@ -174,6 +168,7 @@ function syncPullHud(scene) {
   if (!nodes) return
   const state = ensureState(scene)
   const selection = readSelection(scene)
+  const landingMeters = Math.hypot(selection.raw.x - scene.anchorX, selection.raw.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
   const remaining = scene.bobber?.visible ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter : 0
   const pulling = state.inputMode === 'pull'
   const showPullControls = scene.phase === 'cast' && state.inputMode !== 'released' && !scene._cameraPanCasting
@@ -200,12 +195,12 @@ function syncPullHud(scene) {
     if (pulling) {
       nodes.charge.fillStyle(inGood ? 0x42d68c : charge > PULL_CAST_TUNING.gauge.successEnd ? 0xff765a : 0x5bc8e8, 0.98)
         .fillRoundedRect(nodes.gaugeX + 3, fillY, nodes.gaugeW - 6, Math.max(0, fillH), 4)
-      nodes.charge.lineStyle(10, 0x062c44, 0.42).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
-      nodes.charge.lineStyle(4, 0xffffff, 0.92).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
-      nodes.charge.fillStyle(0xffd95a, 0.30).lineStyle(4, 0xffd95a, 1).fillCircle(state.pullPointerX, state.pullPointerY, 18).strokeCircle(state.pullPointerX, state.pullPointerY, 18)
+      nodes.charge.lineStyle(10, 0x062c44, 0.38).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
+      nodes.charge.lineStyle(4, 0xffd95a, 0.98).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
+      nodes.charge.fillStyle(0xffd95a, 0.36).lineStyle(4, 0xffffff, 0.96).fillCircle(state.pullPointerX, state.pullPointerY, 18).strokeCircle(state.pullPointerX, state.pullPointerY, 18)
     }
     nodes.label.setPosition(scene.scale.width / 2, scene.scale.height - (scene.scale.height < 520 ? 18 : 28))
-      .setText(pulling ? (state.pullArmedAt == null ? '左下へ引いてセット' : inGood ? '今！ 離す' : 'ためて、離す') : '黄色の起点から左下へ引いて、離す')
+      .setText(pulling ? (state.pullArmedAt == null ? '左下へ引く' : inGood ? '今、離す' : charge > PULL_CAST_TUNING.gauge.successEnd ? '離す' : 'ためる') : '起点を左下へ引く')
     nodes.gaugeLabel.setVisible(showPullControls && pulling)
     nodes.feedback.setPosition(nodes.gaugeX + nodes.gaugeW / 2, nodes.gaugeY - 40)
       .setText(state.pullFeedback || '')
@@ -215,8 +210,8 @@ function syncPullHud(scene) {
     nodes.feedback.setText('')
   }
   nodes.mode.setText(scene.phase === 'cast'
-    ? pulling ? `引く方向の反対へ ${state.angleDeg.toFixed(0)}° / ${(selection.requestedDistance / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ${selection.abilityLimited ? `能力上限 ${(selection.range / FISHING_WORLD.pxPerMeter).toFixed(0)}m` : '射程内'}` : ''
-    : scene.phase === 'retrieve' ? `長押しで巻く  残り ${remaining.toFixed(1)}m` : '')
+    ? pulling ? `反対へ ${state.angleDeg.toFixed(0)}°・着水 ${landingMeters.toFixed(0)}m${selection.abilityLimited ? '・竿上限' : ''}` : ''
+    : scene.phase === 'retrieve' ? `長押しで巻く・残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (nodes.qaEnabled) {
     const timeline = scene._pullCastTimeline ?? scene._pullCastLastTimeline ?? {}
@@ -272,7 +267,7 @@ function startPull(scene, pointer) {
   state.pullDy = 0
   state.pullArmedAt = null
   state.pullCharge = 0
-  state.pullFeedback = '左下へ引いてセット'
+  state.pullFeedback = ''
   scene._syncPullCastMotion?.({ mode: 'pull', pullProgress: 0, chargeRatio: 0, armed: false, pointerX: pointer.x, pointerY: pointer.y })
   return true
 }
