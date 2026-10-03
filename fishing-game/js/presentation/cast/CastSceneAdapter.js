@@ -1,3 +1,5 @@
+import { getFishingPreparation } from '../../game/fishingJourney.js'
+
 export class CastSceneAdapter {
   constructor(scene) {
     this.scene = scene
@@ -5,7 +7,7 @@ export class CastSceneAdapter {
 
   beginCharge() {
     const scene = this.scene
-    if (scene.phase !== 'cast' || scene.isCharging) return false
+    if (scene.phase !== 'cast' || scene.isCharging || scene._castMotionInputLocked) return false
     scene.isCharging = true
     scene.chargeStartedAt = scene.time.now
     return true
@@ -68,9 +70,29 @@ export class CastSceneAdapter {
   resultRetry() {
     const scene = this.scene
     if (scene.phase !== 'result') return false
+    const preparation = getFishingPreparation(scene.env?.point)
+    if (!preparation.ready) {
+      scene._cleanup?.()
+      scene.scene.start(preparation.primaryBlocker.scene)
+      return true
+    }
     const env = { ...scene.env, player: { ...(scene.env?.player ?? {}) } }
     scene._cleanup?.()
     scene.scene.restart(env)
+    return true
+  }
+
+  resultPrepare() {
+    if (this.scene.phase !== 'result') return false
+    this.scene._cleanup?.()
+    this.scene.scene.start('UpgradeScene')
+    return true
+  }
+
+  resultPort() {
+    if (this.scene.phase !== 'result') return false
+    this.scene._cleanup?.()
+    this.scene.scene.start('HomeScene')
     return true
   }
 

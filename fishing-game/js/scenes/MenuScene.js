@@ -4,6 +4,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { drawUiGlyph } from '../ui/UiGlyph.js'
+import { addArtCard, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { getBossStates } from '../game/midgameProgression.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -12,6 +13,7 @@ export default class MenuScene extends Phaser.Scene {
   constructor() { super({ key: 'MenuScene' }) }
 
   preload() {
+    loadUiArt(this)
     const bg = ASSETS.backgrounds.townGrowing
     if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }
@@ -44,15 +46,18 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   _header(W) {
+    const art = addArtPanel(this, { x: 16, y: 11, w: W - 32, h: 76, depth: 4 })
     const shell = this.add.graphics().setDepth(4)
-    shell.fillStyle(0x173248, 0.10)
-    shell.fillRoundedRect(16, 15, W - 32, 72, 21)
-    shell.fillStyle(0xf8fdff, 0.97)
-    shell.lineStyle(1.8, 0x9bcfe5, 0.86)
-    shell.fillRoundedRect(16, 11, W - 32, 72, 21)
-    shell.strokeRoundedRect(16, 11, W - 32, 72, 21)
-    shell.fillStyle(0xdff5ff, 0.72)
-    shell.fillRoundedRect(24, 19, W - 48, 12, 6)
+    if (!art) {
+      shell.fillStyle(0x173248, 0.10)
+      shell.fillRoundedRect(16, 15, W - 32, 72, 21)
+      shell.fillStyle(0xf8fdff, 0.97)
+      shell.lineStyle(1.8, 0x9bcfe5, 0.86)
+      shell.fillRoundedRect(16, 11, W - 32, 72, 21)
+      shell.strokeRoundedRect(16, 11, W - 32, 72, 21)
+      shell.fillStyle(0xdff5ff, 0.72)
+      shell.fillRoundedRect(24, 19, W - 48, 12, 6)
+    }
 
     this.add.text(30, 44, 'メニュー', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '25px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
@@ -63,13 +68,16 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   _menuCard(x, y, w, h, item, index) {
+    const art = addArtCard(this, { x, y, w, h, state: item.badge === 'LOCK' ? 'disabled' : item.badge === 'NEW' ? 'selected' : 'idle', depth: 5 })
     const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0x173248, 0.09)
-    g.fillRoundedRect(x + 3, y + 4, w, h, 19)
-    g.fillStyle(0xffffff, 0.98)
-    g.lineStyle(1.6, item.badge === 'NEW' ? 0xff765a : 0xb9d4df, item.badge === 'NEW' ? 1 : 0.88)
-    g.fillRoundedRect(x, y, w, h, 19)
-    g.strokeRoundedRect(x, y, w, h, 19)
+    if (!art) {
+      g.fillStyle(0x173248, 0.09)
+      g.fillRoundedRect(x + 3, y + 4, w, h, 19)
+      g.fillStyle(0xffffff, 0.98)
+      g.lineStyle(1.6, item.badge === 'NEW' ? 0xff765a : 0xb9d4df, item.badge === 'NEW' ? 1 : 0.88)
+      g.fillRoundedRect(x, y, w, h, 19)
+      g.strokeRoundedRect(x, y, w, h, 19)
+    }
     g.fillStyle(item.color, item.badge === 'LOCK' ? 0.08 : 0.16)
     g.fillRoundedRect(x + 10, y + 10, 58, h - 20, 15)
     g.fillStyle(item.color, item.badge === 'LOCK' ? 0.45 : 1)

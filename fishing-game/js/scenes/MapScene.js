@@ -5,8 +5,11 @@ import { addCoverImage } from '../utils/imageLayout.js'
 import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { createBackButton } from '../ui/Button.js'
+import { addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
+import { getFishingPreparation } from '../game/fishingJourney.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -53,6 +56,7 @@ export default class MapScene extends Phaser.Scene {
   constructor() { super({ key: 'MapScene' }) }
 
   preload() {
+    loadUiArt(this)
     const wanted = [ASSETS.backgrounds.mapTown, ...Object.values(POINT_PIN), ...Object.values(FISH_ART), ...Object.values(ASSETS.bosses)]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
@@ -78,13 +82,16 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildHeader(W) {
+    const art = addArtPanel(this, { x: 72, y: 46, w: W - 92, h: 60, depth: 4 })
     const g = this.add.graphics().setDepth(4)
-    g.fillStyle(0x173248, 0.10)
-    g.fillRoundedRect(72, 50, W - 92, 56, 18)
-    g.fillStyle(0xf8fdff, 0.94)
-    g.lineStyle(2, 0xffffff, 0.82)
-    g.fillRoundedRect(72, 46, W - 92, 56, 18)
-    g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+    if (!art) {
+      g.fillStyle(0x173248, 0.10)
+      g.fillRoundedRect(72, 50, W - 92, 56, 18)
+      g.fillStyle(0xf8fdff, 0.94)
+      g.lineStyle(2, 0xffffff, 0.82)
+      g.fillRoundedRect(72, 46, W - 92, 56, 18)
+      g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+    }
     this.add.text(W / 2 + 18, 64, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
@@ -343,11 +350,13 @@ export default class MapScene extends Phaser.Scene {
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
+    const preparation = getFishingPreparation(point.id)
 
     const x = W * 0.05, y = H - 288, w = W * 0.90, h = 204
     const items = []
     this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(19).setInteractive().on('pointerdown', () => this._closePointDetail())
 
+    const dialogArt = addArtDialog(this, { x, y, w, h, depth: 20 })
     const sh = this.add.graphics()
     sh.fillStyle(0x173248, 0.16)
     sh.fillRoundedRect(x + 3, y + 5, w, h, 22)
@@ -358,6 +367,7 @@ export default class MapScene extends Phaser.Scene {
     bg.strokeRoundedRect(x, y, w, h, 22)
     bg.fillStyle(unlock.unlocked ? point.accent : 0x88979e, 0.12)
     bg.fillRoundedRect(x + 12, y + 12, 66, 72, 18)
+    if (dialogArt) items.push(dialogArt)
     items.push(sh, bg)
 
     const pinAsset = POINT_PIN[point.id]
@@ -401,7 +411,15 @@ export default class MapScene extends Phaser.Scene {
     items.push(this.add.text(x + 18, y + 96, unlock.unlocked
       ? `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`
       : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+    }))
+    const baitStock = preparation.bait.count === Infinity ? '∞' : preparation.bait.count
+    const prepText = unlock.unlocked
+      ? `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`
+      : `釣り場 未解放 / 準備判定は解放後`
+    items.push(this.add.text(x + 18, y + 114, prepText, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: 2, wordWrap: { width: w - 158 },
     }))
 
     point.fishIds.slice(0, 4).forEach((id, i) => {
@@ -433,12 +451,18 @@ export default class MapScene extends Phaser.Scene {
     btn.lineStyle(2, 0x173248, 0.82)
     btn.fillRoundedRect(x + w - 138, y + 121, 116, 54, 16)
     btn.strokeRoundedRect(x + w - 138, y + 121, 116, 54, 16)
-    const btnText = this.add.text(x + w - 80, y + 148, unlock.unlocked ? 'ここで釣る' : '町を育てる', {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '13px', fontWeight: '900', color: UI_COLORS.ink,
+    const blocker = preparation.primaryBlocker
+    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? 'ここで釣る −1ST' : blocker.label
+    const btnText = this.add.text(x + w - 80, y + 148, actionLabel, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: actionLabel.length > 9 ? '10px' : '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
     const hit = this.add.rectangle(x + w - 80, y + 148, 124, 60, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => unlock.unlocked ? this._goToFishing(point.id) : this.scene.start('TownScene'))
+      .on('pointerdown', () => {
+        if (!unlock.unlocked) return this.scene.start('TownScene')
+        if (!preparation.ready) return this.scene.start(blocker.scene)
+        this._goToFishing(point.id)
+      })
     items.push(btn, btnText, hit)
 
     this._detailPanel = this.add.container(0, 20, items).setDepth(20).setAlpha(0)
@@ -462,6 +486,10 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildBackBtn() {
+    this._backButton = createBackButton(this, { onClick: () => this.scene.start('HomeScene') })
+  }
+
+  _buildBackBtnLegacy() {
     const c = this.add.container(16, 16).setDepth(200)
     const bg = this.add.graphics()
     bg.fillStyle(0xf8fdff, 0.95)

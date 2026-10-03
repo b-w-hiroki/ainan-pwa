@@ -1,11 +1,12 @@
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { getCatches, getTownFacilities } from '../game/progress.js'
+import { isReducedMotion, playSfx } from '../game/feedback.js'
 import { drawGlyph } from './UiGlyph.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
-const TABS = [
+export const FOOTER_TABS = [
   { key: 'home', icon: ICONS.HOME, glyph: 'home', label: 'ホーム', scene: 'HomeScene', x: 0.10 },
   { key: 'equip', icon: ICONS.GEAR, glyph: 'equip', label: '装備', scene: 'UpgradeScene', x: 0.30 },
   { key: 'town', icon: ICONS.TOWN, glyph: 'town', label: 'まち', scene: 'TownScene', x: 0.50 },
@@ -13,32 +14,153 @@ const TABS = [
   { key: 'menu', icon: ICONS.MENU, glyph: 'menu', label: 'メニュー', scene: 'MenuScene', x: 0.90 },
 ]
 
-export function buildFooterNav(scene, W, H, activeKey = 'home') {
+export const FOOTER_NAV_SPEC = Object.freeze({
+  height: 80,
+  bottomInset: 6,
+  minHitWidth: 68,
+  hitHeight: 72,
+  iconRadius: 20,
+  labelBaseline: 55,
+})
+
+export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   if (activeKey === 'town') buildTownReaction(scene, W, H)
 
-  const y = H - 84
-  const h = 78
+  const disabledKeys = new Set(options.disabledKeys ?? [])
+  const h = FOOTER_NAV_SPEC.height
+  const y = H - h - FOOTER_NAV_SPEC.bottomInset
   const bar = scene.add.graphics().setDepth(90)
+  const useArt = Boolean(options.useArt !== false && scene.textures.exists('ui_art_footer_shell'))
 
-  bar.fillStyle(0x173248, 0.16)
-  bar.fillRoundedRect(8, y + 6, W - 16, h, 24)
+  if (useArt) {
+    scene.add.image(W / 2, y + h / 2 + 2, 'ui_art_footer_shell').setDisplaySize(W - 8, h + 13).setDepth(90)
+  } else {
+    bar.fillStyle(0x173248, 0.24)
+    bar.fillRoundedRect(8, y + 7, W - 16, h, 24)
 
-  bar.fillStyle(0xf8fdff, 0.98)
-  bar.lineStyle(2, 0x9bcfe5, 0.9)
-  bar.fillRoundedRect(8, y, W - 16, h, 24)
-  bar.strokeRoundedRect(8, y, W - 16, h, 24)
+    bar.fillStyle(0xf8fdff, 0.985)
+    bar.lineStyle(2, 0x68bee3, 0.94)
+    bar.fillRoundedRect(8, y, W - 16, h, 24)
+    bar.strokeRoundedRect(8, y, W - 16, h, 24)
 
-  bar.fillStyle(0xdff5ff, 0.72)
-  bar.fillRoundedRect(16, y + 8, W - 32, 16, 10)
+    bar.fillStyle(0xffffff, 0.92)
+    bar.fillRoundedRect(18, y + 7, W - 36, 9, 5)
+    bar.fillStyle(0xdff5ff, 0.70)
+    bar.fillRoundedRect(16, y + 17, W - 32, 5, 3)
 
-  bar.lineStyle(1, 0x9bcfe5, 0.28)
-  ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
-    const x = W * f
-    bar.lineBetween(x, y + 22, x, y + h - 14)
+    bar.lineStyle(1, 0x9bcfe5, 0.28)
+    ;[0.20, 0.40, 0.60, 0.80].forEach(f => {
+      const x = W * f
+      bar.lineBetween(x, y + 22, x, y + h - 14)
+    })
+  }
+
+  const tabs = FOOTER_TABS.map(tab => createFooterTab(scene, W * tab.x, y, tab, {
+    active: tab.key === activeKey,
+    disabled: disabledKeys.has(tab.key),
+    useArt,
+  }))
+  scene._footerKeyboardFocus = false
+  let focusIndex = Math.max(0, FOOTER_TABS.findIndex(tab => tab.key === activeKey))
+  const setFocus = index => {
+    scene._footerKeyboardFocus = true
+    focusIndex = (index + tabs.length) % tabs.length
+    tabs.forEach((tab, tabIndex) => tab.render(tabIndex === focusIndex ? 'focus' : 'idle'))
+  }
+  const activateFocus = () => { if (scene._footerKeyboardFocus) tabs[focusIndex]?.activate() }
+  const clearFocus = () => {
+    scene._footerKeyboardFocus = false
+    tabs.forEach(tab => tab.render('idle'))
+  }
+  const onLeft = () => setFocus(focusIndex - 1)
+  const onRight = () => setFocus(focusIndex + 1)
+  scene.input.keyboard?.on('keydown-LEFT', onLeft)
+  scene.input.keyboard?.on('keydown-RIGHT', onRight)
+  scene.input.keyboard?.on('keydown-ENTER', activateFocus)
+  scene.input.keyboard?.on('keydown-SPACE', activateFocus)
+  scene.input.keyboard?.on('keydown-ESC', clearFocus)
+  scene.events.once('shutdown', () => {
+    scene.input.keyboard?.off('keydown-LEFT', onLeft)
+    scene.input.keyboard?.off('keydown-RIGHT', onRight)
+    scene.input.keyboard?.off('keydown-ENTER', activateFocus)
+    scene.input.keyboard?.off('keydown-SPACE', activateFocus)
+    scene.input.keyboard?.off('keydown-ESC', clearFocus)
   })
+  scene._footerMetrics = Object.freeze({
+    y, height: h, bottomInset: H - (y + h),
+    hitWidth: Math.max(FOOTER_NAV_SPEC.minHitWidth, W / FOOTER_TABS.length),
+    hitHeight: FOOTER_NAV_SPEC.hitHeight,
+    states: Object.freeze(['idle', 'focus', 'pressed', 'selected', 'disabled']),
+  })
+  scene._footerTabs = tabs
+}
+function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
+  const width = 68
+  const centerY = y + 38
+  const surface = scene.add.graphics().setDepth(91)
+  const icon = scene.add.graphics().setDepth(93)
+  const artKey = `ui_art_icon_${tab.key === 'shop' ? 'exchange' : tab.key}`
+  const selectedArt = useArt && active
+    ? scene.add.image(x, y + 37, 'ui_art_tab_selected').setDisplaySize(64, 72).setDepth(91)
+    : null
+  const artIcon = useArt && scene.textures.exists(artKey)
+    ? scene.add.image(x, y + 28, artKey).setDisplaySize(tab.key === 'town' ? 39 : 35, tab.key === 'equip' ? 42 : 35).setDepth(93)
+    : null
+  const label = scene.add.text(x, y + FOOTER_NAV_SPEC.labelBaseline, tab.label, {
+    fontFamily: FONT, resolution: TEXT_RES, fontSize: active ? '12px' : '11px', fontWeight: '900',
+    color: active ? UI_COLORS.oceanDeep : disabled ? '#a9b9c3' : UI_COLORS.muted,
+  }).setOrigin(0.5).setDepth(93)
+  const hit = scene.add.rectangle(x, centerY, width, FOOTER_NAV_SPEC.hitHeight, 0x000000, 0).setDepth(94)
+  if (!disabled) hit.setInteractive({ useHandCursor: !active })
+  let locked = false
 
-  TABS.forEach(tab => drawTabWell(scene, W * tab.x, y + 38, tab.key === activeKey))
-  TABS.forEach(tab => buildTab(scene, W * tab.x, y + 39, tab, activeKey))
+  const render = (mode = 'idle') => {
+    const pressed = mode === 'pressed'
+    const focused = mode === 'focus'
+    const dy = pressed ? 2 : 0
+    surface.clear(); icon.clear()
+    if (!useArt && (active || focused)) {
+      surface.fillStyle(active ? 0x2f9ed4 : 0xffd95a, active ? 0.14 : 0.13)
+      surface.fillRoundedRect(x - 32, y + 6 + dy, 64, 66, 20)
+      surface.lineStyle(2, active ? 0x2f9ed4 : 0xe5b83b, focused ? 0.92 : 0.74)
+      surface.strokeRoundedRect(x - 32, y + 6 + dy, 64, 66, 20)
+      surface.fillStyle(active ? 0xffd95a : 0xffffff, 1)
+      surface.fillRoundedRect(x - 13, y + 68 + dy, 26, 4, 2)
+    }
+    if (!artIcon) {
+      const radius = active ? 21 : 19
+      icon.fillStyle(disabled ? 0xe9f0f3 : active ? 0xdff5ff : 0xffffff, disabled ? 0.72 : 1)
+      icon.lineStyle(active ? 2.2 : 1.4, disabled ? 0xcbd6db : active ? 0x2f9ed4 : 0xb9dce9, 1)
+      icon.fillCircle(x, y + 29 + dy, radius)
+      icon.strokeCircle(x, y + 29 + dy, radius)
+      if (active) {
+        icon.fillStyle(0xffffff, 0.78)
+        icon.fillEllipse(x - 6, y + 22 + dy, 17, 7)
+      }
+      const fg = disabled ? 0x9baab3 : active ? 0x1f6f9f : 0x718392
+      icon.fillStyle(fg, 1); icon.lineStyle(2.7, fg, 1)
+      drawGlyph(icon, tab.glyph, x, y + 29 + dy, active ? 1.02 : 0.9)
+    }
+    artIcon?.setY(y + 28 + dy).setAlpha(disabled ? 0.34 : active ? 1 : focused ? 0.9 : 0.68)
+    selectedArt?.setY(y + 37 + dy)
+    if (useArt && focused && !active) {
+      surface.lineStyle(2, 0xffd95a, 0.92)
+      surface.strokeRoundedRect(x - 29, y + 7 + dy, 58, 64, 18)
+    }
+    label.setY(y + FOOTER_NAV_SPEC.labelBaseline + dy)
+  }
+  const activate = () => {
+    if (disabled || active || locked) return
+    locked = true
+    playSfx('select')
+    scene.time.delayedCall(180, () => { if (scene.sys?.isActive?.()) scene.scene.start(tab.scene) })
+  }
+  hit.on('pointerdown', () => { render('pressed'); if (!isReducedMotion()) label.setScale(0.98) })
+    .on('pointerup', () => { render('focus'); label.setScale(1); activate() })
+    .on('pointerover', () => render('focus'))
+    .on('pointerout', () => { render('idle'); label.setScale(1) })
+  render(disabled ? 'disabled' : 'idle')
+  return { key: tab.key, active, disabled, hit, render, activate }
 }
 
 function getTownReaction() {
@@ -139,68 +261,4 @@ function buildTownReaction(scene, W, H) {
     fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.ink,
     wordWrap: { width: w - 70 },
   }).setOrigin(0, 0.5).setDepth(87)
-}
-
-function buildTab(scene, x, y, tab, activeKey) {
-  const active = tab.key === activeKey
-
-  scene.add.rectangle(x, y - 4, 76, 92, 0x000000, 0)
-    .setDepth(94)
-    .setInteractive({ useHandCursor: true })
-    .on('pointerdown', () => {
-      if (!active) scene.scene.start(tab.scene)
-    })
-
-  addFooterIcon(scene, x, y - 17, tab, active)
-  scene.add.text(x, y + 25, tab.label, {
-    fontFamily: FONT,
-    resolution: TEXT_RES,
-    fontSize: active ? '12px' : '11px',
-    fontWeight: '900',
-    color: active ? UI_COLORS.oceanDeep : UI_COLORS.muted,
-  }).setOrigin(0.5).setDepth(93)
-}
-
-function drawTabWell(scene, x, y, active) {
-  const g = scene.add.graphics().setDepth(91)
-  const w = active ? 62 : 54
-  const h = active ? 66 : 58
-
-  if (active) {
-    g.fillStyle(0x2f9ed4, 0.12)
-    g.fillRoundedRect(x - 36, y - 37, 72, 74, 22)
-    g.fillStyle(0xffd95a, 0.23)
-    g.fillCircle(x + 22, y - 22, 7)
-  }
-
-  g.fillStyle(active ? 0xffffff : 0xf5fbfd, active ? 1 : 0.82)
-  g.lineStyle(active ? 2.2 : 1.2, active ? 0x2f9ed4 : 0xc6e5f1, active ? 0.95 : 0.75)
-  g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 18)
-  g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 18)
-
-  if (active) {
-    g.fillStyle(0xdff5ff, 0.95)
-    g.fillRoundedRect(x - w / 2 + 7, y - h / 2 + 7, w - 14, 12, 7)
-  }
-}
-
-function addFooterIcon(scene, x, y, tab, active) {
-  const g = scene.add.graphics().setDepth(93)
-  const s = active ? 1.03 : 0.92
-  const radius = active ? 22 : 20
-  const fg = active ? 0x1f6f9f : 0x718392
-
-  g.fillStyle(active ? 0xdff5ff : 0xf8fdff, 1)
-  g.lineStyle(active ? 2 : 1.4, active ? 0x68bee3 : 0xc6dce6, 1)
-  g.fillCircle(x, y, radius)
-  g.strokeCircle(x, y, radius)
-
-  if (active) {
-    g.fillStyle(0xffffff, 0.72)
-    g.fillEllipse(x - 6, y - 8, 18, 8)
-  }
-
-  g.fillStyle(fg, 1)
-  g.lineStyle(2.7, fg, 1)
-  drawGlyph(g, tab.glyph, x, y, s)
 }

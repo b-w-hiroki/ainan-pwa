@@ -3,9 +3,12 @@ import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { drawCardSurface } from '../ui/UiPrimitives.js'
+import { addArtCard, addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
 import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
+import { ACCESSORY_VISUALS, ROD_VISUALS, createAccessoryAccent, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 import {
   BAIT_META,
   ROD_META,
@@ -36,15 +39,15 @@ const ROD_POWER = { basic: 80, carbon: 130, premium: 220 }
 const BAIT_POWER = { worm: 20, shrimp: 55, special: 95 }
 
 const ROD_ART = {
-  basic: ASSETS.equipment.rodBasic,
-  carbon: ASSETS.equipment.rodCarbon,
-  premium: ASSETS.equipment.rodPremium,
+  basic: ASSETS.equipment.rodBasicPartV1,
+  carbon: ASSETS.equipment.rodCarbonPartV1,
+  premium: ASSETS.equipment.rodPremiumPartV1,
 }
 
 const BAIT_ART = {
-  worm: ASSETS.equipment.baitWorm,
-  shrimp: ASSETS.equipment.baitShrimp,
-  special: ASSETS.equipment.baitSpecial,
+  worm: ASSETS.equipment.baitWormPartV1,
+  shrimp: ASSETS.equipment.baitShrimpPartV1,
+  special: ASSETS.equipment.baitSpecialPartV1,
 }
 
 const MATERIAL_ITEMS = [
@@ -63,9 +66,12 @@ export default class UpgradeScene extends Phaser.Scene {
   }
 
   preload() {
+    loadUiArt(this)
     const wanted = [
       ASSETS.backgrounds.homeBase,
       ASSETS.characters.playerDefaultUi,
+      ASSETS.characters.fishingMotionIdle,
+      ...Object.values(ROD_VISUALS).map(visual => ASSETS.characters[visual.asset]),
       ...Object.values(ROD_ART),
       ...Object.values(BAIT_ART),
     ]
@@ -119,26 +125,31 @@ export default class UpgradeScene extends Phaser.Scene {
   _loadout(W) {
     const equipment = getEquipment()
     const inventory = getInventory()
-    const rodType = equipment.rodType ?? 'basic'
-    const baitType = equipment.baitType ?? 'worm'
+    const visualLoadout = getVisualLoadout(equipment.rodType)
+    this._previewLoadout = visualLoadout
+    const rodType = visualLoadout.rod.id
+    const baitType = BAIT_META[equipment.baitType] ? equipment.baitType : 'worm'
     const y = 132
 
-    const panel = this.add.graphics().setDepth(4)
-    panel.fillStyle(0x173248, 0.12)
-    panel.fillRoundedRect(18 + 3, y + 5, W - 36, 248, 24)
-    panel.fillStyle(0xf8fdff, 0.96)
-    panel.lineStyle(1.8, 0x9bcfe5, 0.88)
-    panel.fillRoundedRect(18, y, W - 36, 248, 24)
-    panel.strokeRoundedRect(18, y, W - 36, 248, 24)
-    panel.fillStyle(0xdff5ff, 0.55)
-    panel.fillRoundedRect(28, y + 12, W - 56, 28, 13)
+    const panelArt = addArtPanel(this, { x: 18, y, w: W - 36, h: 248, depth: 4 })
+    if (!panelArt) {
+      const panel = this.add.graphics().setDepth(4)
+      panel.fillStyle(0x173248, 0.12)
+      panel.fillRoundedRect(18 + 3, y + 5, W - 36, 248, 24)
+      panel.fillStyle(0xf8fdff, 0.96)
+      panel.lineStyle(1.8, 0x9bcfe5, 0.88)
+      panel.fillRoundedRect(18, y, W - 36, 248, 24)
+      panel.strokeRoundedRect(18, y, W - 36, 248, 24)
+      panel.fillStyle(0xdff5ff, 0.55)
+      panel.fillRoundedRect(28, y + 12, W - 56, 28, 13)
+    }
 
     this.add.text(W / 2, y + 26, 'CURRENT LOADOUT', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.oceanDeep,
       letterSpacing: 1,
     }).setOrigin(0.5).setDepth(5)
 
-    this._character(W / 2, y + 142)
+    this._character(W / 2, y + 142, visualLoadout)
     this._equipSlot(70, y + 89, '竿', rodType, ROD_META[rodType], ROD_RANK[rodType], inventory.rods?.[rodType] ?? 0, 'rod', ROD_ART[rodType])
     this._equipSlot(320, y + 89, 'エサ', baitType, BAIT_META[baitType], BAIT_RANK[baitType], inventory.baits?.[baitType] ?? 0, 'bait', BAIT_ART[baitType])
     const accessoryState = getAccessoryState()
@@ -171,14 +182,37 @@ export default class UpgradeScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(6)
   }
 
-  _character(x, y) {
+  _character(x, y, loadout) {
     const g = this.add.graphics().setDepth(6)
     g.fillStyle(0x5cc8ff, 0.12)
     g.fillEllipse(x, y + 78, 128, 26)
-    const player = this.add.image(x, y - 13, ASSETS.characters.playerDefaultUi.key)
-      .setOrigin(0.5, 0.55).setDisplaySize(92, 230).setDepth(7)
-    this.textures.get(ASSETS.characters.playerDefaultUi.key)?.setFilter(Phaser.Textures.FilterMode.LINEAR)
-    this.add.text(x, y + 92, '港の釣り人', {
+    const displayWidth = 126, displayHeight = 165
+    const left = x - displayWidth / 2, top = y + 70 - displayHeight
+    const scale = displayWidth / 320
+    const player = this.add.image(x, y + 70, ASSETS.characters.fishingMotionIdle.key)
+      .setOrigin(0.5, 1).setDisplaySize(displayWidth, displayHeight).setDepth(7)
+    this.textures.get(ASSETS.characters.fishingMotionIdle.key)?.setFilter(Phaser.Textures.FilterMode.LINEAR)
+
+    const rodVisual = ROD_VISUALS[loadout.rod.id]
+    const grip = { x: left + 214 * scale, y: top + 193 * scale }
+    const tip = { x: left + 261 * scale, y: top + 58 * scale }
+    const source = rodVisual.source
+    const sourceLength = Math.hypot(source.tip[0] - source.grip[0], source.tip[1] - source.grip[1])
+    const targetLength = Math.hypot(tip.x - grip.x, tip.y - grip.y) * rodVisual.lengthScale
+    const sourceAngle = Math.atan2(source.tip[1] - source.grip[1], source.tip[0] - source.grip[0])
+    const targetAngle = Math.atan2(tip.y - grip.y, tip.x - grip.x)
+    this.add.image(grip.x, grip.y, ASSETS.characters[rodVisual.asset].key)
+      .setOrigin(source.grip[0] / source.width, source.grip[1] / source.height)
+      .setScale(targetLength / sourceLength).setRotation(targetAngle - sourceAngle).setDepth(8)
+
+    for (const id of Object.values(loadout.accessories).filter(Boolean)) {
+      const accent = createAccessoryAccent(this, id)
+      const anchor = ACCESSORY_VISUALS[id].anchors.idle
+      accent.setVisible(true).setPosition(left + anchor[0] * scale, top + anchor[1] * scale)
+        .setRotation((anchor[2] ?? 0) * Math.PI / 180).setScale(scale).setDepth(9)
+    }
+
+    this.add.text(x, y + 92, loadout.rod.fallback ? `${rodVisual.name}（安全表示）` : `${rodVisual.name} 装備`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5).setDepth(7)
   }
@@ -187,13 +221,9 @@ export default class UpgradeScene extends Phaser.Scene {
     const size = 78
     const isDefault = (type === 'rod' && id === 'basic') || (type === 'bait' && id === 'worm')
     const qtyLabel = type === 'bait' ? (id === 'worm' ? '標準装備' : `x${qty}`) : '装備中'
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', depth: 7 })
     const g = this.add.graphics().setDepth(7)
-    g.fillStyle(0x173248, 0.10)
-    g.fillRoundedRect(x - size / 2 + 2, y - size / 2 + 3, size, size, 18)
-    g.fillStyle(rank.glow, 1)
-    g.lineStyle(3, 0xffd95a, 0.95)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 18)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 18)
+    if (!cardArt) drawCardSurface(g, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'selected', accent: 0xffd95a })
     g.fillStyle(0xffffff, 0.72)
     g.fillCircle(x, y - 9, 27)
 
@@ -213,22 +243,28 @@ export default class UpgradeScene extends Phaser.Scene {
   _accessorySlot(x, y, label, accessoryId) {
     const meta = accessoryId ? ACCESSORY_META[accessoryId] : null
     const size = 62
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(meta ? 0xfff5d9 : 0x173248, meta ? 1 : 0.05)
-    g.lineStyle(meta ? 2 : 1.5, meta ? 0xffd95a : 0x9bb3c0, meta ? 0.92 : 0.40)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: meta ? 'selected' : 'disabled', depth: 5 })
+    if (!cardArt) {
+      const g = this.add.graphics().setDepth(5)
+      g.fillStyle(meta ? 0xfff5d9 : 0x173248, meta ? 1 : 0.05)
+      g.lineStyle(meta ? 2 : 1.5, meta ? 0xffd95a : 0x9bb3c0, meta ? 0.92 : 0.40)
+      g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+      g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    }
     this.add.text(x, y - 7, meta?.mark ?? '＋', { fontFamily: FONT, resolution: TEXT_RES, fontSize: meta ? '16px' : '20px', fontWeight: '900', color: meta ? UI_COLORS.oceanDeep : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
     this.add.text(x, y + 18, meta?.name ?? label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: meta ? UI_COLORS.ink : UI_COLORS.muted }).setOrigin(0.5).setDepth(6)
     this.add.rectangle(x, y, size, size, 0x000000, 0).setDepth(7).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('WorkshopScene'))
   }
   _emptySlot(x, y, label) {
     const size = 62
-    const g = this.add.graphics().setDepth(5)
-    g.fillStyle(0x173248, 0.05)
-    g.lineStyle(1.5, 0x9bb3c0, 0.40)
-    g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
-    g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    const cardArt = addArtCard(this, { x: x - size / 2, y: y - size / 2, w: size, h: size, state: 'disabled', depth: 5 })
+    if (!cardArt) {
+      const g = this.add.graphics().setDepth(5)
+      g.fillStyle(0x173248, 0.05)
+      g.lineStyle(1.5, 0x9bb3c0, 0.40)
+      g.fillRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+      g.strokeRoundedRect(x - size / 2, y - size / 2, size, size, 17)
+    }
     this.add.text(x, y - 6, '＋', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '20px', fontWeight: '700', color: UI_COLORS.muted,
     }).setOrigin(0.5).setDepth(6)
@@ -239,13 +275,16 @@ export default class UpgradeScene extends Phaser.Scene {
 
   _inventoryPanel(W, H) {
     const x = 18, y = 400, w = W - 36, h = 262
-    const panel = this.add.graphics().setDepth(4)
-    panel.fillStyle(0x173248, 0.10)
-    panel.fillRoundedRect(x + 3, y + 5, w, h, 24)
-    panel.fillStyle(0xf8fdff, 0.97)
-    panel.lineStyle(1.8, 0x9bcfe5, 0.88)
-    panel.fillRoundedRect(x, y, w, h, 24)
-    panel.strokeRoundedRect(x, y, w, h, 24)
+    const panelArt = addArtPanel(this, { x, y, w, h, depth: 4 })
+    if (!panelArt) {
+      const panel = this.add.graphics().setDepth(4)
+      panel.fillStyle(0x173248, 0.10)
+      panel.fillRoundedRect(x + 3, y + 5, w, h, 24)
+      panel.fillStyle(0xf8fdff, 0.97)
+      panel.lineStyle(1.8, 0x9bcfe5, 0.88)
+      panel.fillRoundedRect(x, y, w, h, 24)
+      panel.strokeRoundedRect(x, y, w, h, 24)
+    }
     this.add.text(x + 18, y + 24, '所持品', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
@@ -315,14 +354,13 @@ export default class UpgradeScene extends Phaser.Scene {
     const qty = entry.type === 'material' ? entry.fixedQty : entry.type === 'bait' ? (entry.id === 'worm' ? Infinity : (inventory.baits?.[entry.id] ?? 0)) : (owned ? 1 : 0)
     const equipped = entry.type === 'rod' ? equipment.rodType === entry.id : entry.type === 'bait' ? equipment.baitType === entry.id : false
     const shopUnlock = entry.type === 'bait' ? getBaitShopUnlock(entry.id) : null
+    const unavailable = entry.type === 'bait' && !owned && !shopUnlock?.unlocked
+    const insufficient = !owned && !unavailable && Number.isFinite(entry.item.cost) && getScore() < entry.item.cost
+    const cardState = equipped ? 'selected' : unavailable ? 'locked' : insufficient ? 'shortage' : owned ? 'idle' : 'disabled'
 
+    const cardArt = addArtCard(this, { x, y, w: size, h: size, state: cardState, parent })
     const g = add(this.add.graphics())
-    g.fillStyle(0x173248, 0.08)
-    g.fillRoundedRect(x + 2, y + 3, size, size, 17)
-    g.fillStyle(owned ? entry.rank.glow : 0xf0f3f5, 1)
-    g.lineStyle(equipped ? 3 : 1.6, equipped ? 0xffd95a : entry.rank.color, owned ? 0.95 : 0.45)
-    g.fillRoundedRect(x, y, size, size, 17)
-    g.strokeRoundedRect(x, y, size, size, 17)
+    if (!cardArt) drawCardSurface(g, { x, y, w: size, h: size, state: cardState, accent: equipped ? 0xffd95a : entry.rank.color })
     g.fillStyle(0xffffff, owned ? 0.78 : 0.45)
     g.fillCircle(x + size / 2, y + 26, 24)
 
@@ -349,7 +387,7 @@ export default class UpgradeScene extends Phaser.Scene {
             ? '町で解放'
             : `x${qty}`
     add(this.add.text(x + size / 2, y + size - 8, footer, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.inkSoft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: equipped ? UI_COLORS.warning : insufficient ? UI_COLORS.coral : UI_COLORS.inkSoft,
     }).setOrigin(0.5))
     add(this.add.rectangle(x + size / 2, y + size / 2, size, size, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this._showModal(entry.id, entry.item, entry.type, entry.art, owned, qty, equipped, entry.rank, entry.mark)))
@@ -373,17 +411,21 @@ export default class UpgradeScene extends Phaser.Scene {
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.48).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
     const x = 30, y = 160, w = W - 60, h = 366
+    const dialogArt = addArtDialog(this, { x, y, w, h })
     const bg = this.add.graphics()
-    bg.fillStyle(0x173248, 0.14)
-    bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
-    bg.fillStyle(0xf8fdff, 0.99)
-    bg.lineStyle(2.2, 0x9bcfe5, 0.9)
-    bg.fillRoundedRect(x, y, w, h, 24)
-    bg.strokeRoundedRect(x, y, w, h, 24)
+    if (!dialogArt) {
+      bg.fillStyle(0x173248, 0.14)
+      bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
+      bg.fillStyle(0xf8fdff, 0.99)
+      bg.lineStyle(2.2, 0x9bcfe5, 0.9)
+      bg.fillRoundedRect(x, y, w, h, 24)
+      bg.strokeRoundedRect(x, y, w, h, 24)
+    }
     bg.fillStyle(rank.glow, 1)
     bg.fillRoundedRect(x + 16, y + 16, w - 32, 126, 20)
     bg.lineStyle(1.8, rank.color, 0.72)
     bg.strokeRoundedRect(x + 16, y + 16, w - 32, 126, 20)
+    if (dialogArt) items.push(dialogArt)
     items.push(bg)
 
     if (art?.key && owned && this.textures.exists(art.key)) {

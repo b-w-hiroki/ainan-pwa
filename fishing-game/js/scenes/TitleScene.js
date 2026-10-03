@@ -3,6 +3,7 @@ import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { loadUiArt } from '../ui/UiArt.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -14,6 +15,7 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   preload() {
+    loadUiArt(this)
     const bg = ASSETS.backgrounds.titleHarborMorning
     if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
   }
@@ -114,7 +116,7 @@ export default class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
 
     // ─── スタートボタン ──────────────────────────────
-    const btn = new Button(this, {
+    new Button(this, {
       x: W / 2, y: H * 0.735,
       w: 270, h: 68,
       label: 'タップでスタート',
@@ -122,6 +124,8 @@ export default class TitleScene extends Phaser.Scene {
       variant: 'primary',
       fontSize: 22,
       depth: 10,
+      keyboard: true,
+      pulse: true,
       onClick: () => this.scene.start('HomeScene'),
     })
 
@@ -137,12 +141,6 @@ export default class TitleScene extends Phaser.Scene {
     })
 
     // ボタン誘導パルス
-    this.tweens.add({
-      targets: btn.container,
-      scaleX: 1.04, scaleY: 1.04,
-      duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut',
-    })
-
     // ─── フッター ─────────────────────────────────
     const footerBg = this.add.graphics().setDepth(4)
     footerBg.fillStyle(0xffffff, 0.70)

@@ -3,6 +3,8 @@ import { UI_COLORS, uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
+import { Button } from '../ui/Button.js'
+import { drawStatusMeter } from '../ui/UiPrimitives.js'
 import { drawUiGlyph } from '../ui/UiGlyph.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import {
@@ -22,6 +24,8 @@ import {
 } from '../game/progress.js'
 import { getNextTownUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { getDailyChallengeState, getOnboardingState } from '../game/retentionProgress.js'
+import { getFishingJourney } from '../game/fishingJourney.js'
+import { createAccessoryAccent, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -41,7 +45,21 @@ export default class HomeScene extends Phaser.Scene {
   constructor() { super({ key: 'HomeScene' }) }
 
   preload() {
-    const wanted = [ASSETS.backgrounds.homeBase, ASSETS.characters.guideDefault]
+    const wanted = [
+      ASSETS.backgrounds.homeBase,
+      ASSETS.characters.guideDefault,
+      ASSETS.ui.artFooterShell,
+      ASSETS.ui.artTabSelected,
+      ASSETS.ui.artIconHome,
+      ASSETS.ui.artIconEquip,
+      ASSETS.ui.artIconTown,
+      ASSETS.ui.artIconExchange,
+      ASSETS.ui.artIconMenu,
+      ASSETS.ui.artButtonPrimary,
+      ASSETS.ui.artButtonSecondary,
+      ASSETS.ui.artButtonPressed,
+      ASSETS.ui.artButtonDisabled,
+    ]
     wanted.forEach(asset => {
       if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
     })
@@ -54,6 +72,8 @@ export default class HomeScene extends Phaser.Scene {
     this._town = getTownSummary()
     this._catches = getCatches()
     this._hasKue = this._catches.some(c => c.fishId === 'kue')
+    this._journey = getFishingJourney()
+    this._visualLoadout = getVisualLoadout()
 
     this._buildBackground(W, H)
     this._buildTownAtmosphere(W, H)
@@ -62,7 +82,7 @@ export default class HomeScene extends Phaser.Scene {
     this._buildGuideCharacter(W, H)
     this._buildGuideBubble(W, H)
     this._buildMainCTA(W, H)
-    buildFooterNav(this, W, H, 'home')
+    buildFooterNav(this, W, H, 'home', { useArt: true })
     this._maybeShowDailyBonus(W, H)
   }
 
@@ -135,7 +155,7 @@ export default class HomeScene extends Phaser.Scene {
     profile.lineStyle(1.8, this._hasKue ? 0xe5b83b : 0x9bcfe5, 0.9)
     profile.fillRoundedRect(18, 22, 154, 46, 15)
     profile.strokeRoundedRect(18, 22, 154, 46, 15)
-    profile.fillStyle(0xffd95a, 1)
+    profile.fillStyle(this._visualLoadout.rod.accent, 1)
     profile.fillCircle(42, 45, 16)
     profile.lineStyle(2, 0xffffff, 0.75)
     profile.strokeCircle(42, 45, 16)
@@ -144,6 +164,10 @@ export default class HomeScene extends Phaser.Scene {
     this.add.text(64, 38, T.player, uiText('cardTitle', { fontSize: '14px' })).setOrigin(0, 0.5).setDepth(22)
     this.add.text(64, 55, this._hasKue ? `RANK ${String(rank).padStart(2, '0')}  LEGEND` : `RANK ${String(rank).padStart(2, '0')}`, uiText('micro', { fontSize: '10px', color: UI_COLORS.warning })).setOrigin(0, 0.5).setDepth(22)
     this.add.rectangle(95, 45, 158, 50, 0x000000, 0).setDepth(23).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('ProfileScene'))
+
+    Object.values(this._visualLoadout.accessories).filter(Boolean).forEach((id, index) => {
+      createAccessoryAccent(this, id).setVisible(true).setPosition(158, 34 + index * 22).setScale(0.34).setDepth(22)
+    })
 
     this._buildResourceChip(W - 116, 26, 'trophy', this._shortNum(totalScore), 0xfff5d9)
     this._buildResourceChip(W - 62, 26, 'fish', this._shortNum(catches.length), 0xdff5ff)
@@ -159,13 +183,7 @@ export default class HomeScene extends Phaser.Scene {
     bar.fillRoundedRect(22, 73, W - 44, 18, 9)
 
     const staminaMaxW = W * 0.27
-    const staminaW = staminaMaxW * Math.max(0, Math.min(1, stamina / staminaMax))
-    bar.fillStyle(0xe9f6ee, 1)
-    bar.fillRoundedRect(28, 76, staminaMaxW, 12, 6)
-    bar.fillStyle(0x71d6a2, 1)
-    bar.fillRoundedRect(28, 76, Math.max(6, staminaW), 12, 6)
-    bar.fillStyle(0xffffff, 0.34)
-    bar.fillRoundedRect(31, 78, Math.max(0, staminaW - 6), 3, 2)
+    drawStatusMeter(bar, { x: 28, y: 76, w: staminaMaxW, h: 12, value: stamina, max: staminaMax, tone: 'mint' })
 
     const staminaLabel = nextRegenMs > 0 ? `${stamina}/${staminaMax}  ${Math.ceil(nextRegenMs / 60000)}分` : `${stamina}/${staminaMax}`
     this.add.text(20, 82, 'ST', uiText('micro', { fontSize: '8px', color: UI_COLORS.success })).setOrigin(0.5).setDepth(22)
@@ -203,7 +221,13 @@ export default class HomeScene extends Phaser.Scene {
     let accent = 0x71d6a2
     let action = () => this.scene.start('TownScene')
 
-    if (this._hasKue) {
+    if (this._journey.id === 'first-catch' || this._journey.id === 'review-catch') {
+      label = this._journey.id === 'first-catch' ? 'FIRST CATCH' : 'CATCH SAVED'
+      title = this._journey.title
+      lead = this._journey.body
+      accent = this._journey.id === 'first-catch' ? 0x5bb5d8 : 0x71d6a2
+      action = () => this.scene.start(this._journey.scene)
+    } else if (this._hasKue) {
       label = 'LEGEND PORT'
       title = '黒潮伝説の港になった！'
       lead = 'クエ捕獲記念祭を町で開催中'
@@ -308,10 +332,9 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildGuideBubble(W, H) {
     const x = 16, y = H * 0.36, w = 154, h = 66
-    const next = this._nextUnlock
-    let title = next ? `次は ${next.name}` : `${this._town.rank}になったよ`
-    let body = next ? `${next.unlockedBy}で新しい海へ` : `にぎわい ${this._town.bustle}/100 ・ 町を見に行こう`
-    let color = next ? UI_COLORS.warning : UI_COLORS.success
+    let title = this._journey.title
+    let body = this._journey.progress
+    let color = this._journey.mode === 'first' ? UI_COLORS.warning : UI_COLORS.success
 
     if (this._hasKue) {
       title = '港中がクエの話でもちきり！'
@@ -330,12 +353,38 @@ export default class HomeScene extends Phaser.Scene {
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
     this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '10px' : '12px' })).setDepth(15)
     this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color })).setDepth(15)
-    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start('TownScene'))
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(this._journey.scene))
   }
 
   _buildMainCTA(W, H) {
     const stamina = getStaminaState()
-    const waiting = stamina.current <= 0
+    const waiting = this._journey.preparation?.primaryBlocker?.id === 'stamina' || (
+      this._journey.scene === 'MapScene' && stamina.current <= 0
+    )
+    const waitMin = Math.max(1, Math.ceil(stamina.nextRegenMs / 60000))
+    const subLabel = waiting
+      ? `あと約${waitMin}分・ジェム${STAMINA_REFILL_GEM_COST}で全回復`
+      : this._journey.progress
+    this._mainCta = new Button(this, {
+      x: W / 2, y: H * 0.805, w: 300, h: 68,
+      label: waiting ? 'スタミナ回復待ち' : this._journey.shortCta,
+      subLabel, glyph: 'rod', trailing: '›',
+      variant: waiting ? 'secondary' : 'primary',
+      fontSize: waiting ? 18 : 21,
+      depth: 18, keyboard: true, pulse: true,
+      artKeys: waiting
+        ? { idle: ASSETS.ui.artButtonSecondary.key, pressed: ASSETS.ui.artButtonSecondary.key, disabled: ASSETS.ui.artButtonDisabled.key }
+        : { idle: ASSETS.ui.artButtonPrimary.key, pressed: ASSETS.ui.artButtonPressed.key, disabled: ASSETS.ui.artButtonDisabled.key },
+      artIconKey: ASSETS.ui.artIconEquip.key,
+      onClick: () => waiting ? this._showStaminaModal(W, H) : this.scene.start(this._journey.scene),
+    })
+  }
+
+  _buildMainCTALegacy(W, H) {
+    const stamina = getStaminaState()
+    const waiting = this._journey.preparation?.primaryBlocker?.id === 'stamina' || (
+      this._journey.scene === 'MapScene' && stamina.current <= 0
+    )
     const x = W / 2, y = H * 0.805, w = 300, h = 68
     const c = this.add.container(x, y).setDepth(18)
     const g = this.add.graphics()
@@ -361,16 +410,16 @@ export default class HomeScene extends Phaser.Scene {
     }
     draw(false)
     const rod = this.add.text(-w / 2 + 38, 0, waiting ? '⚡' : ICONS.ROD, { fontSize: '24px', resolution: TEXT_RES }).setOrigin(0.5)
-    const title = this.add.text(18, -7, waiting ? 'スタミナ回復待ち' : T.goFishing, uiText('button', { fontSize: waiting ? '19px' : '24px', color: UI_COLORS.ink })).setOrigin(0.5)
+    const title = this.add.text(18, -7, waiting ? 'スタミナ回復待ち' : this._journey.shortCta, uiText('button', { fontSize: waiting ? '19px' : '22px', color: UI_COLORS.ink })).setOrigin(0.5)
     const waitMin = Math.max(1, Math.ceil(stamina.nextRegenMs / 60000))
     const subText = waiting
       ? `あと約${waitMin}分 ・ ◆${STAMINA_REFILL_GEM_COST}で全回復`
-      : `海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount} ・ 町 ${this._town.bustle}/100`
+      : this._journey.progress
     const sub = this.add.text(18, 16, subText, uiText('micro', { fontSize: '11px', color: UI_COLORS.inkSoft })).setOrigin(0.5)
     const arrow = this.add.text(w / 2 - 28, 0, '›', uiText('button', { fontSize: '32px', color: UI_COLORS.ink })).setOrigin(0.5)
     const hit = this.add.rectangle(0, 0, w + 12, h + 12, 0x000000, 0).setInteractive({ useHandCursor: true })
       .on('pointerdown', () => { draw(true); c.setScale(0.985) })
-      .on('pointerup', () => waiting ? this._showStaminaModal(W, H) : this.scene.start('MapScene'))
+      .on('pointerup', () => waiting ? this._showStaminaModal(W, H) : this.scene.start(this._journey.scene))
       .on('pointerout', () => { draw(false); c.setScale(1) })
     c.add([g, rod, title, sub, arrow, hit])
     this.tweens.add({ targets: c, scaleX: 1.014, scaleY: 1.014, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })

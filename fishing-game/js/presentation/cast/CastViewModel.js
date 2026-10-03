@@ -1,4 +1,5 @@
 import { oscillatePower } from '../../game/cast.js'
+import { getVisualLoadout } from '../equipmentVisuals.js'
 
 const LOCATION_LABELS = Object.freeze({
   pointA: '汐風港',
@@ -16,12 +17,17 @@ export function readCastViewModel(scene) {
   const lastCatch = scene.catches?.[scene.catches.length - 1] ?? null
   const outcome = scene._castPresentationOutcome ?? null
   const caught = outcome === 'caught' && lastCatch?.fishId === fish?.id
+  const visualLoadout = getVisualLoadout(scene.rod?.id ?? scene.env?.player?.rodType)
 
   return Object.freeze({
     phase: scene.phase,
     locationLabel: LOCATION_LABELS[scene.env?.point] ?? LOCATION_LABELS.pointA,
     distanceLabel: scene.phase === 'cast' ? '28m' : '18m',
     tackleLabel: scene.rod?.name ?? '',
+    rodType: visualLoadout.rod.id,
+    rodRequestedType: visualLoadout.rod.requestedId,
+    rodVisualFallback: visualLoadout.rod.fallback,
+    accessories: visualLoadout.accessories,
     isCharging,
     retrieve: Object.freeze({
       action: scene.retrieveState?.action ?? 'idle',

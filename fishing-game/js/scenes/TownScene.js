@@ -18,6 +18,8 @@ import {
 } from '../game/townUnlocks.js'
 import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityArt.js'
 import { REWARD_THEME } from '../game/rewardPresentation.js'
+import { getFishingJourney } from '../game/fishingJourney.js'
+import { addArtPanel, loadUiArt } from '../ui/UiArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -54,6 +56,7 @@ export default class TownScene extends Phaser.Scene {
   constructor() { super({ key: 'TownScene' }) }
 
   preload() {
+    loadUiArt(this)
     const assets = [
       ASSETS.backgrounds.townQuiet,
       ASSETS.backgrounds.townGrowing,
@@ -77,6 +80,7 @@ export default class TownScene extends Phaser.Scene {
     this._nextUnlock = getNextTownUnlock()
     this._hasKue = getCatches().some(c => c.fishId === 'kue')
     localStorage.setItem('ainan_seen_town', '1')
+    this._journey = getFishingJourney()
 
     this._background(W, H)
     this._ambientGrowth(W, H)
@@ -179,16 +183,19 @@ export default class TownScene extends Phaser.Scene {
   }
 
   _header(W) {
+    const art = addArtPanel(this, { x: 12, y: 10, w: W - 24, h: 64, depth: 8 })
     const g = this.add.graphics().setDepth(8)
     const border = this._hasKue ? 0xe5b83b : 0x9bcfe5
-    g.fillStyle(0x173248, 0.12)
-    g.fillRoundedRect(12, 14, W - 24, 60, 20)
-    g.fillStyle(0xf8fdff, 0.96)
-    g.lineStyle(2, border, 0.94)
-    g.fillRoundedRect(12, 10, W - 24, 60, 20)
-    g.strokeRoundedRect(12, 10, W - 24, 60, 20)
-    g.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.78)
-    g.fillRoundedRect(20, 18, W - 40, 10, 5)
+    if (!art) {
+      g.fillStyle(0x173248, 0.12)
+      g.fillRoundedRect(12, 14, W - 24, 60, 20)
+      g.fillStyle(0xf8fdff, 0.96)
+      g.lineStyle(2, border, 0.94)
+      g.fillRoundedRect(12, 10, W - 24, 60, 20)
+      g.strokeRoundedRect(12, 10, W - 24, 60, 20)
+      g.fillStyle(this._hasKue ? 0xfff0b8 : 0xdff5ff, 0.78)
+      g.fillRoundedRect(20, 18, W - 40, 10, 5)
+    }
 
     this.add.text(26, 40, 'みんなの港町', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
@@ -447,18 +454,12 @@ export default class TownScene extends Phaser.Scene {
     const rec = this._recommendedFacility(summary)
     const maxed = rec.level >= 5
     const rewards = !maxed ? getFacilityMilestoneRewards(rec.id, rec.level + 1) : []
-    const rewardText = rewards.length ? rewards.map(r => r.label).join(' / ') : ''
-    const title = this._hasKue
-      ? '伝説の釣果で港がお祭り状態'
-      : rec.unlock ? `次の海　${rec.unlock.name}`
-        : rewards.length ? `次の発展　${rec.meta.name}`
-          : maxed ? '港はしっかり育ってきた' : `次のおすすめ　${rec.meta.name}`
+    const title = this._hasKue ? '伝説の釣果で港がお祭り状態' : this._journey.title
     const body = this._hasKue
       ? '施設をさらに育てると、人と灯りが増えて港の景色が変わる。'
-      : rewardText ? `Lv.${rec.level + 1}で ${rewardText}`
-        : rec.unlock ? `${rec.unlock.unlockedBy}で「${rec.unlock.rewardText}」が解放される`
-          : maxed ? '釣果を増やして、さらに町のにぎわいを広げよう。'
-            : rec.level === 0 ? rec.meta.desc : `Lv.${rec.level + 1}で ${rec.meta.effect}`
+      : this._journey.id === 'grow-town'
+        ? `${this._journey.body} / 次の${rec.meta.name} Lv.${Math.min(5, rec.level + 1)}`
+        : this._journey.body
 
     const x = 22, w = W - 44, h = 62
     const g = this.add.graphics().setDepth(6)
@@ -480,8 +481,19 @@ export default class TownScene extends Phaser.Scene {
     this.add.text(x + 62, y + 43, body, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800',
       color: this._hasKue ? '#9a6b00' : rewards.length || rec.unlock ? UI_COLORS.warning : UI_COLORS.inkSoft,
-      wordWrap: { width: w - 80 },
+      wordWrap: { width: w - 108 },
     }).setOrigin(0, 0.5).setDepth(7)
+    this.add.text(x + w - 22, y + h / 2, '›', {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '26px', fontWeight: '900', color: UI_COLORS.oceanDeep,
+    }).setOrigin(0.5).setDepth(8)
+    this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(9).setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        if (this._journey.id === 'grow-town' && !maxed) {
+          this._showFacility(rec.meta, rec.level, getTownFacilityCost(rec.id))
+          return
+        }
+        this.scene.start(this._journey.scene)
+      })
   }
 
   _facilityGrid(W) {

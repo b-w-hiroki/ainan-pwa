@@ -6,6 +6,7 @@ import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 import { haptic } from './feedback.js'
 import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
+import { characterMotionAssets } from '../presentation/cast/CharacterMotionController.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -860,8 +861,13 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
-    const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault].filter(Boolean)
+    const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingCastRodless, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault, ...characterMotionAssets()].filter(Boolean)
     const approvedUiAssets = [
+      ASSETS.ui?.fishingLayerSky,
+      ASSETS.ui?.fishingLayerClouds,
+      ASSETS.ui?.fishingLayerSea,
+      ASSETS.ui?.fishingLayerDistantHarbor,
+      ASSETS.ui?.fishingLayerPlatform,
       ASSETS.ui?.fishingApprovedTopHud,
       ASSETS.ui?.fishingApprovedInstruction,
       ASSETS.ui?.fishingApprovedCastRing,
@@ -929,6 +935,7 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
+    if (this.phase === 'cast' && this._castMotionInputLocked) return
     if (['cast', 'retrieve'].includes(this.phase) && pointer?.x <= 58 && pointer?.y <= 70) {
       this.scene.start('MapScene')
       return
@@ -958,6 +965,7 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
+    this._castMotionInputLocked = false
     const result = originalEnterCast.apply(this, args)
     setFishingPlayerVisible(this, false)
     if (usesCastPresentationHost(this)) {
@@ -971,7 +979,12 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalFireCast = GameScene.prototype._fireCast
   GameScene.prototype._fireCast = function (...args) {
+    if (this._castMotionInputLocked) return false
+    this._castMotionInputLocked = true
     const result = originalFireCast.apply(this, args)
+    this.time?.delayedCall?.(1300, () => {
+      if (this.phase === 'cast') this._castMotionInputLocked = false
+    })
     setFishingPlayerVisible(this, true)
     this._blueprintCastInstruction?.setVisible?.(false)
     return result
@@ -979,6 +992,7 @@ export function installFishingPresentationGuard(GameScene) {
 
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
+    this._castMotionInputLocked = false
     const result = originalEnterRetrieve.apply(this, args)
     if (usesCastPresentationHost(this)) {
       buildFinalControlChrome(this)
