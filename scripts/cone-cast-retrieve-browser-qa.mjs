@@ -42,22 +42,25 @@ const point = async (x, y, action = 'click') => {
 }
 
 await page.screenshot({ path: path.join(output, '01-aim-default.png') })
-await point(170, 470, 'down')
-await page.mouse.move(292, 272, { steps: 10 })
-await point(292, 272, 'up')
+const origin = await page.evaluate(() => {
+  const scene = window.__game.scene.getScene('GameScene')
+  const camera = scene.cameras.main
+  return { x: camera.x + (scene.anchorX - camera.worldView.x) * camera.zoom, y: camera.y + (scene.anchorY - camera.worldView.y) * camera.zoom }
+})
+await point(origin.x, origin.y, 'down')
+{
+  const box = await page.locator('canvas').last().boundingBox()
+  await page.mouse.move(box.x + box.width * (origin.x - 32) / 390, box.y + box.height * (origin.y + 90) / 844, { steps: 10 })
+}
+await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._coneCastState.pullArmedAt != null)
 const selected = await page.evaluate(() => window.__game.scene.getScene('GameScene')._coneCastPreview)
-if (!selected?.valid || Math.abs(selected.angleDeg) < 8) throw new Error(`drag aim did not select a valid side target: ${JSON.stringify(selected)}`)
+if (!selected?.valid || selected.angleDeg <= 0) throw new Error(`slingshot did not select the inverse side target: ${JSON.stringify(selected)}`)
 await page.screenshot({ path: path.join(output, '02-aim-right.png') })
 
 // Isolate the no-hit completion path without altering production state logic.
 await page.evaluate(() => { window.__game.scene.getScene('GameScene')._tickFishInterest = () => {} })
-await point(320, 666, 'down')
-{
-  const box = await page.locator('canvas').last().boundingBox()
-  await page.mouse.move(box.x + box.width * 324 / 390, box.y + box.height * 794 / 844, { steps: 10 })
-}
 await page.waitForTimeout(650)
-await point(324, 794, 'up')
+await point(origin.x - 32, origin.y + 90, 'up')
 await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._cameraPanCasting)
 await page.waitForTimeout(260)
 await page.screenshot({ path: path.join(output, '03-cast-flight.png') })
@@ -134,4 +137,4 @@ const binary = video.toString('latin1')
 const videoVerification = { ...recording, recorderMime, size: video.length, hasAvc1: binary.includes('avc1'), hasAvcC: binary.includes('avcC') }
 if (!videoVerification.hasAvc1 || !videoVerification.hasAvcC || video.length < 10000) throw new Error(`H.264 video verification failed: ${JSON.stringify(videoVerification)}`)
 await fs.writeFile(`${videoPath}.verification.json`, `${JSON.stringify(videoVerification, null, 2)}\n`)
-console.log(`PASS: cone aim, separated cast, no-hit reel recovery, single hit transition, fixed world player, H.264 capture (${JSON.stringify(selected)})`)
+console.log(`PASS: slingshot aim/release, no-hit reel recovery, single hit transition, fixed world player, H.264 capture (${JSON.stringify(selected)})`)

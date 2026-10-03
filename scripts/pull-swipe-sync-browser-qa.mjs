@@ -83,19 +83,17 @@ async function recordRun({ qa, filename }) {
   await page.waitForTimeout(250)
   await startRecorder(page, filename)
 
-  const size = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }))
-  await canvasPoint(page, size.width * 0.42, size.height * 0.58, 'down')
-  await canvasPoint(page, size.width * 0.70, size.height * 0.31, 'move')
-  await canvasPoint(page, size.width * 0.70, size.height * 0.31, 'up')
-  await page.waitForTimeout(220)
   const control = await page.evaluate(() => {
-    const nodes = window.__game.scene.getScene('GameScene')._coneCastHudNodes
-    return { x: nodes.buttonX, y: nodes.castY, endY: nodes.pullEndY }
+    const scene = window.__game.scene.getScene('GameScene')
+    const camera = scene.cameras.main
+    const x = camera.x + (scene.anchorX - camera.worldView.x) * camera.zoom
+    const y = camera.y + (scene.anchorY - camera.worldView.y) * camera.zoom
+    return { x, y, endX: x - 32, endY: y + 90 }
   })
   await canvasPoint(page, control.x, control.y, 'down')
   for (let step = 1; step <= 10; step += 1) {
     const progress = step / 10
-    await canvasPoint(page, control.x + progress * 3, control.y + (control.endY - control.y) * progress, 'move')
+    await canvasPoint(page, control.x + (control.endX - control.x) * progress, control.y + (control.endY - control.y) * progress, 'move')
     await page.waitForTimeout(28)
   }
   await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._coneCastState.pullArmedAt != null)
@@ -106,7 +104,7 @@ async function recordRun({ qa, filename }) {
   await page.waitForTimeout(Math.max(0, (qa ? 500 : 680) - armedElapsed))
   if (qa) await page.screenshot({ path: path.join(output, 'pull-swipe-sync-qa-charge.png') })
   const pointerReleaseAt = await page.evaluate(() => window.__game.scene.getScene('GameScene').time.now)
-  await canvasPoint(page, control.x + 3, control.endY, 'up')
+  await canvasPoint(page, control.endX, control.endY, 'up')
   await page.waitForFunction(() => window.__syncEvents.some(event => event.name === 'ainan-cast-camera-pan'))
   if (qa) await page.screenshot({ path: path.join(output, 'pull-swipe-sync-qa-release.png') })
   await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'retrieve', null, { timeout: 5000 })
