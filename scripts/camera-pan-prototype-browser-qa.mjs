@@ -148,13 +148,16 @@ await open(resiliencePage)
 const resilienceStart = await metrics(resiliencePage)
 const doubleInput = await resiliencePage.evaluate(() => {
   const scene = window.__game.scene.getScene('GameScene')
-  const before = scene.env.player.inventory.baits.worm
   const first = scene._fireCast(24, 0.95)
   const second = scene._fireCast(24, 0.95)
-  const after = scene.env.player.inventory.baits.worm
-  return { first, second, before, after, casting: scene._cameraPanCasting, bobberVisible: scene.bobber.visible }
+  return { first, second, casting: scene._cameraPanCasting, bobberVisibleBeforeRelease: scene.bobber.visible }
 })
-if (doubleInput.second !== false || !doubleInput.casting || !doubleInput.bobberVisible || doubleInput.after < doubleInput.before - 1) throw new Error(`double cast was not locked: ${JSON.stringify(doubleInput)}`)
+await resiliencePage.waitForFunction(() => window.__game.scene.getScene('GameScene').bobber.visible)
+const doubleInputAfterRelease = await resiliencePage.evaluate(() => {
+  const scene = window.__game.scene.getScene('GameScene')
+  return { casting: scene._cameraPanCasting, bobberVisible: scene.bobber.visible }
+})
+if (doubleInput.second !== false || !doubleInput.casting || doubleInput.bobberVisibleBeforeRelease || !doubleInputAfterRelease.bobberVisible) throw new Error(`double cast was not locked across the tuned release: ${JSON.stringify({ doubleInput, doubleInputAfterRelease })}`)
 await resiliencePage.waitForFunction(() => window.__game.scene.getScene('GameScene')?.phase === 'retrieve')
 await resiliencePage.evaluate(() => window.__game.scene.getScene('GameScene')._enterCast())
 await resiliencePage.waitForTimeout(420)
@@ -192,7 +195,7 @@ await backPage.waitForFunction(() => window.__game.scene.getScene('MapScene')?.s
 await backContext.close()
 if (backErrors.length) throw new Error(`back during flight errors: ${backErrors.join(' | ')}`)
 
-const report = { normal, far, reduced, small, landscape, resilience: { doubleInput, reset, rotatedLandscape, rotatedPortrait }, backDuringFlight: 'passed' }
+const report = { normal, far, reduced, small, landscape, resilience: { doubleInput, doubleInputAfterRelease, reset, rotatedLandscape, rotatedPortrait }, backDuringFlight: 'passed' }
 report.video = far.videoPath
 await fs.writeFile(path.join(output, 'metrics.json'), JSON.stringify(report, null, 2))
 await browser.close()

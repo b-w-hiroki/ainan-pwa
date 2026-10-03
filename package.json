@@ -28,7 +28,8 @@
     "qa:diagnostics": "node scripts/diagnostics-smoke.mjs",
     "qa:first10-balance": "node scripts/first10-balance-baseline.mjs",
     "qa:cone-loop": "node scripts/cone-cast-retrieve-smoke.mjs",
-    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:cast-layering && npm run qa:character-motion && npm run qa:equipment-visual && npm run qa:fishing-journey && npm run qa:reward-language && npm run qa:ui-components && npm run qa:ui-art-sample && npm run qa:ui-art-system && npm run qa:gameplay-parts && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && npm run qa:cone-loop && tsc -b && vite build",
+    "qa:cast-motion": "node scripts/cast-motion-tuning-smoke.mjs",
+    "build": "npm run qa:vertical-slice && npm run qa:final-polish && npm run qa:retention && npm run qa:art-pack && npm run qa:art-pack2 && npm run qa:boss-event && npm run qa:rarity-reward && npm run qa:location-atmosphere && npm run qa:player-fishing && npm run qa:cast-layering && npm run qa:character-motion && npm run qa:equipment-visual && npm run qa:fishing-journey && npm run qa:reward-language && npm run qa:ui-components && npm run qa:ui-art-sample && npm run qa:ui-art-system && npm run qa:gameplay-parts && npm run qa:ui-final && npm run qa:release-readiness && npm run qa:diagnostics && npm run qa:first10-balance && npm run qa:cone-loop && npm run qa:cast-motion && tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

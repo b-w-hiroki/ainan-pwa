@@ -1,5 +1,9 @@
 import { ASSETS } from '../config/assetManifest.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
+import { isReducedMotion } from './feedback.js'
+import { resolveCastMotionProfile } from './castMotionTuning.js'
+import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
+import { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
 const enabled = () => typeof window !== 'undefined'
   && ['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan') ?? '')
@@ -11,7 +15,10 @@ const fieldAssets = () => [
   ASSETS.characters.fishingMotionCastWindup,
   ASSETS.characters.fishingMotionCastMid,
   ASSETS.characters.fishingMotionCastRelease,
+  ...Object.values(ROD_VISUALS).map(visual => ASSETS.characters[visual.asset]),
 ]
+
+const rad = degrees => degrees * Math.PI / 180
 
 function hideFixedPresentation(scene) {
   scene._finalCastOverlay?.setVisible?.(false)
@@ -68,6 +75,16 @@ function buildWorld(scene) {
     .setDisplaySize(150, 195)
     .setDepth(41)
     .setScrollFactor(1)
+  scene._cameraPanPlayerBaseScale = { x: scene._cameraPanPlayer.scaleX, y: scene._cameraPanPlayer.scaleY }
+  const loadout = getVisualLoadout(scene.env?.player?.rodType)
+  const visual = ROD_VISUALS[loadout.rod.id] ?? ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
+  scene._cameraPanRodVisual = visual
+  scene._cameraPanRod = scene.add.graphics()
+    .setDepth(42)
+    .setScrollFactor(1)
+    .setData('rodType', loadout.rod.id)
+  scene._cameraPanRodLine = scene.add.graphics().setDepth(43).setScrollFactor(1)
+  scene._cameraPanRodAngleOffset = 0
 }
 
 function buildHud(scene) {
@@ -109,15 +126,142 @@ function showWorldPlayer(scene) {
   scene._playerShadow?.removeFromDisplayList?.()
   if ((scene._cameraPanHidePlayerUntil ?? 0) > (scene.time?.now ?? 0)) {
     scene._cameraPanPlayer?.removeFromDisplayList?.()
+    scene._cameraPanRod?.removeFromDisplayList?.()
+    scene._cameraPanRodLine?.removeFromDisplayList?.()
     return
   }
   scene._cameraPanPlayer?.addToDisplayList?.()
+  scene._cameraPanRod?.addToDisplayList?.()
+  scene._cameraPanRodLine?.addToDisplayList?.()
   scene._cameraPanPlayer?.setVisible?.(true)
   scene._cameraPanPlayerShadow?.setVisible?.(true)
+  scene._cameraPanRod?.setVisible?.(true)
 }
 
-function setWorldPlayerPose(scene, asset) {
-  if (asset?.key && scene._cameraPanPlayer?.active && scene.textures.exists(asset.key)) scene._cameraPanPlayer.setTexture(asset.key)
+function rotateLocal(x, y, angleDeg) {
+  const angle = rad(angleDeg)
+  return { x: x * Math.cos(angle) - y * Math.sin(angle), y: x * Math.sin(angle) + y * Math.cos(angle) }
+}
+
+function applyWorldRod(scene, poseName, rodAngleOffsetDeg = scene._cameraPanRodAngleOffset ?? 0) {
+  const pose = CHARACTER_MOTION_POSES[poseName]
+  const rod = scene._cameraPanRod
+  const player = scene._cameraPanPlayer
+  const visual = scene._cameraPanRodVisual
+  if (!pose?.grip || !pose?.tip || !rod?.active || !player?.active || !visual) {
+    rod?.setVisible?.(false)
+    return
+  }
+  const frame = { width: 320, height: 420 }
+  const width = player.displayWidth
+  const height = player.displayHeight
+  const local = anchor => ({ x: (anchor[0] - frame.width / 2) * (width / frame.width), y: (anchor[1] - frame.height) * (height / frame.height) })
+  const gripLocal = rotateLocal(local(pose.grip).x, local(pose.grip).y, player.angle)
+  const tipLocal = rotateLocal(local(pose.tip).x, local(pose.tip).y, player.angle)
+  const grip = { x: player.x + gripLocal.x, y: player.y + gripLocal.y }
+  const poseVector = { x: tipLocal.x - gripLocal.x, y: tipLocal.y - gripLocal.y }
+  const poseAngle = Math.atan2(poseVector.y, poseVector.x) + rad(rodAngleOffsetDeg)
+  const poseLength = Math.max(1, Math.hypot(poseVector.x, poseVector.y) * visual.lengthScale)
+  const tip = { x: grip.x + Math.cos(poseAngle) * poseLength, y: grip.y + Math.sin(poseAngle) * poseLength }
+  const handle = { x: grip.x + (tip.x - grip.x) * 0.22, y: grip.y + (tip.y - grip.y) * 0.22 }
+  rod.clear().setVisible(true)
+  rod.lineStyle(6, 0x173248, 0.96).beginPath().moveTo(grip.x, grip.y).lineTo(tip.x, tip.y).strokePath()
+  rod.lineStyle(3.2, visual.accent, 1).beginPath().moveTo(handle.x, handle.y).lineTo(tip.x, tip.y).strokePath()
+  rod.lineStyle(7, 0x263847, 1).beginPath().moveTo(grip.x, grip.y).lineTo(handle.x, handle.y).strokePath()
+  rod.fillStyle(0xeef9ff, 1).lineStyle(2, 0x173248, 1).fillCircle(handle.x, handle.y, 4).strokeCircle(handle.x, handle.y, 4)
+  scene._cameraPanRodTip = tip
+}
+
+function setWorldPlayerPhase(scene, phase, immediate = false) {
+  phase = {
+    offsetX: 0,
+    offsetY: 0,
+    bodyScale: 1,
+    bodyAngleDeg: 0,
+    rodAngleOffsetDeg: 0,
+    ...phase,
+  }
+  const pose = CHARACTER_MOTION_POSES[phase.pose]
+  const asset = pose ? ASSETS.characters[pose.asset] : null
+  const player = scene._cameraPanPlayer
+  if (!asset?.key || !player?.active || !scene.textures.exists(asset.key)) return
+  player.setTexture(asset.key)
+  scene._cameraPanPose = phase.pose
+  scene.tweens.killTweensOf([player, scene._cameraPanRodMotion])
+  const baseScale = scene._cameraPanPlayerBaseScale
+  const target = {
+    x: FISHING_WORLD.player.x + phase.offsetX,
+    y: FISHING_WORLD.player.y + phase.offsetY,
+    angle: phase.bodyAngleDeg,
+    scaleX: baseScale.x * phase.bodyScale,
+    scaleY: baseScale.y * phase.bodyScale,
+  }
+  if (immediate || phase.durationMs <= 1) {
+    player.setPosition(target.x, target.y).setAngle(target.angle).setScale(target.scaleX, target.scaleY)
+    scene._cameraPanRodAngleOffset = phase.rodAngleOffsetDeg
+    applyWorldRod(scene, phase.pose)
+    return
+  }
+  const rodMotion = { angle: scene._cameraPanRodAngleOffset ?? 0 }
+  scene._cameraPanRodMotion = rodMotion
+  scene.tweens.add({
+    targets: player,
+    ...target,
+    duration: phase.durationMs,
+    ease: phase.ease,
+    onUpdate: () => {
+      scene._cameraPanRodAngleOffset = rodMotion.angle
+      applyWorldRod(scene, phase.pose)
+    },
+  })
+  scene.tweens.add({ targets: rodMotion, angle: phase.rodAngleOffsetDeg, duration: phase.durationMs, ease: phase.ease })
+  applyWorldRod(scene, phase.pose)
+}
+
+function cancelCastMotion(scene, { idle = false } = {}) {
+  scene._cameraPanMotionToken = (scene._cameraPanMotionToken ?? 0) + 1
+  scene._cameraPanMotionTimers?.forEach(timer => timer?.remove?.(false))
+  scene._cameraPanMotionTimers = []
+  scene.tweens.killTweensOf([scene._cameraPanPlayer, scene._cameraPanRodMotion])
+  if (idle) setWorldPlayerPhase(scene, { pose: 'idle', durationMs: 1, ease: 'Linear', offsetX: 0, offsetY: 0, bodyScale: 1, bodyAngleDeg: 0, rodAngleOffsetDeg: 0 }, true)
+}
+
+function playCastMotion(scene, args, originalFireCast) {
+  const profile = resolveCastMotionProfile(window.location.search, isReducedMotion())
+  scene._castMotionProfile = profile
+  scene._cameraPanMotionToken = (scene._cameraPanMotionToken ?? 0) + 1
+  const token = scene._cameraPanMotionToken
+  scene._cameraPanMotionTimers = []
+  profile.phases.forEach((phase, index) => {
+    const run = () => {
+      if (token !== scene._cameraPanMotionToken || !scene.sys?.isActive?.()) return
+      setWorldPlayerPhase(scene, phase, index === 0)
+      scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: phase.id, atMs: profile.phaseStartMs[phase.id] })
+    }
+    if (index === 0) run()
+    else scene._cameraPanMotionTimers.push(scene.time.delayedCall(profile.phaseStartMs[phase.id], run))
+  })
+  scene._cameraPanMotionTimers.push(scene.time.delayedCall(profile.camera.panStartMs, () => {
+    if (token !== scene._cameraPanMotionToken || scene.phase !== 'cast') return
+    scene.fishingCamera?.beginCastPan(args[0], args[1], profile.camera)
+    scene.events.emit('ainan-cast-camera-pan', { profile: profile.name, atMs: profile.camera.panStartMs, bobberVisible: Boolean(scene.bobber?.visible) })
+  }))
+  scene._cameraPanMotionTimers.push(scene.time.delayedCall(profile.releaseEventMs, () => {
+    if (token !== scene._cameraPanMotionToken || scene.phase !== 'cast') return
+    const result = originalFireCast.apply(scene, args)
+    if (!scene.bobber?.visible) {
+      scene._cameraPanCasting = false
+      cancelCastMotion(scene, { idle: true })
+      return
+    }
+    scene.events.emit('ainan-cast-release', { profile: profile.name, atMs: profile.releaseEventMs, result })
+  }))
+  scene._cameraPanMotionTimers.push(scene.time.delayedCall(profile.totalMs, () => {
+    if (token === scene._cameraPanMotionToken && scene.phase === 'cast') {
+      setWorldPlayerPhase(scene, { pose: 'idle', durationMs: 90, ease: 'Sine.easeOut', offsetX: 0, offsetY: 0, bodyScale: 1, bodyAngleDeg: 0, rodAngleOffsetDeg: 0 })
+    }
+  }))
+  return true
 }
 
 export function installCastCameraPanPrototype(GameScene) {
@@ -141,6 +285,7 @@ export function installCastCameraPanPrototype(GameScene) {
     buildHud(this)
     hideFixedPresentation(this)
     showWorldPlayer(this)
+    setWorldPlayerPhase(this, { pose: 'idle', durationMs: 1, ease: 'Linear' }, true)
     this.fishingCamera?.focusPlayer(true)
     this._cameraPanCasting = false
     this._cameraPanResize = () => {
@@ -157,9 +302,10 @@ export function installCastCameraPanPrototype(GameScene) {
     const result = originalEnterCast.apply(this, args)
     if (!enabled()) return result
     this._cameraPanCasting = false
+    cancelCastMotion(this)
     hideFixedPresentation(this)
     showWorldPlayer(this)
-    setWorldPlayerPose(this, ASSETS.characters.fishingMotionIdle)
+    setWorldPlayerPhase(this, { pose: 'idle', durationMs: 1, ease: 'Linear' }, true)
     this.fishingCamera?.focusPlayer(false)
     return result
   }
@@ -171,9 +317,7 @@ export function installCastCameraPanPrototype(GameScene) {
       this.scene.start('MapScene')
       return true
     }
-    const result = originalOnDown.apply(this, args)
-    if (enabled() && this.phase === 'cast' && this.isCharging) setWorldPlayerPose(this, ASSETS.characters.fishingMotionCastWindup)
-    return result
+    return originalOnDown.apply(this, args)
   }
 
   const originalFireCast = GameScene.prototype._fireCast
@@ -183,20 +327,7 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanCasting = true
     hideFixedPresentation(this)
     showWorldPlayer(this)
-    setWorldPlayerPose(this, ASSETS.characters.fishingMotionCastMid)
-    this.time?.delayedCall?.(120, () => {
-      if (this._cameraPanCasting) setWorldPlayerPose(this, ASSETS.characters.fishingMotionCastRelease)
-    })
-    const result = originalFireCast.apply(this, args)
-    // Legacy _fireCast returns undefined both after a successful cast and when
-    // bait is unavailable. The bobber is made visible synchronously only for a
-    // successful cast, so release the camera/input lock on the shortage path.
-    if (!this.bobber?.visible && this.phase === 'cast') {
-      this._cameraPanCasting = false
-      setWorldPlayerPose(this, ASSETS.characters.fishingMotionIdle)
-      return false
-    }
-    return result
+    return playCastMotion(this, args, originalFireCast)
   }
 
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
@@ -204,10 +335,10 @@ export function installCastCameraPanPrototype(GameScene) {
     const result = originalEnterRetrieve.apply(this, args)
     if (!enabled()) return result
     this._cameraPanCasting = false
+    cancelCastMotion(this, { idle: true })
     hideFixedPresentation(this)
     showWorldPlayer(this)
-    setWorldPlayerPose(this, ASSETS.characters.fishingMotionIdle)
-    this.lineGfx?.setVisible?.(true)
+    this.lineGfx?.setVisible?.(false)
     return result
   }
 
@@ -215,6 +346,7 @@ export function installCastCameraPanPrototype(GameScene) {
   GameScene.prototype._enterBattle = function (...args) {
     const result = originalEnterBattle.apply(this, args)
     if (!enabled()) return result
+    cancelCastMotion(this, { idle: true })
     this.cameras.main.resetFX?.()
     this._cameraPanHidePlayerUntil = (this.time?.now ?? 0) + 900
     hideFixedPresentation(this)
@@ -237,17 +369,22 @@ export function installCastCameraPanPrototype(GameScene) {
     if (!enabled()) return result
     hideFixedPresentation(this)
     showWorldPlayer(this)
+    this.lineGfx?.setVisible?.(false)
     if (this.phase === 'retrieve' && this.bobber?.visible) {
       this._rcRetrieveLine?.setVisible?.(false)
-      this.lineGfx?.setVisible?.(true).clear().lineStyle(2, 0xffffff, 0.82)
-        .lineBetween(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
     }
+    applyWorldRod(this, this._cameraPanPose ?? 'idle')
+    if (this.bobber?.visible && ['cast', 'retrieve'].includes(this.phase)) {
+      this._cameraPanRodLine?.setVisible?.(true).clear().lineStyle(2, 0xffffff, 0.82)
+        .lineBetween(this._cameraPanRodTip?.x ?? this.anchorX, this._cameraPanRodTip?.y ?? this.anchorY, this.bobber.x, this.bobber.y)
+    } else this._cameraPanRodLine?.clear?.()
     syncHud(this)
     return result
   }
 
   const originalCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    cancelCastMotion(this)
     this._cameraPanHud?.destroy?.(true)
     this._cameraPanHud = null
     this._cameraPanHudNodes = null
@@ -255,6 +392,10 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanPlayer = null
     this._cameraPanPlayerShadow?.destroy?.()
     this._cameraPanPlayerShadow = null
+    this._cameraPanRod?.destroy?.()
+    this._cameraPanRod = null
+    this._cameraPanRodLine?.destroy?.()
+    this._cameraPanRodLine = null
     this.scale?.off?.('resize', this._cameraPanResize)
     this._cameraPanResize = null
     return originalCleanup.apply(this, args)

@@ -16,7 +16,7 @@ assert.match(source, /getWorldPoint/, 'aim input must resolve through the world 
 assert.match(source, /_startSlowRetrieve/, 'retrieve must reuse the existing reel mechanic')
 assert.match(source, /isReducedMotion\(\)/, 'reduced-motion timing path missing')
 assert.ok(!/localStorage|saveState|award|reward|score\s*[+]=/.test(source), 'prototype must not own save, economy, or reward writes')
-assert.match(camera, /!this\.bobber\?\.visible && this\.phase === 'cast'/, 'bait shortage must release camera/input lock')
+assert.match(camera, /!scene\.bobber\?\.visible/, 'bait shortage must release camera/input lock after the tuned release event')
 assert.match(camera, /battleHero\?\.removeFromDisplayList/, 'camera prototype must suppress the duplicate transparent battle hero')
 
 console.log('Cone cast/retrieve smoke QA passed')

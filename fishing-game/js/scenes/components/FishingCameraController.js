@@ -75,6 +75,23 @@ export class FishingCameraController {
     this.camera.pan(centerX, centerY, responsive && isReducedMotion() ? 90 : 320, 'Sine.easeInOut', true)
   }
 
+  beginCastPan(angleDeg, power01, tuning = {}) {
+    this.state = 'castAnticipation'
+    if (!this._canMove()) return
+    const power = clamp(Number(power01) || 0, 0, 1)
+    const distance = (tuning.panDistancePx ?? 0) * (0.72 + power * 0.28)
+    const angle = angleDeg * Math.PI / 180
+    const desiredX = clamp(this.camera.scrollX + Math.sin(angle) * distance, 0, this.world.width - this.camera.width)
+    const desiredY = clamp(this.camera.scrollY - Math.cos(angle) * distance, 0, this.world.height - this.camera.height)
+    this.camera.pan(
+      desiredX + this.camera.width / 2,
+      desiredY + this.camera.height / 2,
+      tuning.panDurationMs ?? 220,
+      tuning.panEase ?? 'Sine.easeInOut',
+      true,
+    )
+  }
+
   updateCastFollow(x, y) {
     this.state = 'castFollow'
     if (!this._canMove()) return
@@ -85,7 +102,7 @@ export class FishingCameraController {
       const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, this.world.height - this.camera.height)
       const lureX = clamp(x - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
       const lureY = clamp(y - this.camera.height * 0.71, 0, this.world.height - this.camera.height)
-      const amount = isReducedMotion() ? 0.52 : 0.18
+      const amount = this.scene._castMotionProfile?.camera?.flightFollowAmount ?? (isReducedMotion() ? 0.52 : 0.18)
       this._moveToward(lerp(playerX, lureX, travel), lerp(playerY, lureY, travel), amount)
       return
     }
@@ -119,7 +136,14 @@ export class FishingCameraController {
       if (isReducedMotion()) {
         this.camera.setScroll(desiredX, desiredY)
       } else {
-        this.camera.pan(desiredX + this.camera.width / 2, desiredY + this.camera.height / 2, 220, 'Sine.easeOut', true)
+        const tuning = this.scene._castMotionProfile?.camera
+        this.camera.pan(
+          desiredX + this.camera.width / 2,
+          desiredY + this.camera.height / 2,
+          tuning?.landingPanMs ?? 220,
+          tuning?.landingEase ?? 'Sine.easeOut',
+          true,
+        )
       }
       return
     }
