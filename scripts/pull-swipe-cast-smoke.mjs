@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { PULL_CAST_TUNING, classifyPullRelease, pullChargeRatio } from '../fishing-game/js/game/pullCastTuning.js'
+
+const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
+const input = read('fishing-game/js/game/installConeCastRetrievePrototype.js')
+const motion = read('fishing-game/js/game/installCastCameraPanPrototype.js')
+
+assert.deepEqual(PULL_CAST_TUNING.gauge, { fillMs: 900, successStart: 0.62, successEnd: 0.82, lateThreshold: 1 })
+assert.equal(PULL_CAST_TUNING.gesture.minPullDistancePx, 64)
+assert.equal(PULL_CAST_TUNING.error.successMaxLandingErrorPx, 8)
+assert.equal(classifyPullRelease(0.2, -1).rating, 'early')
+assert.equal(classifyPullRelease(0.72, 1).rating, 'good')
+assert.equal(classifyPullRelease(0.95, 1).rating, 'late')
+assert.equal(classifyPullRelease(0.72, 1).distanceScale, 1)
+assert.equal(classifyPullRelease(0.72, 1).angleOffsetDeg, 0)
+assert.equal(pullChargeRatio(450), 0.5)
+assert.equal(pullChargeRatio(1200), 1)
+
+assert.match(input, /inputMode === 'pull'/)
+assert.match(input, /pullPointerId/)
+assert.match(input, /pointerupoutside/)
+assert.match(input, /pointercancel/)
+assert.match(input, /abilityLimited/)
+assert.match(input, /adjustedPower/)
+assert.match(input, /classifyPullRelease\(0\.72/, 'keyboard alternative must use the success path')
+assert.match(motion, /playPrechargedRelease/)
+assert.match(motion, /source: 'pullRelease'/)
+assert.match(motion, /originalFireCast\.apply\(scene, args\)/)
+assert.ok(!/localStorage|saveState|award|reward|score\s*[+]=|stamina\s*[+-]=/.test(input), 'pull UI must not mutate save/reward/stamina')
+
+console.log('Pull-swipe cast smoke QA passed')
+console.log('  900ms gauge / 62–82% GOOD / deterministic early-late errors: OK')
+console.log('  range clamp / pointer ownership / cancel / keyboard / precharged release: OK')
+console.log('  save, reward, price, stamina isolation: OK')

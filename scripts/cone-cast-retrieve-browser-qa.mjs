@@ -51,7 +51,13 @@ await page.screenshot({ path: path.join(output, '02-aim-right.png') })
 
 // Isolate the no-hit completion path without altering production state logic.
 await page.evaluate(() => { window.__game.scene.getScene('GameScene')._tickFishInterest = () => {} })
-await point(314, 762)
+await point(320, 666, 'down')
+{
+  const box = await page.locator('canvas').last().boundingBox()
+  await page.mouse.move(box.x + box.width * 324 / 390, box.y + box.height * 794 / 844, { steps: 10 })
+}
+await page.waitForTimeout(650)
+await point(324, 794, 'up')
 await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._cameraPanCasting)
 await page.waitForTimeout(260)
 await page.screenshot({ path: path.join(output, '03-cast-flight.png') })

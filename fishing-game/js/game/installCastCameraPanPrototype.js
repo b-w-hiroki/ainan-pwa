@@ -117,6 +117,10 @@ function syncHud(scene) {
     ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
     : 0
   nodes.distance.setText(meters > 0.5 ? `${meters.toFixed(0)}m` : '')
+  if (scene._coneCastHud) {
+    nodes.status.setText('')
+    return
+  }
   const casting = scene._cameraPanCasting
   nodes.status.setText(casting ? '仕掛けを追っています' : scene.phase === 'cast' ? '岸から狙いを決めてキャスト' : scene.phase === 'retrieve' ? '着水地点で魚の反応を読む' : scene.phase === 'battle' ? '糸の張りを保つ' : '')
 }
@@ -219,6 +223,7 @@ function setWorldPlayerPhase(scene, phase, immediate = false) {
 }
 
 function cancelCastMotion(scene, { idle = false } = {}) {
+  scene._pullCastPreviewPhase = null
   scene._cameraPanMotionToken = (scene._cameraPanMotionToken ?? 0) + 1
   scene._cameraPanMotionTimers?.forEach(timer => timer?.remove?.(false))
   scene._cameraPanMotionTimers = []
@@ -264,6 +269,56 @@ function playCastMotion(scene, args, originalFireCast) {
   return true
 }
 
+function chargedPullProfile() {
+  return resolveCastMotionProfile('?castMotion=charged', isReducedMotion())
+}
+
+function previewPullCastMotion(scene, phaseId) {
+  const profile = chargedPullProfile()
+  const phase = profile.phases.find(item => item.id === phaseId)
+  if (!phase || scene._cameraPanCasting) return false
+  if (scene._pullCastPreviewPhase === phaseId) return true
+  scene._castMotionProfile = profile
+  scene._pullCastPreviewPhase = phaseId
+  setWorldPlayerPhase(scene, phase, scene._cameraPanPose !== phase.pose)
+  scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: phase.id, source: 'pullGesture' })
+  return true
+}
+
+function playPrechargedRelease(scene, args, originalFireCast, releaseContext) {
+  cancelCastMotion(scene)
+  scene._pullCastPreviewPhase = null
+  const profile = chargedPullProfile()
+  scene._castMotionProfile = profile
+  const swing = profile.phases.find(phase => phase.id === 'swing')
+  const follow = profile.phases.find(phase => phase.id === 'followThrough')
+  setWorldPlayerPhase(scene, swing, true)
+  scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: 'swing', source: 'pullRelease' })
+  scene.fishingCamera?.beginCastPan(args[0], args[1], profile.camera)
+  scene.events.emit('ainan-cast-camera-pan', { profile: profile.name, atMs: 0, bobberVisible: Boolean(scene.bobber?.visible), source: 'pullRelease' })
+  const result = originalFireCast.apply(scene, args)
+  if (!scene.bobber?.visible) {
+    scene._cameraPanCasting = false
+    cancelCastMotion(scene, { idle: true })
+    return false
+  }
+  scene.events.emit('ainan-cast-release', { profile: profile.name, atMs: 0, result, source: 'pullRelease', releaseContext })
+  const token = scene._cameraPanMotionToken
+  scene._cameraPanMotionTimers = [
+    scene.time.delayedCall(swing.durationMs, () => {
+      if (token !== scene._cameraPanMotionToken) return
+      setWorldPlayerPhase(scene, follow)
+      scene.events.emit('ainan-cast-motion-phase', { profile: profile.name, phase: 'followThrough', source: 'pullRelease' })
+    }),
+    scene.time.delayedCall(swing.durationMs + follow.durationMs, () => {
+      if (token === scene._cameraPanMotionToken && scene.phase === 'cast') {
+        setWorldPlayerPhase(scene, { pose: 'idle', durationMs: 90, ease: 'Sine.easeOut' })
+      }
+    }),
+  ]
+  return result ?? true
+}
+
 export function installCastCameraPanPrototype(GameScene) {
   if (GameScene.prototype.__ainanCastCameraPanPrototypeInstalled) return
   GameScene.prototype.__ainanCastCameraPanPrototypeInstalled = true
@@ -288,6 +343,9 @@ export function installCastCameraPanPrototype(GameScene) {
     setWorldPlayerPhase(this, { pose: 'idle', durationMs: 1, ease: 'Linear' }, true)
     this.fishingCamera?.focusPlayer(true)
     this._cameraPanCasting = false
+    this._pullCastPreviewPhase = null
+    this._previewPullCastMotion = phaseId => previewPullCastMotion(this, phaseId)
+    this._cancelPullCastMotion = () => cancelCastMotion(this, { idle: true })
     this._cameraPanResize = () => {
       buildHud(this)
       if (this.phase === 'cast') this.fishingCamera?.focusPlayer(true)
@@ -327,6 +385,9 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanCasting = true
     hideFixedPresentation(this)
     showWorldPlayer(this)
+    const releaseContext = this._pullCastPrechargedRelease
+    this._pullCastPrechargedRelease = null
+    if (releaseContext) return playPrechargedRelease(this, args, originalFireCast, releaseContext)
     return playCastMotion(this, args, originalFireCast)
   }
 
@@ -398,6 +459,8 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cameraPanRodLine = null
     this.scale?.off?.('resize', this._cameraPanResize)
     this._cameraPanResize = null
+    this._previewPullCastMotion = null
+    this._cancelPullCastMotion = null
     return originalCleanup.apply(this, args)
   }
 }
