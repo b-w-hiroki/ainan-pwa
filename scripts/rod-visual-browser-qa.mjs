@@ -72,15 +72,18 @@ const motionState = () => page.evaluate(() => {
     rodTexture: motion?.root?.getData('rodTexture'),
     fallback: motion?.root?.getData('rodTextureFallback'),
     rodVisible: motion?.rod?.visible,
+    rodKind: motion?.rod?.type,
+    hasHiddenPoseBuffer: Boolean(motion?.poseBack),
+    legacyPlayerAttached: Boolean(scene?._playerSprite?.displayList),
     rodTip: motion?.root?.getData('rodTip'),
     savedRod: JSON.parse(localStorage.getItem('ainan_equipment') ?? '{}').rodType,
   }
 })
 
 const expectedTexture = {
-  basic: 'ch_fishing_motion_rod_basic',
-  carbon: 'ch_fishing_motion_rod_carbon',
-  premium: 'ch_fishing_motion_rod_premium',
+  basic: 'native:basic',
+  carbon: 'native:carbon',
+  premium: 'native:premium',
 }
 
 for (const id of ['basic', 'carbon', 'premium']) {
@@ -91,7 +94,7 @@ for (const id of ['basic', 'carbon', 'premium']) {
   await pointerDesign(195, 748, 'down')
   await page.waitForTimeout(330)
   const state = await motionState()
-  if (state.rodType !== id || state.savedRod !== id || state.rodTexture !== expectedTexture[id] || state.fallback || !state.rodVisible) {
+  if (state.rodType !== id || state.savedRod !== id || state.rodTexture !== expectedTexture[id] || state.fallback || !state.rodVisible || state.rodKind !== 'Graphics' || state.hasHiddenPoseBuffer || state.legacyPlayerAttached) {
     throw new Error(`${id}: equipped visual mismatch ${JSON.stringify(state)}`)
   }
   await page.screenshot({ path: path.join(output, `cast-${id}.png`) })
@@ -116,6 +119,11 @@ await page.waitForTimeout(250)
 state = await motionState()
 if (state.rodType !== 'premium' || !state.pose?.startsWith('fight') || !state.rodVisible) throw new Error(`landscape rod mismatch ${JSON.stringify(state)}`)
 await page.screenshot({ path: path.join(output, 'premium-fight-landscape.png') })
+await page.setViewportSize({ width: 375, height: 667 })
+await page.waitForTimeout(250)
+state = await motionState()
+if (state.rodType !== 'premium' || !state.pose?.startsWith('fight') || !state.rodVisible) throw new Error(`compact portrait rod mismatch ${JSON.stringify(state)}`)
+await page.screenshot({ path: path.join(output, 'premium-fight-compact.png') })
 await page.setViewportSize({ width: 390, height: 844 })
 
 await context.close()
@@ -133,7 +141,7 @@ const fallback = await fallbackPage.evaluate(() => {
   const motion = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.characterMotion
   return { rodType: motion.root.getData('rodType'), rodTexture: motion.root.getData('rodTexture'), fallback: motion.root.getData('rodTextureFallback') }
 })
-if (fallback.rodType !== 'premium' || fallback.rodTexture !== 'ch_fishing_motion_held_rod' || !fallback.fallback) throw new Error(`safe rod fallback missing ${JSON.stringify(fallback)}`)
+if (fallback.rodType !== 'premium' || fallback.rodTexture !== 'native:premium' || fallback.fallback) throw new Error(`safe rod rendering missing ${JSON.stringify(fallback)}`)
 await fallbackContext.close()
 
 await browser.close()
@@ -142,4 +150,4 @@ const unexpected = errors.filter(message => !message.includes('held-rod-premium.
   && !message.includes('ERR_NETWORK_ACCESS_DENIED')
   && message !== 'Failed to load resource: net::ERR_NETWORK_ACCESS_DENIED')
 if (unexpected.length) throw new Error(`browser errors: ${unexpected.join('; ')}`)
-console.log('PASS: real equip taps, Basic/Carbon/Premium cast visuals, reload persistence, fight portrait/landscape, safe fallback')
+console.log('PASS: real equip taps, Basic/Carbon/Premium cast visuals, reload persistence, fight at 390x844 / 375x667 / 844x390, safe fallback')

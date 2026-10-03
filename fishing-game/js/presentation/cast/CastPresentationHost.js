@@ -290,9 +290,17 @@ export class CastPresentationHost {
 
     const characterMotion = new CharacterMotionController(scene).mount(field)
     if (characterMotion.ready) {
-      player?.setVisible(false)
-      layeredScene?.nodes?.character?.setVisible(false)
-      layeredScene?.nodes?.heldRod?.setVisible(false)
+      // Remove superseded transparent cutouts instead of merely hiding them.
+      // Affected Edge/iPhone compositor paths could still rasterize hidden
+      // texture-backed objects as opaque rectangles.
+      player?.destroy()
+      layeredScene?.nodes?.character?.destroy()
+      layeredScene?.nodes?.heldRod?.destroy()
+      // Legacy animation hooks still read/update this sprite for retrieve
+      // feedback. Detach it from the display list so those hooks keep their
+      // data source without leaving a hidden transparent texture to composite.
+      scene._playerSprite?.removeFromDisplayList?.()
+      scene._playerShadow?.removeFromDisplayList?.()
     }
     const battleForeground = scene.add.container(0, 0).setVisible(false)
     const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage]

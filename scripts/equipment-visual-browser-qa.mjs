@@ -93,7 +93,7 @@ const poseMatrix = await page.evaluate(() => {
   const scene = window.__game.scene.getScene('GameScene')
   const motion = scene._castPresentationHost.nodes.characterMotion
   const poseNames = ['idle', 'castWindup', 'castMid', 'castRelease', 'fightLeft', 'fightMid', 'fightRight', 'joyLift', 'joyMid', 'joyHold', 'sadDrop', 'sadMid', 'sadSlump']
-  const textureByRod = { basic: 'ch_fishing_motion_rod_basic', carbon: 'ch_fishing_motion_rod_carbon', premium: 'ch_fishing_motion_rod_premium' }
+  const textureByRod = { basic: 'native:basic', carbon: 'native:carbon', premium: 'native:premium' }
   const rows = []
   for (const rod of Object.keys(textureByRod)) {
     motion._setRodVisual(rod, true)
@@ -101,7 +101,7 @@ const poseMatrix = await page.evaluate(() => {
       motion._applyPose(pose, true)
       rows.push({
         rod, pose,
-        texture: motion.rod.texture.key,
+        texture: motion.root.getData('rodTexture'),
         rodVisible: motion.rod.visible,
         tip: motion.root.getData('rodTip'),
         capVisible: motion.accessoryAccents.cap.visible,
@@ -130,9 +130,9 @@ await page.waitForFunction(() => window.__game.scene.getScene('GameScene')?.phas
 await page.waitForTimeout(600)
 const resultVisual = await page.evaluate(() => {
   const motion = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.characterMotion
-  return { rodType: motion.root.getData('rodType'), texture: motion.rod.texture.key, accessories: motion.root.getData('accessories'), pose: motion.currentPose }
+  return { rodType: motion.root.getData('rodType'), texture: motion.root.getData('rodTexture'), accessories: motion.root.getData('accessories'), pose: motion.currentPose }
 })
-if (resultVisual.rodType !== 'premium' || resultVisual.texture !== 'ch_fishing_motion_rod_premium' || resultVisual.accessories.hat !== 'cap' || resultVisual.accessories.bag !== 'bag') throw new Error(`result loadout drift: ${JSON.stringify(resultVisual)}`)
+if (resultVisual.rodType !== 'premium' || resultVisual.texture !== 'native:premium' || resultVisual.accessories.hat !== 'cap' || resultVisual.accessories.bag !== 'bag') throw new Error(`result loadout drift: ${JSON.stringify(resultVisual)}`)
 await page.screenshot({ path: path.join(output, '05-premium-cap-bag-result.png') })
 
 // Home does not show the fishing avatar, so its existing player chip reflects rod color and accessory badges.
