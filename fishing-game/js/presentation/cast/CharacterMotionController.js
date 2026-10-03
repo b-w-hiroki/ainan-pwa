@@ -84,21 +84,18 @@ export class CharacterMotionController {
     this.ready = requiredAssets().every(asset => asset?.key && scene.textures.exists(asset.key))
     if (!this.ready) return this
     this.root = scene.add.container(0, 0).setDepth(75)
-    this.poseBack = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
-      .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight).setAlpha(0)
     this.poseFront = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
       .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight)
-    const defaultSource = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID].source
-    this.rod = scene.add.image(0, 0, ASSETS.characters.fishingMotionHeldRod.key)
-      .setOrigin(defaultSource.grip[0] / defaultSource.width, defaultSource.grip[1] / defaultSource.height)
-      .setScale(1)
+    // Keep the rod as native geometry. Some browsers composited the transparent
+    // rod texture as an opaque black rectangle during alpha animation.
+    this.rod = scene.add.graphics()
     this.accessoryAccents.cap = createAccessoryAccent(scene, 'cap')
     this.accessoryAccents.bag = createAccessoryAccent(scene, 'bag')
     this.line = scene.add.graphics()
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
       .setVisible(false).setAngle(-4)
     this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
-    this.root.add([this.poseBack, this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
+    this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
     parent.add(this.root)
     this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
     this._applyPose('idle', true)
@@ -132,7 +129,6 @@ export class CharacterMotionController {
     const grip = this._point(pose.grip)
     const poseTip = this._point(pose.tip)
     const visual = this.rodVisual ?? ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
-    const source = visual.source
     const poseDx = poseTip.x - grip.x
     const poseDy = poseTip.y - grip.y
     const poseLength = Math.max(1, Math.hypot(poseDx, poseDy))
@@ -142,11 +138,30 @@ export class CharacterMotionController {
       x: grip.x + poseDx * visual.lengthScale - (poseDy / poseLength) * poseLength * flex,
       y: grip.y + poseDy * visual.lengthScale + (poseDx / poseLength) * poseLength * flex,
     }
-    const sourceAngle = Math.atan2(source.tip[1] - source.grip[1], source.tip[0] - source.grip[0])
-    const targetAngle = Math.atan2(tip.y - grip.y, tip.x - grip.x)
-    const sourceLength = Math.hypot(source.tip[0] - source.grip[0], source.tip[1] - source.grip[1])
-    const targetLength = Math.hypot(tip.x - grip.x, tip.y - grip.y)
-    this.rod.setVisible(true).setPosition(grip.x, grip.y).setScale(targetLength / sourceLength).setRotation(targetAngle - sourceAngle)
+    this.rod.clear().setVisible(true)
+    const rodControl = {
+      x: (grip.x + tip.x) / 2 - (poseDy / poseLength) * poseLength * flex * 0.55,
+      y: (grip.y + tip.y) / 2 + (poseDx / poseLength) * poseLength * flex * 0.55,
+    }
+    const drawRodCurve = (width, color, alpha) => {
+      this.rod.lineStyle(width, color, alpha)
+      this.rod.beginPath()
+      this.rod.moveTo(grip.x, grip.y)
+      for (let index = 1; index <= 10; index += 1) {
+        const t = index / 10
+        const inverse = 1 - t
+        this.rod.lineTo(
+          inverse * inverse * grip.x + 2 * inverse * t * rodControl.x + t * t * tip.x,
+          inverse * inverse * grip.y + 2 * inverse * t * rodControl.y + t * t * tip.y,
+        )
+      }
+      this.rod.strokePath()
+    }
+    drawRodCurve(7, 0x183146, 0.96)
+    drawRodCurve(3, visual.accent, 1)
+    this.rod.fillStyle(0x183146, 1).fillCircle(grip.x, grip.y, 7)
+    this.rod.fillStyle(visual.accent, 1).fillCircle(grip.x, grip.y, 4)
+    this.rod.lineStyle(2, visual.accent, 0.95).strokeCircle(grip.x + 7, grip.y + 5, 5)
     const target = phase === 'battle'
       ? { x: 228, y: 330 }
       : phase === 'result'
@@ -180,16 +195,11 @@ export class CharacterMotionController {
     const resolvedType = ROD_VISUALS[rodType] ? rodType : DEFAULT_ROD_VISUAL_ID
     if (!force && this.rodType === resolvedType) return
     const visual = ROD_VISUALS[resolvedType]
-    const preferred = ASSETS.characters[visual.asset]
-    const fallback = ASSETS.characters.fishingMotionHeldRod
-    const texture = preferred?.key && this.scene.textures.exists(preferred.key) ? preferred : fallback
     this.rodType = resolvedType
     this.rodVisual = visual
-    this.rodTextureFallback = texture !== preferred
-    this.rod.setTexture(texture.key)
-      .setOrigin(visual.source.grip[0] / visual.source.width, visual.source.grip[1] / visual.source.height)
+    this.rodTextureFallback = false
     this.root.setData('rodType', resolvedType)
-    this.root.setData('rodTexture', texture.key)
+    this.root.setData('rodTexture', `native:${resolvedType}`)
     this.root.setData('rodTextureFallback', this.rodTextureFallback)
     const pose = CHARACTER_MOTION_POSES[this.currentPose]
     if (pose) this._applyRod(pose)
@@ -234,19 +244,11 @@ export class CharacterMotionController {
     const pose = CHARACTER_MOTION_POSES[name]
     const asset = ASSETS.characters[pose.asset]
     if (!pose || !asset || !this.scene.textures.exists(asset.key)) return false
-    const next = this.poseBack
-    const previous = this.poseFront
-    next.setTexture(asset.key).setAlpha(immediate ? 1 : 0)
-    if (immediate || isReducedMotion()) {
-      previous.setAlpha(0)
-      next.setAlpha(1)
-    } else {
-      this.scene.tweens.killTweensOf([previous, next])
-      this.scene.tweens.add({ targets: previous, alpha: 0, duration: 55, ease: 'Linear' })
-      this.scene.tweens.add({ targets: next, alpha: 1, duration: 70, ease: 'Linear' })
-    }
-    this.poseFront = next
-    this.poseBack = previous
+    // Pose timing still supplies the authored in-betweens. Switch the one
+    // visible texture atomically so transparent pixels never enter an
+    // intermediate-alpha compositor path.
+    this.scene.tweens.killTweensOf(this.poseFront)
+    this.poseFront.setTexture(asset.key).setVisible(true).setAlpha(1)
     this.currentPose = name
     this._applyAccessories(pose)
     this._applyRod(pose)
@@ -260,7 +262,7 @@ export class CharacterMotionController {
     this.token += 1
     this.timer?.remove(false)
     this.timer = null
-    this.scene.tweens.killTweensOf([this.poseFront, this.poseBack, this.root])
+    this.scene.tweens.killTweensOf([this.poseFront, this.root])
     this.currentAction = null
     if (idle && this.ready) this._applyPose('idle', true)
   }
