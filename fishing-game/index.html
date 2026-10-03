@@ -107,7 +107,7 @@
     <div id="game-container"></div>
     <script>
       const pageParams = new URLSearchParams(location.search)
-      const isQa = pageParams.get('qa') === '1'
+      const isQa = new URLSearchParams(location.search).get('qa') === '1'
       if (pageParams.get('cameraPan') === '1') document.documentElement.dataset.cameraPanPrototype = '1'
       if (isQa) {
         // Fixed visual QA must render the current preview build, never a prior
