@@ -57,13 +57,8 @@ function buildWorld(scene) {
   addLayer(ASSETS.ui.fishingApprovedCleanHarbor, 0)
   const platform = scene.add.graphics().setDepth(6).setScrollFactor(1)
   platform.fillStyle(0x8a7357, 1).lineStyle(4, 0x4c4135, 1)
-  platform.fillPoints([
-    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
-    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
-  ], true).strokePoints([
-    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
-    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
-  ], true)
+  const platformPoints = FISHING_WORLD.castLandPolygons[0]
+  platform.fillPoints(platformPoints, true).strokePoints(platformPoints, true)
   platform.fillStyle(0x2788cf, 1).fillRoundedRect(22, FISHING_WORLD.player.y + 62, 86, 58, 9)
   platform.fillStyle(0xeef9ff, 1).fillRect(22, FISHING_WORLD.player.y + 72, 86, 10)
   scene.bg._blueprintWaterLayers.push(platform)
@@ -103,7 +98,7 @@ function buildHud(scene) {
   const H = scene.scale.height
   const compact = H < 520
   const pad = compact ? 12 : 16
-  const headerH = compact ? 50 : 58
+  const headerH = compact ? 54 : 66
   const panelW = Math.min(compact ? 330 : 358, W - pad * 2)
   const root = scene.add.container(0, 0).setDepth(9000).setScrollFactor(0)
   const g = scene.add.graphics()
@@ -112,12 +107,15 @@ function buildHud(scene) {
     .fillRoundedRect(pad, pad, panelW, headerH, 18).strokeRoundedRect(pad, pad, panelW, headerH, 18)
   g.lineStyle(1, 0x9bcfe5, 0.75).strokeRoundedRect(pad + 3, pad + 3, panelW - 6, headerH - 6, 15)
   const back = scene.add.text(pad + 26, pad + headerH / 2, '‹', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '34px' : '40px', fontStyle: 'bold', color: '#173248' }).setOrigin(0.5)
-  const location = scene.add.text(pad + 62, pad + headerH / 2, '汐風港', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(0, 0.5)
-  const distance = scene.add.text(pad + panelW - 20, pad + headerH / 2, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '13px' : '15px', fontStyle: 'bold', color: '#173248' }).setOrigin(1, 0.5)
+  const location = scene.add.text(pad + 62, pad + headerH / 2 - (compact ? 9 : 11), '汐風港', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(0, 0.5)
+  const loadout = getVisualLoadout(scene.env?.player?.rodType)
+  const baitNames = { worm: 'ミミズ', shrimp: 'エビ', special: '特製エサ' }
+  const equipment = scene.add.text(pad + 62, pad + headerH / 2 + (compact ? 10 : 13), `${loadout.rod.name}  •  ${baitNames[loadout.baitId] ?? loadout.baitId}`, { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '11px' : '13px', fontStyle: 'bold', color: '#4d7085' }).setOrigin(0, 0.5)
+  const distance = scene.add.text(pad + panelW - 20, pad + headerH / 2, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(1, 0.5)
   const status = scene.add.text(W / 2, H - (compact ? 28 : 42), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5).setScrollFactor(0)
-  root.add([g, back, location, distance, status])
+  root.add([g, back, location, equipment, distance, status])
   scene._cameraPanHud = root
-  scene._cameraPanHudNodes = { distance, status }
+  scene._cameraPanHudNodes = { location, equipment, distance, status }
 }
 
 function syncHud(scene) {
@@ -126,7 +124,10 @@ function syncHud(scene) {
   const meters = scene.bobber?.visible
     ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
     : 0
-  nodes.distance.setText(meters > 0.5 ? `${meters.toFixed(0)}m` : '')
+  // Retrieve distance already lives beside the primary reel instruction.
+  // Keeping the header value too made the same changing number compete in
+  // two places, so reserve the header readout for cast flight only.
+  nodes.distance.setText(scene.phase === 'cast' && meters > 0.5 ? `${meters.toFixed(0)}m` : '')
   if (scene._coneCastHud) {
     nodes.status.setText('')
     return
@@ -344,6 +345,7 @@ function playCastMotion(scene, args, originalFireCast) {
     const result = originalFireCast.apply(scene, args)
     if (!scene.bobber?.visible) {
       scene._cameraPanCasting = false
+      scene.fishingCamera?.endAimFollow?.({ returnToPlayer: true })
       cancelCastMotion(scene, { idle: true })
       return
     }
@@ -460,6 +462,7 @@ function updatePullCastTimeline(scene) {
         scene._coneCastState.castLocked = false
         scene._coneCastState.inputMode = 'aim'
       }
+      scene.fishingCamera?.endAimFollow?.({ returnToPlayer: true })
       cancelCastMotion(scene, { idle: true })
       return
     }

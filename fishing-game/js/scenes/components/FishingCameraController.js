@@ -12,16 +12,31 @@ const WATER_BOUNDS = {
   maxY: 1020,
 }
 
+const CAST_PLATFORM = [
+  { x: 0, y: 1120 },
+  { x: 210, y: 1068 },
+  { x: 302, y: 1400 },
+  { x: 0, y: 1400 },
+]
+
 export const FISHING_WORLD = {
   width: 900,
   height: 1400,
   player: { x: 138, y: 1160 },
   waterBounds: WATER_BOUNDS,
+  castLandPolygons: [CAST_PLATFORM],
   pxPerMeter: 18,
 }
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
 const lerp = (a, b, t) => a + (b - a) * t
+export const AIM_CAMERA_TUNING = Object.freeze({
+  portrait: Object.freeze({ left: 54, right: 42, top: 92, bottom: 214 }),
+  landscape: Object.freeze({ left: 58, right: 14, top: 76, bottom: 142 }),
+  settleInsetPx: 32,
+  followAmount: 0.08,
+  returnDurationMs: 320,
+})
 const cameraPanPrototypeEnabled = () => typeof window !== 'undefined'
   && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
     || new URLSearchParams(window.location.search).get('coneLoop') === '1')
@@ -43,6 +58,8 @@ export class FishingCameraController {
       bottom: MOBILE_FRAME.playBottom - 40,
     }
     this.player = { ...world.player }
+    this._aimTarget = null
+    this._aimWasActive = false
   }
 
   setup(playerX = this.world.player.x, playerY = this.world.player.y) {
@@ -72,12 +89,20 @@ export class FishingCameraController {
 
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
-    this.camera.pan(centerX, centerY, responsive && isReducedMotion() ? 90 : 320, 'Sine.easeInOut', true)
+    this.camera.pan(centerX, centerY, responsive && isReducedMotion() ? 90 : responsive ? AIM_CAMERA_TUNING.returnDurationMs : 320, 'Sine.easeInOut', true)
   }
 
   beginCastPan(angleDeg, power01, tuning = {}) {
     this.state = 'castAnticipation'
     if (!this._canMove()) return
+    // Aim follow has already composed the selected landing. Do not add a
+    // second anticipation offset on release: flight follow can continue from
+    // the exact same camera pose without a visible jump.
+    if (this._aimWasActive) {
+      this._aimWasActive = false
+      this._aimTarget = null
+      return
+    }
     const power = clamp(Number(power01) || 0, 0, 1)
     const distance = (tuning.panDistancePx ?? 0) * (0.72 + power * 0.28)
     const angle = angleDeg * Math.PI / 180
@@ -107,6 +132,55 @@ export class FishingCameraController {
       return
     }
     this._followSafePoint(x, y, 0.12)
+  }
+
+  _aimSafeZone() {
+    const compact = this.camera.height < 520
+    const insets = compact ? AIM_CAMERA_TUNING.landscape : AIM_CAMERA_TUNING.portrait
+    return {
+      left: insets.left,
+      right: Math.max(insets.left + 80, this.camera.width - insets.right),
+      top: insets.top,
+      bottom: Math.max(insets.top + 80, this.camera.height - insets.bottom),
+    }
+  }
+
+  updateAimFollow(worldX, worldY) {
+    if (this.state !== 'aimFollow') this.camera.panEffect?.reset?.()
+    this.state = 'aimFollow'
+    this._aimWasActive = true
+    if (!this._canMove()) return
+    const safe = this._aimSafeZone()
+    const screenX = worldX - this.camera.scrollX
+    const screenY = worldY - this.camera.scrollY
+    let targetX = this.camera.scrollX
+    let targetY = this.camera.scrollY
+    const inset = AIM_CAMERA_TUNING.settleInsetPx
+
+    if (screenX < safe.left) targetX = worldX - (safe.left + inset)
+    else if (screenX > safe.right) targetX = worldX - (safe.right - inset)
+    if (screenY < safe.top) targetY = worldY - (safe.top + inset)
+    else if (screenY > safe.bottom) targetY = worldY - (safe.bottom - inset)
+
+    targetX = clamp(targetX, 0, Math.max(0, this.world.width - this.camera.width))
+    targetY = clamp(targetY, 0, Math.max(0, this.world.height - this.camera.height))
+    if (targetX !== this.camera.scrollX || targetY !== this.camera.scrollY) this._aimTarget = { x: targetX, y: targetY }
+    if (!this._aimTarget) return
+
+    if (isReducedMotion()) this.camera.setScroll(this._aimTarget.x, this._aimTarget.y)
+    else this._moveToward(this._aimTarget.x, this._aimTarget.y, AIM_CAMERA_TUNING.followAmount)
+    if (Math.hypot(this.camera.scrollX - this._aimTarget.x, this.camera.scrollY - this._aimTarget.y) < 0.5) {
+      this.camera.setScroll(this._aimTarget.x, this._aimTarget.y)
+      this._aimTarget = null
+    }
+  }
+
+  endAimFollow({ returnToPlayer = true } = {}) {
+    if (!this._aimWasActive && !this._aimTarget) return
+    this._aimTarget = null
+    if (!returnToPlayer) return
+    this._aimWasActive = false
+    this.focusPlayer(isReducedMotion())
   }
 
   updateRetrieveFollow(lureX, lureY) {

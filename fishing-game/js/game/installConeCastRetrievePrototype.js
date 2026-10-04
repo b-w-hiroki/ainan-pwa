@@ -10,7 +10,90 @@ export const CONE_CAST_TUNING = Object.freeze({ halfAngleDeg: 52, minDistancePx:
 const enabled = () => typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('coneLoop') === '1'
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
-const rad = degrees => degrees * Math.PI / 180
+
+function pointInPolygon(point, polygon) {
+  let inside = false
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i]
+    const b = polygon[j]
+    const crosses = ((a.y > point.y) !== (b.y > point.y))
+      && point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x
+    if (crosses) inside = !inside
+  }
+  return inside
+}
+
+export function isValidCastLanding(point, world = FISHING_WORLD) {
+  const bounds = world.waterBounds
+  const insideWater = point.x >= bounds.minX && point.x <= bounds.maxX
+    && point.y >= bounds.minY && point.y <= bounds.maxY
+  return insideWater && !(world.castLandPolygons ?? []).some(polygon => pointInPolygon(point, polygon))
+}
+
+function selectionAt(scene, angleDeg, requestedDistance) {
+  const range = Math.min(CONE_CAST_TUNING.maxDistancePx, Math.max(CONE_CAST_TUNING.minDistancePx, scene.castRangePx ?? 620))
+  const requested = clamp(requestedDistance, CONE_CAST_TUNING.minDistancePx, CONE_CAST_TUNING.maxDistancePx)
+  const abilityLimited = requested > range
+  const effectiveDistance = Math.min(requested, range)
+  const power = clamp((effectiveDistance / range - 0.4) / 0.6, 0.15, 0.95)
+  const points = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, power, range)
+  const raw = points[points.length - 1]
+  const requestedPoints = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, 0.95, requested)
+  const requestedRaw = requestedPoints[requestedPoints.length - 1]
+  return { range, requestedDistance: requested, effectiveDistance, abilityLimited, power, points, raw, requestedRaw, valid: isValidCastLanding(raw) }
+}
+
+function findValidDistance(scene, angleDeg, fromStart) {
+  const minimumPullProgress = PULL_CAST_TUNING.gesture.minPullDistancePx / PULL_CAST_TUNING.gesture.fullPullDistancePx
+  const minimumRequest = CONE_CAST_TUNING.minDistancePx + (CONE_CAST_TUNING.maxDistancePx - CONE_CAST_TUNING.minDistancePx) * minimumPullProgress
+  const maximumRequest = CONE_CAST_TUNING.maxDistancePx
+  const steps = 40
+  const distances = Array.from({ length: steps + 1 }, (_, index) => (
+    minimumRequest + (maximumRequest - minimumRequest) * index / steps
+  ))
+  if (!fromStart) distances.reverse()
+  const coarse = distances.find(distance => selectionAt(scene, angleDeg, distance).valid)
+  if (coarse == null) return null
+  const step = (maximumRequest - minimumRequest) / steps
+  let valid = coarse
+  let invalid = clamp(coarse + (fromStart ? -step : step), minimumRequest, maximumRequest)
+  if (selectionAt(scene, angleDeg, invalid).valid) return { distance: valid, point: selectionAt(scene, angleDeg, valid).raw }
+  for (let index = 0; index < 10; index++) {
+    const mid = (valid + invalid) / 2
+    if (selectionAt(scene, angleDeg, mid).valid) valid = mid
+    else invalid = mid
+  }
+  return { distance: valid, point: selectionAt(scene, angleDeg, valid).raw }
+}
+
+export function buildCastRangeGeometry(scene) {
+  const cacheKey = `${scene.anchorX}:${scene.anchorY}:${scene.castRangePx ?? 620}`
+  const cached = scene._coneCastRangeGeometryCache
+  if (cached?.cacheKey === cacheKey) {
+    return { ...cached.geometry, rodTip: scene._cameraPanRodTip ? { ...scene._cameraPanRodTip } : null }
+  }
+  const samples = []
+  const gestureAngleDeg = Math.atan(PULL_CAST_TUNING.gesture.maxHorizontalRatio) * 180 / Math.PI
+  const maxAngleDeg = Math.min(CONE_CAST_TUNING.halfAngleDeg, gestureAngleDeg - 0.25)
+  const angles = [-maxAngleDeg, 0, maxAngleDeg]
+  for (let angleDeg = -maxAngleDeg + 4; angleDeg < maxAngleDeg; angleDeg += 4) angles.push(angleDeg)
+  angles.sort((a, b) => a - b)
+  for (const angleDeg of angles) {
+    const inner = findValidDistance(scene, angleDeg, true)
+    const outer = findValidDistance(scene, angleDeg, false)
+    if (inner && outer) samples.push({ angleDeg, inner: inner.point, outer: outer.point, innerDistance: inner.distance, outerDistance: outer.distance })
+  }
+  const geometry = {
+    origin: { x: scene.anchorX, y: scene.anchorY },
+    inner: samples.map(sample => sample.inner),
+    outer: samples.map(sample => sample.outer),
+    polygon: [...samples.map(sample => sample.outer), ...samples.slice().reverse().map(sample => sample.inner)],
+    samples,
+  }
+  scene._coneCastRangeGeometryCache = { cacheKey, geometry }
+  return { ...geometry, rodTip: scene._cameraPanRodTip ? { ...scene._cameraPanRodTip } : null }
+}
+
 const ensureState = scene => (scene._coneCastState ??= {
   angleDeg: 0,
   distancePx: 620,
@@ -35,18 +118,7 @@ const ensureState = scene => (scene._coneCastState ??= {
 
 function readSelection(scene) {
   const state = ensureState(scene)
-  const range = Math.min(CONE_CAST_TUNING.maxDistancePx, Math.max(CONE_CAST_TUNING.minDistancePx, scene.castRangePx ?? 620))
-  const requestedDistance = clamp(state.distancePx, CONE_CAST_TUNING.minDistancePx, CONE_CAST_TUNING.maxDistancePx)
-  const abilityLimited = requestedDistance > range
-  const effectiveDistance = Math.min(requestedDistance, range)
-  const power = clamp((effectiveDistance / range - 0.4) / 0.6, 0.15, 0.95)
-  const points = buildTrajectory(scene.anchorX, scene.anchorY, state.angleDeg, power, range)
-  const raw = points[points.length - 1]
-  const requestedPoints = buildTrajectory(scene.anchorX, scene.anchorY, state.angleDeg, 0.95, requestedDistance)
-  const requestedRaw = requestedPoints[requestedPoints.length - 1]
-  const bounds = FISHING_WORLD.waterBounds
-  const valid = raw.x >= bounds.minX && raw.x <= bounds.maxX && raw.y >= bounds.minY && raw.y <= bounds.maxY
-  return { range, requestedDistance, effectiveDistance, abilityLimited, power, points, raw, requestedRaw, valid }
+  return selectionAt(scene, state.angleDeg, state.distancePx)
 }
 
 function setAimFromPull(scene, pullDx, pullDy) {
@@ -86,6 +158,10 @@ function buildOverlay(scene) {
   const gaugeW = PULL_CAST_TUNING.ui.gaugeWidthPx
   const gaugeX = buttonX - radius - gaugeW - 18
   const gaugeY = castY - gaugeH / 2
+  const infoX = 16
+  const infoH = compact ? 52 : 68
+  const infoY = H - infoH - (compact ? 8 : 14)
+  const infoW = Math.min(compact ? 430 : 248, Math.max(190, buttonX - radius - infoX - 12))
   const root = scene.add.container(0, 0).setDepth(9200).setScrollFactor(0)
   const castChrome = scene.add.graphics()
   castChrome.fillStyle(0x062c44, 0.72).lineStyle(3, 0xffffff, 0.94).fillRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10).strokeRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10)
@@ -93,19 +169,24 @@ function buildOverlay(scene) {
   const successHeight = gaugeH * (PULL_CAST_TUNING.gauge.successEnd - PULL_CAST_TUNING.gauge.successStart)
   castChrome.fillStyle(0xffffff, 0.18).lineStyle(3, 0xffffff, 0.98).fillRoundedRect(gaugeX, successTop, gaugeW, successHeight, 5).strokeRoundedRect(gaugeX, successTop, gaugeW, successHeight, 5)
   const reelChrome = scene.add.graphics()
-  reelChrome.fillStyle(0x062c44, 0.38).fillCircle(buttonX + 2, reelY + 4, radius + 3)
-  reelChrome.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(buttonX, reelY, radius).strokeCircle(buttonX, reelY, radius)
+  const reelMotion = scene.add.graphics()
   const charge = scene.add.graphics()
-  const label = scene.add.text(W / 2, H - (compact ? 18 : 28), 'キャラから左下へ引いて、離す', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
-  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
+  const infoChrome = scene.add.graphics()
+  infoChrome.fillStyle(0x062c44, 0.82).lineStyle(2, 0xffffff, 0.86)
+    .fillRoundedRect(infoX, infoY, infoW, infoH, 14).strokeRoundedRect(infoX, infoY, infoW, infoH, 14)
+  const label = scene.add.text(infoX + 14, infoY + (compact ? 15 : 19), '起点から斜め下へ引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 16, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
-  const mode = scene.add.text(18, H - (compact ? 35 : 48), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0, 0.5)
+  const mode = scene.add.text(infoX + 14, infoY + infoH - (compact ? 15 : 20), '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#bfeeff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const hitChrome = scene.add.graphics().setVisible(false)
+  const hitKicker = scene.add.text(W / 2, compact ? 92 : 116, 'HIT!', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '17px' : '20px', fontStyle: 'bold', color: '#ffd95a' }).setOrigin(0.5).setVisible(false)
+  const hitTitle = scene.add.text(W / 2, compact ? 116 : 143, '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5).setVisible(false)
   const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
   const qaPointer = scene.add.graphics().setVisible(false)
   const qaTimeline = scene.add.text(12, 86, '', { fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
-  root.add([castChrome, reelChrome, charge, label, gaugeLabel, feedback, mode, qaPointer, qaTimeline])
+  root.add([castChrome, reelChrome, reelMotion, charge, infoChrome, label, gaugeLabel, feedback, mode, hitChrome, hitKicker, hitTitle, qaPointer, qaTimeline])
   scene._coneCastHud = root
-  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, qaEnabled, qaPointer, qaTimeline }
+  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, infoX, infoY, infoW, infoH, infoChrome, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, reelMotion, hitChrome, hitKicker, hitTitle, qaEnabled, qaPointer, qaTimeline }
 }
 
 function drawAim(scene) {
@@ -126,30 +207,35 @@ function drawAim(scene) {
     scene._coneCastPreview = null
     return
   }
-  const { range, raw, requestedRaw, abilityLimited, valid } = readSelection(scene)
+  const selection = readSelection(scene)
+  const { range, raw, requestedRaw, abilityLimited, valid } = selection
   const cx = scene.anchorX
   const cy = scene.anchorY
-  const points = [{ x: cx, y: cy }]
-  for (let degrees = -CONE_CAST_TUNING.halfAngleDeg; degrees <= CONE_CAST_TUNING.halfAngleDeg; degrees += 4) {
-    points.push({ x: cx + Math.sin(rad(degrees)) * range * 1.2, y: cy - Math.cos(rad(degrees)) * range })
+  const geometry = buildCastRangeGeometry(scene)
+  if (geometry.polygon.length >= 6) {
+    overlay.fillStyle(0x47c8ff, 0.12).fillPoints(geometry.polygon, true)
+    overlay.lineStyle(2, 0xb7f1ff, 0.76).strokePoints(geometry.outer, false)
+    overlay.lineStyle(1.5, 0xb7f1ff, 0.46).strokePoints(geometry.inner, false)
+    overlay.lineStyle(1.5, 0xb7f1ff, 0.52)
+      .lineBetween(geometry.inner[0].x, geometry.inner[0].y, geometry.outer[0].x, geometry.outer[0].y)
+      .lineBetween(geometry.inner.at(-1).x, geometry.inner.at(-1).y, geometry.outer.at(-1).x, geometry.outer.at(-1).y)
   }
-  overlay.fillStyle(0x47c8ff, 0.18).lineStyle(2, 0xb7f1ff, 0.78)
-  overlay.fillPoints(points, true).strokePoints(points, true)
-  const shownTarget = abilityLimited ? requestedRaw : raw
-  overlay.lineStyle(3, valid && !abilityLimited ? 0xffe26b : 0xff9a5a, 0.96)
-  overlay.lineBetween(cx, cy, shownTarget.x, shownTarget.y)
-  const pullWorld = pointerWorld(scene, { x: state.pullPointerX, y: state.pullPointerY })
-  overlay.lineStyle(7, 0x062c44, 0.42).lineBetween(cx, cy, pullWorld.x, pullWorld.y)
-  overlay.lineStyle(3, 0xffffff, 0.94).lineBetween(cx, cy, pullWorld.x, pullWorld.y)
-  target.lineStyle(4, 0xffd95a, 0.96).strokeCircle(pullWorld.x, pullWorld.y, 18)
+  if (geometry.rodTip && Math.hypot(geometry.rodTip.x - cx, geometry.rodTip.y - cy) > 5) {
+    const controlX = (geometry.rodTip.x + cx) / 2
+    const controlY = Math.min(geometry.rodTip.y, cy) - 18
+    overlay.lineStyle(1.5, 0xffffff, 0.42)
+      .lineBetween(geometry.rodTip.x, geometry.rodTip.y, controlX, controlY)
+      .lineBetween(controlX, controlY, cx, cy)
+  }
+  overlay.lineStyle(4, valid ? 0xffe26b : 0xff765a, 0.96)
+  overlay.strokePoints(selection.points, false)
   if (abilityLimited) {
-    target.lineStyle(3, 0xffffff, 0.92).strokeCircle(raw.x, raw.y, 14)
-    target.lineStyle(2, 0xff9a5a, 0.82).lineBetween(raw.x, raw.y, shownTarget.x, shownTarget.y)
+    target.lineStyle(3, 0xff9a5a, 0.9).strokeCircle(raw.x, raw.y, 27)
   }
-  target.lineStyle(4, valid && !abilityLimited ? 0xffe26b : 0xff765a, 1).strokeCircle(shownTarget.x, shownTarget.y, state.dragging ? 25 : 20)
-  target.lineStyle(2, 0xffffff, 0.9).strokeCircle(shownTarget.x, shownTarget.y, 8)
-  target.fillStyle(valid && !abilityLimited ? 0xffe26b : 0xff765a, 0.25).fillCircle(shownTarget.x, shownTarget.y, 17)
-  scene._coneCastPreview = { x: shownTarget.x, y: shownTarget.y, clampedX: raw.x, clampedY: raw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: readSelection(scene).power }
+  target.lineStyle(4, valid ? 0xffe26b : 0xff765a, 1).strokeCircle(raw.x, raw.y, 20)
+  target.lineStyle(2, 0xffffff, 0.9).strokeCircle(raw.x, raw.y, 8)
+  target.fillStyle(valid ? 0xffe26b : 0xff765a, 0.25).fillCircle(raw.x, raw.y, 17)
+  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: selection.power, origin: geometry.origin, rodTip: geometry.rodTip, rangeGeometry: geometry }
 }
 
 function syncHud(scene) {
@@ -174,6 +260,7 @@ function syncPullHud(scene) {
   if (!nodes) return
   const state = ensureState(scene)
   const selection = readSelection(scene)
+  const landingMeters = Math.hypot(selection.raw.x - scene.anchorX, selection.raw.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
   const remaining = scene.bobber?.visible ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter : 0
   const pulling = state.inputMode === 'pull'
   const showPullControls = scene.phase === 'cast' && state.inputMode !== 'released' && !scene._cameraPanCasting
@@ -193,6 +280,7 @@ function syncPullHud(scene) {
   nodes.charge.setVisible(showPullControls && pulling)
   nodes.feedback.setVisible(scene.phase === 'cast')
   nodes.label.setVisible(showPullControls || scene.phase === 'retrieve')
+  nodes.infoChrome.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (scene.phase === 'cast') {
     const fillH = nodes.gaugeH * charge
     const fillY = nodes.gaugeY + nodes.gaugeH - fillH
@@ -200,23 +288,23 @@ function syncPullHud(scene) {
     if (pulling) {
       nodes.charge.fillStyle(inGood ? 0x42d68c : charge > PULL_CAST_TUNING.gauge.successEnd ? 0xff765a : 0x5bc8e8, 0.98)
         .fillRoundedRect(nodes.gaugeX + 3, fillY, nodes.gaugeW - 6, Math.max(0, fillH), 4)
-      nodes.charge.lineStyle(10, 0x062c44, 0.42).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
-      nodes.charge.lineStyle(4, 0xffffff, 0.92).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
-      nodes.charge.fillStyle(0xffd95a, 0.30).lineStyle(4, 0xffd95a, 1).fillCircle(state.pullPointerX, state.pullPointerY, 18).strokeCircle(state.pullPointerX, state.pullPointerY, 18)
+      nodes.charge.lineStyle(10, 0x062c44, 0.38).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
+      nodes.charge.lineStyle(4, 0xffd95a, 0.98).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
+      nodes.charge.fillStyle(0xffd95a, 0.36).lineStyle(4, 0xffffff, 0.96).fillCircle(state.pullPointerX, state.pullPointerY, 18).strokeCircle(state.pullPointerX, state.pullPointerY, 18)
     }
-    nodes.label.setPosition(scene.scale.width / 2, scene.scale.height - (scene.scale.height < 520 ? 18 : 28))
-      .setText(pulling ? (state.pullArmedAt == null ? '左下へ引いてセット' : inGood ? '今！ 離す' : 'ためて、離す') : '黄色の起点から左下へ引いて、離す')
+    nodes.label.setPosition(nodes.infoX + 14, nodes.infoY + (scene.scale.height < 520 ? 15 : 19)).setOrigin(0, 0.5)
+      .setText(pulling ? (state.pullArmedAt == null ? '斜め下へ引く' : inGood ? '今、離す' : charge > PULL_CAST_TUNING.gauge.successEnd ? '遅い — 次は少し早く' : '力をためる') : '起点から斜め下へ引く')
     nodes.gaugeLabel.setVisible(showPullControls && pulling)
     nodes.feedback.setPosition(nodes.gaugeX + nodes.gaugeW / 2, nodes.gaugeY - 40)
       .setText(state.pullFeedback || '')
   } else {
-    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setText('巻く')
+    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setOrigin(0.5).setText('巻く')
     nodes.gaugeLabel.setVisible(false)
     nodes.feedback.setText('')
   }
   nodes.mode.setText(scene.phase === 'cast'
-    ? pulling ? `引く方向の反対へ ${state.angleDeg.toFixed(0)}° / ${(selection.requestedDistance / FISHING_WORLD.pxPerMeter).toFixed(0)}m  ${selection.abilityLimited ? `能力上限 ${(selection.range / FISHING_WORLD.pxPerMeter).toFixed(0)}m` : '射程内'}` : ''
-    : scene.phase === 'retrieve' ? `長押しで巻く  残り ${remaining.toFixed(1)}m` : '')
+    ? pulling ? `方向 ${state.angleDeg.toFixed(0)}°  •  着水 ${landingMeters.toFixed(0)}m${selection.abilityLimited ? '  •  竿の上限' : ''}` : '引く方向と反対側へ飛びます'
+    : scene.phase === 'retrieve' ? `糸の張りを保つ  •  残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (nodes.qaEnabled) {
     const timeline = scene._pullCastTimeline ?? scene._pullCastLastTimeline ?? {}
@@ -234,6 +322,64 @@ function syncPullHud(scene) {
       nodes.qaPointer.lineStyle(2, 0xffffff, 0.95).lineBetween(state.pullPointerX - 23, state.pullPointerY, state.pullPointerX + 23, state.pullPointerY).lineBetween(state.pullPointerX, state.pullPointerY - 23, state.pullPointerX, state.pullPointerY + 23)
     }
   }
+}
+
+function syncRetrieveFlowHud(scene) {
+  const nodes = scene._coneCastHudNodes
+  if (!nodes) return
+  const state = ensureState(scene)
+  if (state.lastFlowPhase === 'retrieve' && scene.phase === 'cast') {
+    state.returnNoticeUntil = (scene.time?.now ?? 0) + 1400
+  }
+  state.lastFlowPhase = scene.phase
+  const retrieving = scene.phase === 'retrieve'
+  const reelHeld = retrieving && Boolean(scene.retrieveState?.slowHeld)
+  const remaining = scene.bobber?.visible
+    ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
+    : 0
+
+  nodes.reelChrome.clear().setVisible(retrieving)
+  nodes.reelMotion.clear().setVisible(retrieving)
+  if (retrieving) {
+    const now = scene.time?.now ?? 0
+    const pulse = reelHeld ? (Math.sin(now * 0.018) + 1) / 2 : 0
+    const buttonRadius = nodes.radius * (reelHeld ? 0.94 : 1)
+    nodes.reelChrome.fillStyle(0x062c44, 0.38).fillCircle(nodes.buttonX + 2, nodes.reelY + 4, buttonRadius + 3)
+    nodes.reelChrome.fillStyle(reelHeld ? 0xffc83d : 0xffd95a, 1).lineStyle(4, 0xffffff, 0.96)
+      .fillCircle(nodes.buttonX, nodes.reelY, buttonRadius).strokeCircle(nodes.buttonX, nodes.reelY, buttonRadius)
+    if (reelHeld) {
+      const ringRadius = nodes.radius + 8 + pulse * 4
+      nodes.reelMotion.lineStyle(4, 0x8ff2ff, 0.9 - pulse * 0.24)
+      nodes.reelMotion.beginPath().arc(nodes.buttonX, nodes.reelY, ringRadius, -Math.PI * 0.62, Math.PI * 0.82, false).strokePath()
+      for (let index = 0; index < 3; index += 1) {
+        const angle = now * 0.008 + index * Math.PI * 2 / 3
+        nodes.reelMotion.fillStyle(0xffffff, 0.88 - index * 0.14)
+          .fillCircle(nodes.buttonX + Math.cos(angle) * (nodes.radius + 13), nodes.reelY + Math.sin(angle) * (nodes.radius + 13), 3.5)
+      }
+    }
+    nodes.label.setText(reelHeld ? '巻いてる！' : '押して巻く')
+    nodes.mode.setText(`${reelHeld ? '糸が縮んでいる' : '魚の反応を見る'}  •  残り ${remaining.toFixed(1)}m`)
+  }
+
+  const showHit = scene.phase === 'wait'
+  nodes.hitChrome.clear().setVisible(showHit)
+  nodes.hitKicker.setVisible(showHit)
+  nodes.hitTitle.setVisible(showHit)
+  if (showHit) {
+    const compact = scene.scale.height < 520
+    const y = compact ? 78 : 96
+    const h = compact ? 54 : 70
+    nodes.hitChrome.fillStyle(0x062c44, 0.9).lineStyle(3, 0xffd95a, 0.98)
+      .fillRoundedRect(16, y, scene.scale.width - 32, h, 18).strokeRoundedRect(16, y, scene.scale.width - 32, h, 18)
+    nodes.hitKicker.setPosition(scene.scale.width / 2, y + (compact ? 15 : 20))
+    nodes.hitTitle.setPosition(scene.scale.width / 2, y + (compact ? 38 : 49))
+      .setText(scene.waitTapActive ? '合わせるチャンス' : '魚が食いついた…')
+  }
+
+  if (scene.phase === 'cast' && (state.returnNoticeUntil ?? 0) > (scene.time?.now ?? 0)) {
+    nodes.mode.setText('反応なし • 狙いを変えてもう一投！')
+  }
+  scene._coneCastHud?.setVisible(['cast', 'retrieve', 'wait'].includes(scene.phase))
 }
 
 function inReelActionButton(scene, pointer) {
@@ -256,6 +402,7 @@ function cancelPull(scene, feedback = '') {
   state.pullCharge = 0
   state.pullFeedback = feedback
   scene._cancelPullCastMotion?.()
+  scene.fishingCamera?.endAimFollow?.({ returnToPlayer: true })
 }
 
 function startPull(scene, pointer) {
@@ -272,7 +419,7 @@ function startPull(scene, pointer) {
   state.pullDy = 0
   state.pullArmedAt = null
   state.pullCharge = 0
-  state.pullFeedback = '左下へ引いてセット'
+  state.pullFeedback = ''
   scene._syncPullCastMotion?.({ mode: 'pull', pullProgress: 0, chargeRatio: 0, armed: false, pointerX: pointer.x, pointerY: pointer.y })
   return true
 }
@@ -314,6 +461,7 @@ function finishPull(scene, pointer, cancelled = false) {
   state.pullPointerId = null
   state.pullCharge = charge
   state.pullFeedback = outcome.label
+  scene.fishingCamera?.endAimFollow?.({ returnToPlayer: false })
   scene.events.emit('ainan-pull-cast-release-grade', outcome)
   const committed = scene._coneCommitCast?.(outcome)
   if (!committed) cancelPull(scene, '投げられません')
@@ -432,6 +580,7 @@ export function installConeCastRetrievePrototype(GameScene) {
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
+    const previousPhase = this.phase
     const result = originalEnterCast.apply(this, args)
     if (!enabled()) return result
     const state = ensureState(this)
@@ -449,6 +598,7 @@ export function installConeCastRetrievePrototype(GameScene) {
     state.pullProgress = 0
     state.pullPointerX = 0
     state.pullPointerY = 0
+    if (previousPhase === 'retrieve') state.returnNoticeUntil = (this.time?.now ?? 0) + 1400
     return result
   }
 
@@ -517,7 +667,11 @@ export function installConeCastRetrievePrototype(GameScene) {
     if (!enabled()) return result
     if (this.phase === 'retrieve' && this._coneCastState?.keyboardReelHeld) this._startSlowRetrieve?.()
     drawAim(this)
+    if (this.phase === 'cast' && this._coneCastState?.inputMode === 'pull' && this._coneCastPreview?.valid) {
+      this.fishingCamera?.updateAimFollow?.(this._coneCastPreview.x, this._coneCastPreview.y)
+    }
     syncPullHud(this)
+    syncRetrieveFlowHud(this)
     return result
   }
 
