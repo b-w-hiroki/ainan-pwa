@@ -158,6 +158,10 @@ function buildOverlay(scene) {
   const gaugeW = PULL_CAST_TUNING.ui.gaugeWidthPx
   const gaugeX = buttonX - radius - gaugeW - 18
   const gaugeY = castY - gaugeH / 2
+  const infoX = 16
+  const infoH = compact ? 52 : 68
+  const infoY = H - infoH - (compact ? 8 : 14)
+  const infoW = Math.min(compact ? 430 : 248, Math.max(190, buttonX - radius - infoX - 12))
   const root = scene.add.container(0, 0).setDepth(9200).setScrollFactor(0)
   const castChrome = scene.add.graphics()
   castChrome.fillStyle(0x062c44, 0.72).lineStyle(3, 0xffffff, 0.94).fillRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10).strokeRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10)
@@ -168,16 +172,19 @@ function buildOverlay(scene) {
   reelChrome.fillStyle(0x062c44, 0.38).fillCircle(buttonX + 2, reelY + 4, radius + 3)
   reelChrome.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(buttonX, reelY, radius).strokeCircle(buttonX, reelY, radius)
   const charge = scene.add.graphics()
-  const label = scene.add.text(W / 2, H - (compact ? 18 : 28), '起点を左下へ引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
-  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 14, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '10px' : '11px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 3 }).setOrigin(0.5)
+  const infoChrome = scene.add.graphics()
+  infoChrome.fillStyle(0x062c44, 0.82).lineStyle(2, 0xffffff, 0.86)
+    .fillRoundedRect(infoX, infoY, infoW, infoH, 14).strokeRoundedRect(infoX, infoY, infoW, infoH, 14)
+  const label = scene.add.text(infoX + 14, infoY + (compact ? 15 : 19), '起点から斜め下へ引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 16, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
-  const mode = scene.add.text(18, H - (compact ? 35 : 48), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0, 0.5)
+  const mode = scene.add.text(infoX + 14, infoY + infoH - (compact ? 15 : 20), '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#bfeeff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
   const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
   const qaPointer = scene.add.graphics().setVisible(false)
   const qaTimeline = scene.add.text(12, 86, '', { fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
-  root.add([castChrome, reelChrome, charge, label, gaugeLabel, feedback, mode, qaPointer, qaTimeline])
+  root.add([castChrome, reelChrome, charge, infoChrome, label, gaugeLabel, feedback, mode, qaPointer, qaTimeline])
   scene._coneCastHud = root
-  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, qaEnabled, qaPointer, qaTimeline }
+  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, infoX, infoY, infoW, infoH, infoChrome, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, qaEnabled, qaPointer, qaTimeline }
 }
 
 function drawAim(scene) {
@@ -271,6 +278,7 @@ function syncPullHud(scene) {
   nodes.charge.setVisible(showPullControls && pulling)
   nodes.feedback.setVisible(scene.phase === 'cast')
   nodes.label.setVisible(showPullControls || scene.phase === 'retrieve')
+  nodes.infoChrome.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (scene.phase === 'cast') {
     const fillH = nodes.gaugeH * charge
     const fillY = nodes.gaugeY + nodes.gaugeH - fillH
@@ -282,19 +290,19 @@ function syncPullHud(scene) {
       nodes.charge.lineStyle(4, 0xffd95a, 0.98).lineBetween(state.pullStartX, state.pullStartY, state.pullPointerX, state.pullPointerY)
       nodes.charge.fillStyle(0xffd95a, 0.36).lineStyle(4, 0xffffff, 0.96).fillCircle(state.pullPointerX, state.pullPointerY, 18).strokeCircle(state.pullPointerX, state.pullPointerY, 18)
     }
-    nodes.label.setPosition(scene.scale.width / 2, scene.scale.height - (scene.scale.height < 520 ? 18 : 28))
-      .setText(pulling ? (state.pullArmedAt == null ? '左下へ引く' : inGood ? '今、離す' : charge > PULL_CAST_TUNING.gauge.successEnd ? '離す' : 'ためる') : '起点を左下へ引く')
+    nodes.label.setPosition(nodes.infoX + 14, nodes.infoY + (scene.scale.height < 520 ? 15 : 19)).setOrigin(0, 0.5)
+      .setText(pulling ? (state.pullArmedAt == null ? '斜め下へ引く' : inGood ? '今、離す' : charge > PULL_CAST_TUNING.gauge.successEnd ? '遅い — 次は少し早く' : '力をためる') : '起点から斜め下へ引く')
     nodes.gaugeLabel.setVisible(showPullControls && pulling)
     nodes.feedback.setPosition(nodes.gaugeX + nodes.gaugeW / 2, nodes.gaugeY - 40)
       .setText(state.pullFeedback || '')
   } else {
-    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setText('巻く')
+    nodes.label.setPosition(nodes.buttonX, nodes.reelY).setOrigin(0.5).setText('巻く')
     nodes.gaugeLabel.setVisible(false)
     nodes.feedback.setText('')
   }
   nodes.mode.setText(scene.phase === 'cast'
-    ? pulling ? `反対へ ${state.angleDeg.toFixed(0)}°・着水 ${landingMeters.toFixed(0)}m${selection.abilityLimited ? '・竿上限' : ''}` : ''
-    : scene.phase === 'retrieve' ? `長押しで巻く・残り ${remaining.toFixed(1)}m` : '')
+    ? pulling ? `方向 ${state.angleDeg.toFixed(0)}°  •  着水 ${landingMeters.toFixed(0)}m${selection.abilityLimited ? '  •  竿の上限' : ''}` : '引く方向と反対側へ飛びます'
+    : scene.phase === 'retrieve' ? `糸の張りを保つ  •  残り ${remaining.toFixed(1)}m` : '')
   scene._coneCastHud?.setVisible(['cast', 'retrieve'].includes(scene.phase))
   if (nodes.qaEnabled) {
     const timeline = scene._pullCastTimeline ?? scene._pullCastLastTimeline ?? {}
@@ -334,6 +342,7 @@ function cancelPull(scene, feedback = '') {
   state.pullCharge = 0
   state.pullFeedback = feedback
   scene._cancelPullCastMotion?.()
+  scene.fishingCamera?.endAimFollow?.({ returnToPlayer: true })
 }
 
 function startPull(scene, pointer) {
@@ -392,6 +401,7 @@ function finishPull(scene, pointer, cancelled = false) {
   state.pullPointerId = null
   state.pullCharge = charge
   state.pullFeedback = outcome.label
+  scene.fishingCamera?.endAimFollow?.({ returnToPlayer: false })
   scene.events.emit('ainan-pull-cast-release-grade', outcome)
   const committed = scene._coneCommitCast?.(outcome)
   if (!committed) cancelPull(scene, '投げられません')
@@ -595,6 +605,9 @@ export function installConeCastRetrievePrototype(GameScene) {
     if (!enabled()) return result
     if (this.phase === 'retrieve' && this._coneCastState?.keyboardReelHeld) this._startSlowRetrieve?.()
     drawAim(this)
+    if (this.phase === 'cast' && this._coneCastState?.inputMode === 'pull' && this._coneCastPreview?.valid) {
+      this.fishingCamera?.updateAimFollow?.(this._coneCastPreview.x, this._coneCastPreview.y)
+    }
     syncPullHud(this)
     return result
   }
