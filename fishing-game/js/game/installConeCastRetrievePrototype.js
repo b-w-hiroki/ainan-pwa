@@ -169,8 +169,7 @@ function buildOverlay(scene) {
   const successHeight = gaugeH * (PULL_CAST_TUNING.gauge.successEnd - PULL_CAST_TUNING.gauge.successStart)
   castChrome.fillStyle(0xffffff, 0.18).lineStyle(3, 0xffffff, 0.98).fillRoundedRect(gaugeX, successTop, gaugeW, successHeight, 5).strokeRoundedRect(gaugeX, successTop, gaugeW, successHeight, 5)
   const reelChrome = scene.add.graphics()
-  reelChrome.fillStyle(0x062c44, 0.38).fillCircle(buttonX + 2, reelY + 4, radius + 3)
-  reelChrome.fillStyle(0xffd95a, 1).lineStyle(4, 0xffffff, 0.96).fillCircle(buttonX, reelY, radius).strokeCircle(buttonX, reelY, radius)
+  const reelMotion = scene.add.graphics()
   const charge = scene.add.graphics()
   const infoChrome = scene.add.graphics()
   infoChrome.fillStyle(0x062c44, 0.82).lineStyle(2, 0xffffff, 0.86)
@@ -179,12 +178,15 @@ function buildOverlay(scene) {
   const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 16, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0.5)
   const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
   const mode = scene.add.text(infoX + 14, infoY + infoH - (compact ? 15 : 20), '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#bfeeff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const hitChrome = scene.add.graphics().setVisible(false)
+  const hitKicker = scene.add.text(W / 2, compact ? 92 : 116, 'HIT!', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '17px' : '20px', fontStyle: 'bold', color: '#ffd95a' }).setOrigin(0.5).setVisible(false)
+  const hitTitle = scene.add.text(W / 2, compact ? 116 : 143, '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5).setVisible(false)
   const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
   const qaPointer = scene.add.graphics().setVisible(false)
   const qaTimeline = scene.add.text(12, 86, '', { fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
-  root.add([castChrome, reelChrome, charge, infoChrome, label, gaugeLabel, feedback, mode, qaPointer, qaTimeline])
+  root.add([castChrome, reelChrome, reelMotion, charge, infoChrome, label, gaugeLabel, feedback, mode, hitChrome, hitKicker, hitTitle, qaPointer, qaTimeline])
   scene._coneCastHud = root
-  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, infoX, infoY, infoW, infoH, infoChrome, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, qaEnabled, qaPointer, qaTimeline }
+  scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, infoX, infoY, infoW, infoH, infoChrome, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, reelMotion, hitChrome, hitKicker, hitTitle, qaEnabled, qaPointer, qaTimeline }
 }
 
 function drawAim(scene) {
@@ -320,6 +322,64 @@ function syncPullHud(scene) {
       nodes.qaPointer.lineStyle(2, 0xffffff, 0.95).lineBetween(state.pullPointerX - 23, state.pullPointerY, state.pullPointerX + 23, state.pullPointerY).lineBetween(state.pullPointerX, state.pullPointerY - 23, state.pullPointerX, state.pullPointerY + 23)
     }
   }
+}
+
+function syncRetrieveFlowHud(scene) {
+  const nodes = scene._coneCastHudNodes
+  if (!nodes) return
+  const state = ensureState(scene)
+  if (state.lastFlowPhase === 'retrieve' && scene.phase === 'cast') {
+    state.returnNoticeUntil = (scene.time?.now ?? 0) + 1400
+  }
+  state.lastFlowPhase = scene.phase
+  const retrieving = scene.phase === 'retrieve'
+  const reelHeld = retrieving && Boolean(scene.retrieveState?.slowHeld)
+  const remaining = scene.bobber?.visible
+    ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
+    : 0
+
+  nodes.reelChrome.clear().setVisible(retrieving)
+  nodes.reelMotion.clear().setVisible(retrieving)
+  if (retrieving) {
+    const now = scene.time?.now ?? 0
+    const pulse = reelHeld ? (Math.sin(now * 0.018) + 1) / 2 : 0
+    const buttonRadius = nodes.radius * (reelHeld ? 0.94 : 1)
+    nodes.reelChrome.fillStyle(0x062c44, 0.38).fillCircle(nodes.buttonX + 2, nodes.reelY + 4, buttonRadius + 3)
+    nodes.reelChrome.fillStyle(reelHeld ? 0xffc83d : 0xffd95a, 1).lineStyle(4, 0xffffff, 0.96)
+      .fillCircle(nodes.buttonX, nodes.reelY, buttonRadius).strokeCircle(nodes.buttonX, nodes.reelY, buttonRadius)
+    if (reelHeld) {
+      const ringRadius = nodes.radius + 8 + pulse * 4
+      nodes.reelMotion.lineStyle(4, 0x8ff2ff, 0.9 - pulse * 0.24)
+      nodes.reelMotion.beginPath().arc(nodes.buttonX, nodes.reelY, ringRadius, -Math.PI * 0.62, Math.PI * 0.82, false).strokePath()
+      for (let index = 0; index < 3; index += 1) {
+        const angle = now * 0.008 + index * Math.PI * 2 / 3
+        nodes.reelMotion.fillStyle(0xffffff, 0.88 - index * 0.14)
+          .fillCircle(nodes.buttonX + Math.cos(angle) * (nodes.radius + 13), nodes.reelY + Math.sin(angle) * (nodes.radius + 13), 3.5)
+      }
+    }
+    nodes.label.setText(reelHeld ? '巻いてる！' : '押して巻く')
+    nodes.mode.setText(`${reelHeld ? '糸が縮んでいる' : '魚の反応を見る'}  •  残り ${remaining.toFixed(1)}m`)
+  }
+
+  const showHit = scene.phase === 'wait'
+  nodes.hitChrome.clear().setVisible(showHit)
+  nodes.hitKicker.setVisible(showHit)
+  nodes.hitTitle.setVisible(showHit)
+  if (showHit) {
+    const compact = scene.scale.height < 520
+    const y = compact ? 78 : 96
+    const h = compact ? 54 : 70
+    nodes.hitChrome.fillStyle(0x062c44, 0.9).lineStyle(3, 0xffd95a, 0.98)
+      .fillRoundedRect(16, y, scene.scale.width - 32, h, 18).strokeRoundedRect(16, y, scene.scale.width - 32, h, 18)
+    nodes.hitKicker.setPosition(scene.scale.width / 2, y + (compact ? 15 : 20))
+    nodes.hitTitle.setPosition(scene.scale.width / 2, y + (compact ? 38 : 49))
+      .setText(scene.waitTapActive ? '合わせるチャンス' : '魚が食いついた…')
+  }
+
+  if (scene.phase === 'cast' && (state.returnNoticeUntil ?? 0) > (scene.time?.now ?? 0)) {
+    nodes.mode.setText('反応なし • 狙いを変えてもう一投！')
+  }
+  scene._coneCastHud?.setVisible(['cast', 'retrieve', 'wait'].includes(scene.phase))
 }
 
 function inReelActionButton(scene, pointer) {
@@ -520,6 +580,7 @@ export function installConeCastRetrievePrototype(GameScene) {
 
   const originalEnterCast = GameScene.prototype._enterCast
   GameScene.prototype._enterCast = function (...args) {
+    const previousPhase = this.phase
     const result = originalEnterCast.apply(this, args)
     if (!enabled()) return result
     const state = ensureState(this)
@@ -537,6 +598,7 @@ export function installConeCastRetrievePrototype(GameScene) {
     state.pullProgress = 0
     state.pullPointerX = 0
     state.pullPointerY = 0
+    if (previousPhase === 'retrieve') state.returnNoticeUntil = (this.time?.now ?? 0) + 1400
     return result
   }
 
@@ -609,6 +671,7 @@ export function installConeCastRetrievePrototype(GameScene) {
       this.fishingCamera?.updateAimFollow?.(this._coneCastPreview.x, this._coneCastPreview.y)
     }
     syncPullHud(this)
+    syncRetrieveFlowHud(this)
     return result
   }
 

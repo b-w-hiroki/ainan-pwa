@@ -124,7 +124,10 @@ function syncHud(scene) {
   const meters = scene.bobber?.visible
     ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
     : 0
-  nodes.distance.setText(meters > 0.5 ? `${meters.toFixed(0)}m` : '')
+  // Retrieve distance already lives beside the primary reel instruction.
+  // Keeping the header value too made the same changing number compete in
+  // two places, so reserve the header readout for cast flight only.
+  nodes.distance.setText(scene.phase === 'cast' && meters > 0.5 ? `${meters.toFixed(0)}m` : '')
   if (scene._coneCastHud) {
     nodes.status.setText('')
     return
