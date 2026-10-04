@@ -10,7 +10,90 @@ export const CONE_CAST_TUNING = Object.freeze({ halfAngleDeg: 52, minDistancePx:
 const enabled = () => typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('coneLoop') === '1'
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
-const rad = degrees => degrees * Math.PI / 180
+
+function pointInPolygon(point, polygon) {
+  let inside = false
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const a = polygon[i]
+    const b = polygon[j]
+    const crosses = ((a.y > point.y) !== (b.y > point.y))
+      && point.x < ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x
+    if (crosses) inside = !inside
+  }
+  return inside
+}
+
+export function isValidCastLanding(point, world = FISHING_WORLD) {
+  const bounds = world.waterBounds
+  const insideWater = point.x >= bounds.minX && point.x <= bounds.maxX
+    && point.y >= bounds.minY && point.y <= bounds.maxY
+  return insideWater && !(world.castLandPolygons ?? []).some(polygon => pointInPolygon(point, polygon))
+}
+
+function selectionAt(scene, angleDeg, requestedDistance) {
+  const range = Math.min(CONE_CAST_TUNING.maxDistancePx, Math.max(CONE_CAST_TUNING.minDistancePx, scene.castRangePx ?? 620))
+  const requested = clamp(requestedDistance, CONE_CAST_TUNING.minDistancePx, CONE_CAST_TUNING.maxDistancePx)
+  const abilityLimited = requested > range
+  const effectiveDistance = Math.min(requested, range)
+  const power = clamp((effectiveDistance / range - 0.4) / 0.6, 0.15, 0.95)
+  const points = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, power, range)
+  const raw = points[points.length - 1]
+  const requestedPoints = buildTrajectory(scene.anchorX, scene.anchorY, angleDeg, 0.95, requested)
+  const requestedRaw = requestedPoints[requestedPoints.length - 1]
+  return { range, requestedDistance: requested, effectiveDistance, abilityLimited, power, points, raw, requestedRaw, valid: isValidCastLanding(raw) }
+}
+
+function findValidDistance(scene, angleDeg, fromStart) {
+  const minimumPullProgress = PULL_CAST_TUNING.gesture.minPullDistancePx / PULL_CAST_TUNING.gesture.fullPullDistancePx
+  const minimumRequest = CONE_CAST_TUNING.minDistancePx + (CONE_CAST_TUNING.maxDistancePx - CONE_CAST_TUNING.minDistancePx) * minimumPullProgress
+  const maximumRequest = CONE_CAST_TUNING.maxDistancePx
+  const steps = 40
+  const distances = Array.from({ length: steps + 1 }, (_, index) => (
+    minimumRequest + (maximumRequest - minimumRequest) * index / steps
+  ))
+  if (!fromStart) distances.reverse()
+  const coarse = distances.find(distance => selectionAt(scene, angleDeg, distance).valid)
+  if (coarse == null) return null
+  const step = (maximumRequest - minimumRequest) / steps
+  let valid = coarse
+  let invalid = clamp(coarse + (fromStart ? -step : step), minimumRequest, maximumRequest)
+  if (selectionAt(scene, angleDeg, invalid).valid) return { distance: valid, point: selectionAt(scene, angleDeg, valid).raw }
+  for (let index = 0; index < 10; index++) {
+    const mid = (valid + invalid) / 2
+    if (selectionAt(scene, angleDeg, mid).valid) valid = mid
+    else invalid = mid
+  }
+  return { distance: valid, point: selectionAt(scene, angleDeg, valid).raw }
+}
+
+export function buildCastRangeGeometry(scene) {
+  const cacheKey = `${scene.anchorX}:${scene.anchorY}:${scene.castRangePx ?? 620}`
+  const cached = scene._coneCastRangeGeometryCache
+  if (cached?.cacheKey === cacheKey) {
+    return { ...cached.geometry, rodTip: scene._cameraPanRodTip ? { ...scene._cameraPanRodTip } : null }
+  }
+  const samples = []
+  const gestureAngleDeg = Math.atan(PULL_CAST_TUNING.gesture.maxHorizontalRatio) * 180 / Math.PI
+  const maxAngleDeg = Math.min(CONE_CAST_TUNING.halfAngleDeg, gestureAngleDeg - 0.25)
+  const angles = [-maxAngleDeg, 0, maxAngleDeg]
+  for (let angleDeg = -maxAngleDeg + 4; angleDeg < maxAngleDeg; angleDeg += 4) angles.push(angleDeg)
+  angles.sort((a, b) => a - b)
+  for (const angleDeg of angles) {
+    const inner = findValidDistance(scene, angleDeg, true)
+    const outer = findValidDistance(scene, angleDeg, false)
+    if (inner && outer) samples.push({ angleDeg, inner: inner.point, outer: outer.point, innerDistance: inner.distance, outerDistance: outer.distance })
+  }
+  const geometry = {
+    origin: { x: scene.anchorX, y: scene.anchorY },
+    inner: samples.map(sample => sample.inner),
+    outer: samples.map(sample => sample.outer),
+    polygon: [...samples.map(sample => sample.outer), ...samples.slice().reverse().map(sample => sample.inner)],
+    samples,
+  }
+  scene._coneCastRangeGeometryCache = { cacheKey, geometry }
+  return { ...geometry, rodTip: scene._cameraPanRodTip ? { ...scene._cameraPanRodTip } : null }
+}
+
 const ensureState = scene => (scene._coneCastState ??= {
   angleDeg: 0,
   distancePx: 620,
@@ -35,18 +118,7 @@ const ensureState = scene => (scene._coneCastState ??= {
 
 function readSelection(scene) {
   const state = ensureState(scene)
-  const range = Math.min(CONE_CAST_TUNING.maxDistancePx, Math.max(CONE_CAST_TUNING.minDistancePx, scene.castRangePx ?? 620))
-  const requestedDistance = clamp(state.distancePx, CONE_CAST_TUNING.minDistancePx, CONE_CAST_TUNING.maxDistancePx)
-  const abilityLimited = requestedDistance > range
-  const effectiveDistance = Math.min(requestedDistance, range)
-  const power = clamp((effectiveDistance / range - 0.4) / 0.6, 0.15, 0.95)
-  const points = buildTrajectory(scene.anchorX, scene.anchorY, state.angleDeg, power, range)
-  const raw = points[points.length - 1]
-  const requestedPoints = buildTrajectory(scene.anchorX, scene.anchorY, state.angleDeg, 0.95, requestedDistance)
-  const requestedRaw = requestedPoints[requestedPoints.length - 1]
-  const bounds = FISHING_WORLD.waterBounds
-  const valid = raw.x >= bounds.minX && raw.x <= bounds.maxX && raw.y >= bounds.minY && raw.y <= bounds.maxY
-  return { range, requestedDistance, effectiveDistance, abilityLimited, power, points, raw, requestedRaw, valid }
+  return selectionAt(scene, state.angleDeg, state.distancePx)
 }
 
 function setAimFromPull(scene, pullDx, pullDy) {
@@ -126,24 +198,35 @@ function drawAim(scene) {
     scene._coneCastPreview = null
     return
   }
-  const { range, raw, requestedRaw, abilityLimited, valid } = readSelection(scene)
+  const selection = readSelection(scene)
+  const { range, raw, requestedRaw, abilityLimited, valid } = selection
   const cx = scene.anchorX
   const cy = scene.anchorY
-  const points = [{ x: cx, y: cy }]
-  for (let degrees = -CONE_CAST_TUNING.halfAngleDeg; degrees <= CONE_CAST_TUNING.halfAngleDeg; degrees += 4) {
-    points.push({ x: cx + Math.sin(rad(degrees)) * range * 1.2, y: cy - Math.cos(rad(degrees)) * range })
+  const geometry = buildCastRangeGeometry(scene)
+  if (geometry.polygon.length >= 6) {
+    overlay.fillStyle(0x47c8ff, 0.12).fillPoints(geometry.polygon, true)
+    overlay.lineStyle(2, 0xb7f1ff, 0.76).strokePoints(geometry.outer, false)
+    overlay.lineStyle(1.5, 0xb7f1ff, 0.46).strokePoints(geometry.inner, false)
+    overlay.lineStyle(1.5, 0xb7f1ff, 0.52)
+      .lineBetween(geometry.inner[0].x, geometry.inner[0].y, geometry.outer[0].x, geometry.outer[0].y)
+      .lineBetween(geometry.inner.at(-1).x, geometry.inner.at(-1).y, geometry.outer.at(-1).x, geometry.outer.at(-1).y)
   }
-  overlay.fillStyle(0x47c8ff, 0.18).lineStyle(2, 0xb7f1ff, 0.78)
-  overlay.fillPoints(points, true).strokePoints(points, true)
+  if (geometry.rodTip && Math.hypot(geometry.rodTip.x - cx, geometry.rodTip.y - cy) > 5) {
+    const controlX = (geometry.rodTip.x + cx) / 2
+    const controlY = Math.min(geometry.rodTip.y, cy) - 18
+    overlay.lineStyle(1.5, 0xffffff, 0.42)
+      .lineBetween(geometry.rodTip.x, geometry.rodTip.y, controlX, controlY)
+      .lineBetween(controlX, controlY, cx, cy)
+  }
   overlay.lineStyle(4, valid ? 0xffe26b : 0xff765a, 0.96)
-  overlay.lineBetween(cx, cy, raw.x, raw.y)
+  overlay.strokePoints(selection.points, false)
   if (abilityLimited) {
     target.lineStyle(3, 0xff9a5a, 0.9).strokeCircle(raw.x, raw.y, 27)
   }
   target.lineStyle(4, valid ? 0xffe26b : 0xff765a, 1).strokeCircle(raw.x, raw.y, 20)
   target.lineStyle(2, 0xffffff, 0.9).strokeCircle(raw.x, raw.y, 8)
   target.fillStyle(valid ? 0xffe26b : 0xff765a, 0.25).fillCircle(raw.x, raw.y, 17)
-  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: readSelection(scene).power }
+  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: selection.power, origin: geometry.origin, rodTip: geometry.rodTip, rangeGeometry: geometry }
 }
 
 function syncHud(scene) {

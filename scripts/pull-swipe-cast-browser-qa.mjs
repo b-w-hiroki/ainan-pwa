@@ -124,15 +124,16 @@ async function runCase({ id, viewport = { width: 390, height: 844 }, holdMs, rod
 
 const good = await runCase({ id: 'good-left-pull', holdMs: 400 })
 const mirrored = await runCase({ id: 'good-right-pull', holdMs: 400, pull: { dx: 10, dy: 70 } })
+const leftEdge = await runCase({ id: 'good-left-edge', holdMs: 400, pull: { dx: -96, dy: 80 } })
 const early = await runCase({ id: 'early', holdMs: 0 })
 const late = await runCase({ id: 'late', holdMs: 800 })
 const limited = await runCase({ id: 'range-limited-basic', holdMs: 400, rod: 'basic', pull: { dx: -28, dy: 112 } })
 
 if (good.final.release.rating !== 'good' || mirrored.final.release.rating !== 'good' || early.final.release.rating !== 'early' || late.final.release.rating !== 'late') throw new Error(`early/good/late timing mismatch ${JSON.stringify({ good: good.final.release, mirrored: mirrored.final.release, early: early.final.release, late: late.final.release })}`)
-if (!(good.selection.state.angleDeg > 0 && mirrored.selection.state.angleDeg < 0)) throw new Error('pull/cast direction inversion failed')
+if (!(good.selection.state.angleDeg > 0 && mirrored.selection.state.angleDeg < 0 && leftEdge.selection.state.angleDeg > 49)) throw new Error('pull/cast direction inversion or reachable edge failed')
 if (!limited.selection.preview.abilityLimited) throw new Error('basic rod range clamp not visible')
 if (Math.hypot(good.final.bobber.x - good.selection.preview.clampedX, good.final.bobber.y - good.selection.preview.clampedY) > 8) throw new Error('GOOD landing missed selected target tolerance')
-for (const run of [good, mirrored, early, late]) {
+for (const run of [good, mirrored, leftEdge, early, late]) {
   if (run.final.timeline?.releaseContext?.rating !== run.final.release.rating) throw new Error(`${run.id}: motion/result mismatch`)
   if (!(run.final.timeline?.lureReleasedAt > run.final.timeline?.releasedAt && run.final.timeline?.cameraStartedAt > run.final.timeline?.lureReleasedAt)) throw new Error(`${run.id}: lure/camera order mismatch`)
 }
@@ -196,7 +197,7 @@ const shortage = await shortagePage.evaluate(() => { const s = window.__game.sce
 if (shortage.bait !== 0 || shortage.bobber || shortage.casting || shortage.locked) throw new Error(`bait shortage stuck ${JSON.stringify(shortage)}`)
 await shortageContext.close()
 
-const report = { good, mirrored, early, late, limited, viewportRuns, rodRanges, resilience: { shortTap, unrelated, multi, cancelled, rotated }, shortage }
+const report = { good, mirrored, leftEdge, early, late, limited, viewportRuns, rodRanges, resilience: { shortTap, unrelated, multi, cancelled, rotated }, shortage }
 await fs.writeFile(path.join(output, 'metrics.json'), `${JSON.stringify(report, null, 2)}\n`)
 await browser.close()
 console.log('PASS: one-gesture slingshot, inverse left/right aim, pull range, early/good/late, 3 viewports, 3 rods, unrelated drag, short tap, multi-touch, cancel, rotate, reduced motion, and bait shortage')

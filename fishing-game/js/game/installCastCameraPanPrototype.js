@@ -57,13 +57,8 @@ function buildWorld(scene) {
   addLayer(ASSETS.ui.fishingApprovedCleanHarbor, 0)
   const platform = scene.add.graphics().setDepth(6).setScrollFactor(1)
   platform.fillStyle(0x8a7357, 1).lineStyle(4, 0x4c4135, 1)
-  platform.fillPoints([
-    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
-    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
-  ], true).strokePoints([
-    { x: 0, y: FISHING_WORLD.player.y - 40 }, { x: 210, y: FISHING_WORLD.player.y - 92 },
-    { x: 302, y: FISHING_WORLD.height }, { x: 0, y: FISHING_WORLD.height },
-  ], true)
+  const platformPoints = FISHING_WORLD.castLandPolygons[0]
+  platform.fillPoints(platformPoints, true).strokePoints(platformPoints, true)
   platform.fillStyle(0x2788cf, 1).fillRoundedRect(22, FISHING_WORLD.player.y + 62, 86, 58, 9)
   platform.fillStyle(0xeef9ff, 1).fillRect(22, FISHING_WORLD.player.y + 72, 86, 10)
   scene.bg._blueprintWaterLayers.push(platform)

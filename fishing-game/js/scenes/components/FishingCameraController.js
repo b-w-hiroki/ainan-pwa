@@ -12,11 +12,19 @@ const WATER_BOUNDS = {
   maxY: 1020,
 }
 
+const CAST_PLATFORM = [
+  { x: 0, y: 1120 },
+  { x: 210, y: 1068 },
+  { x: 302, y: 1400 },
+  { x: 0, y: 1400 },
+]
+
 export const FISHING_WORLD = {
   width: 900,
   height: 1400,
   player: { x: 138, y: 1160 },
   waterBounds: WATER_BOUNDS,
+  castLandPolygons: [CAST_PLATFORM],
   pxPerMeter: 18,
 }
 
