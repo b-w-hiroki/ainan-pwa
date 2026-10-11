@@ -83,6 +83,11 @@ const expectedPremiumFish = {
   tai: { icon: 'madaiIcon', shadow: 'fishShadowMediumIdle' },
   buri: { icon: 'buriIcon', shadow: 'fishShadowLargeIdle' },
   kue: { icon: 'kueIcon', shadow: 'fishShadowLargeIdle' },
+  bass: { icon: 'blackBassIcon', shadow: 'fishShadowMediumIdle' },
+  saba: { icon: 'sabaIcon', shadow: 'fishShadowMediumIdle' },
+  isaki: { icon: 'isakiIcon', shadow: 'fishShadowMediumIdle' },
+  hirame: { icon: 'hirameIcon', shadow: 'fishShadowMediumIdle' },
+  kanpachi: { icon: 'kanpachiIcon', shadow: 'fishShadowLargeIdle' },
 }
 const battlePresentation = read('fishing-game/js/game/installFishingBattlePresentation.js')
 const resultPresentation = read('fishing-game/js/game/installFishingResultPresentation.js')
@@ -114,7 +119,7 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   assert.ok(resultPresentation.includes(id + ': ASSETS.fishHeroes.' + id + '.key'),
     id + ': Result rendering mapping drifted from matrix')
 }
-assert.ok(trackedFish.length <= FISH_LIST.length, 'tracked fish exceed gameplay content')
+assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
 const uncoveredFish = FISH_LIST.filter(fish => !trackedFish.some(item => item.fishId === fish.id))
 
 const golden = data('golden-screens.json')
