@@ -197,7 +197,18 @@ function syncQaCaughtCaptureReady(scene) {
     && lastCatch?.fishId === scene.fish?.id
     && (!requestedFish || requestedFish === scene.fish?.id)
   const flashActive = scene.cameras?.main?.flashEffect?.isRunning === true
-  if (!actuallyCaught || flashActive) {
+  // A data-ready signal based on scene.phase alone can capture a stale Battle
+  // frame. Require the actual presentation owner to have swapped visibility.
+  const host = scene._castPresentationHost
+  const hostReady = !host?.root?.active || (
+    host.root.visible &&
+    host.nodes?.resultField?.visible &&
+    host.nodes?.resultForeground?.visible &&
+    !host.nodes?.battleField?.visible &&
+    !host.nodes?.battleForeground?.visible &&
+    host.nodes?.resultGet?.text === 'GET!'
+  )
+  if (!actuallyCaught || flashActive || !hostReady) {
     scene._qaResultReadySince = null
     delete document.body.dataset.qaResultReady
     delete document.body.dataset.qaResultFish
