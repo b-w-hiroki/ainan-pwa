@@ -26,6 +26,12 @@ for (const slot of owners.slots) {
 const runtime = read('fishing-game/js/game/installFishingRuntime.js')
 assert.ok(runtime.includes('installFishingPresentationGuard(GameScene)'), 'final Fishing guard not installed')
 assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode not installed')
+const qaActions = read('fishing-game/js/game/installVerticalSliceQaMode.js')
+const staminaActions = read('fishing-game/js/game/installStaminaSessionGate.js')
+assert.ok(qaActions.includes("scene.__ainanStaminaSessionGateInstalled && ['battle', 'caught'].includes(action)"),
+  'duplicate QA Battle/caught action owners must not compete')
+assert.ok(staminaActions.includes("if (action === 'caught')"),
+  'StaminaSessionGate must own caught QA fixtures')
 for (const slot of owners.slots)
   assert.ok(runtime.includes(slot.owner + '(GameScene)'), 'owner is not installed: ' + slot.id)
 
