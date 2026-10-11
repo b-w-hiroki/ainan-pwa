@@ -27,6 +27,17 @@ const settings = read('fishing-game/js/scenes/SettingsScene.js')
 assert.ok(settings.includes('supportsHaptics'), 'Settings must expose haptics capability')
 assert.ok(settings.includes('この端末では非対応'), 'Settings must label unsupported haptics')
 
+// The final 390x844 Result is owned by CastPresentationHost, not ResultUI.
+const resultHost = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
+for (const token of ["294 / Math.max(1, name.width)", "132 / Math.max(1, size.width)",
+  "143 / Math.max(1, score.width)", "'町へ持ち帰る'", "'もう一投'"]) {
+  assert.ok(resultHost.includes(token), 'Result readability contract missing: ' + token)
+}
+assert.ok(resultHost.includes('resultTownMaskText.setFontSize(caught ? 23 : 22)'),
+  'Result primary CTA must remain clear in the approved panel')
+assert.ok(resultHost.includes("this.nodes.resultRetryText.setText('もう一投')"),
+  'Result retry label must match the approved game loop')
+
 const footer = read('fishing-game/js/ui/FooterNav.js')
 assert.ok(footer.includes("import { drawGlyph } from './UiGlyph.js'"), 'Footer must share glyph renderer')
 assert.equal((footer.match(/function drawGlyph\(/g) ?? []).length, 0, 'Footer must not duplicate drawGlyph implementation')
