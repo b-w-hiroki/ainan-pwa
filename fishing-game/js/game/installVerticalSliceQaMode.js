@@ -234,6 +234,10 @@ function forceQaAction(scene) {
   if (qaMockPhase() || isHistoryRestore()) return
   const { action, player } = qaActionState()
   if (!action && !player) return
+  // StaminaSessionGate already owns these QA actions via wall-clock fixtures.
+  // Starting them again via Phaser time can re-enter Battle *after* Result,
+  // depending on headless rendering load. Keep a single action owner.
+  if (scene.__ainanStaminaSessionGateInstalled && ['battle', 'caught'].includes(action)) return
   const forceToken = (scene._qaForceToken ?? 0) + 1
   scene._qaForceToken = forceToken
 
