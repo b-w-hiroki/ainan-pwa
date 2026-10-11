@@ -42,6 +42,9 @@ try {
           resultVisible: host?.nodes?.resultForeground?.visible,
           battleVisible: host?.nodes?.battleForeground?.visible,
           heroTexture: host?.nodes?.resultFish?.texture?.key,
+          heroVisible: host?.nodes?.resultFish?.visible,
+          heroWidth: host?.nodes?.resultFish?.displayWidth,
+          heldFishVisible: host?.nodes?.characterMotion?.fish?.visible,
         }
       })
       assert.equal(state.phase, 'result', fishId + ': phase changed before capture')
@@ -50,6 +53,9 @@ try {
       assert.equal(state.resultVisible, true, fishId + ': Result layer not visible')
       assert.equal(state.battleVisible, false, fishId + ': Battle layer still visible')
       assert.equal(state.heroTexture, 'fish_hero_' + fishId, fishId + ': incorrect premium hero texture')
+      assert.equal(state.heroVisible, true, fishId + ': premium fish hidden by celebration animation')
+      assert.ok(state.heroWidth >= 290, fishId + ': Result premium fish too small')
+      assert.equal(state.heldFishVisible, false, fishId + ': duplicate held fish competes with premium hero')
       await page.screenshot({ path: join('artifacts/e2e', filename), animations: 'disabled' })
       // Ensure the settled Result persists, not a transient QA frame.
       // The bass frame also receives a late rendered-pixel regression check.
