@@ -10,7 +10,7 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 - **procedural**: Phaserなどのコードで表現。個別PNG/SVGがなくても未実装扱いにはしない。
 - **planned**: 未制作。素材生成・採用・manifest登録・実表示QAが完了するまでassetへ変更しない。
 
-## 最初のMaster: アジ × 港
+## Masterから4魚種へ拡張: アジ / マダイ / ブリ / クエ
 
 | 局面 | 現状 | 意味 |
 | --- | --- | --- |
@@ -18,12 +18,25 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 | 着水・探索 | 共通shadow・水紋 | 位置・速度・方向による表現 |
 | 興味/追尾 | procedural retrieve logic | 魚の反応をロジックで見せる |
 | Bite/HIT | rippleBite・hitFlash | 共通演出あり |
-| Battle | fishHeroes.aji | 魚の個体感を演出 |
+| Battle | fish.ajiIcon | Battleでは魚種アイコンを描画。専用Result大型素材とは別owner |
 | Result | fishHeroes.aji | 釣果の見せ場 |
 | 図鑑 | fish.ajiIcon | 情報/コレクト用途 |
 | アジ専用Jumpフレーム | planned | 専用素材が存在するとは主張しない |
 
-別魚への展開時は同じ状態行を複製するのでなく、名前・表示実装・不足差分を確認して追加する。レアリティや釣果数値と素材の有無は独立。
+### 確認済みの魚種別差分
+
+| fishId | 構図・存在感 | Battleで使用 | Resultで使用 | 図鑑 | 未制作の個別フレーム |
+| --- | --- | --- | --- | --- | --- |
+| aji | 小型魚影 | fish.ajiIcon | fishHeroes.aji | fish.ajiIcon | 専用jump |
+| tai | 中型魚影 | fish.madaiIcon | fishHeroes.tai | fish.madaiIcon | 専用jump |
+| buri | 大型魚影 | fish.buriIcon | fishHeroes.buri | fish.buriIcon | 専用jump |
+| kue | 大型魚影＋bosses.kue | fish.kueIcon | fishHeroes.kue | fish.kueIcon | 専用jump |
+
+「大型魚素材がmanifestにある」ことと「Battleで実際に使われる」ことは別。現行Battleは魚種アイコン、Resultはpremium heroを利用する。台帳・自動テストが両方の実コードを参照する。
+
+**残り5魚種（bass / saba / isaki / hirame / kanpachi）は段階的な状態監査の対象**。その魚の通常画像・アイコンが存在しても、専用のResult大型素材まで実装済みとはみなさない。追加時は1魚ずつ、Battle/Result/図鑑とそのQAを通してから台帳へ登録する。
+
+別魚への展開時は同じ状態行を機械的に複製せず、名前・表示実装・不足差分を確認して追加する。レアリティや釣果数値と素材の有無は独立。
 
 ## 釣り場・町
 
@@ -37,4 +50,4 @@ pointA/Harbor、pointB/Bay、pointC/Capeはそれぞれ既存背景とlocation o
 4. npm run qa:pipeline を実行して実ファイルとmanifestの整合性を確認する。
 5. 390×844でサイズ差、視認性、状態間の瞬間切替、アニメの破綻を検証する。
 
-量産は1魚→3魚→10魚の順に、状態欠落とUI衝突が増えていないか確認してから拡張する。
+量産はアジ1魚→4魚種→残り5魚種の順に、状態欠落とUI衝突が増えていないか確認してから拡張する。基準となる4魚種はmanifest・ゲーム定義・Battle/Result描画への参照をscripts/pipeline-contract-smoke.mjsが検証する。
