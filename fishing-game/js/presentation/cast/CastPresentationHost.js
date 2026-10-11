@@ -12,6 +12,7 @@ const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
+const BATTLE_FISH_BOUNDS = Object.freeze({ width: 330, height: 202 })
 const BATTLE_LOCATION_ART = Object.freeze({
   pointA: ASSETS.fishingField.locationHarbor,
   pointB: ASSETS.fishingField.locationBay,
@@ -605,11 +606,15 @@ export class CastPresentationHost {
   _syncFishImage(image, fishId, slot = 'battle') {
     const asset = FISH_ART[fishId] ?? FISH_ART.tai
     if (asset?.key && this.scene.textures.exists(asset.key) && image.texture.key !== asset.key) image.setTexture(asset.key)
-    if (slot === 'result') {
+    if (slot === 'result' || slot === 'battle') {
+      // Texture replacement retains the previous image scale; a 768px Madai
+      // texture and 640px species heroes would display at different sizes.
+      // Fit the current texture inside its phase's visual bounds every time.
+      const bounds = slot === 'result' ? RESULT_FISH_BOUNDS : BATTLE_FISH_BOUNDS
       const source = image.texture?.getSourceImage?.()
       const width = source?.naturalWidth ?? source?.width ?? 1
       const height = source?.naturalHeight ?? source?.height ?? 1
-      const scale = Math.min(RESULT_FISH_BOUNDS.width / width, RESULT_FISH_BOUNDS.height / height)
+      const scale = Math.min(bounds.width / width, bounds.height / height)
       image.setDisplaySize(Math.round(width * scale), Math.round(height * scale))
     }
   }
