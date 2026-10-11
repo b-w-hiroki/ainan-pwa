@@ -246,20 +246,20 @@ export class CastPresentationHost {
       : null
     const resultName = scene.add.text(DESIGN_WIDTH / 2, 469, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '28px', fontStyle: 'bold', color: resultInfoSkin ? '#173248' : '#ffffff',
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setResolution(2)
     const resultSize = scene.add.text(119, 526, '', {
       fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: '23px', fontStyle: 'bold', color: resultInfoSkin ? '#173248' : '#ffffff', align: 'center',
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setResolution(2)
     const resultScore = scene.add.text(274, 526, '', {
       fontFamily: 'Nunito, sans-serif', fontSize: '27px', fontStyle: 'bold', color: resultInfoSkin ? '#9a6500' : '#ffdf5a',
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setResolution(2)
     const resultTownMask = scene.add.graphics().setVisible(false)
     const resultTownMaskText = scene.add.text(DESIGN_WIDTH / 2, 655, 'もう一度釣る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
-    const resultRetryText = scene.add.text(DESIGN_WIDTH / 2, 746, 'もう一度釣る', {
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
+    const resultRetryText = scene.add.text(DESIGN_WIDTH / 2, 746, 'もう一投', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const resultFailureOptions = scene.add.graphics().setVisible(false)
     resultFailureOptions.fillStyle(0x031d2e, 0.24)
     resultFailureOptions.fillRoundedRect(12, 710, 182, 80, 22)
@@ -661,12 +661,20 @@ export class CastPresentationHost {
       this.nodes.resultFish.setVisible(caught)
       if (caught) this.nodes.characterMotion?.fish?.setVisible(false)
       this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
-      this.nodes.resultName.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)
-      this.nodes.resultSize.setPosition(caught ? 119 : DESIGN_WIDTH / 2, 526)
+      // The Result card must read at phone size without changing its layout.
+      // Clamp name/score width so long Japanese labels stay within their columns.
+      const name = this.nodes.resultName
+      name.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)
+      name.setScale(Math.min(caught ? 1.5 : 1.15, 294 / Math.max(1, name.width)))
+      const size = this.nodes.resultSize
+      size.setPosition(caught ? 119 : DESIGN_WIDTH / 2, 526)
         .setFontSize(caught ? 23 : 13)
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
-      this.nodes.resultScore.setText(caught ? `${result.score} pt\n獲得済み` : '').setFontSize(caught ? 22 : 27)
+      size.setScale(caught ? Math.min(1.3, 132 / Math.max(1, size.width)) : 1)
+      const score = this.nodes.resultScore
+      score.setText(caught ? `${result.score} pt\n獲得済み` : '').setFontSize(caught ? 22 : 27)
+      score.setScale(caught ? Math.min(1.22, 143 / Math.max(1, score.width)) : 1)
       this.nodes.resultTownMask.clear().setVisible(true)
       this.nodes.resultTownMask.fillStyle(0x031d2e, 0.24)
       this.nodes.resultTownMask.fillRoundedRect(11, 620, 372, 78, 22)
@@ -680,7 +688,10 @@ export class CastPresentationHost {
         .setColor('#173248')
         .setFontSize(caught ? 16 : 18)
         .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
-      this.nodes.resultTownMaskText.setFontSize(caught ? 20 : 22).setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
+      this.nodes.resultTownMaskText.setFontSize(caught ? 23 : 22)
+        .setText(caught ? '町へ持ち帰る' : retry.primary)
+        .setScale(caught ? 1.25 : 1)
+      this.nodes.resultRetryText.setText('もう一投').setFontSize(25).setScale(caught ? 1.3 : 1)
       this.nodes.resultFailureOptions.clear().setVisible(true)
       this.nodes.resultFailureOptions.fillStyle(0x031d2e, 0.25)
       if (caught) {
