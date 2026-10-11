@@ -129,6 +129,11 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve" artifacts/e2e/47-mock-retrieve.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle" artifacts/e2e/48-mock-battle.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result" artifacts/e2e/49-mock-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&qaLocation=pointB&qaFish=bass" artifacts/e2e/50-bass-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&qaLocation=pointA&qaFish=saba" artifacts/e2e/51-saba-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&qaLocation=pointB&qaFish=isaki" artifacts/e2e/52-isaki-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&qaLocation=pointB&qaFish=hirame" artifacts/e2e/53-hirame-result.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&qaLocation=pointC&qaFish=kanpachi" artifacts/e2e/54-kanpachi-result.png
 
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
