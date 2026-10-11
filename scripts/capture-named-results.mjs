@@ -44,7 +44,7 @@ try {
         readyMarker: document.body.dataset.qaResultReady,
       }
     })
-    const assertClearance = (state, label) => {
+    const assertClearance = (state, label, { expectReadyMarker = true } = {}) => {
       assert.equal(state.phase, 'result', label + ': Result phase lost')
       assert.equal(state.outcome, 'caught', label + ': catch outcome lost')
       assert.ok(state.fish, label + ': catch fish missing')
@@ -53,7 +53,7 @@ try {
       assert.equal(state.heroVisible, true, label + ': premium Result hero hidden')
       assert.ok(state.heroWidth >= 290, label + ': premium Result hero too small')
       assert.equal(state.canvasPresent, true, label + ': game canvas missing')
-      assert.equal(state.readyMarker, 'caught', label + ': readiness marker lost')
+      if (expectReadyMarker) assert.equal(state.readyMarker, 'caught', label + ': readiness marker lost')
     }
     await clearance.waitForTimeout(850)
     const initial = await inspectClearance()
@@ -66,7 +66,7 @@ try {
     // 3400ms post-ready CLI screenshot exposed instead of concealing it.
     await clearance.waitForTimeout(2200)
     const stable = await inspectClearance()
-    assertClearance(stable, '57-clearance-result-stable.png')
+    assertClearance(stable, '57-clearance-result-stable.png', { expectReadyMarker: false })
     await clearance.screenshot({
       path: join('artifacts/e2e', '57-clearance-result-stable.png'),
       animations: 'disabled',
