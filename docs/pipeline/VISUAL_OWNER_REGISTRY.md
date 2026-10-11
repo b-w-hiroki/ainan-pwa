@@ -13,6 +13,8 @@
 | Fishing field layers | installBlueprintFishingField | FieldMotionFx、LocationAtmosphere |
 | QA fixture | installVerticalSliceQaMode | qa=1限定 |
 
+Battleのpremium魚と釣り場パーツは、既存のCastPresentationHostが同じBattle foreground内で合成する。最終レイヤー順は承認Battle base → Bay/Cape world part → premium魚 → Battle HUD。Harborは承認コンポジット側の港表現を維持し、world partを二重描画しない。
+
 「標準ホストがBattle/Resultを描画する」ことは、新規Battle/Result描画ownerを増やす許可ではない。旧描画ownerは移行中の互換経路として扱う。
 
 ## 既存構造への適用
