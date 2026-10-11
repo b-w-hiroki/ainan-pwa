@@ -51,6 +51,14 @@ try {
       assert.equal(state.battleVisible, false, fishId + ': Battle layer still visible')
       assert.equal(state.heroTexture, 'fish_hero_' + fishId, fishId + ': incorrect premium hero texture')
       await page.screenshot({ path: join('artifacts/e2e', filename), animations: 'disabled' })
+      // Ensure the settled Result persists, not a transient QA frame.
+      // The bass frame also receives a late rendered-pixel regression check.
+      if (fishId === 'bass') {
+        await page.waitForTimeout(2200)
+        const phaseLater = await page.evaluate(() => window.__game?.scene?.getScene('GameScene')?.phase)
+        assert.equal(phaseLater, 'result', fishId + ': late phase reverted to Battle')
+        await page.screenshot({ path: join('artifacts/e2e', '56-bass-result-stable.png'), animations: 'disabled' })
+      }
       console.log('Captured named Result:', filename, JSON.stringify(state))
     } finally {
       await page.close()
