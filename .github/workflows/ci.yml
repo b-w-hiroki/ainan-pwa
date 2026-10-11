@@ -76,6 +76,9 @@ jobs:
           grep -q "precache" /tmp/ainan-sw.js
           echo "PWA endpoints OK"
 
+      - name: Diagnose caught Result composition (temporary)
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/debug-result-owner.mjs
+
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e
