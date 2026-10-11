@@ -1,3 +1,4 @@
+import { FISH_LIST } from './fish.js'
 const QA_QUERY_KEY = 'qa'
 const BUILD_SHA = String(import.meta.env?.VITE_BUILD_SHA ?? 'dev').slice(0, 7)
 
@@ -247,6 +248,12 @@ function forceMockPhase(scene) {
       runtime.gfx.setVisible?.(true)
     }
 
+    if (phase === 'result') {
+      // Opt-in deterministic visual fixture; never influences normal play.
+      const selectedId = new URLSearchParams(window.location.search).get('qaFish')
+      const selectedFish = FISH_LIST.find(fish => fish.id === selectedId)
+      if (selectedFish) scene.fish = selectedFish
+    }
     scene._enterBattle?.()
     if (phase === 'result') {
       scheduleQaCall(scene, 260, () => {
