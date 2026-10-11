@@ -26,6 +26,12 @@ for (const slot of owners.slots) {
 const runtime = read('fishing-game/js/game/installFishingRuntime.js')
 assert.ok(runtime.includes('installFishingPresentationGuard(GameScene)'), 'final Fishing guard not installed')
 assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode not installed')
+const qaActions = read('fishing-game/js/game/installVerticalSliceQaMode.js')
+const staminaActions = read('fishing-game/js/game/installStaminaSessionGate.js')
+assert.ok(qaActions.includes("scene.__ainanStaminaSessionGateInstalled && ['battle', 'caught'].includes(action)"),
+  'duplicate QA Battle/caught action owners must not compete')
+assert.ok(staminaActions.includes("if (action === 'caught')"),
+  'StaminaSessionGate must own caught QA fixtures')
 for (const slot of owners.slots)
   assert.ok(runtime.includes(slot.owner + '(GameScene)'), 'owner is not installed: ' + slot.id)
 
@@ -150,9 +156,14 @@ assert.deepEqual(golden.viewport, { width: 390, height: 844 })
 unique(golden.frames.map(x => x.id), 'golden-screen id')
 unique(golden.frames.map(x => x.file), 'golden-screen filename')
 const workflow = read('.github/workflows/ci.yml')
+const namedResultCapture = 'scripts/capture-named-results.mjs'
+const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
+const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
 for (const frame of golden.frames) {
   assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
-  assert.ok(workflow.includes('artifacts/e2e/' + frame.file), 'capture missing from CI: ' + frame.file)
+  const capturedDirectly = workflow.includes('artifacts/e2e/' + frame.file)
+  const capturedByVerifiedScript = namedResultEnabled && namedResultSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
@@ -171,9 +182,17 @@ for (const filename of [
   '53-hirame-result.png', '54-kanpachi-result.png',
 ]) {
   const command = workflow.split('\n').find(line => line.includes('artifacts/e2e/' + filename))
-  assert.ok(command?.includes('--wait-for-selector=')
-    && command.includes('data-qa-result-ready'),
-    'Result must wait for settled phase, not a fixed timeout: ' + filename)
+  const directWait = command?.includes('--wait-for-selector=')
+    && command.includes('data-qa-result-ready')
+  const verifiedScriptWait = namedResultEnabled
+    && namedResultSource.includes("'" + filename + "'")
+    && namedResultSource.includes('page.waitForSelector(')
+    && namedResultSource.includes('data-qa-result-ready')
+    && namedResultSource.includes('data-qa-result-fish')
+    && namedResultSource.includes("assert.equal(state.phase, 'result'")
+    && namedResultSource.includes("assert.equal(state.heroTexture,")
+  assert.ok(directWait || verifiedScriptWait,
+    'Result must wait for settled phase and verify visible fish owner: ' + filename)
 }
 
 // Also protect all existing reward/boss caught captures from transient full-screen flashes.
@@ -184,6 +203,8 @@ for (const command of workflow.split('\n').filter(line =>
     'caught screenshot is missing stable Result wait: ' + command)
 }
 
+assert.ok(workflow.includes('node scripts/result-screen-pixel-guard.mjs'),
+  'rendered Result pixel guard must run in mobile E2E')
 const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
