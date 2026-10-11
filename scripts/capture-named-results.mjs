@@ -18,6 +18,64 @@ const cases = [
 mkdirSync('artifacts/e2e', { recursive: true })
 const browser = await chromium.launch({ headless: true })
 try {
+  // The generic Result clearance uses the same state-aware capture method as
+  // named fish. The old CLI screenshot waited 3400ms *after* readiness and on
+  // some Chromium runs captured only the page background.
+  const clearance = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+  try {
+    await clearance.goto(
+      'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaPlayer=result',
+      { waitUntil: 'domcontentloaded' },
+    )
+    await clearance.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    const inspectClearance = async () => clearance.evaluate(() => {
+      const scene = window.__game?.scene?.getScene('GameScene')
+      const host = scene?._castPresentationHost
+      const canvas = document.querySelector('#game-container canvas')
+      return {
+        phase: scene?.phase,
+        outcome: scene?._castPresentationOutcome,
+        fish: scene?.fish?.id,
+        resultVisible: host?.nodes?.resultForeground?.visible,
+        battleVisible: host?.nodes?.battleForeground?.visible,
+        heroVisible: host?.nodes?.resultFish?.visible,
+        heroWidth: host?.nodes?.resultFish?.displayWidth,
+        canvasPresent: Boolean(canvas?.isConnected && canvas.width > 0 && canvas.height > 0),
+        readyMarker: document.body.dataset.qaResultReady,
+      }
+    })
+    const assertClearance = (state, label, { expectReadyMarker = true } = {}) => {
+      assert.equal(state.phase, 'result', label + ': Result phase lost')
+      assert.equal(state.outcome, 'caught', label + ': catch outcome lost')
+      assert.ok(state.fish, label + ': catch fish missing')
+      assert.equal(state.resultVisible, true, label + ': Result foreground hidden')
+      assert.equal(state.battleVisible, false, label + ': Battle foreground resurfaced')
+      assert.equal(state.heroVisible, true, label + ': premium Result hero hidden')
+      assert.ok(state.heroWidth >= 290, label + ': premium Result hero too small')
+      assert.equal(state.canvasPresent, true, label + ': game canvas missing')
+      if (expectReadyMarker) assert.equal(state.readyMarker, 'caught', label + ': readiness marker lost')
+    }
+    await clearance.waitForTimeout(850)
+    const initial = await inspectClearance()
+    assertClearance(initial, '45-clearance-result.png')
+    await clearance.screenshot({
+      path: join('artifacts/e2e', '45-clearance-result.png'),
+      animations: 'disabled',
+    })
+    // A second late capture detects the failure mode that the former
+    // 3400ms post-ready CLI screenshot exposed instead of concealing it.
+    await clearance.waitForTimeout(2200)
+    const stable = await inspectClearance()
+    assertClearance(stable, '57-clearance-result-stable.png', { expectReadyMarker: false })
+    await clearance.screenshot({
+      path: join('artifacts/e2e', '57-clearance-result-stable.png'),
+      animations: 'disabled',
+    })
+    console.log('Captured and verified generic Result clearance:', JSON.stringify({ initial, stable }))
+  } finally {
+    await clearance.close()
+  }
+
   for (const [fishId, point, filename] of cases) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
     try {

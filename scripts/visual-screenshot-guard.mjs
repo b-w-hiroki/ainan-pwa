@@ -55,6 +55,8 @@ const keyFrames = [
   '39-player-result.png',
   '40-achievement-reward-banner.png',
   '41-menu-ui-final.png',
+  '45-clearance-result.png',
+  '57-clearance-result-stable.png',
   '50-bass-result.png',
   '51-saba-result.png',
   '52-isaki-result.png',
