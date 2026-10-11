@@ -179,6 +179,13 @@ function scheduleQaCall(scene, delay, callback) {
   return timer
 }
 
+function qaNamedFishResult() {
+  if (!qaEnabled()) return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qaAction') === 'caught' &&
+    FISH_LIST.some(fish => fish.id === params.get('qaFish'))
+}
+
 function forceQaAction(scene) {
   if (qaMockPhase() || isHistoryRestore()) return
   const { action, player } = qaActionState()
@@ -199,6 +206,10 @@ function forceQaAction(scene) {
 
     if (action === 'caught') {
       prepareQaBattleSubject(scene)
+      if (qaNamedFishResult()) {
+        const fishId = new URLSearchParams(window.location.search).get('qaFish')
+        scene.fish = FISH_LIST.find(fish => fish.id === fishId)
+      }
       scene._killWaitTimers?.()
       scene._stopRetrieveRuntime?.()
       if (scene.phase !== 'battle') scene._enterBattle?.()
@@ -248,12 +259,6 @@ function forceMockPhase(scene) {
       runtime.gfx.setVisible?.(true)
     }
 
-    if (phase === 'result') {
-      // Opt-in deterministic visual fixture; never influences normal play.
-      const selectedId = new URLSearchParams(window.location.search).get('qaFish')
-      const selectedFish = FISH_LIST.find(fish => fish.id === selectedId)
-      if (selectedFish) scene.fish = selectedFish
-    }
     scene._enterBattle?.()
     if (phase === 'result') {
       scheduleQaCall(scene, 260, () => {
@@ -385,14 +390,8 @@ export function installVerticalSliceQaMode(GameScene) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) {
-      if (!qaMockPhase()) buildQaHud(this)
+      if (!qaMockPhase() && !qaNamedFishResult()) buildQaHud(this)
       forceQaAction(this)
-      // Only named-species Result fixtures use the deterministic phase route;
-      // canonical mock frames and normal gameplay retain existing behavior.
-      if (qaMockPhase() === 'result' &&
-          new URLSearchParams(window.location.search).has('qaFish')) {
-        forceMockPhase(this)
-      }
       if (qaMockPhase() === 'cast') {
         this.time.delayedCall(0, () => {
           if (!this.sys?.isActive?.()) return
@@ -410,7 +409,7 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
-    if (this._qaEnabled && !qaMockPhase() && pointer?.y <= (this._qaPanelHeight ?? 92)) return
+    if (this._qaEnabled && !qaMockPhase() && !qaNamedFishResult() && pointer?.y <= (this._qaPanelHeight ?? 92)) return
     return originalOnDown.call(this, pointer)
   }
 
