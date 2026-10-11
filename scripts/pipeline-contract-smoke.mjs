@@ -161,6 +161,14 @@ for (const filename of [
     'Result must wait for settled phase, not a fixed timeout: ' + filename)
 }
 
+// Also protect all existing reward/boss caught captures from transient full-screen flashes.
+for (const command of workflow.split('\n').filter(line =>
+  line.includes('playwright@1.55.0 screenshot') && line.includes('qaAction=caught'))) {
+  assert.ok(command.includes("--wait-for-selector=")
+    && command.includes('data-qa-result-ready'),
+    'caught screenshot is missing stable Result wait: ' + command)
+}
+
 const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
