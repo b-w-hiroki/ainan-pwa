@@ -150,9 +150,14 @@ assert.deepEqual(golden.viewport, { width: 390, height: 844 })
 unique(golden.frames.map(x => x.id), 'golden-screen id')
 unique(golden.frames.map(x => x.file), 'golden-screen filename')
 const workflow = read('.github/workflows/ci.yml')
+const namedResultCapture = 'scripts/capture-named-results.mjs'
+const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
+const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
 for (const frame of golden.frames) {
   assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
-  assert.ok(workflow.includes('artifacts/e2e/' + frame.file), 'capture missing from CI: ' + frame.file)
+  const capturedDirectly = workflow.includes('artifacts/e2e/' + frame.file)
+  const capturedByVerifiedScript = namedResultEnabled && namedResultSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
