@@ -18,7 +18,7 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 | 着水・探索 | 共通shadow・水紋 | 位置・速度・方向による表現 |
 | 興味/追尾 | procedural retrieve logic | 魚の反応をロジックで見せる |
 | Bite/HIT | rippleBite・hitFlash | 共通演出あり |
-| Battle | fish.ajiIcon | Battleでは魚種アイコンを描画。専用Result大型素材とは別owner |
+| Battle | fish.ajiIcon | 標準CastPresentationHostでは専用大型素材を使用。旧Battleモジュールのみ魚種アイコン |
 | Result | fishHeroes.aji | 釣果の見せ場 |
 | 図鑑 | fish.ajiIcon | 情報/コレクト用途 |
 | アジ専用Jumpフレーム | planned | 専用素材が存在するとは主張しない |
@@ -27,14 +27,14 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 
 | fishId | 構図・存在感 | Battleで使用 | Resultで使用 | 図鑑 | 未制作の個別フレーム |
 | --- | --- | --- | --- | --- | --- |
-| aji | 小型魚影 | fish.ajiIcon | fishHeroes.aji | fish.ajiIcon | 専用jump |
-| tai | 中型魚影 | fish.madaiIcon | fishHeroes.tai | fish.madaiIcon | 専用jump |
-| buri | 大型魚影 | fish.buriIcon | fishHeroes.buri | fish.buriIcon | 専用jump |
-| kue | 大型魚影＋bosses.kue | fish.kueIcon | fishHeroes.kue | fish.kueIcon | 専用jump |
+| aji | 小型魚影 | fishHeroes.aji（旧: fish.ajiIcon） | fishHeroes.aji | fish.ajiIcon | 専用jump |
+| tai | 中型魚影 | ui.fishingApprovedMadaiLive（旧: fish.madaiIcon） | fishHeroes.tai | fish.madaiIcon | 専用jump |
+| buri | 大型魚影 | fishHeroes.buri（旧: fish.buriIcon） | fishHeroes.buri | fish.buriIcon | 専用jump |
+| kue | 大型魚影＋bosses.kue | fishHeroes.kue（旧: fish.kueIcon） | fishHeroes.kue | fish.kueIcon | 専用jump |
 
-「大型魚素材がmanifestにある」ことと「Battleで実際に使われる」ことは別。現行Battleは魚種アイコン、Resultはpremium heroを利用する。台帳・自動テストが両方の実コードを参照する。
+「大型魚素材がmanifestにある」ことと「Battleで実際に使われる」ことは別。**標準描画ownerはCastPresentationHost**で、Battle/Resultの両方が魚種別の大型アートを参照する。旧installFishingBattlePresentationはアイコンを使用する代替経路であり、台帳では別のstateとして記載する。
 
-**全9魚種のResult専用アセットを実装済み**。ブラックバス、サバ、イサキ、ヒラメ、カンパチは640×360の独立SVGとして追加。色だけの使い回しではなく、口・体型・ヒレ・模様を魚種ごとに描き分けた。Battleは既存アイコンを維持し、Resultのみプレミアム魚アートに置き換える。専用ジャンプは9魚種ともplannedのまま。
+**全9魚種のResult専用アセットを実装済み**。ブラックバス、サバ、イサキ、ヒラメ、カンパチは640×360の独立SVGとして追加。色だけの使い回しではなく、口・体型・ヒレ・模様を魚種ごとに描き分けた。標準CastPresentationHostはBattleにもプレミアム魚アートを使うため、新たな5魚種のアートは標準Battleにも反映される。旧Battleモジュールのアイコンと図鑑アイコンは維持する。専用ジャンプは9魚種ともplannedのまま。
 
 別魚への展開時は同じ状態行を機械的に複製せず、名前・表示実装・不足差分を確認して追加する。レアリティや釣果数値と素材の有無は独立。
 
@@ -42,11 +42,11 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 
 | fishId | Battle | Result専用素材 | 識別要素 |
 | --- | --- | --- | --- |
-| bass | fish.blackBassIcon | fishHeroes.bass | 大きな口、オリーブ色と濃い側線 |
-| saba | fish.sabaIcon | fishHeroes.saba | 細長い銀青色、背側の縞 |
-| isaki | fish.isakiIcon | fishHeroes.isaki | 黄褐色、縦帯 |
-| hirame | fish.hirameIcon | fishHeroes.hirame | 扁平な体型、上側の2眼 |
-| kanpachi | fish.kanpachiIcon | fishHeroes.kanpachi | 流線形、額の金色斜線 |
+| bass | fishHeroes.bass（旧: fish.blackBassIcon） | fishHeroes.bass | 大きな口、オリーブ色と濃い側線 |
+| saba | fishHeroes.saba（旧: fish.sabaIcon） | fishHeroes.saba | 細長い銀青色、背側の縞 |
+| isaki | fishHeroes.isaki（旧: fish.isakiIcon） | fishHeroes.isaki | 黄褐色、縦帯 |
+| hirame | fishHeroes.hirame（旧: fish.hirameIcon） | fishHeroes.hirame | 扁平な体型、上側の2眼 |
+| kanpachi | fishHeroes.kanpachi（旧: fish.kanpachiIcon） | fishHeroes.kanpachi | 流線形、額の金色斜線 |
 
 アセット存在・コード結線の自動チェックは**表示成功そのものの保証ではない**。QA専用の魚指定Result画面とモバイルスクショで視覚確認する。新規魚種の追加で釣果確率・サイズ・バトル性能を変更しない。
 
