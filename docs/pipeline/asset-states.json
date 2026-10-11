@@ -160,8 +160,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.aji"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.ajiIcon"
-          ]
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -214,9 +223,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "ui.fishingApprovedMadaiLive"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.madaiIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -268,9 +285,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.buri"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.buriIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -322,9 +347,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.kue"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.kueIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -552,9 +585,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.bass"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.blackBassIcon"
           ],
-          "note": "Battle renders species icon"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -607,9 +648,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.saba"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.sabaIcon"
           ],
-          "note": "Battle renders species icon"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -662,9 +711,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.isaki"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.isakiIcon"
           ],
-          "note": "Battle renders species icon"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -717,9 +774,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.hirame"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.hirameIcon"
           ],
-          "note": "Battle renders species icon"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -772,9 +837,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.kanpachi"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.kanpachiIcon"
           ],
-          "note": "Battle renders species icon"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
