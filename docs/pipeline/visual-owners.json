@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "rule": "one final presentation owner for each visible slot; supporting/legacy installers must yield",
+  "slots": [
+    {
+      "id": "cast.controls",
+      "phases": [
+        "cast"
+      ],
+      "owner": "installFishingPresentationGuard",
+      "file": "fishing-game/js/game/installFishingPresentationGuard.js",
+      "symbol": "buildFinalCastOverlay",
+      "supports": [
+        "installBlueprintFishingField",
+        "installMobileFishingShell"
+      ],
+      "mode": "final-visual"
+    },
+    {
+      "id": "retrieve.controls",
+      "phases": [
+        "retrieve"
+      ],
+      "owner": "installFishingPresentationGuard",
+      "file": "fishing-game/js/game/installFishingPresentationGuard.js",
+      "symbol": "buildFinalControlChrome",
+      "supports": [
+        "installBlueprintFishingField"
+      ],
+      "mode": "final-visual"
+    },
+    {
+      "id": "battle.tension",
+      "phases": [
+        "battle"
+      ],
+      "owner": "installFishingBattlePresentation",
+      "file": "fishing-game/js/game/installFishingBattlePresentation.js",
+      "symbol": "installFishingBattlePresentation",
+      "supports": [
+        "installFishingPresentationGuard"
+      ],
+      "mode": "phase-ui"
+    },
+    {
+      "id": "result.summary",
+      "phases": [
+        "result"
+      ],
+      "owner": "installFishingResultPresentation",
+      "file": "fishing-game/js/game/installFishingResultPresentation.js",
+      "symbol": "installFishingResultPresentation",
+      "supports": [
+        "installFishingPresentationGuard"
+      ],
+      "mode": "phase-ui"
+    },
+    {
+      "id": "field.layers",
+      "phases": [
+        "cast",
+        "retrieve",
+        "battle"
+      ],
+      "owner": "installBlueprintFishingField",
+      "file": "fishing-game/js/game/installBlueprintFishingField.js",
+      "symbol": "installBlueprintFishingField",
+      "supports": [
+        "installFishingFieldMotionFx",
+        "installLocationAtmosphere"
+      ],
+      "mode": "world"
+    },
+    {
+      "id": "qa.fixture",
+      "phases": [
+        "cast",
+        "retrieve",
+        "battle",
+        "result"
+      ],
+      "owner": "installVerticalSliceQaMode",
+      "file": "fishing-game/js/game/installVerticalSliceQaMode.js",
+      "symbol": "installVerticalSliceQaMode",
+      "supports": [],
+      "mode": "qa-only"
+    }
+  ]
+}

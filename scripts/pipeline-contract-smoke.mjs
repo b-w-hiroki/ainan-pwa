@@ -1,0 +1,94 @@
+import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { ASSETS } from '../fishing-game/js/config/assetManifest.js'
+
+const root = fileURLToPath(new URL('../', import.meta.url))
+const read = (name) => readFileSync(path.join(root, name), 'utf8')
+const data = (name) => JSON.parse(read('docs/pipeline/' + name))
+const unique = (values, label) =>
+  assert.equal(new Set(values).size, values.length, label + ': duplicated identity')
+const exists = (name) => assert.ok(existsSync(path.join(root, name)), 'missing file: ' + name)
+
+const owners = data('visual-owners.json')
+assert.equal(owners.schemaVersion, 1)
+assert.ok(owners.slots.length >= 6)
+unique(owners.slots.map(x => x.id), 'visual slot')
+for (const slot of owners.slots) {
+  assert.ok(slot.id && slot.owner && slot.file && slot.symbol, 'invalid visual slot')
+  assert.ok(Array.isArray(slot.phases) && slot.phases.length, 'missing phases: ' + slot.id)
+  exists(slot.file)
+  assert.ok(read(slot.file).includes(slot.symbol), 'owner symbol missing: ' + slot.id)
+  assert.ok(!slot.supports.includes(slot.owner), 'owner cannot also be support: ' + slot.id)
+}
+const runtime = read('fishing-game/js/game/installFishingRuntime.js')
+assert.ok(runtime.includes('installFishingPresentationGuard(GameScene)'), 'final Fishing guard not installed')
+assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode not installed')
+
+const states = data('asset-states.json')
+assert.equal(states.schemaVersion, 1)
+unique(states.items.map(x => x.id), 'asset-state item')
+const requiredFamilies = ['world', 'player', 'fish', 'ui', 'fx', 'town']
+for (const family of requiredFamilies)
+  assert.ok(states.items.some(x => x.family === family), 'missing family: ' + family)
+
+let assetRefs = 0
+let proceduralStates = 0
+let plannedStates = 0
+for (const item of states.items) {
+  assert.ok(item.id && Array.isArray(item.states) && item.states.length, 'invalid item: ' + item.id)
+  unique(item.states.map(x => x.id), 'states for ' + item.id)
+  for (const state of item.states) {
+    const context = item.id + '.' + state.id
+    if (state.kind === 'asset') {
+      assert.ok(Array.isArray(state.refs) && state.refs.length, 'no refs: ' + context)
+      for (const ref of state.refs) {
+        const parts = ref.split('.')
+        assert.equal(parts.length, 2, 'invalid manifest ref: ' + ref)
+        const asset = ASSETS[parts[0]]?.[parts[1]]
+        assert.ok(asset && asset.status === 'ready', 'asset not ready in manifest: ' + ref)
+        assert.ok(asset.path && asset.key, 'asset missing key/path: ' + ref)
+        const relative = asset.path.startsWith('/') ? asset.path.slice(1) : asset.path
+        assert.ok(relative.startsWith('fishing-game/assets/'), 'unexpected asset root: ' + ref)
+        exists(relative)
+        assetRefs++
+      }
+    } else if (state.kind === 'procedural') {
+      assert.ok(state.source, 'missing procedural source: ' + context)
+      exists(state.source)
+      proceduralStates++
+    } else if (state.kind === 'planned') {
+      assert.ok(state.note, 'planned state needs explicit note: ' + context)
+      assert.ok(!state.refs?.length, 'planned state cannot pretend to have an asset: ' + context)
+      plannedStates++
+    } else {
+      assert.fail('unknown state kind: ' + context)
+    }
+  }
+}
+for (const id of ['location.harbor','location.bay','location.cape','player','fish.aji'])
+  assert.ok(states.items.some(x => x.id === id), 'missing baseline vertical slice: ' + id)
+
+const golden = data('golden-screens.json')
+assert.equal(golden.schemaVersion, 1)
+assert.deepEqual(golden.viewport, { width: 390, height: 844 })
+unique(golden.frames.map(x => x.id), 'golden-screen id')
+unique(golden.frames.map(x => x.file), 'golden-screen filename')
+const workflow = read('.github/workflows/ci.yml')
+for (const frame of golden.frames) {
+  assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
+  assert.ok(workflow.includes('artifacts/e2e/' + frame.file), 'capture missing from CI: ' + frame.file)
+}
+for (const id of ['cast','retrieve','battle','result'])
+  assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
+for (const reference of golden.canonicalReferences) exists(reference)
+const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
+for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
+  assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
+
+console.log('AINAN pipeline contract QA passed')
+console.log('  visual slots:', owners.slots.length)
+console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
+  '| procedural:', proceduralStates, '| planned:', plannedStates)
+console.log('  golden screen captures:', golden.frames.length, '(390x844)')
