@@ -155,7 +155,7 @@ for (const filename of [
   '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png',
   '53-hirame-result.png', '54-kanpachi-result.png',
 ]) {
-  const command = workflow.split('\\n').find(line => line.includes('artifacts/e2e/' + filename))
+  const command = workflow.split('\n').find(line => line.includes('artifacts/e2e/' + filename))
   assert.ok(command?.includes('--wait-for-selector=')
     && command.includes('data-qa-result-ready'),
     'Result must wait for settled phase, not a fixed timeout: ' + filename)
