@@ -34,9 +34,21 @@ asset-states.jsonは初期Vertical Sliceを対象とした状態一覧。全素�
 
 「大型魚素材がmanifestにある」ことと「Battleで実際に使われる」ことは別。現行Battleは魚種アイコン、Resultはpremium heroを利用する。台帳・自動テストが両方の実コードを参照する。
 
-**残り5魚種（bass / saba / isaki / hirame / kanpachi）は段階的な状態監査の対象**。その魚の通常画像・アイコンが存在しても、専用のResult大型素材まで実装済みとはみなさない。追加時は1魚ずつ、Battle/Result/図鑑とそのQAを通してから台帳へ登録する。
+**全9魚種のResult専用アセットを実装済み**。ブラックバス、サバ、イサキ、ヒラメ、カンパチは640×360の独立SVGとして追加。色だけの使い回しではなく、口・体型・ヒレ・模様を魚種ごとに描き分けた。Battleは既存アイコンを維持し、Resultのみプレミアム魚アートに置き換える。専用ジャンプは9魚種ともplannedのまま。
 
 別魚への展開時は同じ状態行を機械的に複製せず、名前・表示実装・不足差分を確認して追加する。レアリティや釣果数値と素材の有無は独立。
+
+### 第2拡張の検証範囲
+
+| fishId | Battle | Result専用素材 | 識別要素 |
+| --- | --- | --- | --- |
+| bass | fish.blackBassIcon | fishHeroes.bass | 大きな口、オリーブ色と濃い側線 |
+| saba | fish.sabaIcon | fishHeroes.saba | 細長い銀青色、背側の縞 |
+| isaki | fish.isakiIcon | fishHeroes.isaki | 黄褐色、縦帯 |
+| hirame | fish.hirameIcon | fishHeroes.hirame | 扁平な体型、上側の2眼 |
+| kanpachi | fish.kanpachiIcon | fishHeroes.kanpachi | 流線形、額の金色斜線 |
+
+アセット存在・コード結線の自動チェックは**表示成功そのものの保証ではない**。QA専用の魚指定Result画面とモバイルスクショで視覚確認する。新規魚種の追加で釣果確率・サイズ・バトル性能を変更しない。
 
 ## 釣り場・町
 
@@ -50,4 +62,4 @@ pointA/Harbor、pointB/Bay、pointC/Capeはそれぞれ既存背景とlocation o
 4. npm run qa:pipeline を実行して実ファイルとmanifestの整合性を確認する。
 5. 390×844でサイズ差、視認性、状態間の瞬間切替、アニメの破綻を検証する。
 
-量産はアジ1魚→4魚種→残り5魚種の順に、状態欠落とUI衝突が増えていないか確認してから拡張する。基準となる4魚種はmanifest・ゲーム定義・Battle/Result描画への参照をscripts/pipeline-contract-smoke.mjsが検証する。
+量産はアジ1魚→4魚種→全9魚種の順に、状態欠落とUI衝突が増えていないか確認してから拡張する。基準となる4魚種はmanifest・ゲーム定義・Battle/Result描画への参照をscripts/pipeline-contract-smoke.mjsが検証する。
