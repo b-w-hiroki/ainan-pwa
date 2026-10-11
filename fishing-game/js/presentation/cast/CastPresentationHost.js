@@ -16,13 +16,13 @@ const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
 const FISH_ART = Object.freeze({
   aji: ASSETS.fishHeroes.aji,
   tai: ASSETS.ui.fishingApprovedMadaiLive,
-  bass: ASSETS.fish.blackBassPartV1,
+  bass: ASSETS.fishHeroes.bass,
   buri: ASSETS.fishHeroes.buri,
   kue: ASSETS.fishHeroes.kue,
-  saba: ASSETS.fish.sabaPartV1,
-  isaki: ASSETS.fish.isakiPartV1,
-  hirame: ASSETS.fish.hiramePartV1,
-  kanpachi: ASSETS.fish.kanpachiPartV1,
+  saba: ASSETS.fishHeroes.saba,
+  isaki: ASSETS.fishHeroes.isaki,
+  hirame: ASSETS.fishHeroes.hirame,
+  kanpachi: ASSETS.fishHeroes.kanpachi,
 })
 
 export function castPresentationMode() {
@@ -312,6 +312,10 @@ export class CastPresentationHost {
     const resultUi = [resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
     resultForeground.add(resultUi)
+    // The approved full-screen Result skin must remain behind the actual fish.
+    // Host owns the hero layer; keep fish above the skin and below GET/card.
+    resultField.remove(resultFish)
+    resultForeground.addAt(resultFish, 1)
     field.add([battleForeground, resultForeground])
 
     const hudBase = scene.add.graphics()
