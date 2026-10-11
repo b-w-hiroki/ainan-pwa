@@ -522,6 +522,281 @@
           ]
         }
       ]
+    },
+    {
+      "id": "fish.bass",
+      "fishId": "bass",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.blackBassIcon"
+          ],
+          "note": "Battle renders species icon"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.bass"
+          ],
+          "note": "Wide-mouthed olive bass with dark lateral band"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.blackBassIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.saba",
+      "fishId": "saba",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.sabaIcon"
+          ],
+          "note": "Battle renders species icon"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.saba"
+          ],
+          "note": "Streamlined blue silver mackerel with dorsal bars"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.sabaIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.isaki",
+      "fishId": "isaki",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.isakiIcon"
+          ],
+          "note": "Battle renders species icon"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.isaki"
+          ],
+          "note": "Golden grunt with vertical body bands"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.isakiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.hirame",
+      "fishId": "hirame",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.hirameIcon"
+          ],
+          "note": "Battle renders species icon"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.hirame"
+          ],
+          "note": "Asymmetric flatfish with both eyes on dorsal side"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.hirameIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.kanpachi",
+      "fishId": "kanpachi",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowLargeIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.kanpachiIcon"
+          ],
+          "note": "Battle renders species icon"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.kanpachi"
+          ],
+          "note": "Amberjack with diagonal golden forehead stripe"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.kanpachiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
     }
   ]
 }
