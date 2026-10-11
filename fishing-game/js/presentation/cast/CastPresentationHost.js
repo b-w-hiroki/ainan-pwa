@@ -655,7 +655,11 @@ export class CastPresentationHost {
       this.nodes.resultOutcomeFx?.setVisible(true)
         .setTexture(caught ? ASSETS.gameplayFx.resultCaught.key : ASSETS.gameplayFx.resultEscaped.key)
         .setAlpha(caught ? 0.9 : 0.78)
-      this.nodes.resultFish.setVisible(caught && this.nodes.characterMotion?.currentAction !== 'joy')
+      // Keep the full premium fish visible during the entire catch celebration.
+      // The character pose may hold a tiny duplicate fish; the premium hero is
+      // the single visual owner in Result.
+      this.nodes.resultFish.setVisible(caught)
+      if (caught) this.nodes.characterMotion?.fish?.setVisible(false)
       this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
       this.nodes.resultName.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)
       this.nodes.resultSize.setPosition(caught ? 119 : DESIGN_WIDTH / 2, 526)
