@@ -158,6 +158,10 @@ function cancelQaTimers(scene) {
 }
 
 function stopQaScene(scene) {
+  if (typeof document !== 'undefined') {
+    delete document.body?.dataset.qaResultReady
+    delete document.body?.dataset.qaResultFish
+  }
   if (!scene._qaSceneAlive) return
   scene._qaSceneAlive = false
   scene._qaLifecycleToken = (scene._qaLifecycleToken ?? 0) + 1
@@ -177,6 +181,34 @@ function scheduleQaCall(scene, delay, callback) {
   scene._qaTimers ??= new Set()
   scene._qaTimers.add(timer)
   return timer
+}
+
+// QA-only readiness signal for screenshot capture. A static delay can capture
+// the Battle phase or a full-screen catch flash on slower Chromium runners.
+function syncQaCaughtCaptureReady(scene) {
+  if (!scene._qaEnabled || typeof document === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('qaAction') !== 'caught' || qaMockPhase()) return
+
+  const lastCatch = scene.catches?.[scene.catches.length - 1]
+  const requestedFish = params.get('qaFish')
+  const actuallyCaught = scene.phase === 'result'
+    && scene._castPresentationOutcome === 'caught'
+    && lastCatch?.fishId === scene.fish?.id
+    && (!requestedFish || requestedFish === scene.fish?.id)
+  const flashActive = scene.cameras?.main?.flashEffect?.isRunning === true
+  if (!actuallyCaught || flashActive) {
+    scene._qaResultReadySince = null
+    delete document.body.dataset.qaResultReady
+    delete document.body.dataset.qaResultFish
+    return
+  }
+  scene._qaResultReadySince ??= scene.time.now
+  // Let camera effects and the first Result tween settle before screenshotting.
+  if (scene.time.now - scene._qaResultReadySince >= 450) {
+    document.body.dataset.qaResultReady = 'caught'
+    document.body.dataset.qaResultFish = scene.fish.id
+  }
 }
 
 function qaNamedFishResult() {
@@ -419,6 +451,7 @@ export function installVerticalSliceQaMode(GameScene) {
     if (this._qaEnabled) {
       syncQaHud(this)
       syncMockSubject(this)
+      syncQaCaughtCaptureReady(this)
     }
     return result
   }
