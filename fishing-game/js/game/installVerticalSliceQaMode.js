@@ -200,7 +200,8 @@ function syncQaCaughtCaptureReady(scene) {
   // A data-ready signal based on scene.phase alone can capture a stale Battle
   // frame. Require the actual presentation owner to have swapped visibility.
   const host = scene._castPresentationHost
-  const hostReady = !host?.root?.active || (
+  const hostReady = scene._castPresentationMode !== 'host' || (
+    host?.root?.active &&
     host.root.visible &&
     host.nodes?.resultField?.visible &&
     host.nodes?.resultForeground?.visible &&
