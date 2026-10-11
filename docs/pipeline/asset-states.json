@@ -160,7 +160,7 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
-            "fishHeroes.aji"
+            "fish.ajiIcon"
           ]
         },
         {
@@ -181,6 +181,177 @@
           "id": "species-specific-jump",
           "kind": "planned",
           "note": "Do not label as implemented; use existing hero/procedural motion until a dedicated frame is approved"
+        }
+      ],
+      "fishId": "aji"
+    },
+    {
+      "id": "fish.tai",
+      "fishId": "tai",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Common size-class fish shadow; species-specific silhouette is not implied"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.madaiIcon"
+          ],
+          "note": "Battle renders the fish icon, not the premium Result hero"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.tai"
+          ]
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.madaiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No dedicated マダイ jump frame is registered; retain existing procedural motion until approved"
+        }
+      ]
+    },
+    {
+      "id": "fish.buri",
+      "fishId": "buri",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowLargeIdle"
+          ],
+          "note": "Common size-class fish shadow; species-specific silhouette is not implied"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.buriIcon"
+          ],
+          "note": "Battle renders the fish icon, not the premium Result hero"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.buri"
+          ]
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.buriIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No dedicated ブリ jump frame is registered; retain existing procedural motion until approved"
+        }
+      ]
+    },
+    {
+      "id": "fish.kue",
+      "fishId": "kue",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowLargeIdle"
+          ],
+          "note": "Common size-class fish shadow; species-specific silhouette is not implied"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fish.kueIcon"
+          ],
+          "note": "Battle renders the fish icon, not the premium Result hero"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.kue"
+          ]
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.kueIcon"
+          ]
+        },
+        {
+          "id": "boss-art",
+          "kind": "asset",
+          "refs": [
+            "bosses.kue"
+          ],
+          "note": "Dedicated boss art; verifying the encounter remains a separate gameplay QA gate"
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No dedicated クエ jump frame is registered; retain existing procedural motion until approved"
         }
       ]
     },
