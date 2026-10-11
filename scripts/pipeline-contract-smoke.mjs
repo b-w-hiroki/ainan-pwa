@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ASSETS } from '../fishing-game/js/config/assetManifest.js'
+import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const read = (name) => readFileSync(path.join(root, name), 'utf8')
@@ -25,6 +26,8 @@ for (const slot of owners.slots) {
 const runtime = read('fishing-game/js/game/installFishingRuntime.js')
 assert.ok(runtime.includes('installFishingPresentationGuard(GameScene)'), 'final Fishing guard not installed')
 assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode not installed')
+for (const slot of owners.slots)
+  assert.ok(runtime.includes(slot.owner + '(GameScene)'), 'owner is not installed: ' + slot.id)
 
 const states = data('asset-states.json')
 assert.equal(states.schemaVersion, 1)
@@ -70,6 +73,50 @@ for (const item of states.items) {
 for (const id of ['location.harbor','location.bay','location.cape','player','fish.aji'])
   assert.ok(states.items.some(x => x.id === id), 'missing baseline vertical slice: ' + id)
 
+
+const trackedFish = states.items.filter(item => item.family === 'fish')
+const fishLookup = new Map(FISH_LIST.map(fish => [fish.id, fish]))
+unique(FISH_LIST.map(fish => fish.id), 'gameplay fish IDs')
+unique(trackedFish.map(item => item.fishId), 'tracked fish IDs')
+const expectedPremiumFish = {
+  aji: { icon: 'ajiIcon', shadow: 'fishShadowSmallIdle' },
+  tai: { icon: 'madaiIcon', shadow: 'fishShadowMediumIdle' },
+  buri: { icon: 'buriIcon', shadow: 'fishShadowLargeIdle' },
+  kue: { icon: 'kueIcon', shadow: 'fishShadowLargeIdle' },
+}
+const battlePresentation = read('fishing-game/js/game/installFishingBattlePresentation.js')
+const resultPresentation = read('fishing-game/js/game/installFishingResultPresentation.js')
+for (const [id, expected] of Object.entries(expectedPremiumFish)) {
+  const item = trackedFish.find(value => value.fishId === id)
+  assert.ok(item, 'premium fish state missing: ' + id)
+  assert.equal(item.id, 'fish.' + id)
+  const fish = fishLookup.get(id)
+  assert.ok(fish, 'tracked species missing from gameplay FISH_LIST: ' + id)
+  assert.ok(fish.rarity && fish.habitat?.length && fish.castZones?.length,
+    'invalid gameplay habitat/rarity/cast zone for ' + id)
+  assert.ok(fish.retrieve?.prefer && fish.feel?.hitPrompt,
+    'missing real retrieve/battle personality for ' + id)
+  const byState = Object.fromEntries(item.states.map(state => [state.id, state]))
+  for (const required of ['shadow','interest','bite','battle-hero','result-hero','collection','species-specific-jump'])
+    assert.ok(byState[required], id + ': missing state ' + required)
+  assert.deepEqual(byState.shadow.refs, ['fishingField.' + expected.shadow],
+    id + ': shadow size class differs from approved matrix')
+  assert.deepEqual(byState['battle-hero'].refs, ['fish.' + expected.icon],
+    id + ': Battle must use actual fish icon rather than Result-only hero')
+  assert.deepEqual(byState['result-hero'].refs, ['fishHeroes.' + id],
+    id + ': Result premium fish hero missing')
+  assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
+    id + ': collection icon mismatch')
+  assert.equal(byState['species-specific-jump'].kind, 'planned',
+    id + ': dedicated jump art must not be marked implemented until integrated')
+  assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
+    id + ': Battle rendering mapping drifted from matrix')
+  assert.ok(resultPresentation.includes(id + ': ASSETS.fishHeroes.' + id + '.key'),
+    id + ': Result rendering mapping drifted from matrix')
+}
+assert.ok(trackedFish.length <= FISH_LIST.length, 'tracked fish exceed gameplay content')
+const uncoveredFish = FISH_LIST.filter(fish => !trackedFish.some(item => item.fishId === fish.id))
+
 const golden = data('golden-screens.json')
 assert.equal(golden.schemaVersion, 1)
 assert.deepEqual(golden.viewport, { width: 390, height: 844 })
@@ -92,3 +139,5 @@ console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
   '| procedural:', proceduralStates, '| planned:', plannedStates)
 console.log('  golden screen captures:', golden.frames.length, '(390x844)')
+console.log('  verified premium species:', trackedFish.map(item => item.fishId).join(', '))
+console.log('  other species awaiting state audit:', uncoveredFish.map(fish => fish.id).join(', ') || 'none')
