@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { assertFieldPixelDifference } from './field-pixel-diff-guard.mjs'
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -94,6 +95,10 @@ for (const group of uniqueGroups) {
   const hashes = group.map(file => metadata.get(file)?.hash)
   assert.equal(new Set(hashes).size, group.length, 'visual states unexpectedly produced duplicate screenshots: ' + group.join(', '))
 }
+
+// A PNG hash can change without any relevant rendered pixel changing.
+// Require meaningful fishing-field differences, not just file uniqueness.
+assertFieldPixelDifference(dir)
 
 console.log('Visual screenshot guard passed')
 console.log('  screenshots:', files.length)
