@@ -1,5 +1,7 @@
 # AI Production Workflow
 
+> 現行の制作手順は [docs/pipeline/README.md](pipeline/README.md) を参照。この文書の Current Progress / Next Generation Order は初期の履歴であり、現在の実装状態を示す最新台帳ではありません。最新の素材とownerは assetManifest.js / installFishingRuntime.js / docs/pipeline 内のJSONを正とします。
+
 ## Roles
 
 ## Codex
