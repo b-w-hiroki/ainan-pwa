@@ -29,6 +29,14 @@ assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode no
 for (const slot of owners.slots)
   assert.ok(runtime.includes(slot.owner + '(GameScene)'), 'owner is not installed: ' + slot.id)
 
+const hostSource = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
+assert.ok(hostSource.includes("return params.get('castPresentation') === 'legacy'"), 'default presentation host routing missing')
+for (const slot of owners.slots.filter(slot => slot.presentationOwner)) {
+  assert.equal(slot.presentationOwner, 'CastPresentationHost', 'unsupported final presenter for ' + slot.id)
+  assert.equal(slot.presentationFile, 'fishing-game/js/presentation/cast/CastPresentationHost.js')
+  assert.ok(hostSource.includes('class CastPresentationHost'), 'presentation owner module missing')
+}
+
 const states = data('asset-states.json')
 assert.equal(states.schemaVersion, 1)
 unique(states.items.map(x => x.id), 'asset-state item')
@@ -107,8 +115,11 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     assert.ok(byState[required], id + ': missing state ' + required)
   assert.deepEqual(byState.shadow.refs, ['fishingField.' + expected.shadow],
     id + ': shadow size class differs from approved matrix')
-  assert.deepEqual(byState['battle-hero'].refs, ['fish.' + expected.icon],
-    id + ': Battle must use actual fish icon rather than Result-only hero')
+  const hostArt = id === 'tai' ? 'ui.fishingApprovedMadaiLive' : 'fishHeroes.' + id
+  assert.deepEqual(byState['battle-hero'].refs, [hostArt],
+    id + ': default host Battle art must match FISH_ART mapping')
+  assert.deepEqual(byState['battle-legacy-icon'].refs, ['fish.' + expected.icon],
+    id + ': legacy Battle icon mapping mismatch')
   assert.deepEqual(byState['result-hero'].refs, ['fishHeroes.' + id],
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
@@ -116,7 +127,11 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   assert.equal(byState['species-specific-jump'].kind, 'planned',
     id + ': dedicated jump art must not be marked implemented until integrated')
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
-    id + ': Battle rendering mapping drifted from matrix')
+    id + ': legacy Battle fallback mapping drifted from matrix')
+  const hostRef = id === 'tai'
+    ? 'tai: ASSETS.ui.fishingApprovedMadaiLive'
+    : id + ': ASSETS.fishHeroes.' + id
+  assert.ok(hostSource.includes(hostRef), id + ': default host art mapping missing')
   assert.ok(resultPresentation.includes(id + ': ASSETS.fishHeroes.' + id + '.key'),
     id + ': Result rendering mapping drifted from matrix')
   if (['bass','saba','isaki','hirame','kanpachi'].includes(id)) {
