@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "canonicalReferences": [
+    "docs/concept-art/canonical/fishing-game-direction.jpg",
+    "docs/concept-art/canonical/mobile-fishing-ui-blueprint.jpg"
+  ],
+  "rule": "CI captures are evidence, not an approved pixel-perfect baseline. Human review of composition/overlap is still required.",
+  "frames": [
+    {
+      "id": "cast",
+      "file": "46-mock-cast.png",
+      "purpose": "lower-left player / cast dock / no legacy overlay",
+      "phase": "cast"
+    },
+    {
+      "id": "retrieve",
+      "file": "47-mock-retrieve.png",
+      "purpose": "3 action controls / visible lure + fish cue",
+      "phase": "retrieve"
+    },
+    {
+      "id": "battle",
+      "file": "48-mock-battle.png",
+      "purpose": "fish hero / readable tension",
+      "phase": "battle"
+    },
+    {
+      "id": "result",
+      "file": "49-mock-result.png",
+      "purpose": "GET / fish hero / 2 CTA",
+      "phase": "result"
+    },
+    {
+      "id": "harbor",
+      "file": "15-field-harbor.png",
+      "purpose": "pointA distinct atmosphere",
+      "phase": "battle"
+    },
+    {
+      "id": "bay",
+      "file": "16-field-bay.png",
+      "purpose": "pointB distinct atmosphere",
+      "phase": "battle"
+    },
+    {
+      "id": "cape",
+      "file": "17-field-cape.png",
+      "purpose": "pointC distinct atmosphere",
+      "phase": "battle"
+    },
+    {
+      "id": "boss-harbor",
+      "file": "19-boss-harbor.png",
+      "purpose": "boss size/readability",
+      "phase": "battle"
+    },
+    {
+      "id": "boss-kue",
+      "file": "21-boss-kue.png",
+      "purpose": "legendary boss clarity",
+      "phase": "battle"
+    },
+    {
+      "id": "town-base",
+      "file": "05-town-lv1.png",
+      "purpose": "town state 1",
+      "phase": "town"
+    },
+    {
+      "id": "town-max",
+      "file": "07-town-lv5.png",
+      "purpose": "town state 5",
+      "phase": "town"
+    }
+  ]
+}
