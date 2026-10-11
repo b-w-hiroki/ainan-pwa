@@ -387,6 +387,12 @@ export function installVerticalSliceQaMode(GameScene) {
     if (this._qaEnabled) {
       if (!qaMockPhase()) buildQaHud(this)
       forceQaAction(this)
+      // Only named-species Result fixtures use the deterministic phase route;
+      // canonical mock frames and normal gameplay retain existing behavior.
+      if (qaMockPhase() === 'result' &&
+          new URLSearchParams(window.location.search).has('qaFish')) {
+        forceMockPhase(this)
+      }
       if (qaMockPhase() === 'cast') {
         this.time.delayedCall(0, () => {
           if (!this.sys?.isActive?.()) return
