@@ -1,0 +1,356 @@
+{
+  "schemaVersion": 1,
+  "policy": "asset=existing manifest key, procedural=implemented in named source, planned=not production ready",
+  "items": [
+    {
+      "id": "location.harbor",
+      "family": "world",
+      "states": [
+        {
+          "id": "base",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.fishingHarbor"
+          ]
+        },
+        {
+          "id": "surface",
+          "kind": "asset",
+          "refs": [
+            "fishingField.waterBase",
+            "fishingField.waterPattern",
+            "fishingField.waterHighlight"
+          ]
+        },
+        {
+          "id": "location-overlay",
+          "kind": "asset",
+          "refs": [
+            "fishingField.locationHarbor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "location.bay",
+      "family": "world",
+      "states": [
+        {
+          "id": "base",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.fishingBay"
+          ]
+        },
+        {
+          "id": "location-overlay",
+          "kind": "asset",
+          "refs": [
+            "fishingField.locationBay"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "location.cape",
+      "family": "world",
+      "states": [
+        {
+          "id": "base",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.fishingCape"
+          ]
+        },
+        {
+          "id": "location-overlay",
+          "kind": "asset",
+          "refs": [
+            "fishingField.locationCape"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "player",
+      "family": "player",
+      "states": [
+        {
+          "id": "cast",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingCastHero"
+          ]
+        },
+        {
+          "id": "cast-rodless",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingCastRodless"
+          ]
+        },
+        {
+          "id": "cast-windup",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingMotionCastWindup"
+          ]
+        },
+        {
+          "id": "cast-release",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingMotionCastRelease"
+          ]
+        },
+        {
+          "id": "retrieve",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingRetrieveHero"
+          ]
+        },
+        {
+          "id": "fight",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingMotionFightMid"
+          ]
+        },
+        {
+          "id": "success",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingMotionJoyHold"
+          ]
+        },
+        {
+          "id": "failure",
+          "kind": "asset",
+          "refs": [
+            "characters.fishingMotionSadSlump"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fish.aji",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowSmallIdle"
+          ]
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.aji"
+          ]
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.aji"
+          ]
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.ajiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "Do not label as implemented; use existing hero/procedural motion until a dedicated frame is approved"
+        }
+      ]
+    },
+    {
+      "id": "ui.cast",
+      "family": "ui",
+      "states": [
+        {
+          "id": "button",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingCastButton"
+          ]
+        },
+        {
+          "id": "instruction",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingInstructionPanel"
+          ]
+        },
+        {
+          "id": "power",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installFishingPresentationGuard.js"
+        }
+      ]
+    },
+    {
+      "id": "ui.retrieve",
+      "family": "ui",
+      "states": [
+        {
+          "id": "wait",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingWaitButton"
+          ]
+        },
+        {
+          "id": "short",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingShortButton"
+          ]
+        },
+        {
+          "id": "slow",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingSlowButton"
+          ]
+        },
+        {
+          "id": "lure",
+          "kind": "asset",
+          "refs": [
+            "fishingField.lureIdle"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ui.battle-result",
+      "family": "ui",
+      "states": [
+        {
+          "id": "battle-top",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingBattleTopPanel"
+          ]
+        },
+        {
+          "id": "battle-dial",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingBattleDial"
+          ]
+        },
+        {
+          "id": "result-get",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingResultGet"
+          ]
+        },
+        {
+          "id": "take-to-town",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingTownButton"
+          ]
+        },
+        {
+          "id": "retry",
+          "kind": "asset",
+          "refs": [
+            "ui.fishingRetryButton"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fx.water",
+      "family": "fx",
+      "states": [
+        {
+          "id": "idle-ripple",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleSmall"
+          ]
+        },
+        {
+          "id": "follow-wake",
+          "kind": "asset",
+          "refs": [
+            "fishingField.followWave"
+          ]
+        },
+        {
+          "id": "hit-flash",
+          "kind": "asset",
+          "refs": [
+            "fishingField.hitFlash"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "town",
+      "family": "town",
+      "states": [
+        {
+          "id": "quiet",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.townQuiet"
+          ]
+        },
+        {
+          "id": "growing",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.townGrowing"
+          ]
+        },
+        {
+          "id": "bustling",
+          "kind": "asset",
+          "refs": [
+            "backgrounds.townBustling"
+          ]
+        },
+        {
+          "id": "market",
+          "kind": "asset",
+          "refs": [
+            "facilities.market"
+          ]
+        },
+        {
+          "id": "diner",
+          "kind": "asset",
+          "refs": [
+            "facilities.diner"
+          ]
+        }
+      ]
+    }
+  ]
+}
