@@ -176,9 +176,17 @@ for (const filename of [
   '53-hirame-result.png', '54-kanpachi-result.png',
 ]) {
   const command = workflow.split('\n').find(line => line.includes('artifacts/e2e/' + filename))
-  assert.ok(command?.includes('--wait-for-selector=')
-    && command.includes('data-qa-result-ready'),
-    'Result must wait for settled phase, not a fixed timeout: ' + filename)
+  const directWait = command?.includes('--wait-for-selector=')
+    && command.includes('data-qa-result-ready')
+  const verifiedScriptWait = namedResultEnabled
+    && namedResultSource.includes("'" + filename + "'")
+    && namedResultSource.includes('page.waitForSelector(')
+    && namedResultSource.includes('data-qa-result-ready')
+    && namedResultSource.includes('data-qa-result-fish')
+    && namedResultSource.includes("assert.equal(state.phase, 'result'")
+    && namedResultSource.includes("assert.equal(state.heroTexture,")
+  assert.ok(directWait || verifiedScriptWait,
+    'Result must wait for settled phase and verify visible fish owner: ' + filename)
 }
 
 // Also protect all existing reward/boss caught captures from transient full-screen flashes.
@@ -189,6 +197,8 @@ for (const command of workflow.split('\n').filter(line =>
     'caught screenshot is missing stable Result wait: ' + command)
 }
 
+assert.ok(workflow.includes('node scripts/result-screen-pixel-guard.mjs'),
+  'rendered Result pixel guard must run in mobile E2E')
 const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
