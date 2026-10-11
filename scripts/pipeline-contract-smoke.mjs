@@ -90,6 +90,7 @@ const expectedPremiumFish = {
   kanpachi: { icon: 'kanpachiIcon', shadow: 'fishShadowLargeIdle' },
 }
 const battlePresentation = read('fishing-game/js/game/installFishingBattlePresentation.js')
+const hostPresentation = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
 const resultPresentation = read('fishing-game/js/game/installFishingResultPresentation.js')
 for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   const item = trackedFish.find(value => value.fishId === id)
@@ -118,8 +119,14 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Battle rendering mapping drifted from matrix')
   assert.ok(resultPresentation.includes(id + ': ASSETS.fishHeroes.' + id + '.key'),
     id + ': Result rendering mapping drifted from matrix')
+  if (['bass','saba','isaki','hirame','kanpachi'].includes(id)) {
+    assert.ok(hostPresentation.includes(id + ': ASSETS.fishHeroes.' + id),
+      id + ': active CastPresentationHost must use premium fish asset')
+  }
 }
 assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
+assert.ok(hostPresentation.includes('resultForeground.addAt(resultFish, 1)'),
+  'premium Result hero must render in front of approved result skin')
 const uncoveredFish = FISH_LIST.filter(fish => !trackedFish.some(item => item.fishId === fish.id))
 
 const golden = data('golden-screens.json')
