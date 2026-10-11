@@ -218,7 +218,16 @@ export function installStaminaSessionGate(GameScene) {
       return
     }
 
-    const result = originalCreate.apply(this, args)
+    // QA screenshots must start in the requested real location, not merely
+    // paint an unrelated atmosphere on top of the default harbor scene.
+    // Production GameScene arguments are unchanged when qa=1 is absent.
+    const search = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search)
+    const qaPoint = search?.get('qa') === '1' ? search.get('qaLocation') : null
+    const validQaPoint = ['pointA', 'pointB', 'pointC'].includes(qaPoint)
+    const createArgs = validQaPoint
+      ? [{ ...(args[0] ?? {}), point: qaPoint }, ...args.slice(1)]
+      : args
+    const result = originalCreate.apply(this, createArgs)
     this._applyRcFishingPresentation?.(this.phase)
     if (typeof window === 'undefined') return result
 
