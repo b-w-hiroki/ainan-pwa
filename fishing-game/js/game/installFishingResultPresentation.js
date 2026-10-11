@@ -7,6 +7,11 @@ const FISH_HERO_KEYS = {
   tai: ASSETS.fishHeroes.tai.key,
   buri: ASSETS.fishHeroes.buri.key,
   kue: ASSETS.fishHeroes.kue.key,
+  bass: ASSETS.fishHeroes.bass.key,
+  saba: ASSETS.fishHeroes.saba.key,
+  isaki: ASSETS.fishHeroes.isaki.key,
+  hirame: ASSETS.fishHeroes.hirame.key,
+  kanpachi: ASSETS.fishHeroes.kanpachi.key,
 }
 
 const RARITY = {
