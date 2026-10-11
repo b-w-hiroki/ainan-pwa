@@ -55,6 +55,11 @@ const keyFrames = [
   '39-player-result.png',
   '40-achievement-reward-banner.png',
   '41-menu-ui-final.png',
+  '50-bass-result.png',
+  '51-saba-result.png',
+  '52-isaki-result.png',
+  '53-hirame-result.png',
+  '54-kanpachi-result.png',
 ]
 
 const perFrameMinimum = {
@@ -76,6 +81,7 @@ const uniqueGroups = [
   ['32-reward-first.png', '33-reward-record.png', '34-reward-rare.png', '35-reward-legendary.png'],
   ['36-player-hit.png', '37-player-battle.png', '38-player-boss.png', '39-player-result.png'],
   ['46-mock-cast.png', '47-mock-retrieve.png', '48-mock-battle.png', '49-mock-result.png'],
+  ['50-bass-result.png', '51-saba-result.png', '52-isaki-result.png', '53-hirame-result.png', '54-kanpachi-result.png'],
 ]
 
 for (const group of uniqueGroups) {

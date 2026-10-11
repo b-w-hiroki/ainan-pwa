@@ -14,7 +14,10 @@
         "installBlueprintFishingField",
         "installMobileFishingShell"
       ],
-      "mode": "final-visual"
+      "mode": "final-visual",
+      "presentationOwner": "CastPresentationHost",
+      "presentationFile": "fishing-game/js/presentation/cast/CastPresentationHost.js",
+      "note": "Default host-mode visible owner; slot.owner remains the wrapper installer / fallback owner"
     },
     {
       "id": "retrieve.controls",
@@ -27,7 +30,10 @@
       "supports": [
         "installBlueprintFishingField"
       ],
-      "mode": "final-visual"
+      "mode": "final-visual",
+      "presentationOwner": "CastPresentationHost",
+      "presentationFile": "fishing-game/js/presentation/cast/CastPresentationHost.js",
+      "note": "Default host-mode visible owner; slot.owner remains the wrapper installer / fallback owner"
     },
     {
       "id": "battle.tension",
@@ -40,7 +46,10 @@
       "supports": [
         "installFishingPresentationGuard"
       ],
-      "mode": "phase-ui"
+      "mode": "phase-ui",
+      "presentationOwner": "CastPresentationHost",
+      "presentationFile": "fishing-game/js/presentation/cast/CastPresentationHost.js",
+      "note": "Default host-mode visible owner; slot.owner remains the wrapper installer / fallback owner"
     },
     {
       "id": "result.summary",
@@ -53,7 +62,10 @@
       "supports": [
         "installFishingPresentationGuard"
       ],
-      "mode": "phase-ui"
+      "mode": "phase-ui",
+      "presentationOwner": "CastPresentationHost",
+      "presentationFile": "fishing-game/js/presentation/cast/CastPresentationHost.js",
+      "note": "Default host-mode visible owner; slot.owner remains the wrapper installer / fallback owner"
     },
     {
       "id": "field.layers",

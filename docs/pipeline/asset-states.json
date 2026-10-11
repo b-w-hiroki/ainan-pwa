@@ -160,8 +160,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.aji"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.ajiIcon"
-          ]
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -214,9 +223,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "ui.fishingApprovedMadaiLive"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.madaiIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -268,9 +285,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.buri"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.buriIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -322,9 +347,17 @@
           "id": "battle-hero",
           "kind": "asset",
           "refs": [
+            "fishHeroes.kue"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
             "fish.kueIcon"
           ],
-          "note": "Battle renders the fish icon, not the premium Result hero"
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
         },
         {
           "id": "result-hero",
@@ -520,6 +553,321 @@
           "refs": [
             "facilities.diner"
           ]
+        }
+      ]
+    },
+    {
+      "id": "fish.bass",
+      "fishId": "bass",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.bass"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
+            "fish.blackBassIcon"
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.bass"
+          ],
+          "note": "Wide-mouthed olive bass with dark lateral band"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.blackBassIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.saba",
+      "fishId": "saba",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.saba"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
+            "fish.sabaIcon"
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.saba"
+          ],
+          "note": "Streamlined blue silver mackerel with dorsal bars"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.sabaIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.isaki",
+      "fishId": "isaki",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.isaki"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
+            "fish.isakiIcon"
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.isaki"
+          ],
+          "note": "Golden grunt with vertical body bands"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.isakiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.hirame",
+      "fishId": "hirame",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowMediumIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.hirame"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
+            "fish.hirameIcon"
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.hirame"
+          ],
+          "note": "Asymmetric flatfish with both eyes on dorsal side"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.hirameIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fish.kanpachi",
+      "fishId": "kanpachi",
+      "family": "fish",
+      "states": [
+        {
+          "id": "shadow",
+          "kind": "asset",
+          "refs": [
+            "fishingField.fishShadowLargeIdle"
+          ],
+          "note": "Shared size-class shadow, not a species-specific fish image"
+        },
+        {
+          "id": "interest",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/installRetrieveGameplay.js"
+        },
+        {
+          "id": "bite",
+          "kind": "asset",
+          "refs": [
+            "fishingField.rippleBite"
+          ]
+        },
+        {
+          "id": "battle-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.kanpachi"
+          ],
+          "note": "Default CastPresentationHost uses premium art in Battle; legacy renderer uses separate fish icon"
+        },
+        {
+          "id": "battle-legacy-icon",
+          "kind": "asset",
+          "refs": [
+            "fish.kanpachiIcon"
+          ],
+          "note": "Legacy installFishingBattlePresentation fallback only; not default host"
+        },
+        {
+          "id": "result-hero",
+          "kind": "asset",
+          "refs": [
+            "fishHeroes.kanpachi"
+          ],
+          "note": "Amberjack with diagonal golden forehead stripe"
+        },
+        {
+          "id": "collection",
+          "kind": "asset",
+          "refs": [
+            "fish.kanpachiIcon"
+          ]
+        },
+        {
+          "id": "species-specific-jump",
+          "kind": "planned",
+          "note": "No approved dedicated jump frame; existing animation remains procedural"
         }
       ]
     }

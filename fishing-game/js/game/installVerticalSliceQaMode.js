@@ -1,3 +1,4 @@
+import { FISH_LIST } from './fish.js'
 const QA_QUERY_KEY = 'qa'
 const BUILD_SHA = String(import.meta.env?.VITE_BUILD_SHA ?? 'dev').slice(0, 7)
 
@@ -157,6 +158,10 @@ function cancelQaTimers(scene) {
 }
 
 function stopQaScene(scene) {
+  if (typeof document !== 'undefined') {
+    delete document.body?.dataset.qaResultReady
+    delete document.body?.dataset.qaResultFish
+  }
   if (!scene._qaSceneAlive) return
   scene._qaSceneAlive = false
   scene._qaLifecycleToken = (scene._qaLifecycleToken ?? 0) + 1
@@ -176,6 +181,53 @@ function scheduleQaCall(scene, delay, callback) {
   scene._qaTimers ??= new Set()
   scene._qaTimers.add(timer)
   return timer
+}
+
+// QA-only readiness signal for screenshot capture. A static delay can capture
+// the Battle phase or a full-screen catch flash on slower Chromium runners.
+function syncQaCaughtCaptureReady(scene) {
+  if (!scene._qaEnabled || typeof document === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('qaAction') !== 'caught' || qaMockPhase()) return
+
+  const lastCatch = scene.catches?.[scene.catches.length - 1]
+  const requestedFish = params.get('qaFish')
+  const actuallyCaught = scene.phase === 'result'
+    && scene._castPresentationOutcome === 'caught'
+    && lastCatch?.fishId === scene.fish?.id
+    && (!requestedFish || requestedFish === scene.fish?.id)
+  const flashActive = scene.cameras?.main?.flashEffect?.isRunning === true
+  // A data-ready signal based on scene.phase alone can capture a stale Battle
+  // frame. Require the actual presentation owner to have swapped visibility.
+  const host = scene._castPresentationHost
+  const hostReady = scene._castPresentationMode !== 'host' || (
+    host?.root?.active &&
+    host.root.visible &&
+    host.nodes?.resultField?.visible &&
+    host.nodes?.resultForeground?.visible &&
+    !host.nodes?.battleField?.visible &&
+    !host.nodes?.battleForeground?.visible &&
+    host.nodes?.resultGet?.text === 'GET!'
+  )
+  if (!actuallyCaught || flashActive || !hostReady) {
+    scene._qaResultReadySince = null
+    delete document.body.dataset.qaResultReady
+    delete document.body.dataset.qaResultFish
+    return
+  }
+  scene._qaResultReadySince ??= scene.time.now
+  // Let camera effects and the first Result tween settle before screenshotting.
+  if (scene.time.now - scene._qaResultReadySince >= 450) {
+    document.body.dataset.qaResultReady = 'caught'
+    document.body.dataset.qaResultFish = scene.fish.id
+  }
+}
+
+function qaNamedFishResult() {
+  if (!qaEnabled()) return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qaAction') === 'caught' &&
+    FISH_LIST.some(fish => fish.id === params.get('qaFish'))
 }
 
 function forceQaAction(scene) {
@@ -198,6 +250,10 @@ function forceQaAction(scene) {
 
     if (action === 'caught') {
       prepareQaBattleSubject(scene)
+      if (qaNamedFishResult()) {
+        const fishId = new URLSearchParams(window.location.search).get('qaFish')
+        scene.fish = FISH_LIST.find(fish => fish.id === fishId)
+      }
       scene._killWaitTimers?.()
       scene._stopRetrieveRuntime?.()
       if (scene.phase !== 'battle') scene._enterBattle?.()
@@ -378,7 +434,7 @@ export function installVerticalSliceQaMode(GameScene) {
     const result = originalCreate.apply(this, args)
     this._qaEnabled = qaEnabled()
     if (this._qaEnabled) {
-      if (!qaMockPhase()) buildQaHud(this)
+      if (!qaMockPhase() && !qaNamedFishResult()) buildQaHud(this)
       forceQaAction(this)
       if (qaMockPhase() === 'cast') {
         this.time.delayedCall(0, () => {
@@ -397,7 +453,7 @@ export function installVerticalSliceQaMode(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
-    if (this._qaEnabled && !qaMockPhase() && pointer?.y <= (this._qaPanelHeight ?? 92)) return
+    if (this._qaEnabled && !qaMockPhase() && !qaNamedFishResult() && pointer?.y <= (this._qaPanelHeight ?? 92)) return
     return originalOnDown.call(this, pointer)
   }
 
@@ -407,6 +463,7 @@ export function installVerticalSliceQaMode(GameScene) {
     if (this._qaEnabled) {
       syncQaHud(this)
       syncMockSubject(this)
+      syncQaCaughtCaptureReady(this)
     }
     return result
   }

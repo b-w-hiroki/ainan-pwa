@@ -29,6 +29,14 @@ assert.ok(runtime.includes('installVerticalSliceQaMode(GameScene)'), 'QA mode no
 for (const slot of owners.slots)
   assert.ok(runtime.includes(slot.owner + '(GameScene)'), 'owner is not installed: ' + slot.id)
 
+const hostSource = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
+assert.ok(hostSource.includes("return params.get('castPresentation') === 'legacy'"), 'default presentation host routing missing')
+for (const slot of owners.slots.filter(slot => slot.presentationOwner)) {
+  assert.equal(slot.presentationOwner, 'CastPresentationHost', 'unsupported final presenter for ' + slot.id)
+  assert.equal(slot.presentationFile, 'fishing-game/js/presentation/cast/CastPresentationHost.js')
+  assert.ok(hostSource.includes('class CastPresentationHost'), 'presentation owner module missing')
+}
+
 const states = data('asset-states.json')
 assert.equal(states.schemaVersion, 1)
 unique(states.items.map(x => x.id), 'asset-state item')
@@ -83,8 +91,14 @@ const expectedPremiumFish = {
   tai: { icon: 'madaiIcon', shadow: 'fishShadowMediumIdle' },
   buri: { icon: 'buriIcon', shadow: 'fishShadowLargeIdle' },
   kue: { icon: 'kueIcon', shadow: 'fishShadowLargeIdle' },
+  bass: { icon: 'blackBassIcon', shadow: 'fishShadowMediumIdle' },
+  saba: { icon: 'sabaIcon', shadow: 'fishShadowMediumIdle' },
+  isaki: { icon: 'isakiIcon', shadow: 'fishShadowMediumIdle' },
+  hirame: { icon: 'hirameIcon', shadow: 'fishShadowMediumIdle' },
+  kanpachi: { icon: 'kanpachiIcon', shadow: 'fishShadowLargeIdle' },
 }
 const battlePresentation = read('fishing-game/js/game/installFishingBattlePresentation.js')
+const hostPresentation = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
 const resultPresentation = read('fishing-game/js/game/installFishingResultPresentation.js')
 for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   const item = trackedFish.find(value => value.fishId === id)
@@ -101,8 +115,11 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     assert.ok(byState[required], id + ': missing state ' + required)
   assert.deepEqual(byState.shadow.refs, ['fishingField.' + expected.shadow],
     id + ': shadow size class differs from approved matrix')
-  assert.deepEqual(byState['battle-hero'].refs, ['fish.' + expected.icon],
-    id + ': Battle must use actual fish icon rather than Result-only hero')
+  const hostArt = id === 'tai' ? 'ui.fishingApprovedMadaiLive' : 'fishHeroes.' + id
+  assert.deepEqual(byState['battle-hero'].refs, [hostArt],
+    id + ': default host Battle art must match FISH_ART mapping')
+  assert.deepEqual(byState['battle-legacy-icon'].refs, ['fish.' + expected.icon],
+    id + ': legacy Battle icon mapping mismatch')
   assert.deepEqual(byState['result-hero'].refs, ['fishHeroes.' + id],
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
@@ -110,11 +127,21 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   assert.equal(byState['species-specific-jump'].kind, 'planned',
     id + ': dedicated jump art must not be marked implemented until integrated')
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
-    id + ': Battle rendering mapping drifted from matrix')
+    id + ': legacy Battle fallback mapping drifted from matrix')
+  const hostRef = id === 'tai'
+    ? 'tai: ASSETS.ui.fishingApprovedMadaiLive'
+    : id + ': ASSETS.fishHeroes.' + id
+  assert.ok(hostSource.includes(hostRef), id + ': default host art mapping missing')
   assert.ok(resultPresentation.includes(id + ': ASSETS.fishHeroes.' + id + '.key'),
     id + ': Result rendering mapping drifted from matrix')
+  if (['bass','saba','isaki','hirame','kanpachi'].includes(id)) {
+    assert.ok(hostPresentation.includes(id + ': ASSETS.fishHeroes.' + id),
+      id + ': active CastPresentationHost must use premium fish asset')
+  }
 }
-assert.ok(trackedFish.length <= FISH_LIST.length, 'tracked fish exceed gameplay content')
+assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
+assert.ok(hostPresentation.includes('resultForeground.addAt(resultFish, 1)'),
+  'premium Result hero must render in front of approved result skin')
 const uncoveredFish = FISH_LIST.filter(fish => !trackedFish.some(item => item.fishId === fish.id))
 
 const golden = data('golden-screens.json')
@@ -130,6 +157,33 @@ for (const frame of golden.frames) {
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
 for (const reference of golden.canonicalReferences) exists(reference)
+// Captures must wait for the *actual* caught Result with camera flash settled;
+// screenshot size/hash alone cannot distinguish Battle or overexposed frames.
+const qaSource = read('fishing-game/js/game/installVerticalSliceQaMode.js')
+assert.ok(qaSource.includes("function syncQaCaughtCaptureReady(scene)"),
+  'caught Result QA readiness signal missing')
+assert.ok(qaSource.includes("flashEffect?.isRunning"),
+  'camera flash must finish before capture readiness')
+for (const filename of [
+  '04-result.png', '22-boss-kue-result.png', '27-kue-first-trophy.png',
+  '39-player-result.png', '45-clearance-result.png',
+  '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png',
+  '53-hirame-result.png', '54-kanpachi-result.png',
+]) {
+  const command = workflow.split('\n').find(line => line.includes('artifacts/e2e/' + filename))
+  assert.ok(command?.includes('--wait-for-selector=')
+    && command.includes('data-qa-result-ready'),
+    'Result must wait for settled phase, not a fixed timeout: ' + filename)
+}
+
+// Also protect all existing reward/boss caught captures from transient full-screen flashes.
+for (const command of workflow.split('\n').filter(line =>
+  line.includes('playwright@1.55.0 screenshot') && line.includes('qaAction=caught'))) {
+  assert.ok(command.includes("--wait-for-selector=")
+    && command.includes('data-qa-result-ready'),
+    'caught screenshot is missing stable Result wait: ' + command)
+}
+
 const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)

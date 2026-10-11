@@ -2,18 +2,18 @@
 
 ## 判断ルール
 
-1表示slotに対して最終的な描画責任者は1つ。構成部品を提供するモジュールと、最終表示を決めるモジュールは区別する。参照元は visual-owners.json。実コードに存在するowner関数/ファイルのみ記載し、validatorで照合する。
+1表示slotに対して最終的な描画責任者は1つ。標準モードはCastPresentationHost（fishing-game/js/presentation/cast/CastPresentationHost.js）で、installFishingPresentationGuardはその導入と旧UI抑制を行う。構成部品を提供するモジュールと、最終表示を決めるモジュールは区別する。参照元は visual-owners.json。実コードに存在するowner関数/ファイルのみ記載し、validatorで照合する。
 
 | Slot | 最終責任 | 補助/旧owner（勝手に消さない） |
 | --- | --- | --- |
-| Cast controls | installFishingPresentationGuard / buildFinalCastOverlay | BlueprintFishingField、MobileFishingShell |
-| Retrieve controls | installFishingPresentationGuard / buildFinalControlChrome | BlueprintFishingField |
-| Battle tension | installFishingBattlePresentation | FishingPresentationGuard（最終可視性ガード） |
-| Result summary | installFishingResultPresentation | FishingPresentationGuard（最終可視性ガード） |
+| Cast controls | CastPresentationHost（既定） | installFishingPresentationGuardと旧BlueprintFishingField/ MobileFishingShell |
+| Retrieve controls | CastPresentationHost（既定） | installFishingPresentationGuardと旧BlueprintFishingField |
+| Battle tension | CastPresentationHost（既定） | installFishingBattlePresentation（代替）, FishingPresentationGuard |
+| Result summary | CastPresentationHost（既定） | installFishingResultPresentation（代替）, FishingPresentationGuard |
 | Fishing field layers | installBlueprintFishingField | FieldMotionFx、LocationAtmosphere |
 | QA fixture | installVerticalSliceQaMode | qa=1限定 |
 
-「Battle/Resultをfinal guardが可視性調整する」ことは、新規Battle/Result描画ownerを増やす許可ではない。
+「標準ホストがBattle/Resultを描画する」ことは、新規Battle/Result描画ownerを増やす許可ではない。旧描画ownerは移行中の互換経路として扱う。
 
 ## 既存構造への適用
 

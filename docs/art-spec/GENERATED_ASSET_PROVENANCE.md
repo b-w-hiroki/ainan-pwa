@@ -29,3 +29,17 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.
 - Runtime code depends on the managed assets under `fishing-game/assets/fishing-field/`, not on a monolithic generated image.
 - New generated parts must be added to this provenance table and `asset-definitions.json` before integration.
+
+## Five premium Result hero SVGs (October 2026)
+
+These are separately authored vector production assets using the established 640×360 premium Result hero visual language. They are **not** extracted layers from a single source image, and they do not imply that a separate dedicated jump frame has been produced.
+
+| Species | Production asset | Distinct silhouette or markings |
+| --- | --- | --- |
+| Black bass | `generated/hero/fish_hero_bass.svg` | Wide mouth, dorsal spikes and dark olive lateral marking |
+| Mackerel | `generated/hero/fish_hero_saba.svg` | Narrow silver-blue body and dark dorsal stripes |
+| Isaki (grunt) | `generated/hero/fish_hero_isaki.svg` | Golden body and broad vertical bands |
+| Flounder | `generated/hero/fish_hero_hirame.svg` | Flattened asymmetrical body, eyes on upper side |
+| Kanpachi (amberjack) | `generated/hero/fish_hero_kanpachi.svg` | Streamlined body and gold forehead/lateral line |
+
+All five are registered as `fishHeroes` in `assetManifest.js`, preloaded with the existing GameScene fishHeroes collection, and mapped only to Result's premium fish layer; Battle/collection icons remain unchanged. The five CI Result QA fixtures verify the in-game effect. No catch probabilities or fish mechanics were altered.

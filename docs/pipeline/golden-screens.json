@@ -75,6 +75,36 @@
       "file": "07-town-lv5.png",
       "purpose": "town state 5",
       "phase": "town"
+    },
+    {
+      "id": "result-bass",
+      "file": "50-bass-result.png",
+      "purpose": "Premium Result hero of bass / no generic icon fallback; pointB",
+      "phase": "result"
+    },
+    {
+      "id": "result-saba",
+      "file": "51-saba-result.png",
+      "purpose": "Premium Result hero of saba / no generic icon fallback; pointA",
+      "phase": "result"
+    },
+    {
+      "id": "result-isaki",
+      "file": "52-isaki-result.png",
+      "purpose": "Premium Result hero of isaki / no generic icon fallback; pointB",
+      "phase": "result"
+    },
+    {
+      "id": "result-hirame",
+      "file": "53-hirame-result.png",
+      "purpose": "Premium Result hero of hirame / no generic icon fallback; pointB",
+      "phase": "result"
+    },
+    {
+      "id": "result-kanpachi",
+      "file": "54-kanpachi-result.png",
+      "purpose": "Premium Result hero of kanpachi / no generic icon fallback; pointC",
+      "phase": "result"
     }
   ]
 }
