@@ -173,10 +173,19 @@ function stabilizeMockResult(scene) {
   scene._qaMockBattleFish?.destroy?.()
   scene._qaMockBattleFish = null
 
-  scene.phase = 'result'
-  const fish = scene.fish
+  // Fixed Result mock must express an actual caught outcome to the active
+  // CastPresentationHost; painting ResultUI alone made it display ESCAPED.
+  // This is a qaMockPhase-only fixture and never writes to persistent saves.
+  const fish = FISH_LIST.find(item => item.id === 'tai') ?? scene.fish
+  if (fish) scene.fish = fish
   const score = fish ? scene.calcScore?.(fish) ?? 0 : 0
   const sizeCm = fish ? scene._rollFishSize?.(fish) ?? 42 : 42
+  if (fish) {
+    scene.catches ??= []
+    scene.catches.push({ fishId: fish.id, score, sizeCm, point: scene.env?.point ?? 'pointA', timestamp: Date.now() })
+  }
+  scene._castPresentationOutcome = 'caught'
+  scene.phase = 'result'
 
   scene.resultUI?.drawResultStripe?.('caught')
   scene.resLabel?.setText?.(fish ? `${fish.name}を釣り上げた！` : '釣り上げた！')

@@ -217,6 +217,10 @@ assert.ok(progressSource.includes("baseCost: 440"), 'late town progression shoul
 assert.ok(homeSource.includes('スタミナ回復待ち'), 'home must explain the zero-stamina state')
 assert.ok(homeSource.includes('_showStaminaModal'), 'home must expose the stamina recovery modal')
 assert.ok(staminaGateSource.includes("getStaminaState().current <= 0"), 'stamina gate must block new sessions at zero stamina')
+assert.ok(staminaGateSource.includes("scene._castPresentationOutcome = 'caught'"),
+  'QA mock Result must tell active presentation owner that fish was caught')
+assert.ok(staminaGateSource.includes("scene.catches.push({ fishId: fish.id"),
+  'QA mock Result must have a matching last catch for the view model')
 assert.ok(townSource.includes('_ambientGrowth'), 'town must visually react to growth')
 assert.ok(mainSource.includes('WorkshopScene'), 'workshop scene must be registered')
 assert.ok(mainSource.includes('HarborServicesScene'), 'harbor services scene must be registered')
