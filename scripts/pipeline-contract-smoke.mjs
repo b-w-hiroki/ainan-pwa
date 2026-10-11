@@ -142,6 +142,25 @@ for (const frame of golden.frames) {
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
 for (const reference of golden.canonicalReferences) exists(reference)
+// Captures must wait for the *actual* caught Result with camera flash settled;
+// screenshot size/hash alone cannot distinguish Battle or overexposed frames.
+const qaSource = read('fishing-game/js/game/installVerticalSliceQaMode.js')
+assert.ok(qaSource.includes("function syncQaCaughtCaptureReady(scene)"),
+  'caught Result QA readiness signal missing')
+assert.ok(qaSource.includes("flashEffect?.isRunning"),
+  'camera flash must finish before capture readiness')
+for (const filename of [
+  '04-result.png', '22-boss-kue-result.png', '27-kue-first-trophy.png',
+  '39-player-result.png', '45-clearance-result.png',
+  '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png',
+  '53-hirame-result.png', '54-kanpachi-result.png',
+]) {
+  const command = workflow.split('\\n').find(line => line.includes('artifacts/e2e/' + filename))
+  assert.ok(command?.includes('--wait-for-selector=')
+    && command.includes('data-qa-result-ready'),
+    'Result must wait for settled phase, not a fixed timeout: ' + filename)
+}
+
 const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
