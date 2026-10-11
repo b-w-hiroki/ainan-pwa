@@ -138,6 +138,9 @@ jobs:
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
+      - name: Verify actual Result screen pixels
+        run: node scripts/result-screen-pixel-guard.mjs artifacts/e2e
+
       - name: Upload E2E screenshots
         if: always()
         uses: actions/upload-artifact@v4
