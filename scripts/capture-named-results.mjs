@@ -18,6 +18,55 @@ const cases = [
 mkdirSync('artifacts/e2e', { recursive: true })
 const browser = await chromium.launch({ headless: true })
 try {
+  // Match the previously flaky player/reward Result fixture exactly. A long
+  // CLI delay after the DOM marker could capture a blank compositor frame.
+  const playerResult = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+  try {
+    await playerResult.goto(
+      'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=rare&qaPlayer=result',
+      { waitUntil: 'domcontentloaded' },
+    )
+    await playerResult.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    await playerResult.waitForFunction(() => {
+      const scene = window.__game?.scene?.getScene('GameScene')
+      return scene?.phase === 'result' && Boolean(scene?._qaRewardBadge?.active)
+    }, { timeout: 20000 })
+    await playerResult.waitForTimeout(450)
+    const state = await playerResult.evaluate(() => {
+      const scene = window.__game?.scene?.getScene('GameScene')
+      const host = scene?._castPresentationHost
+      const canvas = document.querySelector('#game-container canvas')
+      return {
+        phase: scene?.phase,
+        outcome: scene?._castPresentationOutcome,
+        ready: document.body.dataset.qaResultReady,
+        fish: scene?.fish?.id,
+        resultVisible: host?.nodes?.resultForeground?.visible,
+        battleVisible: host?.nodes?.battleForeground?.visible,
+        heroVisible: host?.nodes?.resultFish?.visible,
+        heroWidth: host?.nodes?.resultFish?.displayWidth,
+        rewardBadgePresent: Boolean(scene?._qaRewardBadge?.active),
+        canvasPresent: Boolean(canvas?.isConnected && canvas.width > 0 && canvas.height > 0),
+      }
+    })
+    assert.equal(state.phase, 'result', '39-player-result.png: incorrect phase')
+    assert.equal(state.outcome, 'caught', '39-player-result.png: missing catch')
+    assert.equal(state.ready, 'caught', '39-player-result.png: readiness lost')
+    assert.ok(state.fish, '39-player-result.png: no captured fish')
+    assert.equal(state.resultVisible, true, '39-player-result.png: Result foreground hidden')
+    assert.equal(state.battleVisible, false, '39-player-result.png: Battle foreground resurfaced')
+    assert.equal(state.heroVisible, true, '39-player-result.png: premium Result hero hidden')
+    assert.ok(state.heroWidth >= 290, '39-player-result.png: premium fish too small')
+    assert.equal(state.rewardBadgePresent, true, '39-player-result.png: rare reward feedback missing')
+    assert.equal(state.canvasPresent, true, '39-player-result.png: game canvas missing')
+    await playerResult.screenshot({
+      path: join('artifacts/e2e', '39-player-result.png'), animations: 'disabled',
+    })
+    console.log('Captured stable rare player Result:', JSON.stringify(state))
+  } finally {
+    await playerResult.close()
+  }
+
   // Exercise real GameScene location state and foreground ownership for all
   // three fields. Existing 15–17 fixture screenshots remain unchanged.
   const battleCases = [
