@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict'
+import { mkdirSync, writeFileSync } from 'node:fs'
+import {
+  layoutLandscapeFishing, pointerInWorld, rectanglesOverlap,
+} from '../fishing-game/js/presentation/layouts/landscapeFishingGeometry.js'
+
+const inside = (container, child) =>
+  child.x >= container.x && child.y >= container.y
+  && child.x + child.width <= container.x + container.width
+  && child.y + child.height <= container.y + container.height
+
+const tested = [[667,375,{}],[844,390,{}],[932,430,{left:24,right:24,top:0,bottom:8}]]
+for (const [width,height,insets] of tested) {
+  const l = layoutLandscapeFishing(width,height,insets)
+  assert.ok(l, 'landscape layout missing at '+width+'x'+height)
+  for (const r of [l.rail,l.world,l.dock,l.back,l.status,l.gauge,...l.retrieve,...l.resultActions]) {
+    assert.ok(inside(l.viewport,r), 'element outside viewport: '+JSON.stringify(r))
+  }
+  assert.equal(rectanglesOverlap(l.world,l.dock),false,'world overlaps right-side controls')
+  assert.equal(rectanglesOverlap(l.world,l.rail),false,'world overlaps left-side status')
+  assert.equal(rectanglesOverlap(l.gauge,l.resultActions[0]),false,'gauge obscured by result CTA')
+  assert.ok(l.world.width >= 330 && l.world.height >= 280,'world too small')
+  for (const r of [l.back,...l.retrieve,...l.resultActions]) {
+    assert.ok(r.width>=44&&r.height>=44,'touch target smaller than 44 CSS pixels')
+    assert.ok(inside(l.dock,r)||r===l.back,'control outside assigned dock')
+  }
+  const c=l.castCenter
+  assert.ok(c.radius*2>=44&&c.x-c.radius>=l.dock.x&&c.x+c.radius<=l.dock.x+l.dock.width,'Cast hit target clipped')
+  const center=pointerInWorld(l.world.x+l.world.width/2,l.world.y+l.world.height/2,l)
+  assert.ok(Math.abs(center.x-.5)<1e-8&&Math.abs(center.y-.5)<1e-8)
+  assert.equal(pointerInWorld(l.dock.x+12,l.dock.y+12,l),null,'dock press interpreted as cast world input')
+  assert.equal(pointerInWorld(-5,0,l),null)
+}
+assert.equal(layoutLandscapeFishing(390,844),null,'portrait must not use landscape geometry')
+assert.equal(layoutLandscapeFishing(540,320),null,'unsupported size must not silently shrink input')
+
+const l=layoutLandscapeFishing(844,390)
+const box=(r,fill,label)=>`<rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.height}" fill="${fill}" rx="9"/><text x="${r.x+10}" y="${r.y+22}" font-size="13" fill="#f5f6f2">${label}</text>`
+const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 844 390" width="844" height="390">
+<rect width="844" height="390" fill="#0a2533"/>
+${box(l.rail,'#315766','status rail')}${box(l.world,'#146e87','world / camera')}${box(l.dock,'#37485d','actions')}
+${box(l.back,'#3c8493','back 52')}${box(l.gauge,'#9c865d','gauge')}
+${l.retrieve.map((r,i)=>box(r,'#49695e','reel '+(i+1))).join('')}
+<circle cx="${l.castCenter.x}" cy="${l.castCenter.y}" r="${l.castCenter.radius}" fill="#e3bd51"/>
+<text x="${l.castCenter.x-27}" y="${l.castCenter.y+5}" font-size="15" fill="#171d24">Cast</text>
+</svg>`
+mkdirSync('artifacts/orientation',{recursive:true})
+writeFileSync('artifacts/orientation/landscape-contract-wireframe.svg',svg)
+console.log('AINAN opt-in landscape layout geometry: 3 screen sizes + safe-area + input ownership passed')
+console.log('Layout wireframe is a geometric proposal, NOT an implemented responsive Phaser screen')
