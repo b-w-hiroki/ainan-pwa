@@ -153,3 +153,6 @@ console.log(JSON.stringify({source:'cast-harbor-composite-base.png',width:w,heig
   cutoutEdgeStats:edgeStats,
   motionReady:false,backgroundInpainted:false,
   outputs:outputs.map(x=>x[0]),sourcePixelsPreserved:true}))
+
+// Share the exact tested PNG codec with source-matched foreground experiments.
+export { decodePng, encodePng }
