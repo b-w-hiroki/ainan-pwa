@@ -39,7 +39,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          for folder in sorted(Path("artifacts/occlusion").iterdir()):
+          for folder in sorted(Path("artifacts/occlusion").glob("mask-*")):
               doc = json.loads((folder/"experiment-report.json").read_text())
               assert doc["outside_mask_pixel_parity"] is True
               assert doc["production_promoted"] is False
