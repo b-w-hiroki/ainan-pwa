@@ -178,6 +178,7 @@ export const ASSETS = {
     fishingLayerSky: { key: 'ui_fishing_layer_sky', path: assetPath('fishing-game/assets/generated/cast-layers/sky.svg'), status: 'ready' },
     fishingLayerClouds: { key: 'ui_fishing_layer_clouds', path: assetPath('fishing-game/assets/generated/cast-layers/clouds.svg'), status: 'ready' },
     fishingLayerSea: { key: 'ui_fishing_layer_sea', path: assetPath('fishing-game/assets/generated/cast-layers/sea.svg'), status: 'ready' },
+    fishingLayerSeaV2: { key: 'ui_fishing_layer_sea_v2', path: assetPath('fishing-game/assets/generated/cast-layers/sea-caustics-v2.svg'), status: 'ready' },
     fishingLayerDistantHarbor: { key: 'ui_fishing_layer_distant_harbor', path: assetPath('fishing-game/assets/generated/cast-layers/distant-harbor.svg'), status: 'ready' },
     fishingLayerPlatform: { key: 'ui_fishing_layer_platform', path: assetPath('fishing-game/assets/generated/cast-layers/platform.svg'), status: 'ready' },
     fishingApprovedCastHarborBase: { key: 'ui_fishing_approved_cast_harbor_base', path: assetPath('fishing-game/assets/approved-mock/cast-harbor-composite-base.png'), status: 'ready' },
