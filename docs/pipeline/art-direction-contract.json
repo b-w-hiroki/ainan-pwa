@@ -136,7 +136,7 @@
       ]
     },
     {
-      "id": "town-quiet",
+      "id": "town-base",
       "file": "05-town-lv1.png",
       "required": [
         "town mood",
@@ -144,7 +144,7 @@
       ]
     },
     {
-      "id": "town-grown",
+      "id": "town-max",
       "file": "07-town-lv5.png",
       "required": [
         "town growth visible",
