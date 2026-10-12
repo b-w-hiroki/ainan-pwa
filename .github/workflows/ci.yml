@@ -148,5 +148,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ainan-mobile-e2e
-          path: artifacts/e2e
+          path: |
+            artifacts/e2e
+            artifacts/orientation
           retention-days: 14
