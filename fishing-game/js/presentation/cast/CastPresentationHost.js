@@ -32,6 +32,14 @@ const FISH_ART = Object.freeze({
   kanpachi: ASSETS.fishHeroes.kanpachi,
 })
 
+// Dedicated pilot art: show the distinct leaping pose only during actual
+// Battle rage. Species without accepted art retain existing hero and motion.
+const FISH_JUMP_ART = Object.freeze({
+  aji: ASSETS.fishJump.aji,
+  saba: ASSETS.fishJump.saba,
+  kue: ASSETS.fishJump.kue,
+})
+
 export function castPresentationMode() {
   if (typeof window === 'undefined') return 'host'
   const params = new URLSearchParams(window.location.search)
@@ -641,8 +649,10 @@ export class CastPresentationHost {
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
   }
 
-  _syncFishImage(image, fishId, slot = 'battle') {
-    const asset = FISH_ART[fishId] ?? FISH_ART.tai
+  _syncFishImage(image, fishId, slot = 'battle', leaping = false) {
+    const asset = leaping
+      ? FISH_JUMP_ART[fishId] ?? FISH_ART[fishId] ?? FISH_ART.tai
+      : FISH_ART[fishId] ?? FISH_ART.tai
     if (asset?.key && this.scene.textures.exists(asset.key) && image.texture.key !== asset.key) image.setTexture(asset.key)
     if (slot === 'result' || slot === 'battle') {
       // Texture replacement retains the previous image scale; a 768px Madai
@@ -689,7 +699,12 @@ export class CastPresentationHost {
     }
     if (battleVisible) {
       const battle = view.battle
-      this._syncFishImage(this.nodes.battleFish, battle.fishId)
+      const leap = battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)
+      this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
+      // Fixed within phone bounds; fish and jump splash remain in the same
+      // foreground owner under the tension/reel controls.
+      this.nodes.battleFish.setPosition(leap ? 200 : 210, leap ? 307 : 326)
+        .setAngle(leap ? -5 : -8)
       const point = this.scene.env?.point ?? 'pointA'
       const overlay = this.nodes.battleLocationOverlay
       const art = BATTLE_LOCATION_ART[point] ?? BATTLE_LOCATION_ART.pointA

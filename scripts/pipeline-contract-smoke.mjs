@@ -130,8 +130,15 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
     id + ': collection icon mismatch')
-  assert.equal(byState['species-specific-jump'].kind, 'planned',
-    id + ': dedicated jump art must not be marked implemented until integrated')
+  if (['aji','saba','kue'].includes(id)) {
+    assert.equal(byState['species-specific-jump'].kind, 'asset',
+      id + ': pilot Jump state must use a real registered asset')
+    assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id],
+      id + ': wrong Jump manifest reference')
+  } else {
+    assert.equal(byState['species-specific-jump'].kind, 'planned',
+      id + ': unbuilt species Jump must remain planned')
+  }
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
     id + ': legacy Battle fallback mapping drifted from matrix')
   const hostRef = id === 'tai'
@@ -165,6 +172,9 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+const jumpCaptureScript = 'scripts/capture-species-jumps.mjs'
+const jumpCaptureEnabled = workflow.includes('node ' + jumpCaptureScript)
+const jumpCaptureSource = jumpCaptureEnabled ? read(jumpCaptureScript) : ''
 const resultPixelGuard = read('scripts/result-screen-pixel-guard.mjs')
 assert.ok(resultPixelGuard.includes('export function countGetHeaderPixels(file, dir'),
   'live screenshots must share the same rendered GET-pixel verifier as CI')
@@ -187,7 +197,9 @@ for (const frame of golden.frames) {
   assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
   const capturedDirectly = workflow.includes('artifacts/e2e/' + frame.file)
   const capturedByVerifiedScript = namedResultEnabled && namedResultSource.includes("'" + frame.file + "'")
-  assert.ok(capturedDirectly || capturedByVerifiedScript, 'capture missing from CI: ' + frame.file)
+  const capturedByJumpScript = jumpCaptureEnabled
+    && jumpCaptureSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript || capturedByJumpScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
@@ -317,6 +329,20 @@ assert.ok(foregroundGenerator.includes('motionReady:false,backgroundInpainted:fa
   'coarse region masks must not claim inpainting or motion-ready completion')
 assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
   'coarse mask boundary diagnostics must be present')
+const jumpSource = read('scripts/art/build-species-jump-pilot.mjs')
+const jumpCapture = read('scripts/capture-species-jumps.mjs')
+assert.ok(jumpSource.includes("'fish_hero_' + id + '.svg'"),
+  'Jump generator must use each premium hero source')
+assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
+    && hostSource.includes("battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)"),
+  'active Battle rage must select an approved species asset in existing host')
+assert.ok(staminaActions.includes("params.get('qaJump') === '1'"),
+  'Jump preview must be reproducible in QA')
+assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.jumpTexture'),
+  'mobile CI must capture actual Jump textures')
+for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png']) {
+  assert.ok(jumpCapture.includes(file), 'jump evidence missing: ' + file)
+}
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
