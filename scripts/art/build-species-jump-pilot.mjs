@@ -13,9 +13,14 @@ const PILOT = Object.freeze({
   aji: { tilt: -17, translateY: -12, streak: '#b4f7ff' },
   saba: { tilt: -12, translateY: -19, streak: '#d4fcff' },
   kue: { tilt: -7, translateY: -11, streak: '#b6ebef' },
+  bass: { tilt: -15, translateY: -14, streak: '#b6efff' },
+  buri: { tilt: -20, translateY: -22, streak: '#d0faff' },
+  isaki: { tilt: -11, translateY: -9, streak: '#a4e8ff' },
+  hirame: { tilt: -7, translateY: -8, streak: '#d2edff' },
+  kanpachi: { tilt: -19, translateY: -19, streak: '#c5fbf5' },
 })
 const fishIds = Object.keys(PILOT)
-assert.deepEqual(fishIds.sort(), ['aji','kue','saba'])
+assert.deepEqual(fishIds.sort(), ['aji','bass','buri','hirame','isaki','kanpachi','kue','saba'])
 mkdirSync(destination, { recursive: true })
 for (const id of fishIds) {
   const src = readFileSync(join(originals, 'fish_hero_' + id + '.svg'), 'utf8')
