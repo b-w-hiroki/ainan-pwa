@@ -94,6 +94,9 @@ export default class GameScene extends Phaser.Scene {
         ASSETS.ui.fishingApprovedSplitPierV3,
       )
     }
+    if (artParams.get('qa') === '1' && artParams.get('castInpaintPilot') === '1') {
+      wanted.push(ASSETS.ui.fishingApprovedBackfillPilot)
+    }
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
