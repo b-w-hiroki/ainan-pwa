@@ -151,8 +151,9 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   }
 }
 assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
-assert.ok(hostPresentation.includes('battleForeground.addAt(battleFish, 2)'),
-  'real Battle fish must be over full-screen approved Battle base')
+assert.ok(hostPresentation.includes('battleForeground.addAt(battleJumpFx, 2)')
+  && hostPresentation.includes('battleForeground.addAt(battleFish, 3)'),
+  'real Battle fish and Jump FX must stay in the approved foreground: base → FX → fish → UI')
 assert.ok(hostPresentation.includes('battleForeground.addAt(battleLocationOverlay, 1)'),
   'existing location asset must be composed by the Battle owner, beneath fish')
 assert.ok(staminaActions.includes('validQaPoint') && staminaActions.includes('point: qaPoint'),
