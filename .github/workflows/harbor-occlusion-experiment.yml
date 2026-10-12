@@ -25,6 +25,11 @@ jobs:
         run: python -m pip install "numpy==1.26.4" "opencv-python-headless==4.10.0.84"
       - name: Extract source-faithful masks from the approved Harbor illustration
         run: node scripts/art/extract-harbor-approved-master.mjs
+      - name: Preserve exact existing player cutout for silhouette inspection
+        run: |
+          mkdir -p artifacts/occlusion/source
+          cp fishing-game/assets/approved-mock/cast-player-visible.png artifacts/occlusion/source/player-existing-cutout.png
+          cp fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-player-region-extracted.png artifacts/occlusion/source/player-coarse-region.png
       - name: Produce two background-fill candidates without changing production
         run: |
           python scripts/art/experiment-occlusion-repair.py --out artifacts/occlusion/mask-3px --dilation 3
