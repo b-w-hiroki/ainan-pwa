@@ -140,6 +140,9 @@ jobs:
       - name: Verify approved art pixel parity and negative control
         run: node scripts/approved-master-pixel-parity.mjs artifacts/e2e
 
+      - name: Verify responsive landscape Cast controls and real pointer input
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-responsive-landscape-cast.mjs
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
