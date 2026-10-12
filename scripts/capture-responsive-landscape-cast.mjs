@@ -75,6 +75,10 @@ try {
       if (testcase.width > testcase.height) {
         assert.equal(state.isLandscapeLayout, true, 'landscape Cast reflow missing')
         assert.equal(state.landscapeBackdropVisible, true, 'world extension hidden')
+        assert.equal(state.landscapeBackdropTexture, 'ui_fishing_approved_clean_harbor',
+          'world extension must use accepted high-quality Harbor water art')
+        assert.deepEqual(state.playerWorldOffset, { x: 18, y: -195 },
+          'the actual Cast character must travel with its world slice')
         assert.ok(state.actionDiameterCss >= 44,
           'Cast input must be >=44 physical CSS pixels, got ' + state.actionDiameterCss)
         assert.ok(state.actionCenter.x >= 40 && state.actionCenter.x <= testcase.width - 40
