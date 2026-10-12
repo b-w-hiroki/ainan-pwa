@@ -94,6 +94,14 @@ export const ASSETS = {
     hirame: { key: 'fish_hero_hirame', path: assetPath('fishing-game/assets/generated/hero/fish_hero_hirame.svg'), status: 'ready' },
     kanpachi: { key: 'fish_hero_kanpachi', path: assetPath('fishing-game/assets/generated/hero/fish_hero_kanpachi.svg'), status: 'ready' },
   },
+  fishJump: {
+    aji: { key: 'fish_jump_aji', path: assetPath('fishing-game/assets/generated/jump-v2/fish_jump_aji.svg'), status: 'ready' },
+    saba: { key: 'fish_jump_saba', path: assetPath('fishing-game/assets/generated/jump-v2/fish_jump_saba.svg'), status: 'ready' },
+    kue: { key: 'fish_jump_kue', path: assetPath('fishing-game/assets/generated/jump-v2/fish_jump_kue.svg'), status: 'ready' },
+    fxAji: { key: 'fish_jump_splash_aji', path: assetPath('fishing-game/assets/generated/jump-v2/jump_splash_aji.svg'), status: 'ready' },
+    fxSaba: { key: 'fish_jump_splash_saba', path: assetPath('fishing-game/assets/generated/jump-v2/jump_splash_saba.svg'), status: 'ready' },
+    fxKue: { key: 'fish_jump_splash_kue', path: assetPath('fishing-game/assets/generated/jump-v2/jump_splash_kue.svg'), status: 'ready' },
+  },
   fishingField: {
     waterBase: { key: 'ff_water_base_01', path: assetPath('fishing-game/assets/fishing-field/water/water_base_01.svg'), status: 'ready' },
     waterPattern: { key: 'ff_water_pattern_01', path: assetPath('fishing-game/assets/fishing-field/water/water_pattern_01.svg'), status: 'ready' },
