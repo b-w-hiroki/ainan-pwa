@@ -882,6 +882,33 @@
           "note": "No approved dedicated jump frame; existing animation remains procedural"
         }
       ]
+    },
+    {
+      "id": "fx.species-jump-splash",
+      "family": "fx",
+      "states": [
+        {
+          "id": "aji",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxAji"
+          ]
+        },
+        {
+          "id": "saba",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxSaba"
+          ]
+        },
+        {
+          "id": "kue",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxKue"
+          ]
+        }
+      ]
     }
   ]
 }
