@@ -70,11 +70,16 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.fishingField.locationHarbor,
       ASSETS.fishingField.locationBay,
       ASSETS.fishingField.locationCape,
-      ...Object.values(ASSETS.ui),
+      // Keep experimental water outside standard game loading/caching.
+      ...Object.values(ASSETS.ui).filter(asset => asset.key !== ASSETS.ui.fishingLayerSeaV2.key),
       ASSETS.ui.resultFrame,
       ASSETS.ui.buttonPrimary,
       ASSETS.ui.panelHarbor,
     ]
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('castLayers') === '1' && params.get('castWaterV2') === '1') {
+      wanted.push(ASSETS.ui.fishingLayerSeaV2)
+    }
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
