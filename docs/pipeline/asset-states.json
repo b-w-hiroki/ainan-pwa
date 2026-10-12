@@ -257,8 +257,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No dedicated マダイ jump frame is registered; retain existing procedural motion until approved"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.tai"
+          ]
         }
       ]
     },
@@ -319,8 +322,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No dedicated ブリ jump frame is registered; retain existing procedural motion until approved"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.buri"
+          ]
         }
       ]
     },
@@ -629,8 +635,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.bass"
+          ]
         }
       ]
     },
@@ -758,8 +767,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.isaki"
+          ]
         }
       ]
     },
@@ -821,8 +833,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.hirame"
+          ]
         }
       ]
     },
@@ -884,8 +899,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Source-faithful 2.5D Jump pose derived from species premium hero, shown during live Battle rage in single CastPresentationHost owner; real screenshot review is required.",
+          "refs": [
+            "fishJump.kanpachi"
+          ]
         }
       ]
     },
