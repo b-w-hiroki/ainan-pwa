@@ -264,6 +264,18 @@ const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
 
+const layeredCast = read('fishing-game/js/presentation/cast/CastLayeredScene.js')
+const layeredOptions = read('fishing-game/js/presentation/cast/castLayerConfig.js')
+const waterQA = read('scripts/capture-layered-water-preview.mjs')
+assert.ok(layeredCast.includes('options.waterV2Preview ? ASSETS.ui.fishingLayerSeaV2 : ASSETS.ui.fishingLayerSea'),
+  'Harbor candidate must be exclusive to optional layered water preview')
+assert.ok(layeredOptions.includes("params.get('castLayers') === '1' && params.get('castWaterV2') === '1'"),
+  'new water cannot be enabled for normal approved Cast screens')
+for (const id of ['62-layered-water-previous.png', '63-layered-water-v2-preview.png'])
+  assert.ok(waterQA.includes(id), 'missing preview comparison capture: ' + id)
+assert.ok(workflow.includes('node scripts/capture-layered-water-preview.mjs'),
+  'mobile E2E must capture and inspect the opt-in Harbor candidate')
+assert.ok(ASSETS.ui.fishingLayerSeaV2.status === 'ready', 'Harbor sea candidate must have a real production file')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
