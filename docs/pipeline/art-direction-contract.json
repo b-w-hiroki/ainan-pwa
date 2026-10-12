@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "name": "AINAN — approved in-game visual direction",
+  "baselineCommit": "c9dd78d85dc3ccbeefd0fac9e4e3a85769fec655",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "viewportChecks": [
+    {
+      "width": 320,
+      "height": 568
+    },
+    {
+      "width": 430,
+      "height": 932
+    },
+    {
+      "width": 844,
+      "height": 390
+    }
+  ],
+  "referencePolicy": {
+    "authority": "docs/concept-art/canonical/README.md",
+    "layoutReferences": [
+      "docs/concept-art/canonical/fishing-game-direction.jpg",
+      "docs/concept-art/canonical/mobile-fishing-ui-blueprint.jpg"
+    ],
+    "qualityEvidence": "CI artifacts/e2e screenshots generated from the tested commit; these are not automatically an approved art golden master",
+    "visualOwnerRegistry": "docs/pipeline/visual-owners.json",
+    "provenance": "docs/art-spec/GENERATED_ASSET_PROVENANCE.md"
+  },
+  "styleGuardrails": {
+    "preserve": [
+      "sunlit saturated teal/blue ocean with convincing water depth and rippled highlights",
+      "existing 2D illustrated player with clear silhouette, warm orange apparel and directional shading",
+      "premium UI: glossy blue/gold fishing controls, compact light HUD, dark navy action dock",
+      "gameplay-driven camera and large water playfield; fish/lure/line remain legible",
+      "large fish presentation on Battle and Result without clipping, duplicate visuals or UI overlap",
+      "current town/market/NPC art language and visible growth feedback"
+    ],
+    "reject": [
+      "generic unrelated AI illustration style, muted stock-ocean look or photographic NPC pasted over illustrated player",
+      "new whole-screen images replacing independent interactive layers",
+      "flat uniform fish recolors presented as species-distinct finished artwork",
+      "text or input hit areas baked into runtime decoration",
+      "regressions of pull-and-release cast input, fish scale, water contrast or Result action hierarchy"
+    ]
+  },
+  "anchors": [
+    {
+      "id": "cast-world",
+      "family": "world",
+      "ref": "ui.fishingApprovedCastHarborBase",
+      "role": "reference only: approved Cast harbor world color/perspective"
+    },
+    {
+      "id": "retrieve-world",
+      "family": "world",
+      "ref": "ui.fishingApprovedRetrievePanel",
+      "role": "reference only: retrieve water/lure composition"
+    },
+    {
+      "id": "battle-world",
+      "family": "world",
+      "ref": "ui.fishingApprovedCleanHarbor",
+      "role": "reference only: Battle water depth/light"
+    },
+    {
+      "id": "player-cutout",
+      "family": "player",
+      "ref": "ui.fishingApprovedCastPlayerVisible",
+      "role": "reference only: hero face/proportions/costume/edge shading"
+    },
+    {
+      "id": "result-world",
+      "family": "ui",
+      "ref": "ui.fishingApprovedResultBase",
+      "role": "reference only: payoff hierarchy and frame quality"
+    },
+    {
+      "id": "approved-fish",
+      "family": "fish",
+      "ref": "ui.fishingApprovedMadaiLive",
+      "role": "reference only: dimensional fish body lighting"
+    },
+    {
+      "id": "aji-hero",
+      "family": "fish",
+      "ref": "fishHeroes.aji",
+      "role": "current production subject to compare and improve, not unquestioned quality master"
+    },
+    {
+      "id": "cast-ring",
+      "family": "ui",
+      "ref": "ui.fishingApprovedCastRing",
+      "role": "reference only: polished glossy touch surface"
+    }
+  ],
+  "phaseScreens": [
+    {
+      "id": "cast",
+      "file": "46-mock-cast.png",
+      "required": [
+        "water dominates",
+        "lower-left player",
+        "cast direction upper-right",
+        "no legacy cast UI"
+      ]
+    },
+    {
+      "id": "retrieve",
+      "file": "47-mock-retrieve.png",
+      "required": [
+        "lure and fish read clearly",
+        "wait/twitch/slow controls",
+        "center water unobstructed"
+      ]
+    },
+    {
+      "id": "battle",
+      "file": "48-mock-battle.png",
+      "required": [
+        "fish is visual focus",
+        "reel/tension legible",
+        "line and fish relationship visible"
+      ]
+    },
+    {
+      "id": "result",
+      "file": "49-mock-result.png",
+      "required": [
+        "GET before large fish",
+        "name/size/points clear",
+        "town/retry CTAs tappable"
+      ]
+    },
+    {
+      "id": "town-quiet",
+      "file": "05-town-lv1.png",
+      "required": [
+        "town mood",
+        "facility legibility"
+      ]
+    },
+    {
+      "id": "town-grown",
+      "file": "07-town-lv5.png",
+      "required": [
+        "town growth visible",
+        "NPC/facility layering clear"
+      ]
+    },
+    {
+      "id": "battle-harbor-aji",
+      "file": "58-aji-battle-harbor.png",
+      "required": [
+        "premium fish not occluded",
+        "harbor look"
+      ]
+    },
+    {
+      "id": "battle-bay-aji",
+      "file": "59-aji-battle-bay.png",
+      "required": [
+        "bay differentiated",
+        "fish size stable"
+      ]
+    },
+    {
+      "id": "battle-cape-saba",
+      "file": "60-saba-battle-cape.png",
+      "required": [
+        "cape differentiated",
+        "saba silhouette distinguishable"
+      ]
+    }
+  ],
+  "implementation": {
+    "presentationOwner": "CastPresentationHost",
+    "presentationFile": "fishing-game/js/presentation/cast/CastPresentationHost.js",
+    "families": [
+      "world",
+      "player",
+      "fish",
+      "ui",
+      "fx",
+      "town"
+    ],
+    "candidateStates": [
+      "concept",
+      "source",
+      "normalized",
+      "manifested",
+      "integrated",
+      "browser-reviewed",
+      "pr-green",
+      "merged"
+    ],
+    "promotion": "Never mark a new source image as production-ready before actual decode, 390x844 screenshot visual review, gameplay transition and CI pass. Keep approved legacy art until the replacement proves equal or better."
+  }
+}
