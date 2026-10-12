@@ -24,6 +24,15 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 | 蒼海湾のちょい巻きフィッシング.png | implementation target reference; composition rules are captured in canonical docs and asset definitions |
 | generated fishing asset sheet | production inventory represented by this table and `asset-definitions.json` |
 
+## Approved Harbor × Aji master split — 2026-10-12
+
+- **Authoritative source**: `fishing-game/assets/approved-mock/cast-harbor-composite-base.png`, an existing high-quality AINAN Cast art asset. This does **not** claim a new AI-painted master has been produced.
+- **Derivation**: `scripts/art/extract-harbor-approved-master.mjs` deterministically parses approved PNG pixels and writes two transparent parts, preserving all RGBA pixels when recomposited at native dimensions.
+- **Parts**: `generated/harbor-aji-master-v2/cast-harbor-water-extracted.png` and `cast-harbor-nonwater-extracted.png`. They remain separable/visible/replaceable, but the nonwater part still contains baked pier/player art and is **not** yet a fully independent final production scene.
+- **Use**: `ui.fishingApprovedSplitWaterV2` and `ui.fishingApprovedSplitBaseV2` in the existing `CastPresentationHost` **only** with `?qa=1&castApprovedSplit=1`. Normal production keeps the approved composite and does not preload the experimental textures.
+- **Quality gate**: 390×844 real-browser screenshots `64-approved-cast-original.png` and `65-approved-cast-split-preview.png`, with owner/input/texture checks. A perceptually identical result is expected at this stage, not a superior render. Original source and generator remain in GitHub; the generated PNG files are built reproducibly by `qa:pipeline` or `predev`.
+- **Next**: mask refinement, independent true harbor and character layers, depth/parallax and fish-friendly water motion, all behind review flags until the Art Direction Bible and live UX gates pass. 9 fish Jump states remain `planned`.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.

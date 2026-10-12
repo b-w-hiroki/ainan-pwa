@@ -1694,6 +1694,26 @@
       "replacementRef": null,
       "reviewEvidence": null,
       "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingApprovedSplitWaterV2",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/approved-mock/cast-harbor-composite-base.png",
+      "replacementRef": "ui.fishingApprovedSplitWaterV2",
+      "reviewEvidence": null,
+      "note": "Reproducible derived PNG from approved master; QA-only preview. A full independent 2.5D master remains planned; do not promote or replace default Cast without visual review."
+    },
+    {
+      "ref": "ui.fishingApprovedSplitBaseV2",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/approved-mock/cast-harbor-composite-base.png",
+      "replacementRef": "ui.fishingApprovedSplitBaseV2",
+      "reviewEvidence": null,
+      "note": "Reproducible derived PNG from approved master; QA-only preview. A full independent 2.5D master remains planned; do not promote or replace default Cast without visual review."
     }
   ]
 }

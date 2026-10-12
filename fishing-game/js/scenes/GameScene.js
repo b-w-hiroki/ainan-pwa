@@ -70,11 +70,18 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.fishingField.locationHarbor,
       ASSETS.fishingField.locationBay,
       ASSETS.fishingField.locationCape,
-      ...Object.values(ASSETS.ui),
+      ...Object.values(ASSETS.ui).filter(asset =>
+        asset.key !== ASSETS.ui.fishingApprovedSplitWaterV2.key &&
+        asset.key !== ASSETS.ui.fishingApprovedSplitBaseV2.key),
       ASSETS.ui.resultFrame,
       ASSETS.ui.buttonPrimary,
       ASSETS.ui.panelHarbor,
     ]
+    // QA-only preview; do not download derivative textures on regular play.
+    const artParams = new URLSearchParams(window.location.search)
+    if (artParams.get('qa') === '1' && artParams.get('castApprovedSplit') === '1') {
+      wanted.push(ASSETS.ui.fishingApprovedSplitWaterV2, ASSETS.ui.fishingApprovedSplitBaseV2)
+    }
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
