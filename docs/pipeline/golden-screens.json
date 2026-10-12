@@ -105,6 +105,24 @@
       "file": "54-kanpachi-result.png",
       "purpose": "Premium Result hero of kanpachi / no generic icon fallback; pointC",
       "phase": "result"
+    },
+    {
+      "id": "battle-harbor-aji",
+      "file": "58-aji-battle-harbor.png",
+      "purpose": "host premium aji above composite; Harbor baseline",
+      "phase": "battle"
+    },
+    {
+      "id": "battle-bay-aji",
+      "file": "59-aji-battle-bay.png",
+      "purpose": "same aji hero with distinct Bay overlay and real scene point",
+      "phase": "battle"
+    },
+    {
+      "id": "battle-cape-saba",
+      "file": "60-saba-battle-cape.png",
+      "purpose": "saba premium hero with distinct Cape overlay and real scene point",
+      "phase": "battle"
     }
   ]
 }

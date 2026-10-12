@@ -12,6 +12,12 @@ const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
+const BATTLE_FISH_BOUNDS = Object.freeze({ width: 330, height: 202 })
+const BATTLE_LOCATION_ART = Object.freeze({
+  pointA: ASSETS.fishingField.locationHarbor,
+  pointB: ASSETS.fishingField.locationBay,
+  pointC: ASSETS.fishingField.locationCape,
+})
 
 const FISH_ART = Object.freeze({
   aji: ASSETS.fishHeroes.aji,
@@ -183,6 +189,11 @@ export class CastPresentationHost {
     const battleLine = scene.add.graphics()
     battleLine.lineStyle(2, 0xffffff, 0.92)
     battleLine.lineBetween(0, 480, 164, 348)
+    // Independent environment part, reused from the existing world asset manifest.
+    // Place over the approved composite, but beneath the real battle fish and HUD.
+    const battleLocationOverlay = scene.add.image(
+      DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
+    ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
     const battleFish = scene.add.image(224, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
     const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -308,6 +319,11 @@ export class CastPresentationHost {
     const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage]
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
+    // The approved Battle base is a full-screen composite. Drawing a separate
+    // fish under it hides the species art. Battle foreground is its sole owner.
+    battleField.remove([battleLocationOverlay, battleFish])
+    battleForeground.addAt(battleLocationOverlay, 1)
+    battleForeground.addAt(battleFish, 2)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
     const resultUi = [resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
@@ -466,6 +482,7 @@ export class CastPresentationHost {
       layeredScene,
       chrome,
       battleFish,
+      battleLocationOverlay,
       battleFishName,
       battleTensionFill,
       battleTensionStatus,
@@ -589,11 +606,15 @@ export class CastPresentationHost {
   _syncFishImage(image, fishId, slot = 'battle') {
     const asset = FISH_ART[fishId] ?? FISH_ART.tai
     if (asset?.key && this.scene.textures.exists(asset.key) && image.texture.key !== asset.key) image.setTexture(asset.key)
-    if (slot === 'result') {
+    if (slot === 'result' || slot === 'battle') {
+      // Texture replacement retains the previous image scale; a 768px Madai
+      // texture and 640px species heroes would display at different sizes.
+      // Fit the current texture inside its phase's visual bounds every time.
+      const bounds = slot === 'result' ? RESULT_FISH_BOUNDS : BATTLE_FISH_BOUNDS
       const source = image.texture?.getSourceImage?.()
       const width = source?.naturalWidth ?? source?.width ?? 1
       const height = source?.naturalHeight ?? source?.height ?? 1
-      const scale = Math.min(RESULT_FISH_BOUNDS.width / width, RESULT_FISH_BOUNDS.height / height)
+      const scale = Math.min(bounds.width / width, bounds.height / height)
       image.setDisplaySize(Math.round(width * scale), Math.round(height * scale))
     }
   }
@@ -631,6 +652,11 @@ export class CastPresentationHost {
     if (battleVisible) {
       const battle = view.battle
       this._syncFishImage(this.nodes.battleFish, battle.fishId)
+      const point = this.scene.env?.point ?? 'pointA'
+      const overlay = this.nodes.battleLocationOverlay
+      const art = BATTLE_LOCATION_ART[point] ?? BATTLE_LOCATION_ART.pointA
+      overlay.setTexture(art.key).setVisible(point !== 'pointA')
+        .setAlpha(point === 'pointC' ? 0.32 : 0.28)
       this.nodes.battleFishName.setText(battle.fishName)
       this.nodes.battleTensionFill.clear()
       drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : battle.tension01 >= 0.48 ? 'sun' : 'mint' })

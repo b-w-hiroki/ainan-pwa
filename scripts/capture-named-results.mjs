@@ -18,6 +18,55 @@ const cases = [
 mkdirSync('artifacts/e2e', { recursive: true })
 const browser = await chromium.launch({ headless: true })
 try {
+  // Exercise real GameScene location state and foreground ownership for all
+  // three fields. Existing 15–17 fixture screenshots remain unchanged.
+  const battleCases = [
+    ['aji', 'pointA', '58-aji-battle-harbor.png'],
+    ['aji', 'pointB', '59-aji-battle-bay.png'],
+    ['saba', 'pointC', '60-saba-battle-cape.png'],
+  ]
+  for (const [fishId, point, filename] of battleCases) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+    try {
+      const query = new URLSearchParams({ qa: '1', scene: 'GameScene', qaAction: 'battle', qaLocation: point, qaFish: fishId })
+      await page.goto('http://127.0.0.1:4173/fishing-game/?' + query.toString(), { waitUntil: 'domcontentloaded' })
+      await page.waitForFunction(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        return scene?.phase === 'battle' && scene?._castPresentationHost?.nodes?.battleForeground?.visible
+      }, { timeout: 20000 })
+      await page.waitForTimeout(450)
+      const state = await page.evaluate(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        const hero = host?.nodes?.battleFish
+        const overlay = host?.nodes?.battleLocationOverlay
+        return {
+          phase: scene?.phase, point: scene?.env?.point, fish: scene?.fish?.id,
+          heroTexture: hero?.texture?.key, heroWidth: hero?.displayWidth,
+          heroInForeground: hero?.parentContainer === host?.nodes?.battleForeground,
+          overlayTexture: overlay?.texture?.key, overlayVisible: overlay?.visible,
+          battleVisible: host?.nodes?.battleForeground?.visible,
+          resultVisible: host?.nodes?.resultForeground?.visible,
+        }
+      })
+      assert.equal(state.phase, 'battle', filename + ': expected Battle')
+      assert.equal(state.point, point, filename + ': QA location did not reach real GameScene')
+      assert.equal(state.fish, fishId, filename + ': wrong Battle fish')
+      assert.equal(state.heroTexture, 'fish_hero_' + fishId, filename + ': wrong premium fish')
+      assert.ok(state.heroWidth >= 290 && state.heroInForeground, filename + ': premium fish hidden behind Battle base')
+      assert.equal(state.overlayVisible, point !== 'pointA', filename + ': incorrect location overlay visibility')
+      assert.equal(state.overlayTexture, {
+        pointA: 'ff_location_harbor', pointB: 'ff_location_bay', pointC: 'ff_location_cape',
+      }[point], filename + ': wrong location artwork')
+      assert.equal(state.battleVisible, true)
+      assert.equal(state.resultVisible, false)
+      await page.screenshot({ path: join('artifacts/e2e', filename), animations: 'disabled' })
+      console.log('Captured verified Battle:', filename, JSON.stringify(state))
+    } finally {
+      await page.close()
+    }
+  }
+
   // The generic Result clearance uses the same state-aware capture method as
   // named fish. The old CLI screenshot waited 3400ms *after* readiness and on
   // some Chromium runs captured only the page background.

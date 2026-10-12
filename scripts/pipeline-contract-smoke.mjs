@@ -146,6 +146,12 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   }
 }
 assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
+assert.ok(hostPresentation.includes('battleForeground.addAt(battleFish, 2)'),
+  'real Battle fish must be over full-screen approved Battle base')
+assert.ok(hostPresentation.includes('battleForeground.addAt(battleLocationOverlay, 1)'),
+  'existing location asset must be composed by the Battle owner, beneath fish')
+assert.ok(staminaActions.includes('validQaPoint') && staminaActions.includes('point: qaPoint'),
+  'location QA must exercise the real scene env and not just an atmosphere overlay')
 assert.ok(hostPresentation.includes('resultForeground.addAt(resultFish, 1)'),
   'premium Result hero must render in front of approved result skin')
 const uncoveredFish = FISH_LIST.filter(fish => !trackedFish.some(item => item.fishId === fish.id))

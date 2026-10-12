@@ -27,7 +27,8 @@
           "kind": "asset",
           "refs": [
             "fishingField.locationHarbor"
-          ]
+          ],
+          "note": "Ready world part; approved Harbor composite is retained in default CastPresentationHost Battle, so the Harbor overlay stays hidden to avoid double-drawing"
         }
       ]
     },
@@ -47,7 +48,8 @@
           "kind": "asset",
           "refs": [
             "fishingField.locationBay"
-          ]
+          ],
+          "note": "Existing independent world part composed in CastPresentationHost Battle foreground above approved base and below premium fish; does not change fishing probabilities"
         }
       ]
     },
@@ -67,7 +69,8 @@
           "kind": "asset",
           "refs": [
             "fishingField.locationCape"
-          ]
+          ],
+          "note": "Existing independent world part composed in CastPresentationHost Battle foreground above approved base and below premium fish; does not change fishing probabilities"
         }
       ]
     },

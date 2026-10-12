@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { assertFieldPixelDifference } from './field-pixel-diff-guard.mjs'
 import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
@@ -35,6 +36,9 @@ const keyFrames = [
   '15-field-harbor.png',
   '16-field-bay.png',
   '17-field-cape.png',
+  '58-aji-battle-harbor.png',
+  '59-aji-battle-bay.png',
+  '60-saba-battle-cape.png',
   '18-challenge.png',
   '19-boss-harbor.png',
   '20-boss-bay.png',
@@ -78,6 +82,7 @@ for (const file of keyFrames) {
 
 const uniqueGroups = [
   ['15-field-harbor.png', '16-field-bay.png', '17-field-cape.png'],
+  ['58-aji-battle-harbor.png', '59-aji-battle-bay.png', '60-saba-battle-cape.png'],
   ['19-boss-harbor.png', '20-boss-bay.png', '21-boss-kue.png'],
   ['28-rarity-common.png', '29-rarity-uncommon.png', '30-rarity-rare.png', '31-rarity-legendary.png'],
   ['32-reward-first.png', '33-reward-record.png', '34-reward-rare.png', '35-reward-legendary.png'],
@@ -90,6 +95,10 @@ for (const group of uniqueGroups) {
   const hashes = group.map(file => metadata.get(file)?.hash)
   assert.equal(new Set(hashes).size, group.length, 'visual states unexpectedly produced duplicate screenshots: ' + group.join(', '))
 }
+
+// A PNG hash can change without any relevant rendered pixel changing.
+// Require meaningful fishing-field differences, not just file uniqueness.
+assertFieldPixelDifference(dir)
 
 console.log('Visual screenshot guard passed')
 console.log('  screenshots:', files.length)
