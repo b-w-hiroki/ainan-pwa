@@ -39,6 +39,11 @@ const FISH_JUMP_ART = Object.freeze({
   saba: ASSETS.fishJump.saba,
   kue: ASSETS.fishJump.kue,
 })
+const FISH_JUMP_FX = Object.freeze({
+  aji: ASSETS.fishJump.fxAji,
+  saba: ASSETS.fishJump.fxSaba,
+  kue: ASSETS.fishJump.fxKue,
+})
 
 export function castPresentationMode() {
   if (typeof window === 'undefined') return 'host'
@@ -239,6 +244,8 @@ export class CastPresentationHost {
     const battleLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+    const battleJumpFx = scene.add.image(210, 349, ASSETS.fishJump.fxAji.key)
+      .setDisplaySize(310, 174).setVisible(false)
     const battleFish = scene.add.image(210, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
     const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -368,7 +375,8 @@ export class CastPresentationHost {
     // fish under it hides the species art. Battle foreground is its sole owner.
     battleField.remove([battleLocationOverlay, battleFish])
     battleForeground.addAt(battleLocationOverlay, 1)
-    battleForeground.addAt(battleFish, 2)
+    battleForeground.addAt(battleJumpFx, 2)
+    battleForeground.addAt(battleFish, 3)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
     const resultUi = [resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
@@ -528,6 +536,7 @@ export class CastPresentationHost {
       approvedSplit,
       chrome,
       battleFish,
+      battleJumpFx,
       battleLocationOverlay,
       battleFishName,
       battleTensionFill,
@@ -705,6 +714,8 @@ export class CastPresentationHost {
       // foreground owner under the tension/reel controls.
       this.nodes.battleFish.setPosition(leap ? 200 : 210, leap ? 307 : 326)
         .setAngle(leap ? -5 : -8)
+      this.nodes.battleJumpFx.setVisible(leap)
+      if (leap) this.nodes.battleJumpFx.setTexture(FISH_JUMP_FX[battle.fishId].key)
       const point = this.scene.env?.point ?? 'pointA'
       const overlay = this.nodes.battleLocationOverlay
       const art = BATTLE_LOCATION_ART[point] ?? BATTLE_LOCATION_ART.pointA
