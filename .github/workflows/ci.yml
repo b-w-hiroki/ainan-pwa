@@ -132,6 +132,9 @@ jobs:
       - name: Capture named Result fish with rendered state assertions
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
 
+      - name: Capture layered Harbor water candidate without touching the approved default
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-layered-water-preview.mjs
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
