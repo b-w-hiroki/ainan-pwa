@@ -57,6 +57,12 @@ function castApprovedForegroundPreviewEnabled() {
   return params.get('qa') === '1' && params.get('castApprovedForeground') === '1'
 }
 
+function landscapeCastPreviewEnabled() {
+  if (typeof window === 'undefined') return false
+  const query = new URLSearchParams(window.location.search)
+  return query.get('qa') === '1' && query.get('landscapePrototype') === '1'
+}
+
 function castApprovedSplitPreviewEnabled() {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
@@ -89,6 +95,14 @@ export class CastPresentationHost {
     const dock = scene.add.container(0, 0)
     const interaction = scene.add.container(0, 0)
     root.add([field, chrome, dock, interaction])
+    // Draw behind the existing single host owner, only for the experimental
+    // landscape composition; the approved production screen is untouched.
+    const landscapeBackdrop = landscapeCastPreviewEnabled()
+      && scene.textures.exists(ASSETS.fishingField.waterBase.key)
+      ? scene.add.tileSprite(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2,
+        DESIGN_WIDTH, DESIGN_HEIGHT, ASSETS.fishingField.waterBase.key).setVisible(false)
+      : null
+    if (landscapeBackdrop) root.addAt(landscapeBackdrop, 0)
     const castField = scene.add.container(0, 0)
     const retrieveField = scene.add.container(0, 0)
     const battleField = scene.add.container(0, 0)
@@ -509,6 +523,7 @@ export class CastPresentationHost {
       castHit,
       backHit,
       castField,
+      landscapeBackdrop,
       retrieveField,
       battleField,
       resultField,
@@ -636,6 +651,33 @@ export class CastPresentationHost {
     if (!this.root?.active) return
     const width = this.scene.scale.width
     const height = this.scene.scale.height
+    const landscapeCast = landscapeCastPreviewEnabled()
+      && width > height && this.scene.phase === 'cast'
+    this.nodes.landscapeBackdrop?.setVisible(landscapeCast)
+    if (landscapeCast) {
+      // Preserve native-size painted player, fish silhouettes and touch
+      // geometry. Only the *world slice* is cropped; input has its own
+      // position and scale, rather than shrinking the whole phone to 20px.
+      const panelScale = 0.75
+      const panelX = width - DESIGN_WIDTH * panelScale - 12
+      const panelY = height - DESIGN_HEIGHT * panelScale - 35
+      this.root.setScale(1).setPosition(0, 0)
+      this.nodes.castField.setScale(1).setPosition(18, -195)
+      this.nodes.castDock.setScale(panelScale).setPosition(panelX, panelY)
+      this.nodes.castInteraction.setScale(panelScale).setPosition(panelX, panelY)
+      this.nodes.landscapeBackdrop?.setPosition(width / 2, height / 2)
+        .setDisplaySize(width, height)
+      this.root.setData('landscapeCastLayout', {
+        panelScale, panelX, panelY, width, height,
+      })
+      return
+    }
+    // Restore exactly the original portrait layout, including after
+    // orientation changes and on every phase transition.
+    this.nodes.castField.setScale(1).setPosition(0, 0)
+    this.nodes.castDock.setScale(1).setPosition(0, 0)
+    this.nodes.castInteraction.setScale(1).setPosition(0, 0)
+    this.root.setData('landscapeCastLayout', null)
     const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)
     this.root.setScale(scale)
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
@@ -660,6 +702,10 @@ export class CastPresentationHost {
   sync() {
     if (!this.root?.active) return
     const view = readCastViewModel(this.scene)
+    if (landscapeCastPreviewEnabled() && this._responsiveLayoutPhase !== view.phase) {
+      this._responsiveLayoutPhase = view.phase
+      this.layout()
+    }
     this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
