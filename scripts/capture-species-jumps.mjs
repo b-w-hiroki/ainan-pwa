@@ -13,12 +13,12 @@ const cases=[
   ['kue','pointC','75-kue-jump.png'],
 ]
 mkdirSync('artifacts/e2e',{recursive:true})
-mkdirSync('artifacts/jump-motion',{recursive:true})
+mkdirSync('artifacts/e2e/jump-motion',{recursive:true})
 const browser=await chromium.launch({headless:true})
 try{
   for(const [fishId,point,file] of cases){
     const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,
-      recordVideo:{dir:'artifacts/jump-motion',size:{width:390,height:844}}})
+      recordVideo:{dir:'artifacts/e2e/jump-motion',size:{width:390,height:844}}})
     const page=await context.newPage()
     try{
       const q=new URLSearchParams({qa:'1',scene:'GameScene',qaAction:'battle',qaJump:'1',qaFish:fishId,qaLocation:point})
@@ -126,7 +126,7 @@ try{
       await context.close()
       assert.ok(video,'real Jump motion must be recorded')
       const captured=await video.path()
-      const finalPath=join('artifacts/jump-motion',fishId+'-jump.webm')
+      const finalPath=join('artifacts/e2e/jump-motion',fishId+'-jump.webm')
       renameSync(captured,finalPath)
       assert.ok(statSync(finalPath).size>5000,fishId+': empty rendered Jump video')
       console.log('Recorded real Jump video:',finalPath)
