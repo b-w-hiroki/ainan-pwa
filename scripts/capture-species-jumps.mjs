@@ -35,9 +35,23 @@ try{
         return { phase:scene.phase, raging:scene.battleState?.isRaging,
           y:fish.y, angle:fish.angle, splashAlpha:splash.alpha }
       })
-      await page.waitForTimeout(60)
+      // Sync to the actual repeating Jump cycle, rather than assuming
+      // browser startup and screenshot time leave the sprite at takeoff.
+      await page.waitForFunction(() => {
+        const s=window.__game?.scene?.getScene('GameScene')
+        const h=s?._castPresentationHost
+        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
+        return s?.battleState?.isRaging && Number.isFinite(t)
+          && t%960>=40 && t%960<130
+      }, { timeout: 15000 })
       const takeoff=await motionFrame()
-      await page.waitForTimeout(220)
+      await page.waitForFunction(() => {
+        const s=window.__game?.scene?.getScene('GameScene')
+        const h=s?._castPresentationHost
+        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
+        return s?.battleState?.isRaging && Number.isFinite(t)
+          && t%960>=255 && t%960<350
+      }, { timeout: 15000 })
       const airborne=await motionFrame()
       assert.equal(takeoff.phase,'battle')
       assert.equal(airborne.phase,'battle')
@@ -74,7 +88,13 @@ try{
       await page.screenshot({path:join('artifacts/e2e',file),animations:'disabled'})
       // Validate actual return to water rather than accepting only a fixed
       // tilted Jump sprite. The landing frame also documents water FX.
-      await page.waitForTimeout(430)
+      await page.waitForFunction(() => {
+        const s=window.__game?.scene?.getScene('GameScene')
+        const h=s?._castPresentationHost
+        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
+        return s?.battleState?.isRaging && Number.isFinite(t)
+          && t%960>=655 && t%960<735
+      }, { timeout: 15000 })
       const landing=await motionFrame()
       assert.equal(landing.phase,'battle')
       assert.equal(landing.raging,true)
