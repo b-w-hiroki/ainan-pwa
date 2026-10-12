@@ -97,12 +97,17 @@ export class CastPresentationHost {
     root.add([field, chrome, dock, interaction])
     // Draw behind the existing single host owner, only for the experimental
     // landscape composition; the approved production screen is untouched.
+    // Reuse the actual approved high-detail Harbor water painting; no flat
+    // gradient or generated grid should replace this game's art direction.
     const landscapeBackdrop = landscapeCastPreviewEnabled()
-      && scene.textures.exists(ASSETS.fishingField.waterBase.key)
+      && scene.textures.exists(ASSETS.ui.fishingApprovedCleanHarbor.key)
       ? scene.add.tileSprite(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2,
-        DESIGN_WIDTH, DESIGN_HEIGHT, ASSETS.fishingField.waterBase.key).setVisible(false)
+        DESIGN_WIDTH, DESIGN_HEIGHT, ASSETS.ui.fishingApprovedCleanHarbor.key).setVisible(false)
       : null
-    if (landscapeBackdrop) root.addAt(landscapeBackdrop, 0)
+    if (landscapeBackdrop) {
+      landscapeBackdrop.tilePositionY = 250 // Sample the water, not the pier/horizon.
+      root.addAt(landscapeBackdrop, 0)
+    }
     const castField = scene.add.container(0, 0)
     const retrieveField = scene.add.container(0, 0)
     const battleField = scene.add.container(0, 0)
@@ -663,6 +668,10 @@ export class CastPresentationHost {
       const panelY = height - DESIGN_HEIGHT * panelScale - 35
       this.root.setScale(1).setPosition(0, 0)
       this.nodes.castField.setScale(1).setPosition(18, -195)
+      // CharacterMotionController is a sibling of castField in the host field.
+      // It must share the world offset or the approved character disappears
+      // while the source composite shows a cyan-shaped transparency.
+      this.nodes.characterMotion?.root?.setPosition(18, -195)
       this.nodes.castDock.setScale(panelScale).setPosition(panelX, panelY)
       this.nodes.castInteraction.setScale(panelScale).setPosition(panelX, panelY)
       this.nodes.landscapeBackdrop?.setPosition(width / 2, height / 2)
@@ -675,6 +684,7 @@ export class CastPresentationHost {
     // Restore exactly the original portrait layout, including after
     // orientation changes and on every phase transition.
     this.nodes.castField.setScale(1).setPosition(0, 0)
+    this.nodes.characterMotion?.root?.setPosition(0, 0)
     this.nodes.castDock.setScale(1).setPosition(0, 0)
     this.nodes.castInteraction.setScale(1).setPosition(0, 0)
     this.root.setData('landscapeCastLayout', null)
