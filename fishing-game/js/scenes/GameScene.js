@@ -82,6 +82,9 @@ export default class GameScene extends Phaser.Scene {
     ]
     // QA-only preview; do not download derivative textures on regular play.
     const artParams = new URLSearchParams(window.location.search)
+    if (artParams.get('qa') === '1' && artParams.get('landscapePrototype') === '1') {
+      wanted.push(ASSETS.fishingField.waterBase)
+    }
     if (artParams.get('qa') === '1' && artParams.get('castApprovedSplit') === '1') {
       wanted.push(ASSETS.ui.fishingApprovedSplitWaterV2, ASSETS.ui.fishingApprovedSplitBaseV2)
     }
