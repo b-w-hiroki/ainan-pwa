@@ -143,6 +143,9 @@ jobs:
       - name: Capture species-specific Town arrival screens
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-town-catch-reactions.mjs
 
+      - name: Capture species-specific Jump rage poses
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-species-jumps.mjs
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
