@@ -78,6 +78,47 @@ try {
     await defaultResult.close()
   }
 
+  // Preserve the original first Kue boss-catch fixture. A DOM-ready
+  // Result is insufficient: the old CLI sometimes wrote a 2742-byte blank
+  // WebGL compositor PNG. Require actual Result state and decoded gold pixels.
+  const firstTrophy = await browser.newPage({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
+  })
+  try {
+    await firstTrophy.goto(
+      'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue&qaFreshBoss=1',
+      { waitUntil: 'domcontentloaded' },
+    )
+    await firstTrophy.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    const assertFirstTrophy = async () => {
+      const state = await firstTrophy.evaluate(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        const canvas = document.querySelector('#game-container canvas')
+        return {
+          phase: scene?.phase, outcome: scene?._castPresentationOutcome,
+          fish: scene?.fish?.id,
+          resultVisible: host?.nodes?.resultForeground?.visible,
+          battleVisible: host?.nodes?.battleForeground?.visible,
+          heroVisible: host?.nodes?.resultFish?.visible,
+          heroWidth: host?.nodes?.resultFish?.displayWidth,
+          canvasPresent: Boolean(canvas?.isConnected && canvas.width>0 && canvas.height>0),
+        }
+      })
+      assert.equal(state.phase,'result','27-kue-first-trophy.png: Result phase missing')
+      assert.equal(state.outcome,'caught','27-kue-first-trophy.png: catch outcome missing')
+      assert.equal(state.fish,'kue','27-kue-first-trophy.png: wrong boss fish')
+      assert.equal(state.resultVisible,true,'27-kue-first-trophy.png: Result hidden')
+      assert.equal(state.battleVisible,false,'27-kue-first-trophy.png: Battle still visible')
+      assert.equal(state.heroVisible,true,'27-kue-first-trophy.png: hero hidden')
+      assert.ok(state.heroWidth>=290,'27-kue-first-trophy.png: hero too small')
+      assert.equal(state.canvasPresent,true,'27-kue-first-trophy.png: canvas missing')
+    }
+    await captureVisibleResult(firstTrophy,'27-kue-first-trophy.png',assertFirstTrophy)
+  } finally {
+    await firstTrophy.close()
+  }
+
   // Match the previously flaky player/reward Result fixture exactly. A long
   // CLI delay after the DOM marker could capture a blank compositor frame.
   const playerResult = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
