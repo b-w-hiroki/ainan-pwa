@@ -153,6 +153,18 @@
       "file": "75-kue-jump.png",
       "phase": "battle",
       "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
+    },
+    {
+      "id": "town-aji-featured",
+      "file": "88-town-aji-featured.png",
+      "phase": "town",
+      "purpose": "In-world market and diner show last caught species after arrival popup is dismissed; verify actual fish pixels."
+    },
+    {
+      "id": "town-kanpachi-featured",
+      "file": "89-town-kanpachi-featured.png",
+      "phase": "town",
+      "purpose": "In-world market and diner show last caught species after arrival popup is dismissed; verify actual fish pixels."
     }
   ]
 }

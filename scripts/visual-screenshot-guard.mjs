@@ -42,6 +42,8 @@ const keyFrames = [
   '66-approved-foreground-preview.png',
   '71-town-aji-arrival.png',
   '72-town-kanpachi-arrival.png',
+  '88-town-aji-featured.png',
+  '89-town-kanpachi-featured.png',
   '73-aji-jump.png',
   '74-saba-jump.png',
   '75-kue-jump.png',

@@ -370,6 +370,20 @@ assert.ok(jumpCapture.includes("airborne.y<takeoff.y-9")
   && jumpCapture.includes("landing.y>airborne.y+12")
   && jumpCapture.includes("landing.splashAlpha>airborne.splashAlpha"),
   'real browser Jump QA must verify lift, landing and stronger splash')
+const townSource = read('fishing-game/js/scenes/TownScene.js')
+const townReactionSource = read('fishing-game/js/game/townCatchReactions.js')
+const townCaptureSource = read('scripts/capture-town-catch-reactions.mjs')
+assert.ok(townSource.includes('this._featuredCatch = getTownFeaturedCatch('),
+  'Town must choose most recent real catch without changing saves')
+assert.ok(townSource.includes('this._drawCatchAtShop(85, y + 12, art)')
+  && townSource.includes('this._drawCatchAtShop(W - 85, y + 12, art)'),
+  'Both market and diner must visibly respond in the existing Town scene')
+assert.ok(townReactionSource.includes('export function getTownFeaturedCatch(catches)'),
+  'Town fish identity must be selected through one shared validated registry')
+assert.ok(townCaptureSource.includes("88-town-aji-featured.png")
+  && townCaptureSource.includes("89-town-kanpachi-featured.png")
+  && townCaptureSource.includes("await page.mouse.click(195, 530)"),
+  'CI must capture actual post-modal market/diner fish response')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
