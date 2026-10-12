@@ -153,8 +153,10 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
   }
 }
 assert.equal(trackedFish.length, FISH_LIST.length, 'all gameplay fish must have verified asset states')
-assert.ok(hostPresentation.includes('battleForeground.addAt(battleFish, 2)'),
+assert.ok(hostPresentation.includes('battleForeground.addAt(battleFish, 3)'),
   'real Battle fish must be over full-screen approved Battle base')
+assert.ok(hostPresentation.includes('battleForeground.addAt(battleJumpFx, 2)'),
+  'Jump splash must be independent and behind fish, in one host owner')
 assert.ok(hostPresentation.includes('battleForeground.addAt(battleLocationOverlay, 1)'),
   'existing location asset must be composed by the Battle owner, beneath fish')
 assert.ok(staminaActions.includes('validQaPoint') && staminaActions.includes('point: qaPoint'),
@@ -172,6 +174,8 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+assert.ok(hostSource.includes('const FISH_JUMP_FX = Object.freeze('),
+  'Jump FX must be a distinct replaceable asset family')
 const jumpCaptureScript = 'scripts/capture-species-jumps.mjs'
 const jumpCaptureEnabled = workflow.includes('node ' + jumpCaptureScript)
 const jumpCaptureSource = jumpCaptureEnabled ? read(jumpCaptureScript) : ''
