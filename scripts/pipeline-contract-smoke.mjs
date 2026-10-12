@@ -165,6 +165,16 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+const resultPixelGuard = read('scripts/result-screen-pixel-guard.mjs')
+assert.ok(resultPixelGuard.includes('export function countGetHeaderPixels(file, dir'),
+  'live screenshots must share the same rendered GET-pixel verifier as CI')
+assert.ok(resultPixelGuard.includes("resolve(process.argv[1]) === fileURLToPath(import.meta.url)"),
+  'importing the pixel verifier must not start standalone CI checks')
+assert.ok(namedResultSource.includes("captureVisibleResult(clearance, '57-clearance-result-stable.png'"),
+  'late clearance Result must validate rendered pixels, not just DOM flags')
+assert.ok(namedResultSource.includes('attempt <= 4') && namedResultSource.includes('seenGold > 450'),
+  'late screenshot retries must be bounded and must never bypass real pixel visibility')
+
 assert.ok(namedResultSource.includes("path: join('artifacts/e2e', '39-player-result.png')"),
   'player reward Result must be captured by the state-aware Playwright harness')
 assert.ok(namedResultSource.includes("assert.equal(state.rewardBadgePresent, true"),

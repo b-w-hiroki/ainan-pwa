@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, realpathSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { countGetHeaderPixels } from './result-screen-pixel-guard.mjs'
 
 // CI installs Playwright temporarily; keep it out of the production bundle.
 const executable = process.env.PATH.split(':').map(folder => join(folder, 'playwright')).find(existsSync)
@@ -16,6 +17,26 @@ const cases = [
   ['kanpachi', 'pointC', '54-kanpachi-result.png'],
 ]
 mkdirSync('artifacts/e2e', { recursive: true })
+// A DOM-ready Result can still produce one compositor-only blank frame.
+// Retry the *capture* (never the game's result action), validate decoded
+// screenshot pixels on every attempt, and fail after a bounded deadline.
+async function captureVisibleResult(page, filename, inspect = null) {
+  let seenGold = 0
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    if (inspect) await inspect()
+    await page.screenshot({
+      path: join('artifacts/e2e', filename), animations: 'disabled',
+    })
+    seenGold = countGetHeaderPixels(filename)
+    if (seenGold > 450) {
+      console.log('Rendered Result confirmed:', filename, { attempt, goldPixels: seenGold })
+      return
+    }
+    if (attempt < 4) await page.waitForTimeout(300)
+  }
+  assert.fail(filename + ': Result pixels absent after 4 captures (last gold=' + seenGold + ')')
+}
+
 const browser = await chromium.launch({ headless: true })
 try {
   // Match the previously flaky player/reward Result fixture exactly. A long
@@ -162,19 +183,15 @@ try {
     await clearance.waitForTimeout(850)
     const initial = await inspectClearance()
     assertClearance(initial, '45-clearance-result.png')
-    await clearance.screenshot({
-      path: join('artifacts/e2e', '45-clearance-result.png'),
-      animations: 'disabled',
-    })
+    await captureVisibleResult(clearance, '45-clearance-result.png',
+      async () => assertClearance(await inspectClearance(), '45-clearance-result.png', { expectReadyMarker: false }))
     // A second late capture detects the failure mode that the former
     // 3400ms post-ready CLI screenshot exposed instead of concealing it.
     await clearance.waitForTimeout(2200)
     const stable = await inspectClearance()
     assertClearance(stable, '57-clearance-result-stable.png', { expectReadyMarker: false })
-    await clearance.screenshot({
-      path: join('artifacts/e2e', '57-clearance-result-stable.png'),
-      animations: 'disabled',
-    })
+    await captureVisibleResult(clearance, '57-clearance-result-stable.png',
+      async () => assertClearance(await inspectClearance(), '57-clearance-result-stable.png', { expectReadyMarker: false }))
     console.log('Captured and verified generic Result clearance:', JSON.stringify({ initial, stable }))
   } finally {
     await clearance.close()
@@ -225,7 +242,26 @@ try {
         await page.waitForTimeout(2200)
         const phaseLater = await page.evaluate(() => window.__game?.scene?.getScene('GameScene')?.phase)
         assert.equal(phaseLater, 'result', fishId + ': late phase reverted to Battle')
-        await page.screenshot({ path: join('artifacts/e2e', '56-bass-result-stable.png'), animations: 'disabled' })
+        await captureVisibleResult(page, '56-bass-result-stable.png', async () => {
+          const next = await page.evaluate(() => {
+            const scene = window.__game?.scene?.getScene('GameScene')
+            const host = scene?._castPresentationHost
+            return {
+              phase: scene?.phase,
+              outcome: scene?._castPresentationOutcome,
+              fish: scene?.fish?.id,
+              resultVisible: host?.nodes?.resultForeground?.visible,
+              battleVisible: host?.nodes?.battleForeground?.visible,
+              heroVisible: host?.nodes?.resultFish?.visible,
+            }
+          })
+          assert.equal(next.phase, 'result', '56-bass-result-stable.png: Result phase lost')
+          assert.equal(next.outcome, 'caught', '56-bass-result-stable.png: catch outcome lost')
+          assert.equal(next.fish, 'bass', '56-bass-result-stable.png: fish changed')
+          assert.equal(next.resultVisible, true, '56-bass-result-stable.png: Result foreground hidden')
+          assert.equal(next.battleVisible, false, '56-bass-result-stable.png: Battle reappeared')
+          assert.equal(next.heroVisible, true, '56-bass-result-stable.png: fish art not visible')
+        })
       }
       console.log('Captured named Result:', filename, JSON.stringify(state))
     } finally {
