@@ -185,6 +185,7 @@ export const ASSETS = {
     fishingApprovedSplitBaseV2: { key: 'ui_approved_split_base_v2', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-nonwater-extracted.png'), status: 'ready' },
     fishingApprovedSplitBackgroundV3: { key: 'ui_approved_split_background_v3', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-background-extracted.png'), status: 'ready' },
     fishingApprovedSplitPlayerV3: { key: 'ui_approved_split_player_v3', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-player-region-extracted.png'), status: 'ready' },
+    fishingApprovedBackfillPilot: { key: 'ui_approved_backfill_pilot', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-player-backfill-pilot.png'), status: 'ready' },
     fishingApprovedSplitPierV3: { key: 'ui_approved_split_pier_v3', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-pier-region-extracted.png'), status: 'ready' },
     fishingApprovedRetrievePanel: { key: 'ui_fishing_approved_retrieve_panel', path: assetPath('fishing-game/assets/approved-mock/retrieve-approved-panel.png'), status: 'ready' },
     fishingApprovedBattleBase: { key: 'ui_fishing_approved_battle_base', path: assetPath('fishing-game/assets/approved-mock/battle-approved-base.png'), status: 'ready' },
