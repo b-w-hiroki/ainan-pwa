@@ -15,6 +15,27 @@ const cases = [
 ]
 const browser = await chromium.launch({ headless: true })
 try {
+  // The approved default must not load or render this unapproved candidate.
+  const control = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+  try {
+    await control.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene', { waitUntil: 'domcontentloaded' })
+    await control.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.visible, { timeout: 20000 })
+    const state = await control.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      return {
+        mode: scene._castPresentationMode,
+        prototypeTextureLoaded: scene.textures.exists('ui_fishing_layer_sea_v2'),
+        usesApprovedComposite: scene._castPresentationHost?.nodes?.layeredScene === null,
+      }
+    })
+    assert.equal(state.mode, 'host', 'production must use canonical presentation host')
+    assert.equal(state.prototypeTextureLoaded, false, 'candidate must not even preload during normal fishing')
+    assert.equal(state.usesApprovedComposite, true, 'production Cast must keep approved full-quality scene')
+    console.log('Standard Cast unchanged by optional water candidate:', JSON.stringify(state))
+  } finally {
+    await control.close()
+  }
+
   for (const test of cases) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
     try {
