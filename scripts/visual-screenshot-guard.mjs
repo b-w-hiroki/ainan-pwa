@@ -88,6 +88,7 @@ for (const file of keyFrames) {
 const uniqueGroups = [
   ['15-field-harbor.png', '16-field-bay.png', '17-field-cape.png'],
   ['58-aji-battle-harbor.png', '59-aji-battle-bay.png', '60-saba-battle-cape.png'],
+  ['71-town-aji-arrival.png', '72-town-kanpachi-arrival.png'],
   ['19-boss-harbor.png', '20-boss-bay.png', '21-boss-kue.png'],
   ['28-rarity-common.png', '29-rarity-uncommon.png', '30-rarity-rare.png', '31-rarity-legendary.png'],
   ['32-reward-first.png', '33-reward-record.png', '34-reward-rare.png', '35-reward-legendary.png'],
