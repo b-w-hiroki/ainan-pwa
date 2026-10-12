@@ -161,4 +161,5 @@ jobs:
           path: |
             artifacts/e2e
             artifacts/orientation
+            artifacts/location-preview
           retention-days: 14
