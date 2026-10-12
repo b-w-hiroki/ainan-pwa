@@ -406,6 +406,18 @@ assert.ok(namedResultSource.includes("state.trophyLabel,'★ TROPHY UNLOCKED ★
     && namedResultSource.includes('trophyGold>1500')
     && namedResultSource.includes("countGetHeaderPixels('27-kue-first-trophy.png',undefined,"),
   'first boss trophy must verify actual visible golden pixels, not only Phaser object existence')
+const locationPreviewCapture = read('scripts/capture-cast-retrieve-location-preview.mjs')
+assert.ok(workflow.includes('node scripts/capture-cast-retrieve-location-preview.mjs'),
+  'CI must capture active approved Cast/Retrieve location previews')
+assert.ok(hostSource.includes("params.get('qa') === '1' && params.get('castLocationPreview') === '1'"),
+  'the experimental environment art must not ship in default Cast or Retrieve')
+assert.ok(hostSource.includes('const castLocationOverlay = scene.add.image(')
+    && hostSource.includes('const retrieveLocationOverlay = scene.add.image('),
+  'Cast and Retrieve must receive art only through the established host owner')
+for (const name of ['90-harbor-cast.png','91-bay-cast-preview.png','92-cape-cast-preview.png',
+  '93-harbor-retrieve.png','94-bay-retrieve-preview.png','95-cape-retrieve-preview.png']) {
+  assert.ok(locationPreviewCapture.includes(name),'missing fishing-location QA frame: ' + name)
+}
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
