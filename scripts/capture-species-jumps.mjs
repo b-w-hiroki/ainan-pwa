@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { existsSync, realpathSync, mkdirSync } from 'node:fs'
+import { existsSync, realpathSync, mkdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -12,10 +12,12 @@ const cases=[
   ['kue','pointC','75-kue-jump.png'],
 ]
 mkdirSync('artifacts/e2e',{recursive:true})
+mkdirSync('artifacts/e2e/jump-motion',{recursive:true})
 const browser=await chromium.launch({headless:true})
 try{
   for(const [fishId,point,file] of cases){
-    const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1})
+    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1})
+    const page=await context.newPage()
     try{
       const q=new URLSearchParams({qa:'1',scene:'GameScene',qaAction:'battle',qaJump:'1',qaFish:fishId,qaLocation:point})
       await page.goto('http://127.0.0.1:4173/fishing-game/?'+q.toString(),{waitUntil:'domcontentloaded'})
@@ -25,25 +27,62 @@ try{
         return scene?.phase==='battle'&&scene?.fish?.id===id&&scene?.battleState?.isRaging
           &&host?.nodes?.battleFish?.texture?.key==='fish_jump_'+id
       },fishId,{timeout:20000})
-      // Sample a real in-game rage from takeoff to the airborne peak. Use
-      // normal scene timing; do not rewrite the Battle state or force the
-      // sprite's coordinates from the QA harness.
-      const motionFrame=()=>page.evaluate(()=>{
+      // Capture *actual rendered fish positions in Chromium* on the same
+      // 960ms cycle. Separate Playwright round trips can cross cycles even
+      // when each check observes a valid pose.
+      await page.evaluate(() => {
         const scene=window.__game.scene.getScene('GameScene')
-        const fish=scene._castPresentationHost.nodes.battleFish
-        const splash=scene._castPresentationHost.nodes.battleJumpFx
-        return { phase:scene.phase, raging:scene.battleState?.isRaging,
-          y:fish.y, angle:fish.angle, splashAlpha:splash.alpha }
+        const host=scene._castPresentationHost
+        const trace={ cycles:{}, frames:0 }
+        window.__qaJumpTrace=trace
+        const sample=()=>{
+          const elapsed=scene.time.now-(host._jumpRageStartedAt??0)
+          const cycle=Math.floor(elapsed/960)
+          const ms=((elapsed%960)+960)%960
+          const fish=host.nodes.battleFish
+          const splash=host.nodes.battleJumpFx
+          if(scene.phase==='battle'&&scene.battleState?.isRaging
+            &&fish?.visible&&Number.isFinite(elapsed)&&cycle>=0){
+            const pose=ms>=45&&ms<130?'takeoff'
+              :ms>=265&&ms<345?'airborne'
+              :ms>=655&&ms<735?'landing':null
+            if(pose){
+              const group=trace.cycles[cycle]??={}
+              if(!group[pose])group[pose]={
+                phase:scene.phase,raging:Boolean(scene.battleState.isRaging),
+                fishId:scene.fish?.id,texture:fish.texture.key,
+                cycle,ms,y:fish.y,angle:fish.angle,splashAlpha:splash.alpha,
+              }
+            }
+          }
+          trace.frames++
+          requestAnimationFrame(sample)
+        }
+        requestAnimationFrame(sample)
       })
-      await page.waitForTimeout(60)
-      const takeoff=await motionFrame()
-      await page.waitForTimeout(220)
-      const airborne=await motionFrame()
-      assert.equal(takeoff.phase,'battle')
-      assert.equal(airborne.phase,'battle')
-      assert.equal(airborne.raging,true)
+      await page.waitForFunction(() => Object.values(window.__qaJumpTrace?.cycles??{})
+        .some(group=>group.takeoff&&group.airborne&&group.landing),
+      null,{timeout:15000})
+      const trace=await page.evaluate(()=>{
+        const group=Object.values(window.__qaJumpTrace.cycles)
+          .find(item=>item.takeoff&&item.airborne&&item.landing)
+        return {takeoff:group.takeoff,airborne:group.airborne,landing:group.landing,
+          frameCount:window.__qaJumpTrace.frames}
+      })
+      const {takeoff,airborne,landing}=trace
+      for(const frame of [takeoff,airborne,landing]){
+        assert.equal(frame.phase,'battle',fishId+': Jump phase lost')
+        assert.equal(frame.raging,true,fishId+': rage ended')
+        assert.equal(frame.fishId,fishId,fishId+': wrong species')
+        assert.equal(frame.texture,'fish_jump_'+fishId,
+          fishId+': hero texture changed during same-cycle capture')
+      }
       assert.ok(airborne.y<takeoff.y-9,
-        fishId+': actual fish sprite failed to rise between takeoff and airborne frames '+JSON.stringify({takeoff,airborne}))
+        fishId+': sprite failed to rise during same cycle '+JSON.stringify(trace))
+      assert.ok(landing.y>airborne.y+12,
+        fishId+': sprite failed to descend during same cycle '+JSON.stringify(trace))
+      assert.ok(landing.splashAlpha>airborne.splashAlpha,
+        fishId+': re-entry splash missing during same cycle '+JSON.stringify(trace))
       const state=await page.evaluate(()=>{
         const scene=window.__game.scene.getScene('GameScene')
         const host=scene._castPresentationHost
@@ -71,20 +110,36 @@ try{
       assert.equal(state.resultHidden,true)
       assert.equal(state.rageLabel,true)
       assert.equal(state.owner,'cast-presentation-host')
-      await page.screenshot({path:join('artifacts/e2e',file),animations:'disabled'})
-      // Validate actual return to water rather than accepting only a fixed
-      // tilted Jump sprite. The landing frame also documents water FX.
-      await page.waitForTimeout(430)
-      const landing=await motionFrame()
-      assert.equal(landing.phase,'battle')
-      assert.equal(landing.raging,true)
-      assert.ok(landing.y>airborne.y+12,
-        fishId+': actual fish sprite failed to descend '+JSON.stringify({airborne,landing}))
-      assert.ok(landing.splashAlpha>airborne.splashAlpha,
-        fishId+': water splash must become stronger after re-entry')
+      // CDP screenshots actually contain Phaser WebGL pixels. Playwright
+      // screencast video yielded flat navy frames in headless CI, despite
+      // a nominally successful WebM output, so use *real rendered PNGs*
+      // separately captured at each observed motion stage instead.
+      const snapshot = async (phase, destination) => {
+        await page.waitForFunction(({id,phase}) => {
+          const scene=window.__game?.scene?.getScene('GameScene')
+          const fish=scene?._castPresentationHost?.nodes?.battleFish
+          if(scene?.phase!=='battle'||!scene?.battleState?.isRaging||
+             scene?.fish?.id!==id||fish?.texture?.key!=='fish_jump_'+id) return false
+          if(phase==='takeoff') return fish.y>=320
+          if(phase==='airborne') return fish.y<=305
+          if(phase==='landing') return fish.y>=322
+          return false
+        },{id:fishId,phase},{timeout:15000,polling:'raf'})
+        const path=join('artifacts/e2e',destination)
+        await page.screenshot({path,animations:'disabled'})
+        assert.ok(statSync(path).size>100000,
+          fishId+': rendered '+phase+' screenshot is unexpectedly empty')
+        console.log('Captured actual Phaser '+phase+' frame:',destination)
+      }
+      const takeoffFile=file.replace('-jump.png','-jump-takeoff.png')
       const landingFile=file.replace('-jump.png','-jump-landing.png')
-      await page.screenshot({path:join('artifacts/e2e',landingFile),animations:'disabled'})
+      await snapshot('takeoff',takeoffFile)
+      await snapshot('airborne',file)
+      await snapshot('landing',landingFile)
       console.log('Verified species Jump rise and landing:',file,JSON.stringify({state,takeoff,airborne,landing}))
-    }finally{await page.close()}
+    }finally{
+      await page.close()
+      await context.close()
+    }
   }
 }finally{await browser.close()}

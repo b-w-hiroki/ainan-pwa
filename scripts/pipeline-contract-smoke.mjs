@@ -353,6 +353,8 @@ assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
   && hostSource.includes("battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)"),
   'one host must own fish, FX and genuine Battle rage')
 assert.ok(staminaActions.includes("params.get('qaJump') === '1'"), 'Jump QA must be reproducible')
+assert.ok(staminaActions.includes("this.battleState.rageEndAt = Number.POSITIVE_INFINITY"),
+  'QA Jump must hold its rage window for real rise/landing browser verification; normal Battle timing remains unchanged')
 assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.splashTexture'),
   'CI must inspect real Jump and independent splash')
 for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png'])
