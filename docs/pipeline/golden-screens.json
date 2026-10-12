@@ -153,6 +153,36 @@
       "file": "75-kue-jump.png",
       "phase": "battle",
       "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
+    },
+    {
+      "id": "bass-jump",
+      "file": "81-bass-jump.png",
+      "phase": "battle",
+      "purpose": "Actual species-specific Jump and independent splash during raging Battle; verify fish silhouette, scope, CTA and owner"
+    },
+    {
+      "id": "buri-jump",
+      "file": "82-buri-jump.png",
+      "phase": "battle",
+      "purpose": "Actual species-specific Jump and independent splash during raging Battle; verify fish silhouette, scope, CTA and owner"
+    },
+    {
+      "id": "isaki-jump",
+      "file": "83-isaki-jump.png",
+      "phase": "battle",
+      "purpose": "Actual species-specific Jump and independent splash during raging Battle; verify fish silhouette, scope, CTA and owner"
+    },
+    {
+      "id": "hirame-jump",
+      "file": "84-hirame-jump.png",
+      "phase": "battle",
+      "purpose": "Actual species-specific Jump and independent splash during raging Battle; verify fish silhouette, scope, CTA and owner"
+    },
+    {
+      "id": "kanpachi-jump",
+      "file": "85-kanpachi-jump.png",
+      "phase": "battle",
+      "purpose": "Actual species-specific Jump and independent splash during raging Battle; verify fish silhouette, scope, CTA and owner"
     }
   ]
 }
