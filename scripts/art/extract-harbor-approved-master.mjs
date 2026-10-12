@@ -100,7 +100,12 @@ const player=Buffer.alloc(rgba.length),pier=Buffer.alloc(rgba.length),background
 let playerCount=0,pierCount=0
 for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const at=(y*w+x)*4
-  if(nonwater[at+3]===0)continue
+  // PNG may contain meaningful hidden RGB at alpha=0. Preserve it in the
+  // background slot so an exact RGBA round-trip includes invisible pixels.
+  if(nonwater[at+3]===0){
+    nonwater.copy(background,at,at,at+4)
+    continue
+  }
   // In the approved 391x783 frame, the fishing character occupies the
   // lower-left region; rod and line are still controlled by native code.
   const belongsToPlayer = x<184 && y>=345 && y<560
