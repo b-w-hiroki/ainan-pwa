@@ -33,7 +33,11 @@ import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGua
 
 const pwaUpdate = installPwaUpdateGuard()
 
-const cameraPanPrototype = typeof window !== 'undefined'
+const landscapeCastPreview = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('qa') === '1'
+  && new URLSearchParams(window.location.search).get('landscapePrototype') === '1'
+
+const cameraPanPrototype = landscapeCastPreview || typeof window !== 'undefined'
   && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
     || new URLSearchParams(window.location.search).get('coneLoop') === '1')
 
