@@ -8,7 +8,7 @@ const root = fileURLToPath(new URL('../', import.meta.url))
 const file = name => path.join(root, name)
 const inventory = JSON.parse(readFileSync(file('docs/pipeline/asset-migration-inventory.json'), 'utf8'))
 const art = JSON.parse(readFileSync(file('docs/pipeline/art-direction-contract.json'), 'utf8'))
-const referenceRefs = new Set(art.anchors.map(entry => entry.ref))
+const referenceRefs = new Set(art.anchors.filter(entry => entry.role.includes('reference')).map(entry => entry.ref))
 
 assert.equal(inventory.schemaVersion, 1)
 assert.equal(inventory.sourceOfPaths, 'fishing-game/js/config/assetManifest.js')
