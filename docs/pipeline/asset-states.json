@@ -319,8 +319,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No dedicated ブリ jump frame is registered; retain existing procedural motion until approved"
+          "kind": "asset",
+          "note": "Species-specific derivative from the approved premium hero, used only during real Battle rage with an independent splash/wake part; final visual approval requires real 390x844 screenshot QA.",
+          "refs": [
+            "fishJump.buri"
+          ]
         }
       ]
     },
@@ -629,8 +632,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Species-specific derivative from the approved premium hero, used only during real Battle rage with an independent splash/wake part; final visual approval requires real 390x844 screenshot QA.",
+          "refs": [
+            "fishJump.bass"
+          ]
         }
       ]
     },
@@ -758,8 +764,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Species-specific derivative from the approved premium hero, used only during real Battle rage with an independent splash/wake part; final visual approval requires real 390x844 screenshot QA.",
+          "refs": [
+            "fishJump.isaki"
+          ]
         }
       ]
     },
@@ -821,8 +830,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Species-specific derivative from the approved premium hero, used only during real Battle rage with an independent splash/wake part; final visual approval requires real 390x844 screenshot QA.",
+          "refs": [
+            "fishJump.hirame"
+          ]
         }
       ]
     },
@@ -884,8 +896,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Species-specific derivative from the approved premium hero, used only during real Battle rage with an independent splash/wake part; final visual approval requires real 390x844 screenshot QA.",
+          "refs": [
+            "fishJump.kanpachi"
+          ]
         }
       ]
     },
