@@ -93,13 +93,20 @@ try {
       })
       // Real browser input, not an inert measurement. Pointerdown must start
       // charge, release must end the charging state.
+      assert.ok(state.actionDiameterCss >= 44,
+        testcase.name + ': physically inaccessible Cast action (' + state.actionDiameterCss + ' CSS px)')
       await page.mouse.move(state.actionCenter.x, state.actionCenter.y)
       await page.mouse.down()
       await page.waitForFunction(() =>
-        window.__game?.scene?.getScene('GameScene')?.isCharging === true, { timeout: 3500 })
+        window.__game?.scene?.getScene('GameScene')?.isCharging === true,
+        null, { timeout: 3500 })
+      // Exercise an actual pull while staying inside the Cast touch region.
+      // A tap alone cannot prove the proposed layout preserves slingshot input.
+      await page.mouse.move(state.actionCenter.x - 18, state.actionCenter.y - 17, { steps: 4 })
       await page.mouse.up()
       await page.waitForFunction(() =>
-        window.__game?.scene?.getScene('GameScene')?.isCharging === false, { timeout: 3500 })
+        window.__game?.scene?.getScene('GameScene')?.isCharging === false,
+        null, { timeout: 3500 })
       console.log('Landscape Cast layout + physical swipe input verified:',
         testcase.name, JSON.stringify(state))
     } finally {
