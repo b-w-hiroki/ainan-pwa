@@ -51,6 +51,12 @@ function castPlayerCutoutPrototypeEnabled() {
   return new URLSearchParams(window.location.search).get('castPlayerCutout') === '1'
 }
 
+function castApprovedSplitPreviewEnabled() {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qa') === '1' && params.get('castApprovedSplit') === '1'
+}
+
 function castCompositePrototypeEnabled() {
   if (typeof window === 'undefined') return true
   return new URLSearchParams(window.location.search).get('castComposite') !== '0'
@@ -93,12 +99,24 @@ export class CastPresentationHost {
     const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
     const useLayeredScene = layerOptions.enabled
     let layeredScene = null
+    let approvedSplit = null
     if (useLayeredScene) {
       layeredScene = createLayeredCastScene(scene)
       castField.add(layeredScene.root)
     } else if (useApprovedComposite) {
-      castField.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
-        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT))
+      if (castApprovedSplitPreviewEnabled()) {
+        // Source-faithful PNG components; the active CastPresentationHost is
+        // still the one and only owner. Regular production Cast is unchanged.
+        const background = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2,
+          ASSETS.ui.fishingApprovedSplitBaseV2.key).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+        const water = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2,
+          ASSETS.ui.fishingApprovedSplitWaterV2.key).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+        castField.add([background, water])
+        approvedSplit = { background, water }
+      } else {
+        castField.add(scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCastHarborBase.key)
+          .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT))
+      }
     }
 
     if (!useApprovedComposite && castFragmentPrototypeEnabled()) {
@@ -481,6 +499,7 @@ export class CastPresentationHost {
       castInteraction,
       retrieveInteraction,
       layeredScene,
+      approvedSplit,
       chrome,
       battleFish,
       battleLocationOverlay,
