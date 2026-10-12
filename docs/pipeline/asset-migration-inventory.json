@@ -1804,6 +1804,106 @@
       "replacementRef": "fishJump.fxKue",
       "reviewEvidence": null,
       "note": "Dedicated standalone splash derived from same hero pilot, composed by existing Battle foreground owner; source-matched, not yet final-art reviewed."
+    },
+    {
+      "ref": "fishJump.bass",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_bass.svg",
+      "replacementRef": "fishJump.bass",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.fxBass",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_bass.svg",
+      "replacementRef": "fishJump.fxBass",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.buri",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_buri.svg",
+      "replacementRef": "fishJump.buri",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.fxBuri",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_buri.svg",
+      "replacementRef": "fishJump.fxBuri",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.isaki",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_isaki.svg",
+      "replacementRef": "fishJump.isaki",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.fxIsaki",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_isaki.svg",
+      "replacementRef": "fishJump.fxIsaki",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.hirame",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_hirame.svg",
+      "replacementRef": "fishJump.hirame",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.fxHirame",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_hirame.svg",
+      "replacementRef": "fishJump.fxHirame",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.kanpachi",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_kanpachi.svg",
+      "replacementRef": "fishJump.kanpachi",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
+    },
+    {
+      "ref": "fishJump.fxKanpachi",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_kanpachi.svg",
+      "replacementRef": "fishJump.fxKanpachi",
+      "reviewEvidence": null,
+      "note": "Independently generated species Jump pose or FX candidate; active only during Battle rage; screen review and CI required before visual promotion."
     }
   ]
 }
