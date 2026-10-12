@@ -153,6 +153,42 @@
       "file": "75-kue-jump.png",
       "phase": "battle",
       "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
+    },
+    {
+      "id": "tai-jump",
+      "file": "82-tai-jump.png",
+      "phase": "battle",
+      "purpose": "tai source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "buri-jump",
+      "file": "83-buri-jump.png",
+      "phase": "battle",
+      "purpose": "buri source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "bass-jump",
+      "file": "84-bass-jump.png",
+      "phase": "battle",
+      "purpose": "bass source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "isaki-jump",
+      "file": "85-isaki-jump.png",
+      "phase": "battle",
+      "purpose": "isaki source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "hirame-jump",
+      "file": "86-hirame-jump.png",
+      "phase": "battle",
+      "purpose": "hirame source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "kanpachi-jump",
+      "file": "87-kanpachi-jump.png",
+      "phase": "battle",
+      "purpose": "kanpachi source-faithful dedicated Jump plus independent splash visible in live Battle rage"
     }
   ]
 }
