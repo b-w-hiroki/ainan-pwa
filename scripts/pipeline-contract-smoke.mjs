@@ -171,6 +171,11 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+assert.ok(namedResultSource.includes("captureVisibleResult(firstTrophy,'27-kue-first-trophy.png',assertFirstTrophy)"),
+  'first Kue trophy must verify the real Result pixels through Playwright')
+assert.ok(!workflow.split('\n').some(line =>
+  line.includes('playwright@1.55.0 screenshot') && line.includes('27-kue-first-trophy.png')),
+  'first trophy must not revert to a delayed compositor-only CLI screenshot')
 assert.ok(namedResultSource.includes("captureVisibleResult(defaultResult, '04-result.png', assertDefaultResult)"),
   'canonical Result screenshot must verify real pixels in the state-aware harness')
 assert.ok(!workflow.split('\n').some(line =>
