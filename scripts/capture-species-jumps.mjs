@@ -35,23 +35,26 @@ try{
         return { phase:scene.phase, raging:scene.battleState?.isRaging,
           y:fish.y, angle:fish.angle, splashAlpha:splash.alpha }
       })
-      // Sync to the actual repeating Jump cycle, rather than assuming
-      // browser startup and screenshot time leave the sprite at takeoff.
-      await page.waitForFunction(() => {
-        const s=window.__game?.scene?.getScene('GameScene')
-        const h=s?._castPresentationHost
-        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
-        return s?.battleState?.isRaging && Number.isFinite(t)
-          && t%960>=40 && t%960<130
-      }, { timeout: 15000 })
+      // Watch actual rendered sprite positions, not a modulo game clock.
+      // Game loop frame cadence and rage resets can make two nominal clock
+      // windows sample different cycles. The three states must be observed
+      // in order while rage and the species Jump texture stay live.
+      const waitForPose = async (predicate, label) => {
+        await page.waitForFunction(({id, condition}) => {
+          const s=window.__game?.scene?.getScene('GameScene')
+          const fish=s?._castPresentationHost?.nodes?.battleFish
+          if(s?.phase!=='battle'||!s?.battleState?.isRaging||
+              fish?.texture?.key!=='fish_jump_'+id) return false
+          const y=fish.y
+          if(condition==='surface') return y >= 320
+          if(condition==='airborne') return y <= 306
+          if(condition==='landing') return y >= 321
+          return false
+        },{id:fishId,condition:predicate},{timeout:12000,polling:'raf'})
+      }
+      await waitForPose('surface','takeoff')
       const takeoff=await motionFrame()
-      await page.waitForFunction(() => {
-        const s=window.__game?.scene?.getScene('GameScene')
-        const h=s?._castPresentationHost
-        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
-        return s?.battleState?.isRaging && Number.isFinite(t)
-          && t%960>=255 && t%960<350
-      }, { timeout: 15000 })
+      await waitForPose('airborne','airborne')
       const airborne=await motionFrame()
       assert.equal(takeoff.phase,'battle')
       assert.equal(airborne.phase,'battle')
@@ -88,13 +91,7 @@ try{
       await page.screenshot({path:join('artifacts/e2e',file),animations:'disabled'})
       // Validate actual return to water rather than accepting only a fixed
       // tilted Jump sprite. The landing frame also documents water FX.
-      await page.waitForFunction(() => {
-        const s=window.__game?.scene?.getScene('GameScene')
-        const h=s?._castPresentationHost
-        const t=s?.time?.now-(h?._jumpRageStartedAt??0)
-        return s?.battleState?.isRaging && Number.isFinite(t)
-          && t%960>=655 && t%960<735
-      }, { timeout: 15000 })
+      await waitForPose('landing','landing')
       const landing=await motionFrame()
       assert.equal(landing.phase,'battle')
       assert.equal(landing.raging,true)
