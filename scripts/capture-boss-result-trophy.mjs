@@ -34,6 +34,9 @@ try{
           bossId:scene?._bossEventMeta?.id,
           fishId:scene?.fish?.id, 
           badgeActive:Boolean(badge?.active),badgeAlpha:badge?.alpha,
+          badgeInResultHost:Boolean(badge?.parentContainer===host?.root),
+          badgeY:badge?.y,
+
           badgeLabel:badge?.list?.find(x=>typeof x?.text==='string' && /TROPHY|RECORD|CLEARED/.test(x.text))?.text??null,
           resultVisible:host?.nodes?.resultForeground?.visible,
           battleVisible:host?.nodes?.battleForeground?.visible,
@@ -49,6 +52,8 @@ try{
         assert.equal(state.bossId,'kue',test.file+': wrong boss')
         assert.equal(state.fishId,'kue',test.file+': wrong hero fish')
         assert.equal(state.badgeActive,true,test.file+': boss badge missing')
+        assert.equal(state.badgeInResultHost,true,test.file+': boss badge is behind Result foreground')
+        assert.ok(state.badgeY>=565&&state.badgeY<=620,test.file+': badge overlaps premium hero or Town CTA')
         if(test.first) assert.equal(state.badgeLabel,'★ TROPHY UNLOCKED ★',test.file+': first trophy not granted')
         else assert.ok(state.badgeLabel,test.file+': boss clearance label missing')
         assert.equal(state.resultVisible,true,test.file+': result foreground hidden')
@@ -58,8 +63,11 @@ try{
         if(state.badgeAlpha<0.95){await page.waitForTimeout(220);continue}
         await page.screenshot({path:join('artifacts/e2e',test.file),animations:'disabled'})
         lastGold=countGetHeaderPixels(test.file)
-        if(lastGold>450){
-          console.log('Verified rendered Boss Result:',test.file,JSON.stringify({state,attempt,goldPixels:lastGold}))
+        const trophyGold=test.first
+          ? countGetHeaderPixels(test.file,undefined,{left:88,right:302,top:575,bottom:615})
+          : null
+        if(lastGold>450 && (!test.first || trophyGold>1500)){
+          console.log('Verified rendered Boss Result:',test.file,JSON.stringify({state,attempt,goldPixels:lastGold,trophyGoldPixels:trophyGold}))
           break
         }
         if(attempt<4)await page.waitForTimeout(280)
