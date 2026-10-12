@@ -1804,6 +1804,126 @@
       "replacementRef": "fishJump.fxKue",
       "reviewEvidence": null,
       "note": "Dedicated standalone splash derived from same hero pilot, composed by existing Battle foreground owner; source-matched, not yet final-art reviewed."
+    },
+    {
+      "ref": "fishJump.tai",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_tai.svg",
+      "replacementRef": "fishJump.tai",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxTai",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_tai.svg",
+      "replacementRef": "fishJump.fxTai",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
+    },
+    {
+      "ref": "fishJump.buri",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_buri.svg",
+      "replacementRef": "fishJump.buri",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxBuri",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_buri.svg",
+      "replacementRef": "fishJump.fxBuri",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
+    },
+    {
+      "ref": "fishJump.bass",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_bass.svg",
+      "replacementRef": "fishJump.bass",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxBass",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_bass.svg",
+      "replacementRef": "fishJump.fxBass",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
+    },
+    {
+      "ref": "fishJump.isaki",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_isaki.svg",
+      "replacementRef": "fishJump.isaki",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxIsaki",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_isaki.svg",
+      "replacementRef": "fishJump.fxIsaki",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
+    },
+    {
+      "ref": "fishJump.hirame",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_hirame.svg",
+      "replacementRef": "fishJump.hirame",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxHirame",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_hirame.svg",
+      "replacementRef": "fishJump.fxHirame",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
+    },
+    {
+      "ref": "fishJump.kanpachi",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_kanpachi.svg",
+      "replacementRef": "fishJump.kanpachi",
+      "reviewEvidence": null,
+      "note": "Independently posed premium fish derivative; registered for actual Battle rage but visual approval pending real screenshot and PR green."
+    },
+    {
+      "ref": "fishJump.fxKanpachi",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_kanpachi.svg",
+      "replacementRef": "fishJump.fxKanpachi",
+      "reviewEvidence": null,
+      "note": "Separate splash/wake SVG generated for the species-specific Battle leap; verify screenshot and provenance before visual approval."
     }
   ]
 }
