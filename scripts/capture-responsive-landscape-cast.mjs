@@ -48,6 +48,11 @@ try {
           viewport: { width: innerWidth, height: innerHeight },
           isLandscapeLayout: Boolean(layout),
           landscapeBackdropVisible: Boolean(host.nodes.landscapeBackdrop?.visible),
+          landscapeBackdropTexture: host.nodes.landscapeBackdrop?.texture?.key ?? null,
+          playerWorldOffset: {
+            x: host.nodes.characterMotion?.root?.x ?? null,
+            y: host.nodes.characterMotion?.root?.y ?? null,
+          },
           owner: host.root.name, phase: scene.phase,
           actionCenter: { x: cx, y: cy },
           actionDiameterCss: castHit.radius * 2 * scale *
