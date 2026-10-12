@@ -40,6 +40,8 @@ const keyFrames = [
   '59-aji-battle-bay.png',
   '60-saba-battle-cape.png',
   '66-approved-foreground-preview.png',
+  '71-town-aji-arrival.png',
+  '72-town-kanpachi-arrival.png',
   '64-approved-cast-original.png',
   '65-approved-cast-split-preview.png',
   '18-challenge.png',
