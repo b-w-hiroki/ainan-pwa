@@ -57,6 +57,28 @@ jobs:
       - name: Decode pixels and verify visible Result heading
         run: node scripts/result-screen-pixel-guard.mjs artifacts/e2e
 
+      - name: Negative control — Battle screenshot must fail Result pixel QA
+        run: |
+          set -euo pipefail
+          # Substitute a real, valid 390x844 Battle PNG for the Result frame.
+          # Verify that the guard rejects the wrong phase, not a malformed file.
+          cp artifacts/e2e/39-player-result.png "$RUNNER_TEMP/39-player-result-original.png"
+          trap 'cp "$RUNNER_TEMP/39-player-result-original.png" artifacts/e2e/39-player-result.png' EXIT
+          cp artifacts/e2e/58-aji-battle-harbor.png artifacts/e2e/39-player-result.png
+          if node scripts/result-screen-pixel-guard.mjs artifacts/e2e > "$RUNNER_TEMP/negative-result-guard.log" 2>&1; then
+            echo "::error::Result pixel guard accepted a Battle screenshot"
+            exit 1
+          fi
+          if ! grep -q "39-player-result.png: expected visible golden Result GET!" "$RUNNER_TEMP/negative-result-guard.log"; then
+            cat "$RUNNER_TEMP/negative-result-guard.log"
+            echo "::error::Guard failed for an unexpected reason"
+            exit 1
+          fi
+          cp "$RUNNER_TEMP/39-player-result-original.png" artifacts/e2e/39-player-result.png
+          trap - EXIT
+          node scripts/result-screen-pixel-guard.mjs artifacts/e2e
+          echo "Negative control correctly detected real Battle pixels"
+
       - name: Record evidence
         if: always()
         run: |
