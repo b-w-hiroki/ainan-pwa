@@ -39,6 +39,45 @@ async function captureVisibleResult(page, filename, inspect = null) {
 
 const browser = await chromium.launch({ headless: true })
 try {
+  // Keep the original qaAction=caught fixture (without qaPlayer). The CLI
+  // previously captured a blank compositor frame despite the DOM marker.
+  const defaultResult = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+  try {
+    await defaultResult.goto(
+      'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught',
+      { waitUntil: 'domcontentloaded' },
+    )
+    await defaultResult.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    await defaultResult.waitForTimeout(450)
+    const assertDefaultResult = async () => {
+      const state = await defaultResult.evaluate(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        const canvas = document.querySelector('#game-container canvas')
+        return {
+          phase: scene?.phase, outcome: scene?._castPresentationOutcome,
+          fish: scene?.fish?.id,
+          resultVisible: host?.nodes?.resultForeground?.visible,
+          battleVisible: host?.nodes?.battleForeground?.visible,
+          heroVisible: host?.nodes?.resultFish?.visible,
+          heroWidth: host?.nodes?.resultFish?.displayWidth,
+          canvasPresent: Boolean(canvas?.isConnected && canvas.width > 0 && canvas.height > 0),
+        }
+      })
+      assert.equal(state.phase, 'result', '04-result.png: Result phase missing')
+      assert.equal(state.outcome, 'caught', '04-result.png: catch outcome missing')
+      assert.ok(state.fish, '04-result.png: no fish')
+      assert.equal(state.resultVisible, true, '04-result.png: foreground hidden')
+      assert.equal(state.battleVisible, false, '04-result.png: Battle foreground revived')
+      assert.equal(state.heroVisible, true, '04-result.png: premium fish hidden')
+      assert.ok(state.heroWidth >= 290, '04-result.png: premium fish too small')
+      assert.equal(state.canvasPresent, true, '04-result.png: canvas missing')
+    }
+    await captureVisibleResult(defaultResult, '04-result.png', assertDefaultResult)
+  } finally {
+    await defaultResult.close()
+  }
+
   // Match the previously flaky player/reward Result fixture exactly. A long
   // CLI delay after the DOM marker could capture a blank compositor frame.
   const playerResult = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
