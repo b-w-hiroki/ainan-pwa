@@ -49,7 +49,10 @@ try{
           const splash=host.nodes.battleJumpFx
           if(scene.phase==='battle'&&scene.battleState?.isRaging
             &&fish?.visible&&Number.isFinite(elapsed)&&cycle>=0){
-            const pose=ms>=45&&ms<85?'takeoff'
+            // Keep the actual early ascent window wide enough for CI rAF
+            // scheduling, but still before airborne. Main's previously
+            // proven three-species capture uses the same 45..130 window.
+            const pose=ms>=45&&ms<130?'takeoff'
               :ms>=265&&ms<345?'airborne'
               :ms>=655&&ms<735?'landing':null
             if(pose){
