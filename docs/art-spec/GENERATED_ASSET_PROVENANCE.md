@@ -50,6 +50,14 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 - **Evidence:** Playwright `73-aji-jump.png`, `74-saba-jump.png`, `75-kue-jump.png`, with real Battle owner and rage-state assertions. Must compare against original Battle/Result art for fish silhouette, scale, clipping and visual consistency before approving the pilot.
 - **Incomplete:** Six other species keep `species-specific-jump: planned` until derivative master/individual art is authored and reviewed. This phase does not replace the high-quality Result fish.
 
+## All 9 species Jump expansion — 2026-10-12
+
+- **Masters:** existing independently authored premium fish `fish_hero_{tai,buri,bass,isaki,hirame,kanpachi}.svg`, adding to the prior Aji/Saba/Kue Jump sources. Existing approved anatomy, color gradients and markings are preserved.
+- **Generator:** `scripts/art/build-species-jump-pilot.mjs` extends per-species 2.5D lift/tilt presets and separately outputs `fish_jump_{id}.svg` and `jump_splash_{id}.svg`, without baking FX into the fish body. This is a reproducible *art derivative*, **not** a fresh AI-painted fish illustration.
+- **Integration:** `ASSETS.fishJump` + existing GameScene preload and single `CastPresentationHost` owner. Dedicated pose and splash appear only when live Battle `isRaging`, while Result still uses previously approved large fish hero art.
+- **QA:** `82-tai-jump.png` through `87-kanpachi-jump.png`, all 390×844, alongside prior 73–75. Assert texture keys/visibility, active fish ID, rage state, owner, no Result overlay, CI screenshot size.
+- **Limits:** this expands the sprite/state coverage to all nine species; per-species tail/body articulation, real body morphing, full-depth splash timing, physical iPhone QA and final visual acceptance remain separate gates. Reject any candidate that looks out of place relative to the in-game Battle art.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.
