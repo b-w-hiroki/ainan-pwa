@@ -65,6 +65,7 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.backgrounds.fishingCape,
       ...Object.values(ASSETS.fish),
       ...Object.values(ASSETS.fishHeroes),
+      ...Object.values(ASSETS.fishJump),
       ...Object.values(ASSETS.gameplayFx),
       ...Object.values(ASSETS.bosses),
       ASSETS.fishingField.locationHarbor,

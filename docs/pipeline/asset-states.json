@@ -191,8 +191,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "Do not label as implemented; use existing hero/procedural motion until a dedicated frame is approved"
+          "kind": "asset",
+          "note": "Derived from existing accepted fish hero into a distinct, opt-in style-preserving Jump pose, rendered by CastPresentationHost while Battle rage is active. Pilot quality must pass real screenshot QA before treating as final art.",
+          "refs": [
+            "fishJump.aji"
+          ]
         }
       ],
       "fishId": "aji"
@@ -386,8 +389,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No dedicated クエ jump frame is registered; retain existing procedural motion until approved"
+          "kind": "asset",
+          "note": "Derived from existing accepted fish hero into a distinct, opt-in style-preserving Jump pose, rendered by CastPresentationHost while Battle rage is active. Pilot quality must pass real screenshot QA before treating as final art.",
+          "refs": [
+            "fishJump.kue"
+          ]
         }
       ]
     },
@@ -686,8 +692,11 @@
         },
         {
           "id": "species-specific-jump",
-          "kind": "planned",
-          "note": "No approved dedicated jump frame; existing animation remains procedural"
+          "kind": "asset",
+          "note": "Derived from existing accepted fish hero into a distinct, opt-in style-preserving Jump pose, rendered by CastPresentationHost while Battle rage is active. Pilot quality must pass real screenshot QA before treating as final art.",
+          "refs": [
+            "fishJump.saba"
+          ]
         }
       ]
     },
@@ -877,6 +886,33 @@
           "id": "species-specific-jump",
           "kind": "planned",
           "note": "No approved dedicated jump frame; existing animation remains procedural"
+        }
+      ]
+    },
+    {
+      "id": "fx.species-jump-splash",
+      "family": "fx",
+      "states": [
+        {
+          "id": "aji",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxAji"
+          ]
+        },
+        {
+          "id": "saba",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxSaba"
+          ]
+        },
+        {
+          "id": "kue",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxKue"
+          ]
         }
       ]
     }
