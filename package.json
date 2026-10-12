@@ -4,7 +4,7 @@
   "version": "1.0.0-rc.3",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/art/extract-harbor-approved-master.mjs",
+    "predev": "node scripts/art/extract-harbor-approved-master.mjs && node scripts/art/build-species-jump-pilot.mjs",
     "dev": "vite",
     "qa:vertical-slice": "node scripts/vertical-slice-smoke.mjs",
     "qa:final-polish": "node scripts/final-polish-smoke.mjs",
