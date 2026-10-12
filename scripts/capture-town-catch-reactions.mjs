@@ -76,6 +76,31 @@ try {
       assert.equal(state.canvasPresent, true, filename + ': canvas not visible')
       await captureTownWhenRendered(page, filename)
       console.log('Town species arrival verified:', filename, JSON.stringify(state))
+      // Dismiss the arrival card through its real tap target. The in-world
+      // market/diner should still visibly carry the same recorded species.
+      await page.mouse.click(195, 530)
+      await page.waitForFunction(() => {
+        const town = window.__game?.scene?.getScene('TownScene')
+        return town?.sys?.isActive?.()
+          && !town.children.list.some(item => item.active && item.depth === 220 && item.type === 'Container')
+      }, { timeout: 5000 })
+      await page.waitForTimeout(280)
+      const feature = await page.evaluate(() => {
+        const town = window.__game?.scene?.getScene('TownScene')
+        const state = town?._qaTownFeaturedCatch
+        const artNodes = town?.children?.list?.filter(node =>
+          node.active && node.texture?.key === state?.marketTexture && node.depth === 6) ?? []
+        return { ...state, artNodes: artNodes.length }
+      })
+      assert.equal(feature.fishId,id,filename+': town lost last fish after closing modal')
+      assert.equal(feature.marketTexture,texture,filename+': market did not use the caught species')
+      assert.equal(feature.dinerTexture,texture,filename+': diner did not use the caught species')
+      assert.ok(feature.artNodes >= 2, filename+': fish icons are missing from shops')
+      assert.equal(feature.owner,'TownScene')
+      const worldFile = id === 'aji' ? '88-town-aji-featured.png' : '89-town-kanpachi-featured.png'
+      await captureTownWhenRendered(page, worldFile)
+      console.log('Town in-world catch verified:',worldFile,JSON.stringify(feature))
+
     } finally {
       await page.close()
     }
@@ -83,3 +108,20 @@ try {
 } finally {
   await browser.close()
 }
+// Decoded pixels, not only two different PNG filenames: the fish signs in
+// the existing shop regions must visibly change with the caught species.
+const a = readRgbPixels(join('artifacts/e2e', '88-town-aji-featured.png'))
+const b = readRgbPixels(join('artifacts/e2e', '89-town-kanpachi-featured.png'))
+let changed = 0
+for (let y = 330; y < 356; y++) {
+  for (const [start, end] of [[68,103],[287,321]]) {
+    for (let x = start; x < end; x++) {
+      const i = (y * 390 + x) * 3
+      const difference = Math.abs(a[i]-b[i]) + Math.abs(a[i+1]-b[i+1]) + Math.abs(a[i+2]-b[i+2])
+      if (difference > 30) changed++
+    }
+  }
+}
+assert.ok(changed >= 80, 'Town shop fish badges must visibly differ between species ('+changed+' pixels)')
+console.log('Town in-world fish differentiation passed:', changed, 'significant shop pixels')
+

@@ -568,6 +568,12 @@
           "kind": "procedural",
           "source": "fishing-game/js/game/townCatchReactions.js",
           "note": "Nine species-specific market/diner/NPC dialogue states rendered by existing installTownCatchArrival owner; no new sprites or economy effects."
+        },
+        {
+          "id": "featured-catch-on-shops",
+          "kind": "procedural",
+          "source": "fishing-game/js/scenes/TownScene.js",
+          "note": "Latest caught fish icon appears in existing market/diner art once those facilities are available. No new save schema, inventory or presentation wrapper."
         }
       ]
     },

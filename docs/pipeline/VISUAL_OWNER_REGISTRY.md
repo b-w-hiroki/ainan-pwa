@@ -19,6 +19,8 @@ Battleのpremium魚と釣り場パーツは、既存のCastPresentationHostが�
 
 ## 町の釣果リアクション
 
+町到着モーダルを閉じた後の「本日の魚」表示は既存の `TownScene._serviceDistrict` が唯一の描画owner。施設が営業中であれば魚市場と港食堂の建物上に最新の魚アイコンを小さく配置し、保存済み釣果か直近のResult遷移データだけから表示する。別モーダルや新しい入力hit areaを作らない。
+
 `installTownCatchArrival`（`fishing-game/js/game/installTownCatchArrival.js`）はTownへの釣果到着モーダルを描画する単一owner。魚種別台詞は `townCatchReactions.js` のデータのみとし、別のoverlayや新しいTown wrapperを増やさない。魚アートは全9種Townのpreload経路を通し、同じモーダル内で差し替える。
 
 ## 既存構造への適用
