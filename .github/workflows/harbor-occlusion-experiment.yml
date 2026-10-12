@@ -45,9 +45,17 @@ jobs:
           for folder in sorted(Path("artifacts/occlusion").glob("mask-*")):
               doc = json.loads((folder/"experiment-report.json").read_text())
               assert doc["outside_mask_pixel_parity"] is True
+              assert doc["source_alpha_preserved"] is True
+              assert doc["source_transparent_pixels"] > 0
               assert doc["production_promoted"] is False
               assert doc["motion_ready"] is False
               assert doc["human_visual_review"] == "not_checked"
+              import cv2, numpy as np
+              original = cv2.imread(str(folder/"approved-source.png"), cv2.IMREAD_UNCHANGED)
+              candidate = cv2.imread(str(folder/"candidate-inpainted-background.png"), cv2.IMREAD_UNCHANGED)
+              assert original.ndim == 3 and original.shape[2] == 4
+              assert candidate.shape == original.shape, "inpainting candidate discarded the source alpha channel"
+              assert np.array_equal(original[:,:,3],candidate[:,:,3]), "source transparency altered"
               for name in ("approved-source.png","candidate-inpainted-background.png","review-hole-mask.png","review-side-by-side.png"):
                   assert (folder/name).stat().st_size > 10000, name
           cutout = json.loads(Path("artifacts/occlusion/player-silhouette/mask-report.json").read_text())
