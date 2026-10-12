@@ -182,6 +182,17 @@ const jumpCaptureSource = jumpCaptureEnabled ? read(jumpCaptureScript) : ''
 const townArrivalCapture = 'scripts/capture-town-catch-reactions.mjs'
 const townArrivalEnabled = workflow.includes('node ' + townArrivalCapture)
 const townArrivalSource = townArrivalEnabled ? read(townArrivalCapture) : ''
+const bossResultCapture = 'scripts/capture-boss-result-trophy.mjs'
+const bossResultEnabled = workflow.includes('node ' + bossResultCapture)
+const bossResultSource = bossResultEnabled ? read(bossResultCapture) : ''
+assert.ok(bossResultEnabled && bossResultSource.includes('countGetHeaderPixels(test.file)')
+    && bossResultSource.includes("state.badgeLabel,'★ TROPHY UNLOCKED ★'"),
+  'Kue first-trophy must validate actual rendered GET pixels and trophy badge')
+for (const file of ['22-boss-kue-result.png','27-kue-first-trophy.png']) {
+  assert.ok(bossResultSource.includes("'" + file + "'"), 'missing state-aware Boss Result: ' + file)
+  assert.ok(!workflow.split('\n').some(line=>line.includes('playwright@1.55.0 screenshot')
+    && line.includes(file)), 'Boss Result must not use delayed CLI: ' + file)
+}
 const resultPixelGuard = read('scripts/result-screen-pixel-guard.mjs')
 assert.ok(resultPixelGuard.includes('export function countGetHeaderPixels(file, dir'),
   'live screenshots must share the same rendered GET-pixel verifier as CI')
@@ -207,7 +218,8 @@ for (const frame of golden.frames) {
   const capturedByTownScript = townArrivalEnabled
     && townArrivalSource.includes("'" + frame.file + "'")
   const capturedByJumpScript = jumpCaptureEnabled && jumpCaptureSource.includes("'" + frame.file + "'")
-  assert.ok(capturedDirectly || capturedByVerifiedScript || capturedByTownScript || capturedByJumpScript, 'capture missing from CI: ' + frame.file)
+  const capturedByBossScript = bossResultEnabled && bossResultSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript || capturedByTownScript || capturedByJumpScript || capturedByBossScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
@@ -284,7 +296,14 @@ for (const filename of [
     && namedResultSource.includes('data-qa-result-fish')
     && namedResultSource.includes("assert.equal(state.phase, 'result'")
     && namedResultSource.includes("assert.equal(state.heroTexture,")
-  assert.ok(directWait || verifiedScriptWait,
+  const verifiedBossWait = bossResultEnabled
+    && bossResultSource.includes("'" + filename + "'")
+    && bossResultSource.includes('page.waitForSelector(')
+    && bossResultSource.includes('data-qa-result-ready')
+    && bossResultSource.includes("state.resultVisible,true")
+    && bossResultSource.includes("state.heroVisible,true")
+    && bossResultSource.includes('countGetHeaderPixels(test.file)')
+  assert.ok(directWait || verifiedScriptWait || verifiedBossWait,
     'Result must wait for settled phase and verify visible fish owner: ' + filename)
 }
 
