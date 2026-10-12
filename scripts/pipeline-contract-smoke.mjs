@@ -272,6 +272,19 @@ const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
 
+const splitBuilder=read('scripts/art/extract-harbor-approved-master.mjs')
+const splitCapture=read('scripts/capture-approved-master-split.mjs')
+const gameScene=read('fishing-game/js/scenes/GameScene.js')
+assert.ok(splitBuilder.includes("recomposed.equals(rgba)"),
+  'approved source split must preserve the complete RGBA master')
+assert.ok(gameScene.includes("artParams.get('qa') === '1' && artParams.get('castApprovedSplit') === '1'"),
+  'new split textures must preload only in QA preview')
+assert.ok(hostSource.includes("castApprovedSplitPreviewEnabled()"),
+  'new derived layers must be behind an opt-in host preview')
+assert.ok(workflow.includes('node scripts/capture-approved-master-split.mjs'),
+  'the real browser must compare approved master and derived layers')
+for(const file of ['64-approved-cast-original.png','65-approved-cast-split-preview.png'])
+  assert.ok(splitCapture.includes(file),'missing approved-master comparison screenshot: '+file)
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
