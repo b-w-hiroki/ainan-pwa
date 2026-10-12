@@ -181,6 +181,8 @@ export const ASSETS = {
     fishingLayerDistantHarbor: { key: 'ui_fishing_layer_distant_harbor', path: assetPath('fishing-game/assets/generated/cast-layers/distant-harbor.svg'), status: 'ready' },
     fishingLayerPlatform: { key: 'ui_fishing_layer_platform', path: assetPath('fishing-game/assets/generated/cast-layers/platform.svg'), status: 'ready' },
     fishingApprovedCastHarborBase: { key: 'ui_fishing_approved_cast_harbor_base', path: assetPath('fishing-game/assets/approved-mock/cast-harbor-composite-base.png'), status: 'ready' },
+    fishingApprovedSplitWaterV2: { key: 'ui_approved_split_water_v2', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-water-extracted.png'), status: 'ready' },
+    fishingApprovedSplitBaseV2: { key: 'ui_approved_split_base_v2', path: assetPath('fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-nonwater-extracted.png'), status: 'ready' },
     fishingApprovedRetrievePanel: { key: 'ui_fishing_approved_retrieve_panel', path: assetPath('fishing-game/assets/approved-mock/retrieve-approved-panel.png'), status: 'ready' },
     fishingApprovedBattleBase: { key: 'ui_fishing_approved_battle_base', path: assetPath('fishing-game/assets/approved-mock/battle-approved-base.png'), status: 'ready' },
     fishingApprovedResultBase: { key: 'ui_fishing_approved_result_base', path: assetPath('fishing-game/assets/approved-mock/result-approved-base.png'), status: 'ready' },
