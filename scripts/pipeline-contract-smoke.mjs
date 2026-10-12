@@ -219,7 +219,7 @@ for (const frame of artDirection.phaseScreens) {
   assert.ok(frame.required.length >= 2, 'art review frame needs actual visual checks: ' + frame.id)
 }
 assert.deepEqual(artDirection.implementation.candidateStates.slice(-3),
-  ['pr-green', 'merged'].length === 2 ? ['browser-reviewed', 'pr-green', 'merged'] : [],
+  ['browser-reviewed', 'pr-green', 'merged'],
   'asset candidates must pass visual browser review and PR before promotion')
 console.log('  approved art anchors:', artDirection.anchors.length,
   '| review frames:', artDirection.phaseScreens.length)
