@@ -133,6 +133,12 @@ jobs:
       - name: Verify approved-art split against baseline Cast
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-approved-master-split.mjs
 
+      - name: Generate review-only landscape water material
+        run: node scripts/art/build-landscape-water-panorama.mjs
+
+      - name: Capture high-quality source-derived landscape water candidate
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-landscape-water-panorama.mjs
+
       - name: Verify foreground separation and landscape baseline
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-foreground-orientation.mjs
 
