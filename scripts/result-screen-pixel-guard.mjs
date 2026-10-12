@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { inflateSync } from 'node:zlib'
 
-const targets = ['39-player-result.png', '45-clearance-result.png', '57-clearance-result-stable.png', '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png', '53-hirame-result.png', '54-kanpachi-result.png', '56-bass-result-stable.png']
+const targets = ['04-result.png', '39-player-result.png', '45-clearance-result.png', '57-clearance-result-stable.png', '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png', '53-hirame-result.png', '54-kanpachi-result.png', '56-bass-result-stable.png']
 
 export function countGetHeaderPixels(file, dir = 'artifacts/e2e') {
   const png = readFileSync(join(dir, file))

@@ -171,6 +171,11 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+assert.ok(namedResultSource.includes("captureVisibleResult(defaultResult, '04-result.png', assertDefaultResult)"),
+  'canonical Result screenshot must verify real pixels in the state-aware harness')
+assert.ok(!workflow.split('\n').some(line =>
+  line.includes('playwright@1.55.0 screenshot') && line.includes('04-result.png')),
+  'default Result cannot use a delayed CLI screenshot')
 const jumpCaptureScript = 'scripts/capture-species-jumps.mjs'
 const jumpCaptureEnabled = workflow.includes('node ' + jumpCaptureScript)
 const jumpCaptureSource = jumpCaptureEnabled ? read(jumpCaptureScript) : ''
