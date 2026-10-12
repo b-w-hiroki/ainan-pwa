@@ -130,7 +130,7 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
     id + ': collection icon mismatch')
-  if (['aji','saba','kue'].includes(id)) {
+  if (['aji','saba','kue','bass','buri','isaki','hirame','kanpachi'].includes(id)) {
     assert.equal(byState['species-specific-jump'].kind, 'asset')
     assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id])
   } else {
@@ -350,7 +350,11 @@ assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
 assert.ok(staminaActions.includes("params.get('qaJump') === '1'"), 'Jump QA must be reproducible')
 assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.splashTexture'),
   'CI must inspect real Jump and independent splash')
-for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png'])
+for (const file of [
+  '73-aji-jump.png','74-saba-jump.png','75-kue-jump.png',
+  '81-bass-jump.png','82-buri-jump.png','83-isaki-jump.png',
+  '84-hirame-jump.png','85-kanpachi-jump.png',
+])
   assert.ok(jumpCapture.includes(file),'missing Jump screenshot ' + file)
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
