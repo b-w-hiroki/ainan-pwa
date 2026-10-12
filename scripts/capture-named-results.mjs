@@ -242,7 +242,26 @@ try {
         await page.waitForTimeout(2200)
         const phaseLater = await page.evaluate(() => window.__game?.scene?.getScene('GameScene')?.phase)
         assert.equal(phaseLater, 'result', fishId + ': late phase reverted to Battle')
-        await page.screenshot({ path: join('artifacts/e2e', '56-bass-result-stable.png'), animations: 'disabled' })
+        await captureVisibleResult(page, '56-bass-result-stable.png', async () => {
+          const next = await page.evaluate(() => {
+            const scene = window.__game?.scene?.getScene('GameScene')
+            const host = scene?._castPresentationHost
+            return {
+              phase: scene?.phase,
+              outcome: scene?._castPresentationOutcome,
+              fish: scene?.fish?.id,
+              resultVisible: host?.nodes?.resultForeground?.visible,
+              battleVisible: host?.nodes?.battleForeground?.visible,
+              heroVisible: host?.nodes?.resultFish?.visible,
+            }
+          })
+          assert.equal(next.phase, 'result', '56-bass-result-stable.png: Result phase lost')
+          assert.equal(next.outcome, 'caught', '56-bass-result-stable.png: catch outcome lost')
+          assert.equal(next.fish, 'bass', '56-bass-result-stable.png: fish changed')
+          assert.equal(next.resultVisible, true, '56-bass-result-stable.png: Result foreground hidden')
+          assert.equal(next.battleVisible, false, '56-bass-result-stable.png: Battle reappeared')
+          assert.equal(next.heroVisible, true, '56-bass-result-stable.png: fish art not visible')
+        })
       }
       console.log('Captured named Result:', filename, JSON.stringify(state))
     } finally {
