@@ -1,0 +1,1699 @@
+{
+  "schemaVersion": 1,
+  "baselineMain": "9ee799d87e7ce7f3efe0976b4681479d7c7f0798",
+  "sourceOfPaths": "fishing-game/js/config/assetManifest.js",
+  "styleContract": "docs/pipeline/art-direction-contract.json",
+  "policy": "Existing assets remain production. treatment records a plan, not a rendered replacement. Decisions never change asset status automatically.",
+  "decisionTypes": [
+    "reference-protected",
+    "remake-candidate",
+    "audit-required",
+    "reuse-verified",
+    "superseded"
+  ],
+  "candidateStages": [
+    "not-started",
+    "master",
+    "normalized",
+    "manifested",
+    "integrated",
+    "browser-reviewed",
+    "pr-green",
+    "merged"
+  ],
+  "families": [
+    "world",
+    "player",
+    "fish",
+    "ui",
+    "fx",
+    "town"
+  ],
+  "items": [
+    {
+      "ref": "backgrounds.titleHarborMorning",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.homeBase",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.mapTown",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.townQuiet",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.townGrowing",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.townBustling",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.fishingHarbor",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.fishingBay",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "backgrounds.fishingCape",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.guideDefault",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.playerDefault",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.playerDefaultUi",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.fishingHero",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingCastHero",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingCastRodless",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingRetrieveHero",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingResultHero",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionIdle",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionCastWindup",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionCastMid",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionCastRelease",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionFightLeft",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionFightMid",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionFightRight",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionJoyLift",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionJoyMid",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionJoyHold",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionSadDrop",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionSadMid",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionSadSlump",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionHeldRod",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionRodBasic",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionRodCarbon",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishingMotionRodPremium",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "characters.fishmonger",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.guideStaff",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.youngFisher",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.harborCaptain",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "characters.dinerOwner",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.market",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.pier",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.guide",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.festival",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.fishShop",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilities.diner",
+      "family": "town",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "facilityLevels.marketLv1",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.marketLv3",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.marketLv5",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.pierLv1",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.pierLv3",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.pierLv5",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.guideLv1",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.guideLv3",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.guideLv5",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.festivalLv1",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.festivalLv3",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "facilityLevels.festivalLv5",
+      "family": "town",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fish.ajiIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.madaiIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.blackBassIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.buriIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.kueIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.sabaIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.isakiIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.hirameIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.kanpachiIcon",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.blackBassPartV1",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.sabaPartV1",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.isakiPartV1",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.hiramePartV1",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fish.kanpachiPartV1",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "fishHeroes.aji",
+      "family": "fish",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "fishHeroes.tai",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.buri",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.kue",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.bass",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.saba",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.isaki",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.hirame",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishHeroes.kanpachi",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.waterBase",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.waterPattern",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.waterHighlight",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.underwaterDepth",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.fishShadowSmallIdle",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.fishShadowMediumIdle",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.fishShadowMediumTurn",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.fishShadowLargeIdle",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.rock01",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.seaweed01",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.lureIdle",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.lurePull",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.lureSplash",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.lureTrail",
+      "family": "player",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.rippleSmall",
+      "family": "fx",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.followWave",
+      "family": "fx",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.rippleBite",
+      "family": "fx",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.hitFlash",
+      "family": "fx",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.retrieveButtonWait",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.retrieveButtonShortReel",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.retrieveButtonSlowReel",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.locationHarbor",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.locationBay",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "fishingField.locationCape",
+      "family": "world",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "bosses.harborRunner",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "bosses.bayHunter",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "bosses.kue",
+      "family": "fish",
+      "treatment": "remake-candidate",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Prioritized for new 2.5D layer/state master; currently still active production art"
+    },
+    {
+      "ref": "rewards.sticker",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "rewards.ticket",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "rewards.icebox",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodBasic",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodCarbon",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodPremium",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitWorm",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitShrimp",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitSpecial",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodBasicPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodCarbonPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.rodPremiumPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitWormPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitShrimpPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "equipment.baitSpecialPartV1",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "gameplayFx.tensionSafe",
+      "family": "fx",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "gameplayFx.tensionWarning",
+      "family": "fx",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "gameplayFx.tensionDanger",
+      "family": "fx",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "gameplayFx.resultCaught",
+      "family": "fx",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "gameplayFx.resultEscaped",
+      "family": "fx",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artFooterShell",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artTabSelected",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artIconHome",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artIconEquip",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artIconTown",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artIconExchange",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artIconMenu",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artButtonPrimary",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artButtonSecondary",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artButtonPressed",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artButtonDisabled",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artPanelLargeV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artCardIdleV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artCardSelectedV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artCardPressedV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artCardDisabledV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artCardShortageV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artDialogV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artChipV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artGaugeTrackV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artBackShellV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artOperationDockV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.artResultCardV2",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerSky",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerClouds",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerSea",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerDistantHarbor",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerPlatform",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingApprovedCastHarborBase",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedRetrievePanel",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedBattleBase",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedResultBase",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedCleanHarbor",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedMadaiLive",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedCastSceneFragments",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedCastPlayerVisible",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedTopHud",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedInstruction",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingApprovedCastRing",
+      "family": "ui",
+      "treatment": "reference-protected",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Retain approved visual quality anchor until a reviewed production replacement exists"
+    },
+    {
+      "ref": "ui.fishingLogo",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingCastButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingWaitButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingShortButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingSlowButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingBattleDial",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingTownButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingRetryButton",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLocationPanel",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingWeatherPanel",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingInstructionPanel",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingBattleTopPanel",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingResultGet",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.resultFrame",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.panelHarbor",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.buttonPrimary",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.spotPinHarbor",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.spotPinBay",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.spotPinCape",
+      "family": "ui",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    }
+  ]
+}
