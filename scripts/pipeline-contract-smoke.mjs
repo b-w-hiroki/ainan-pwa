@@ -130,8 +130,15 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
     id + ': collection icon mismatch')
-  assert.equal(byState['species-specific-jump'].kind, 'planned',
-    id + ': dedicated jump art must not be marked implemented until integrated')
+  if (['aji','saba','kue'].includes(id)) {
+    assert.equal(byState['species-specific-jump'].kind, 'asset',
+      id + ': accepted pilot jump must be a real asset')
+    assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id],
+      id + ': dedicated jump art must match manifest')
+  } else {
+    assert.equal(byState['species-specific-jump'].kind, 'planned',
+      id + ': dedicated jump art must not be marked implemented until integrated')
+  }
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
     id + ': legacy Battle fallback mapping drifted from matrix')
   const hostRef = id === 'tai'
@@ -307,6 +314,20 @@ assert.ok(foregroundGenerator.includes('motionReady:false,backgroundInpainted:fa
   'coarse region masks must not claim inpainting or motion-ready completion')
 assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
   'coarse mask boundary diagnostics must be present')
+const jumpSource = read('scripts/art/build-species-jump-pilot.mjs')
+const jumpCapture = read('scripts/capture-species-jumps.mjs')
+assert.ok(jumpSource.includes("fish_hero_" + " + "id + '.svg'"),
+  'Jump generator must preserve premium hero source geometry')
+assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
+    && hostSource.includes("battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)"),
+  'Jump state must be selected only by actual Battle rage in the single host owner')
+assert.ok(staminaActions.includes("params.get('qaJump') === '1'"),
+  'Battle Jump must have a reproducible QA fixture')
+assert.ok(workflow.includes('node scripts/capture-species-jumps.mjs'),
+  'CI must capture actual Jump state screenshots')
+for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png']) {
+  assert.ok(jumpCapture.includes(file),'missing Jump screenshot: ' + file)
+}
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
