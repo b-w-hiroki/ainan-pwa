@@ -7,7 +7,7 @@ const files={
   source:'fishing-game/assets/approved-mock/cast-harbor-composite-base.png',
   character:'fishing-game/assets/approved-mock/cast-player-visible.png',
 }
-function pngInfo(name){
+export function pngInfo(name){
   const bytes=readFileSync(root+name)
   assert.equal(bytes.toString('hex',0,8),'89504e470d0a1a0a')
   let pos=8,w,h,color,depth,interlace
