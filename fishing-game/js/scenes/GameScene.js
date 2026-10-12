@@ -85,6 +85,14 @@ export default class GameScene extends Phaser.Scene {
     if (artParams.get('qa') === '1' && artParams.get('castApprovedSplit') === '1') {
       wanted.push(ASSETS.ui.fishingApprovedSplitWaterV2, ASSETS.ui.fishingApprovedSplitBaseV2)
     }
+    if (artParams.get('qa') === '1' && artParams.get('castApprovedForeground') === '1') {
+      wanted.push(
+        ASSETS.ui.fishingApprovedSplitWaterV2,
+        ASSETS.ui.fishingApprovedSplitBackgroundV3,
+        ASSETS.ui.fishingApprovedSplitPlayerV3,
+        ASSETS.ui.fishingApprovedSplitPierV3,
+      )
+    }
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
         this.load.image(asset.key, asset.path)
