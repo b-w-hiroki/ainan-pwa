@@ -103,12 +103,10 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=4200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=harborRunner" artifacts/e2e/19-boss-harbor.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=4200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=bayHunter" artifacts/e2e/20-boss-bay.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=4200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue" artifacts/e2e/21-boss-kue.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 --wait-for-selector="body[data-qa-result-ready='caught']" "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue" artifacts/e2e/22-boss-kue-result.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene&bossState=pending" artifacts/e2e/23-map-boss-pending.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=harborRunner&qaEncounter=1" artifacts/e2e/24-encounter-harbor.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=bayHunter&qaEncounter=1" artifacts/e2e/25-encounter-bay.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=2800 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaBoss=kue&qaEncounter=1" artifacts/e2e/26-encounter-kue.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 --wait-for-selector="body[data-qa-result-ready='caught']" "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue&qaFreshBoss=1" artifacts/e2e/27-kue-first-trophy.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=common" artifacts/e2e/28-rarity-common.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=uncommon" artifacts/e2e/29-rarity-uncommon.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=RarityQaScene&qaRarity=rare" artifacts/e2e/30-rarity-rare.png
@@ -129,6 +127,9 @@ jobs:
 
       - name: Capture named Result fish with rendered state assertions
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
+
+      - name: Verify Kue boss Result and first trophy screenshots
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-boss-result-trophy.mjs
 
       - name: Verify approved-art split against baseline Cast
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-approved-master-split.mjs
