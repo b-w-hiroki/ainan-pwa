@@ -130,13 +130,10 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
     id + ': collection icon mismatch')
-  if (['aji','saba','kue'].includes(id)) {
-    assert.equal(byState['species-specific-jump'].kind, 'asset')
-    assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id])
-  } else {
-    assert.equal(byState['species-specific-jump'].kind, 'planned',
-      id + ': unbuilt Jump art must remain planned')
-  }
+  assert.equal(byState['species-specific-jump'].kind, 'asset',
+    id + ': all 9 Jump states must have independent generated artwork')
+  assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id],
+    id + ': species Jump art must match manifest entry')
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
     id + ': legacy Battle fallback mapping drifted from matrix')
   const hostRef = id === 'tai'
@@ -350,8 +347,21 @@ assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
 assert.ok(staminaActions.includes("params.get('qaJump') === '1'"), 'Jump QA must be reproducible')
 assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.splashTexture'),
   'CI must inspect real Jump and independent splash')
-for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png'])
+const jumpFiles = [
+  '73-aji-jump.png','74-saba-jump.png','75-kue-jump.png',
+  '82-tai-jump.png','83-buri-jump.png','84-bass-jump.png',
+  '85-isaki-jump.png','86-hirame-jump.png','87-kanpachi-jump.png',
+]
+for (const file of jumpFiles)
   assert.ok(jumpCapture.includes(file),'missing Jump screenshot ' + file)
+const speciesJumpRefs = new Set(FISH_LIST.map(fish => fish.id))
+assert.equal(speciesJumpRefs.size, 9, 'nine fish species required')
+for (const fishId of speciesJumpRefs) {
+  const jump = ASSETS.fishJump[fishId]
+  const fx = ASSETS.fishJump['fx' + fishId[0].toUpperCase() + fishId.slice(1)]
+  assert.ok(jump?.status === 'ready' && fx?.status === 'ready',
+    fishId + ': both Jump hero and independent splash must be registered')
+}
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
