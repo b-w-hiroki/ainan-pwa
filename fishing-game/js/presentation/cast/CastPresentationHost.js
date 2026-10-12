@@ -12,7 +12,8 @@ const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
-const BATTLE_FISH_BOUNDS = Object.freeze({ width: 330, height: 202 })
+// Reserve horizontal breathing room for the angled tail inside 390px.
+const BATTLE_FISH_BOUNDS = Object.freeze({ width: 310, height: 194 })
 const BATTLE_LOCATION_ART = Object.freeze({
   pointA: ASSETS.fishingField.locationHarbor,
   pointB: ASSETS.fishingField.locationBay,
@@ -194,7 +195,7 @@ export class CastPresentationHost {
     const battleLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
-    const battleFish = scene.add.image(224, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
+    const battleFish = scene.add.image(210, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
     const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
     const battleHeaderBg = scene.add.graphics()

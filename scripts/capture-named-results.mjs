@@ -43,6 +43,10 @@ try {
         return {
           phase: scene?.phase, point: scene?.env?.point, fish: scene?.fish?.id,
           heroTexture: hero?.texture?.key, heroWidth: hero?.displayWidth,
+          // A rotated fish can clip its tail even when displayWidth fits.
+          // Compute its actual axis-aligned projected extents in design coords.
+          heroLeft: hero ? hero.x - (Math.abs(hero.displayWidth * Math.cos(hero.rotation)) + Math.abs(hero.displayHeight * Math.sin(hero.rotation))) / 2 : null,
+          heroRight: hero ? hero.x + (Math.abs(hero.displayWidth * Math.cos(hero.rotation)) + Math.abs(hero.displayHeight * Math.sin(hero.rotation))) / 2 : null,
           heroInForeground: hero?.parentContainer === host?.nodes?.battleForeground,
           overlayTexture: overlay?.texture?.key, overlayVisible: overlay?.visible,
           battleVisible: host?.nodes?.battleForeground?.visible,
@@ -54,6 +58,8 @@ try {
       assert.equal(state.fish, fishId, filename + ': wrong Battle fish')
       assert.equal(state.heroTexture, 'fish_hero_' + fishId, filename + ': wrong premium fish')
       assert.ok(state.heroWidth >= 290 && state.heroInForeground, filename + ': premium fish hidden behind Battle base')
+      assert.ok(state.heroLeft >= 16 && state.heroRight <= 380,
+        filename + ': Battle hero must fit within safe horizontal margin (left=' + state.heroLeft + ', right=' + state.heroRight + ')')
       assert.equal(state.overlayVisible, point !== 'pointA', filename + ': incorrect location overlay visibility')
       assert.equal(state.overlayTexture, {
         pointA: 'ff_location_harbor', pointB: 'ff_location_bay', pointC: 'ff_location_cape',
