@@ -81,6 +81,14 @@ For each selected candidate:
 
 `scripts/asset-migration-contract-smoke.mjs` runs under `npm run qa:pipeline`. It fails on manifest assets missing from this register, orphan entries, premature supersession, disappearing protected references and stage promotion without evidence. It validates integrity, **not the visual quality of the pixels**.
 
+## Current Harbor × Aji production-candidate experiment
+
+- The initial baseline snapshot remains 185 ready asset refs. The first independently authored Harbor SEA master `ui.fishingLayerSeaV2` adds a **186th** ready manifest record, without changing the normal Cast image.
+- Existing `ui.fishingLayerSea` now points to the new candidate in the migration register at `manifested`. This is **not** browser-approved or the default production layer.
+- Opt in solely with `?castLayers=1&castWaterV2=1`; old layered preview uses `castLayers=1` without the new flag.
+- Compare the corresponding `62` and `63` preview screenshots with `46-mock-cast.png`. New art is rejected if the default approved scene has higher quality or greater fishing clarity. Preserve the old ref in either case.
+- The candidate cannot be promoted until imagery, slingshot input and water/fish contrast are inspected in a real browser. The 9 dedicated Jump frames remain `planned`.
+
 ## Next vertical slice and release constraint
 
 **Next PR:** first candidate source master and independent part export for Harbor × Aji, connected to the active presentation owner and backed by before/after phone captures. No global rewrite, no balance/save/input changes and no `1.0.0` promotion before physical iPhone QA #27. Manage broader visual and town-work tasks in #110 and #108.
