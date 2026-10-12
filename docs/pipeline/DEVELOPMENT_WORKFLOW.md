@@ -11,6 +11,7 @@
 3. **Ownership** — visual-owners.jsonの最終描画ownerとsupportsを確認。同一slotへ新ownerを追加しない。
 4. **Master** — 390×844基準モックに対し、代表素材1組を切り出し独立ファイル化。
 5. **States** — asset-states.jsonにasset / procedural / plannedを分類。欠品をごまかさない。
+   - 新素材への移行作業時は`asset-migration-inventory.json`の`treatment / candidateStage / sourceMaster / replacementRef / reviewEvidence`も管理する。旧assetがreadyでも新素材はnot-startedのまま。
 6. **Integrate** — assetManifest、preload、画面配置、フェーズ遷移、既存ゲームイベントとの接続。
 7. **Cleanup** — 旧見た目と入力hit areaを調査し、表示の責任を1か所へ寄せる。wrapper削除は別PRで安全に。
 8. **Verify** — npm run qa:pipeline → 関連smoke → npm run build → 390×844実ブラウザ操作QA。
