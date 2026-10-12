@@ -285,6 +285,21 @@ assert.ok(workflow.includes('node scripts/capture-approved-master-split.mjs'),
   'the real browser must compare approved master and derived layers')
 for(const file of ['64-approved-cast-original.png','65-approved-cast-split-preview.png'])
   assert.ok(splitCapture.includes(file),'missing approved-master comparison screenshot: '+file)
+const foregroundGenerator = read('scripts/art/extract-harbor-approved-master.mjs')
+const foregroundScene = read('fishing-game/js/scenes/GameScene.js')
+const foregroundCapture = read('scripts/capture-foreground-orientation.mjs')
+assert.ok(foregroundGenerator.includes("const player=Buffer.alloc(rgba.length),pier=Buffer.alloc(rgba.length),background=Buffer.alloc(rgba.length)"),
+  'approved master needs reproducible independent player, pier and backdrop masks')
+assert.ok(foregroundGenerator.includes("recomposed.equals(rgba)"),
+  'foreground segmentation must preserve all source pixels')
+assert.ok(foregroundScene.includes("artParams.get('qa') === '1' && artParams.get('castApprovedForeground') === '1'"),
+  'foreground prototypes must only load in QA')
+assert.ok(hostSource.includes("castApprovedForegroundPreviewEnabled()"),
+  'normal Cast must not switch to unapproved foreground')
+assert.ok(workflow.includes('node scripts/capture-foreground-orientation.mjs'),
+  'real browser must capture portrait and landscape')
+for (const id of ['66-approved-foreground-preview.png','67-landscape-current.png','68-landscape-foreground-preview.png'])
+  assert.ok(foregroundCapture.includes(id), 'missing orientation/foreground evidence: ' + id)
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,

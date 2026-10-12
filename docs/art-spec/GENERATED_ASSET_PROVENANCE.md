@@ -33,6 +33,15 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 - **Quality gate**: 390×844 real-browser screenshots `64-approved-cast-original.png` and `65-approved-cast-split-preview.png`, with owner/input/texture checks. A perceptually identical result is expected at this stage, not a superior render. Original source and generator remain in GitHub; the generated PNG files are built reproducibly by `qa:pipeline` or `predev`.
 - **Next**: mask refinement, independent true harbor and character layers, depth/parallax and fish-friendly water motion, all behind review flags until the Art Direction Bible and live UX gates pass. 9 fish Jump states remain `planned`.
 
+## Harbor foreground region derivation / orientation QA — 2026-10-12
+
+- Source is still **the exact approved Harbor composite** `fishing-game/assets/approved-mock/cast-harbor-composite-base.png` (391×783); there is **no** claim of a new AI-painted environment.
+- The versioned generator `scripts/art/extract-harbor-approved-master.mjs` now produces three additional **transparent, position-preserving masks**: `cast-harbor-background-extracted.png`, `cast-harbor-player-region-extracted.png`, and `cast-harbor-pier-region-extracted.png`. Existing water remains a separate PNG. Rendering all four parts in the original coordinate space recomposes the source pixel values.
+- Some edges of the player mask still contain background colors and the removed player leaves holes in the backdrop. **Do not move, animate or replace default production art with these masks yet.** The original separate player cutout and native Phaser rod already exist; higher-quality masking/inpainting is the next acceptance gate.
+- Preview only with `?qa=1&castApprovedForeground=1`. Manifest refs are `ui.fishingApprovedSplitBackgroundV3`, `ui.fishingApprovedSplitPlayerV3`, `ui.fishingApprovedSplitPierV3`; all three are excluded from normal game preload.
+- Real browser evidence: 390×844 `66-approved-foreground-preview.png`; landscape 844×390 `artifacts/orientation/67-landscape-current.png` and `68-landscape-foreground-preview.png`. Landscape is currently a scaled portrait baseline, **not yet true dual-orientation UX**.
+- Controls, save format, probabilities and current 1.0.0-rc.3 default visuals remain unchanged.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.

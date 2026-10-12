@@ -51,6 +51,12 @@ function castPlayerCutoutPrototypeEnabled() {
   return new URLSearchParams(window.location.search).get('castPlayerCutout') === '1'
 }
 
+function castApprovedForegroundPreviewEnabled() {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qa') === '1' && params.get('castApprovedForeground') === '1'
+}
+
 function castApprovedSplitPreviewEnabled() {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
@@ -104,7 +110,19 @@ export class CastPresentationHost {
       layeredScene = createLayeredCastScene(scene)
       castField.add(layeredScene.root)
     } else if (useApprovedComposite) {
-      if (castApprovedSplitPreviewEnabled()) {
+      if (castApprovedForegroundPreviewEnabled()) {
+        // Keep the high-fidelity approved source unchanged in normal Cast.
+        // Extraction yields independent RGBA slots, NOT inpainted backgrounds:
+        // position/motion remains frozen until the occluded pixels are restored.
+        const slot = asset => scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, asset.key)
+          .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+        const background = slot(ASSETS.ui.fishingApprovedSplitBackgroundV3)
+        const water = slot(ASSETS.ui.fishingApprovedSplitWaterV2)
+        const pier = slot(ASSETS.ui.fishingApprovedSplitPierV3)
+        const playerRegion = slot(ASSETS.ui.fishingApprovedSplitPlayerV3)
+        castField.add([background, water, pier, playerRegion])
+        approvedSplit = { background, water, pier, playerRegion }
+      } else if (castApprovedSplitPreviewEnabled()) {
         // Source-faithful PNG components; the active CastPresentationHost is
         // still the one and only owner. Regular production Cast is unchanged.
         const background = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2,

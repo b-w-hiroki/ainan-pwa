@@ -81,6 +81,12 @@ For each selected candidate:
 
 `scripts/asset-migration-contract-smoke.mjs` runs under `npm run qa:pipeline`. It fails on manifest assets missing from this register, orphan entries, premature supersession, disappearing protected references and stage promotion without evidence. It validates integrity, **not the visual quality of the pixels**.
 
+## Approved foreground pilot and orientation scope
+
+Following the source-derived water/base split, three new foreground segmentation parts were added under the approved Harbor master generator (background, player region, pier region). All are QA-only `manifested` candidates; the initial inventory baseline was 185 refs and grows as registered experiment parts are added. The pixel-perfect master reconstruction is verified; the derived player region is **not** a motion-ready cutout and the occluded backdrop is **not** yet inpainted.
+
+Real browser QA now covers the unchanged portrait field and the 844×390 letterboxed landscape baseline. This does not yet deliver portrait/landscape reflow; see [ORIENTATION_AND_LAYER_PLAN.md](ORIENTATION_AND_LAYER_PLAN.md).
+
 ## Next vertical slice and release constraint
 
 **Next PR:** first candidate source master and independent part export for Harbor × Aji, connected to the active presentation owner and backed by before/after phone captures. No global rewrite, no balance/save/input changes and no `1.0.0` promotion before physical iPhone QA #27. Manage broader visual and town-work tasks in #110 and #108.
