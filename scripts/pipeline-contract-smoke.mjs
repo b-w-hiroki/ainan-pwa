@@ -264,6 +264,11 @@ const screenshotGuard = read('scripts/visual-screenshot-guard.mjs')
 for (const id of ['46-mock-cast.png','47-mock-retrieve.png','48-mock-battle.png','49-mock-result.png'])
   assert.ok(screenshotGuard.includes(id), 'missing mock uniqueness guard: ' + id)
 
+const gameSceneSource = read('fishing-game/js/scenes/GameScene.js')
+assert.ok(gameSceneSource.includes("asset.key !== ASSETS.ui.fishingLayerSeaV2.key"),
+  'unapproved Harbor candidate must not preload with normal ready UI assets')
+assert.ok(gameSceneSource.includes("params.get('castLayers') === '1' && params.get('castWaterV2') === '1'"),
+  'prototype asset preload must require both explicit opt-in switches')
 const layeredCast = read('fishing-game/js/presentation/cast/CastLayeredScene.js')
 const layeredOptions = read('fishing-game/js/presentation/cast/castLayerConfig.js')
 const waterQA = read('scripts/capture-layered-water-preview.mjs')
