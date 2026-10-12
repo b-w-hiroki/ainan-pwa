@@ -2,6 +2,10 @@
 
 The current water, player region, pier region and background layers are **losslessly recomposable**, but coarse rectangle masks do not produce motion-ready sprites. The approved portrait game remains unchanged.
 
+## Source-image audit
+
+`scripts/art/audit-player-source.mjs` runs during `qa:pipeline` and reports the original source's opaque/transparent/partial-alpha pixels. The existing `cast-player-visible.png` is a rectangular illustration with sea and quay already painted around the character; it must **not** be treated as a clean transparent sprite just because its filename says "player". A clean character-only master needs manual/AI-assisted subject isolation, edge review and source-matched inpainting of the hidden world. Until then, preserve the approved production composite.
+
 ## Mandatory acceptance checks
 1. **Silhouette:** crop the character using its existing approved independent cutout as the reference. Alpha edges must follow the figure, hat, hands and rod. No rectangular sea/pier color blocks can travel with the character.
 2. **Hidden background:** separately restore the seawater, quay and props behind the figure and pier. Compare color, lighting, horizon and reflections against adjacent pixels and the canonical mock. Do not describe missing occluded pixels as existing source data.
