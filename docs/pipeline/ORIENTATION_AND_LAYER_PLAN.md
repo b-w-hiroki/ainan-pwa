@@ -17,7 +17,7 @@
 
 ## QA-only full-width landscape Cast prototype
 
-An opt-in test mode `?qa=1&landscapePrototype=1` now uses Phaser's full viewport geometry and keeps the approved Cast visual owner. For **Cast only** in landscape, the static Harbor slice remains at native visual scale and moves to the left, while a native-sized touch dock is reflowed to the right and the central/right water playfield is extended from an existing world texture.
+An opt-in test mode `?qa=1&landscapePrototype=1` now uses Phaser's full viewport geometry and keeps the approved Cast visual owner. For **Cast only** in landscape, the static Harbor slice remains at native visual scale and moves to the left, while a native-sized touch dock is reflowed to the right and the central/right water playfield is extended from the approved high-detail `fishingApprovedCleanHarbor` water art. The CharacterMotionController is offset alongside the Harbor Cast field so the visible player stays attached to the world. This remains a QA-only prototype pending true seamless panoramic artwork.
 
 - The real physical Cast hit circle must be **at least 44 CSS pixels across**, not a ~20px shrunken portrait button. Playwright presses/releases the real button and asserts the charging state. Screenshot `76-landscape-cast-layout.png` records the result.
 - The same flag in portrait keeps the original layout geometry; screenshot `77-portrait-cast-regression.png` checks non-regression.
