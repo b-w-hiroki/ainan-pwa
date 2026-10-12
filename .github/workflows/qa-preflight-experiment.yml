@@ -1,0 +1,78 @@
+# Controlled pilot: result-screen QA before opening a PR.
+# Does not add a global release gate; trigger is limited to experiment branches.
+name: Result QA preflight experiment
+
+on:
+  push:
+    branches:
+      - "experiment/qa-preflight-*"
+    paths:
+      - ".github/workflows/qa-preflight-experiment.yml"
+      - "scripts/capture-named-results.mjs"
+      - "scripts/result-screen-pixel-guard.mjs"
+      - "src/**"
+      - "public/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  result-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build current branch
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Start branch preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > "$RUNNER_TEMP/preview.log" 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/preview.log"
+          exit 1
+
+      - name: Capture state-verified Result screenshots
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
+
+      - name: Decode pixels and verify visible Result heading
+        run: node scripts/result-screen-pixel-guard.mjs artifacts/e2e
+
+      - name: Record evidence
+        if: always()
+        run: |
+          echo "Head SHA: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: $GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "Scope: Result screenshots only; not full UI/WebKit/real-device release QA" >> "$GITHUB_STEP_SUMMARY"
+          if [ -d artifacts/e2e ]; then
+            echo "Captured PNGs: $(find artifacts/e2e -maxdepth 1 -name '*.png' | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+            du -sh artifacts/e2e >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-preflight-evidence
+          path: artifacts/e2e/*.png
+          retention-days: 7
+          if-no-files-found: warn
