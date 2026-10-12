@@ -25,7 +25,25 @@ try{
         return scene?.phase==='battle'&&scene?.fish?.id===id&&scene?.battleState?.isRaging
           &&host?.nodes?.battleFish?.texture?.key==='fish_jump_'+id
       },fishId,{timeout:20000})
-      await page.waitForTimeout(380)
+      // Sample a real in-game rage from takeoff to the airborne peak. Use
+      // normal scene timing; do not rewrite the Battle state or force the
+      // sprite's coordinates from the QA harness.
+      const motionFrame=()=>page.evaluate(()=>{
+        const scene=window.__game.scene.getScene('GameScene')
+        const fish=scene._castPresentationHost.nodes.battleFish
+        const splash=scene._castPresentationHost.nodes.battleJumpFx
+        return { phase:scene.phase, raging:scene.battleState?.isRaging,
+          y:fish.y, angle:fish.angle, splashAlpha:splash.alpha }
+      })
+      await page.waitForTimeout(60)
+      const takeoff=await motionFrame()
+      await page.waitForTimeout(220)
+      const airborne=await motionFrame()
+      assert.equal(takeoff.phase,'battle')
+      assert.equal(airborne.phase,'battle')
+      assert.equal(airborne.raging,true)
+      assert.ok(airborne.y<takeoff.y-9,
+        fishId+': actual fish sprite failed to rise between takeoff and airborne frames '+JSON.stringify({takeoff,airborne}))
       const state=await page.evaluate(()=>{
         const scene=window.__game.scene.getScene('GameScene')
         const host=scene._castPresentationHost
@@ -54,7 +72,19 @@ try{
       assert.equal(state.rageLabel,true)
       assert.equal(state.owner,'cast-presentation-host')
       await page.screenshot({path:join('artifacts/e2e',file),animations:'disabled'})
-      console.log('Verified species Jump:',file,JSON.stringify(state))
+      // Validate actual return to water rather than accepting only a fixed
+      // tilted Jump sprite. The landing frame also documents water FX.
+      await page.waitForTimeout(430)
+      const landing=await motionFrame()
+      assert.equal(landing.phase,'battle')
+      assert.equal(landing.raging,true)
+      assert.ok(landing.y>airborne.y+12,
+        fishId+': actual fish sprite failed to descend '+JSON.stringify({airborne,landing}))
+      assert.ok(landing.splashAlpha>airborne.splashAlpha,
+        fishId+': water splash must become stronger after re-entry')
+      const landingFile=file.replace('-jump.png','-jump-landing.png')
+      await page.screenshot({path:join('artifacts/e2e',landingFile),animations:'disabled'})
+      console.log('Verified species Jump rise and landing:',file,JSON.stringify({state,takeoff,airborne,landing}))
     }finally{await page.close()}
   }
 }finally{await browser.close()}

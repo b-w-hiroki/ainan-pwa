@@ -7,6 +7,8 @@ import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredS
 import { CharacterMotionController } from './CharacterMotionController.js'
 import { getRetryJourneyCopy } from '../../game/fishingJourney.js'
 import { drawStatusMeter } from '../../ui/UiPrimitives.js'
+import { isReducedMotion } from '../../game/feedback.js'
+import { battleJumpFrame } from './battleJumpMotion.js'
 
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
@@ -89,6 +91,8 @@ export class CastPresentationHost {
     this.nodes = null
     this._resultPointerAction = null
     this._resultInputLocked = false
+    this._jumpRageStartedAt = null
+    this._jumpRageFishId = null
   }
 
   mount() {
@@ -701,6 +705,10 @@ export class CastPresentationHost {
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)
     this.nodes.distance.setText(view.distanceLabel)
+    if (!battleVisible) {
+      this._jumpRageStartedAt = null
+      this._jumpRageFishId = null
+    }
     if (castVisible) {
       this.nodes.powerFill.clear()
       const gauge = CAST_LAYER_CONFIG.controls.gauge
@@ -709,12 +717,22 @@ export class CastPresentationHost {
     if (battleVisible) {
       const battle = view.battle
       const leap = battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)
+      if (leap && (this._jumpRageStartedAt === null || this._jumpRageFishId !== battle.fishId)) {
+        this._jumpRageStartedAt = this.scene.time.now
+        this._jumpRageFishId = battle.fishId
+      } else if (!leap) {
+        this._jumpRageStartedAt = null
+        this._jumpRageFishId = null
+      }
+      const jump = leap
+        ? battleJumpFrame(battle.fishId, this.scene.time.now - this._jumpRageStartedAt, isReducedMotion())
+        : null
       this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
-      // Fixed within phone bounds; fish and jump splash remain in the same
-      // foreground owner under the tension/reel controls.
-      this.nodes.battleFish.setPosition(leap ? 200 : 210, leap ? 307 : 326)
-        .setAngle(leap ? -5 : -8)
-      this.nodes.battleJumpFx.setVisible(leap)
+      // Motion is presentation-only. Its peak stays within the approved
+      // foreground bounds; the same fish, input and Battle owner are retained.
+      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0), 326 + (jump?.liftY ?? 0))
+        .setAngle(jump?.angleDeg ?? -8)
+      this.nodes.battleJumpFx.setVisible(leap).setAlpha(jump?.splashAlpha ?? 1)
       if (leap) this.nodes.battleJumpFx.setTexture(FISH_JUMP_FX[battle.fishId].key)
       const point = this.scene.env?.point ?? 'pointA'
       const overlay = this.nodes.battleLocationOverlay
