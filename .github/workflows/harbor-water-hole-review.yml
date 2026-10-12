@@ -1,0 +1,58 @@
+name: Harbor source-aligned water candidate (review only)
+
+on:
+  push:
+    branches:
+      - "experiment/approved-water-hole-*"
+    paths:
+      - "scripts/art/experiment-harbor-water-hole.py"
+      - ".github/workflows/harbor-water-hole-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install reproducible image processing dependencies
+        run: python -m pip install "numpy==1.26.4" "opencv-python-headless==4.10.0.84"
+      - name: Produce two non-production aligned water samples
+        run: |
+          python scripts/art/experiment-harbor-water-hole.py --out artifacts/art-review/harbor-water-hole --shift 172 --feather 8
+      - name: Enforce no approval or runtime promotion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          output = Path('artifacts/art-review/harbor-water-hole')
+          report = json.loads((output/'review-metrics.json').read_text())
+          assert report['source_outside_hole_preserved'] is True
+          assert report['player_motion_ready'] is False
+          assert report['human_visual_review'] == 'not_checked'
+          assert report['reconstruction_of_true_hidden_pier'] is False
+          assert 13000 <= report['player_hole_pixels'] <= 19500
+          for item in report['variants']:
+              assert not item['production_promoted']
+              assert not item['background_art_approved']
+              assert not item['actual_player_motion_in_game']
+              board = output/(item['variant']+'-motion-board.jpg')
+              assert board.stat().st_size > 10000, board
+          print('Source alignment QA passed; visual/gameplay approval remains pending')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harbor-source-aligned-water-review
+          path: artifacts/art-review/harbor-water-hole
+          retention-days: 14
+          if-no-files-found: error
