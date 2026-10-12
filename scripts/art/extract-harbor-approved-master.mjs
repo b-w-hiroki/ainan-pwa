@@ -98,6 +98,13 @@ for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
  // Moving extracted parts requires a separately reviewed background restoration.
 const player=Buffer.alloc(rgba.length),pier=Buffer.alloc(rgba.length),background=Buffer.alloc(rgba.length)
 let playerCount=0,pierCount=0
+// These coarse rectangular masks are a migration baseline, not approved
+// animation sprites. Count how much of each proposed part touches its
+// bounding-box boundary, which predicts visible hard-edge artifacts.
+const edgeStats={
+  player:{pixels:0,onCrop:0},
+  pier:{pixels:0,onCrop:0},
+}
 for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const at=(y*w+x)*4
   // PNG may contain meaningful hidden RGB at alpha=0. Preserve it in the
@@ -113,8 +120,15 @@ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const belongsToPier = y>=495 && (x>=150 || y>=562)
   const target=belongsToPlayer?player:belongsToPier?pier:background
   nonwater.copy(target,at,at,at+4)
-  if(belongsToPlayer)playerCount++
-  else if(belongsToPier)pierCount++
+  if(belongsToPlayer){
+    playerCount++
+    edgeStats.player.pixels++
+    if(x===0||x===183||y===345||y===559||x===171)edgeStats.player.onCrop++
+  } else if(belongsToPier){
+    pierCount++
+    edgeStats.pier.pixels++
+    if(y===495||y===562||x===150)edgeStats.pier.onCrop++
+  }
 }
 const recomposed=Buffer.alloc(rgba.length)
 for(let at=0;at<rgba.length;at+=4){
@@ -136,4 +150,6 @@ for(const [name,pixels] of outputs)writeFileSync(join(outputFolder,name),encodeP
 console.log(JSON.stringify({source:'cast-harbor-composite-base.png',width:w,height:h,
   selectedWaterPixels:splitCount,waterFraction:Math.round(splitCount/(w*h)*1000)/1000,
   playerRegionPixels:playerCount,pierRegionPixels:pierCount,
+  cutoutEdgeStats:edgeStats,
+  motionReady:false,backgroundInpainted:false,
   outputs:outputs.map(x=>x[0]),sourcePixelsPreserved:true}))
