@@ -1714,6 +1714,36 @@
       "replacementRef": "ui.fishingApprovedSplitBaseV2",
       "reviewEvidence": null,
       "note": "Reproducible derived PNG from approved master; QA-only preview. A full independent 2.5D master remains planned; do not promote or replace default Cast without visual review."
+    },
+    {
+      "ref": "ui.fishingApprovedSplitBackgroundV3",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/approved-mock/cast-harbor-composite-base.png",
+      "replacementRef": "ui.fishingApprovedSplitBackgroundV3",
+      "reviewEvidence": null,
+      "note": "Lossless source-derived static region, QA-only: actual player/pier movement requires background inpainting, clean cutout edges and a separate visual review. Existing approved composite stays default."
+    },
+    {
+      "ref": "ui.fishingApprovedSplitPlayerV3",
+      "family": "player",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/approved-mock/cast-harbor-composite-base.png",
+      "replacementRef": "ui.fishingApprovedSplitPlayerV3",
+      "reviewEvidence": null,
+      "note": "Lossless source-derived static region, QA-only: actual player/pier movement requires background inpainting, clean cutout edges and a separate visual review. Existing approved composite stays default."
+    },
+    {
+      "ref": "ui.fishingApprovedSplitPierV3",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/approved-mock/cast-harbor-composite-base.png",
+      "replacementRef": "ui.fishingApprovedSplitPierV3",
+      "reviewEvidence": null,
+      "note": "Lossless source-derived static region, QA-only: actual player/pier movement requires background inpainting, clean cutout edges and a separate visual review. Existing approved composite stays default."
     }
   ]
 }
