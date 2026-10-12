@@ -368,6 +368,21 @@ assert.ok(jumpCapture.includes("airborne.y<takeoff.y-9")
   && jumpCapture.includes("landing.y>airborne.y+12")
   && jumpCapture.includes("landing.splashAlpha>airborne.splashAlpha"),
   'real browser Jump QA must verify lift, landing and stronger splash')
+const wideWaterGenerator = read('scripts/art/build-landscape-water-panorama.mjs')
+const wideWaterCapture = read('scripts/capture-landscape-water-panorama.mjs')
+const wideWaterGuide = read('docs/pipeline/LANDSCAPE_MATERIAL_CANDIDATE.md')
+assert.ok(wideWaterGenerator.includes("harbor-clean-water-390x844.png"),
+  'wide sea material must derive from the approved high-fidelity Harbor source')
+assert.ok(wideWaterGenerator.includes('translate(780,-220) scale(-1,1)'),
+  'source-matched mirror seam must be explicit and reproducible')
+assert.ok(wideWaterCapture.includes('79-landscape-water-material-review.png')
+  && wideWaterCapture.includes('statSync(capture).size>=40000'),
+  'real 844x390 material screenshot cannot be skipped or blank')
+assert.ok(workflow.includes('node scripts/art/build-landscape-water-panorama.mjs')
+  && workflow.includes('node scripts/capture-landscape-water-panorama.mjs'),
+  'CI must generate and capture the wide material candidate')
+assert.ok(wideWaterGuide.includes('review-only') && wideWaterGuide.includes('not plugged'),
+  'material preview must not be confused with production landscape adaptation')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
