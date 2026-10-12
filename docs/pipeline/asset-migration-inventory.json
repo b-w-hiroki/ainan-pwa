@@ -1401,11 +1401,12 @@
     {
       "ref": "ui.fishingLayerSea",
       "family": "ui",
-      "treatment": "audit-required",
-      "candidateStage": "not-started",
-      "replacementRef": null,
+      "treatment": "remake-candidate",
+      "candidateStage": "manifested",
+      "replacementRef": "ui.fishingLayerSeaV2",
       "reviewEvidence": null,
-      "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+      "note": "Bright Harbor water candidate; registered and available only in castLayers=1 + castWaterV2=1 preview. Existing approved production Cast composite remains unchanged; visual approval and replacement are pending.",
+      "sourceMaster": "fishing-game/assets/generated/cast-layers/sea-caustics-v2.svg"
     },
     {
       "ref": "ui.fishingLayerDistantHarbor",
@@ -1694,6 +1695,15 @@
       "replacementRef": null,
       "reviewEvidence": null,
       "note": "Per-asset source, role and visual quality review is required before deciding reuse or remake"
+    },
+    {
+      "ref": "ui.fishingLayerSeaV2",
+      "family": "world",
+      "treatment": "audit-required",
+      "candidateStage": "not-started",
+      "replacementRef": null,
+      "reviewEvidence": null,
+      "note": "New opt-in Harbor caustic sea texture is not live default art. The reference old→new migration is tracked under ui.fishingLayerSea."
     }
   ]
 }
