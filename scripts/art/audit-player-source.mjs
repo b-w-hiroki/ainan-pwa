@@ -69,5 +69,15 @@ const audit={source:{width:source.width,height:source.height,...alphaStats(sourc
   decision:'source art audit only; existing cast-player-visible.png is a rectangular illustration, not a transparent character silhouette',
 }
 assert.ok(character.width>100&&character.height>100)
+// The existing character asset has a useful alpha mask, but a substantial
+// fraction of opaque pixels could still be the illustrated quay/sea.
+// Alpha transparency alone is NOT proof of subject-only segmentation.
+const total=character.width*character.height
+const ratio=Math.round((audit.character.transparent+audit.character.partial)/total*1000)/1000
+audit.character.alphaNonOpaqueRatio=ratio
+audit.character.hasUsableTransparency=ratio>0.4
+audit.character.requiresSubjectOnlyReview=true
+assert.ok(audit.character.hasUsableTransparency,'approved player must preserve alpha detail')
+assert.ok(audit.character.partial>0,'approved player edge antialiasing is missing')
 assert.equal(audit.characterCutoutMotionReady,false)
 console.log('AINAN player mask source audit:',JSON.stringify(audit))
