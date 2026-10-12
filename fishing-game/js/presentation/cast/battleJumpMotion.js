@@ -1,10 +1,16 @@
-// Presentation-only Battle Jump arc for the three reviewed pilot species.
+// Presentation-only Battle Jump arc for the nine source-derived fish species.
 // Does not change fish behaviour, rage length, reel progress, damage or catches.
 // The same source hero texture stays in its existing CastPresentationHost owner.
 const SPECIES = Object.freeze({
   aji: Object.freeze({ lift: 34, drift: 3 }),
   saba: Object.freeze({ lift: 43, drift: 5 }),
   kue: Object.freeze({ lift: 54, drift: 3 }),
+  tai: Object.freeze({ lift: 36, drift: 3 }),
+  buri: Object.freeze({ lift: 45, drift: 6 }),
+  bass: Object.freeze({ lift: 32, drift: 4 }),
+  isaki: Object.freeze({ lift: 29, drift: 3 }),
+  hirame: Object.freeze({ lift: 24, drift: 2 }),
+  kanpachi: Object.freeze({ lift: 46, drift: 5 }),
 })
 
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n))

@@ -10,6 +10,12 @@ const cases=[
   ['aji','pointA','73-aji-jump.png'],
   ['saba','pointA','74-saba-jump.png'],
   ['kue','pointC','75-kue-jump.png'],
+  ['tai','pointA','82-tai-jump.png'],
+  ['buri','pointA','83-buri-jump.png'],
+  ['bass','pointB','84-bass-jump.png'],
+  ['isaki','pointB','85-isaki-jump.png'],
+  ['hirame','pointB','86-hirame-jump.png'],
+  ['kanpachi','pointC','87-kanpachi-jump.png'],
 ]
 mkdirSync('artifacts/e2e',{recursive:true})
 mkdirSync('artifacts/e2e/jump-motion',{recursive:true})
@@ -43,29 +49,46 @@ try{
           const splash=host.nodes.battleJumpFx
           if(scene.phase==='battle'&&scene.battleState?.isRaging
             &&fish?.visible&&Number.isFinite(elapsed)&&cycle>=0){
-            const pose=ms>=45&&ms<130?'takeoff'
-              :ms>=265&&ms<345?'airborne'
-              :ms>=655&&ms<735?'landing':null
+            // Keep the actual early ascent window wide enough for CI rAF
+            // scheduling, but still before airborne. Main's previously
+            // proven three-species capture uses the same 45..130 window.
+            // Keep the strongest real sprite pose from each complete phase.
+            // Narrow 40ms windows can be skipped on slow GPU/CI frames.
+            const pose=ms<180?'takeoff'
+              :ms>=200&&ms<390?'airborne'
+              :ms>=620&&ms<820?'landing':null
             if(pose){
               const group=trace.cycles[cycle]??={}
-              if(!group[pose])group[pose]={
+              const frame={
                 phase:scene.phase,raging:Boolean(scene.battleState.isRaging),
                 fishId:scene.fish?.id,texture:fish.texture.key,
                 cycle,ms,y:fish.y,angle:fish.angle,splashAlpha:splash.alpha,
               }
+              const prev=group[pose]
+              if(!prev||(pose==='takeoff'&&frame.y>prev.y)
+                ||(pose==='airborne'&&frame.y<prev.y)
+                ||(pose==='landing'&&frame.splashAlpha>prev.splashAlpha)){
+                group[pose]=frame
+              }
             }
           }
           trace.frames++
-          requestAnimationFrame(sample)
         }
-        requestAnimationFrame(sample)
+        // Phaser postupdate fires after actual game sprite synchronisation.
+        scene.events.on('postupdate',sample)
       })
       await page.waitForFunction(() => Object.values(window.__qaJumpTrace?.cycles??{})
-        .some(group=>group.takeoff&&group.airborne&&group.landing),
-      null,{timeout:15000})
+        .some(group=>group.takeoff&&group.airborne&&group.landing
+          &&group.airborne.y<group.takeoff.y-9
+          &&group.landing.y>group.airborne.y+12
+          &&group.landing.splashAlpha>group.airborne.splashAlpha),
+      null,{timeout:30000})
       const trace=await page.evaluate(()=>{
         const group=Object.values(window.__qaJumpTrace.cycles)
-          .find(item=>item.takeoff&&item.airborne&&item.landing)
+          .find(item=>item.takeoff&&item.airborne&&item.landing
+            &&item.airborne.y<item.takeoff.y-9
+            &&item.landing.y>item.airborne.y+12
+            &&item.landing.splashAlpha>item.airborne.splashAlpha)
         return {takeoff:group.takeoff,airborne:group.airborne,landing:group.landing,
           frameCount:window.__qaJumpTrace.frames}
       })

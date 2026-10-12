@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { battleJumpFrame, JUMP_CYCLE_MS } from '../fishing-game/js/presentation/cast/battleJumpMotion.js'
 
 assert.equal(JUMP_CYCLE_MS, 960)
-for (const fish of ['aji', 'saba', 'kue']) {
+for (const fish of ['aji', 'saba', 'kue', 'tai', 'buri', 'bass', 'isaki', 'hirame', 'kanpachi']) {
   const start = battleJumpFrame(fish, 0)
   const rise = battleJumpFrame(fish, 100)
   const peak = battleJumpFrame(fish, 280)
@@ -26,8 +26,8 @@ for (const fish of ['aji', 'saba', 'kue']) {
   assert.deepEqual(reduced, { phase: 'reduced-motion', liftY: 0, driftX: 0, angleDeg: -8, splashAlpha: .44 })
 }
 assert.ok(battleJumpFrame('kue', 280).liftY < battleJumpFrame('aji', 280).liftY)
-assert.equal(battleJumpFrame('tai', 280), null, 'unsupported fish must retain standard hero presentation')
+assert.equal(battleJumpFrame('unknown', 280), null, 'invalid fish must not receive a fabricated Jump')
 assert.equal(battleJumpFrame('__proto__', 0), null)
 assert.equal(battleJumpFrame('aji', Number.NaN).liftY, 0)
 assert.equal(battleJumpFrame('aji', -200).liftY, 0)
-console.log('Three-species Battle Jump motion arc, species scale, rest, splash and reduced-motion passed')
+console.log('Nine-species Battle Jump motion arc, species scale, rest, splash and reduced-motion passed')

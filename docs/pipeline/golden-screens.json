@@ -165,6 +165,42 @@
       "file": "89-town-kanpachi-featured.png",
       "phase": "town",
       "purpose": "In-world market and diner show last caught species after arrival popup is dismissed; verify actual fish pixels."
+    },
+    {
+      "id": "tai-jump",
+      "file": "82-tai-jump.png",
+      "phase": "battle",
+      "purpose": "tai source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "buri-jump",
+      "file": "83-buri-jump.png",
+      "phase": "battle",
+      "purpose": "buri source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "bass-jump",
+      "file": "84-bass-jump.png",
+      "phase": "battle",
+      "purpose": "bass source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "isaki-jump",
+      "file": "85-isaki-jump.png",
+      "phase": "battle",
+      "purpose": "isaki source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "hirame-jump",
+      "file": "86-hirame-jump.png",
+      "phase": "battle",
+      "purpose": "hirame source-faithful dedicated Jump plus independent splash visible in live Battle rage"
+    },
+    {
+      "id": "kanpachi-jump",
+      "file": "87-kanpachi-jump.png",
+      "phase": "battle",
+      "purpose": "kanpachi source-faithful dedicated Jump plus independent splash visible in live Battle rage"
     }
   ]
 }
