@@ -6,6 +6,8 @@
 
 - [ART_DIRECTION_BIBLE.md](ART_DIRECTION_BIBLE.md) — **現行インゲーム＆承認モックの品質を優先**する画風・構図・レイヤー・審査ルール（新素材生成前に必読）。
 - [art-direction-contract.json](art-direction-contract.json) — 既存承認アセット、390×844の比較画面、守るべき仕様の検証可能な台帳。
+- [asset-migration-inventory.json](asset-migration-inventory.json) — manifestに登録された185件の素材の現行状態と、保護・再制作候補・要評価の移行台帳。**新素材の実装済み/完成済みとは解釈しない**。
+- `scripts/asset-migration-contract-smoke.mjs` — `qa:pipeline`内で185件の参照整合性、保護対象、証跡なしの採用宣言を検査。
 - 元となるユーザー要望は [Issue #110](https://github.com/b-w-hiroki/ainan-pwa/issues/110)。素材制作の次ステップは港×アジの master / layers / states / 実プレイまで、別PRで実装。
 
 新制作フローは画風変更の許可ではありません。良質な既存素材を保持し、候補の実スクショ・実操作・CIが同等以上になるまで新素材へ置換しません。
