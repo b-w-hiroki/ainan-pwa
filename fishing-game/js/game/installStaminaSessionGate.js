@@ -263,6 +263,10 @@ export function installStaminaSessionGate(GameScene) {
             this.battleState.escape = 42
             this.battleState.reel = 58
             this.battleState.isRaging = params.get('qaJump') === '1'
+            // A screenshot fixture must hold rage long enough to verify the
+            // complete takeoff/airborne/re-entry. The real Battle timing
+            // remains unchanged; only qaJump=1 freezes the QA rage window.
+            if (this.battleState.isRaging) this.battleState.rageEndAt = Number.POSITIVE_INFINITY
             this.battleState.nextRageAt = Number.POSITIVE_INFINITY
           }
           this._syncBattleUI?.()
