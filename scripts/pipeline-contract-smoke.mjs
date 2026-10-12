@@ -352,6 +352,17 @@ assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.splashTexture'
   'CI must inspect real Jump and independent splash')
 for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png'])
   assert.ok(jumpCapture.includes(file),'missing Jump screenshot ' + file)
+const jumpMotion = read('fishing-game/js/presentation/cast/battleJumpMotion.js')
+assert.ok(jumpMotion.includes("export function battleJumpFrame(")
+  && jumpMotion.includes("phase = 'airborne'") && jumpMotion.includes("phase = 'splash'"),
+  'Battle Jump requires a multi-phase deterministic trajectory, not a static tilted pose')
+assert.ok(hostSource.includes("battleJumpFrame(battle.fishId")
+  && hostSource.includes("isReducedMotion()"),
+  'Battle host must use timed motion with reduced-motion fallback')
+assert.ok(jumpCapture.includes("airborne.y<takeoff.y-9")
+  && jumpCapture.includes("landing.y>airborne.y+12")
+  && jumpCapture.includes("landing.splashAlpha>airborne.splashAlpha"),
+  'real browser Jump QA must verify lift, landing and stronger splash')
 const townSource = read('fishing-game/js/scenes/TownScene.js')
 const townReactionSource = read('fishing-game/js/game/townCatchReactions.js')
 const townCaptureSource = read('scripts/capture-town-catch-reactions.mjs')

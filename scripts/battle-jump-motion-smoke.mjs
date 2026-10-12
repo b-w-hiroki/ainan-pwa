@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict'
+import { battleJumpFrame, JUMP_CYCLE_MS } from '../fishing-game/js/presentation/cast/battleJumpMotion.js'
+
+assert.equal(JUMP_CYCLE_MS, 960)
+for (const fish of ['aji', 'saba', 'kue']) {
+  const start = battleJumpFrame(fish, 0)
+  const rise = battleJumpFrame(fish, 100)
+  const peak = battleJumpFrame(fish, 280)
+  const drop = battleJumpFrame(fish, 510)
+  const splash = battleJumpFrame(fish, 700)
+  const rest = battleJumpFrame(fish, 900)
+  assert.equal(start.phase, 'rise')
+  assert.equal(rise.phase, 'rise')
+  assert.equal(peak.phase, 'airborne')
+  assert.equal(drop.phase, 'descend')
+  assert.equal(splash.phase, 'splash')
+  assert.equal(rest.phase, 'settle')
+  assert.ok(start.liftY === 0 && rise.liftY < 0)
+  assert.ok(peak.liftY < rise.liftY - 7, 'jump must visibly rise beyond windup')
+  assert.ok(drop.liftY < 0 && drop.liftY > peak.liftY, 'jump must descend before splash')
+  assert.equal(splash.liftY, 0)
+  assert.ok(splash.splashAlpha > peak.splashAlpha, 'splash must become visible on landing')
+  assert.ok(start.splashAlpha >= .08 && splash.splashAlpha <= .82)
+  assert.equal(battleJumpFrame(fish, JUMP_CYCLE_MS).liftY, start.liftY)
+  const reduced = battleJumpFrame(fish, 280, true)
+  assert.deepEqual(reduced, { phase: 'reduced-motion', liftY: 0, driftX: 0, angleDeg: -8, splashAlpha: .44 })
+}
+assert.ok(battleJumpFrame('kue', 280).liftY < battleJumpFrame('aji', 280).liftY)
+assert.equal(battleJumpFrame('tai', 280), null, 'unsupported fish must retain standard hero presentation')
+assert.equal(battleJumpFrame('__proto__', 0), null)
+assert.equal(battleJumpFrame('aji', Number.NaN).liftY, 0)
+assert.equal(battleJumpFrame('aji', -200).liftY, 0)
+console.log('Three-species Battle Jump motion arc, species scale, rest, splash and reduced-motion passed')
