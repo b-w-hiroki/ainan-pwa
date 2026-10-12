@@ -140,7 +140,13 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
   const isNew = afterBest > beforeBest
   const first = beforeBest <= 0
   const { width: W, height: H } = scene.scale
-  const y = H / 2 + 78
+  // The live CastPresentationHost is rendered at depth 6000, above every
+  // legacy world overlay. A scene-level depth-146 badge existed but was
+  // hidden *behind* the entire Result foreground. Attach to the same host
+  // and occupy the narrow gap between the fish summary and Town CTA.
+  const resultHost = scene._castPresentationHost?.root
+  const hostActive = Boolean(resultHost?.active)
+  const y = hostActive ? H / 2 + 173 : H / 2 + 78
   const c = scene.add.container(W / 2, y).setDepth(146).setScrollFactor(0).setAlpha(0)
   const bg = scene.add.graphics()
   const reward = first ? rewardToken('trophy') : isNew ? rewardToken('record') : { label: 'BOSS CLEARED', color: 0x173248, text: '#ffffff' }
@@ -157,6 +163,7 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
     color: first ? '#805b00' : '#fff4d2',
   }).setOrigin(0.5)
   c.add([bg, label, best])
+  if (hostActive) resultHost.add(c)
   scene._bossRecordBadge = c
   scene.tweens.add({ targets: c, alpha: 1, y: y - 4, duration: 260, ease: 'Back.easeOut' })
   if (first || isNew) {
