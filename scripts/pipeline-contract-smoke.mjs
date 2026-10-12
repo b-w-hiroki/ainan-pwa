@@ -389,6 +389,15 @@ assert.ok(townCaptureSource.includes("88-town-aji-featured.png")
   && townCaptureSource.includes("89-town-kanpachi-featured.png")
   && townCaptureSource.includes("await page.mouse.click(195, 530)"),
   'CI must capture actual post-modal market/diner fish response')
+const bossBadgeSource=read('fishing-game/js/game/installBossEventPolish.js')
+assert.ok(bossBadgeSource.includes('if (hostActive) resultHost.add(c)')
+    && bossBadgeSource.includes('H / 2 + 173'),
+  'Boss trophy must render above the approved Result and between summary and Town CTA')
+assert.ok(namedResultSource.includes("state.trophyLabel,'★ TROPHY UNLOCKED ★'")
+    && namedResultSource.includes('badgeInResultHost,true')
+    && namedResultSource.includes('trophyGold>1500')
+    && namedResultSource.includes("countGetHeaderPixels('27-kue-first-trophy.png',undefined,"),
+  'first boss trophy must verify actual visible golden pixels, not only Phaser object existence')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
