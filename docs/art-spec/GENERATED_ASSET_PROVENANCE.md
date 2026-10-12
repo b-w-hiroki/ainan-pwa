@@ -50,6 +50,15 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 - **Evidence:** Playwright `73-aji-jump.png`, `74-saba-jump.png`, `75-kue-jump.png`, with real Battle owner and rage-state assertions. Must compare against original Battle/Result art for fish silhouette, scale, clipping and visual consistency before approving the pilot.
 - **Incomplete:** Six other species keep `species-specific-jump: planned` until derivative master/individual art is authored and reviewed. This phase does not replace the high-quality Result fish.
 
+## Five more species Jump poses — 2026-10-12
+
+- **Source:** existing source-faithful illustrated heroes `fish_hero_bass.svg`, `fish_hero_buri.svg`, `fish_hero_isaki.svg`, `fish_hero_hirame.svg`, `fish_hero_kanpachi.svg`. Preserve species body contours and colors.
+- **Generation:** `scripts/art/build-species-jump-pilot.mjs`, under the same registered pipeline as Aji/Saba/Kue. Each species has its own bend/tilt and lift parameters; fish and water splashes remain independently generated SVG parts (`fish_jump_*.svg` and `jump_splash_*.svg`).
+- **Usage:** standard `CastPresentationHost` switches to species Jump only during true `battle.isRaging`; ordinary Battle and Result continue existing high-quality masters. Test `qa=1&qaAction=battle&qaJump=1&qaFish=<id>`.
+- **Quality evidence:** real 390×844 screenshots 81–85. Check each versus original fish painting, edges/angles, rope, boss size and tension dock. Asset State Matrix holds a real `species-specific-jump` reference only after runtime + QA.
+- **Incomplete:** Madai uses the approved 768×512 painted PNG in the real Battle presentation, while its alternate generic hero SVG is a different quality reference. Do **not** mass-generate a lower-quality Jump from the SVG: this one remains `planned` until a dedicated, style-matched Madai master is authored and reviewed.
+- **No gameplay data changes:** fish rates, handling, score, save, Town progression and 1.0.0-rc.3 remain unchanged.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.
