@@ -40,11 +40,23 @@ const FISH_JUMP_ART = Object.freeze({
   aji: ASSETS.fishJump.aji,
   saba: ASSETS.fishJump.saba,
   kue: ASSETS.fishJump.kue,
+  tai: ASSETS.fishJump.tai,
+  buri: ASSETS.fishJump.buri,
+  bass: ASSETS.fishJump.bass,
+  isaki: ASSETS.fishJump.isaki,
+  hirame: ASSETS.fishJump.hirame,
+  kanpachi: ASSETS.fishJump.kanpachi,
 })
 const FISH_JUMP_FX = Object.freeze({
   aji: ASSETS.fishJump.fxAji,
   saba: ASSETS.fishJump.fxSaba,
   kue: ASSETS.fishJump.fxKue,
+  tai: ASSETS.fishJump.fxTai,
+  buri: ASSETS.fishJump.fxBuri,
+  bass: ASSETS.fishJump.fxBass,
+  isaki: ASSETS.fishJump.fxIsaki,
+  hirame: ASSETS.fishJump.fxHirame,
+  kanpachi: ASSETS.fishJump.fxKanpachi,
 })
 
 export function castPresentationMode() {

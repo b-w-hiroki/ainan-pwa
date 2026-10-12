@@ -130,13 +130,10 @@ for (const [id, expected] of Object.entries(expectedPremiumFish)) {
     id + ': Result premium fish hero missing')
   assert.deepEqual(byState.collection.refs, ['fish.' + expected.icon],
     id + ': collection icon mismatch')
-  if (['aji','saba','kue'].includes(id)) {
-    assert.equal(byState['species-specific-jump'].kind, 'asset')
-    assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id])
-  } else {
-    assert.equal(byState['species-specific-jump'].kind, 'planned',
-      id + ': unbuilt Jump art must remain planned')
-  }
+  assert.equal(byState['species-specific-jump'].kind, 'asset',
+    id + ': registered species Jump must be a real asset, not a planned placeholder')
+  assert.deepEqual(byState['species-specific-jump'].refs, ['fishJump.' + id],
+    id + ': independent Jump mapping does not match the fish ID')
   assert.ok(battlePresentation.includes(id + ': ASSETS.fish.' + expected.icon + '.key'),
     id + ': legacy Battle fallback mapping drifted from matrix')
   const hostRef = id === 'tai'
@@ -357,9 +354,20 @@ assert.ok(staminaActions.includes("this.battleState.rageEndAt = Number.POSITIVE_
   'QA Jump must hold its rage window for real rise/landing browser verification; normal Battle timing remains unchanged')
 assert.ok(jumpCaptureEnabled && jumpCaptureSource.includes('state.splashTexture'),
   'CI must inspect real Jump and independent splash')
-for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png'])
+for (const file of ['73-aji-jump.png','74-saba-jump.png','75-kue-jump.png',
+  '82-tai-jump.png','83-buri-jump.png','84-bass-jump.png',
+  '85-isaki-jump.png','86-hirame-jump.png','87-kanpachi-jump.png'])
   assert.ok(jumpCapture.includes(file),'missing Jump screenshot ' + file)
 const jumpMotion = read('fishing-game/js/presentation/cast/battleJumpMotion.js')
+for (const fishId of FISH_LIST.map(f => f.id)) {
+  const fxKey = 'fx' + fishId.charAt(0).toUpperCase() + fishId.slice(1)
+  assert.ok(hostSource.includes(fishId + ': ASSETS.fishJump.' + fishId + ','),
+    fishId + ': source-derived Jump artwork absent from active Battle owner')
+  assert.ok(hostSource.includes(fishId + ': ASSETS.fishJump.' + fxKey + ','),
+    fishId + ': independent splash asset not wired')
+  assert.ok(jumpMotion.includes(fishId + ': Object.freeze({ lift:'),
+    fishId + ': timed Jump arc missing for registered texture')
+}
 assert.ok(jumpMotion.includes("export function battleJumpFrame(")
   && jumpMotion.includes("phase = 'airborne'") && jumpMotion.includes("phase = 'splash'"),
   'Battle Jump requires a multi-phase deterministic trajectory, not a static tilted pose')
