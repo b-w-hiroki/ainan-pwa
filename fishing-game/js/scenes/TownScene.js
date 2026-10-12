@@ -19,6 +19,7 @@ import {
 import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityArt.js'
 import { REWARD_THEME } from '../game/rewardPresentation.js'
 import { getFishingJourney } from '../game/fishingJourney.js'
+import { getTownFeaturedCatch } from '../game/townCatchReactions.js'
 import { addArtPanel, loadUiArt } from '../ui/UiArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -72,13 +73,18 @@ export default class TownScene extends Phaser.Scene {
     })
   }
 
-  create() {
+  create(data = {}) {
     const { width: W, height: H } = this.scale
     this._modal = null
     this._summary = getTownSummary()
     this._unlocks = getTownUnlockState()
     this._nextUnlock = getNextTownUnlock()
-    this._hasKue = getCatches().some(c => c.fishId === 'kue')
+    const catches = getCatches()
+    this._hasKue = catches.some(c => c.fishId === 'kue')
+    // Prefer the fresh Result→Town arrival, otherwise show the latest known
+    // saved catch. No new storage key and no progression side effects.
+    const incoming = data?.catchArrival?.fishId ? [data.catchArrival] : []
+    this._featuredCatch = getTownFeaturedCatch([...catches, ...incoming])
     localStorage.setItem('ainan_seen_town', '1')
     this._journey = getFishingJourney()
 
@@ -272,16 +278,22 @@ export default class TownScene extends Phaser.Scene {
 
   _serviceDistrict(W, H) {
     const facilities = this._summary?.facilities ?? {}
+    const art = this._featuredCatch?.art
+    const hasFeature = Boolean(art?.key && this.textures.exists(art.key))
+    const marketFeature = hasFeature && (facilities.market ?? 0) >= 2
+    const dinerFeature = hasFeature && (facilities.festival ?? 0) >= 2
     const total = this._summary?.totalLevel ?? 0
     const y = H * 0.39
     if ((facilities.market ?? 0) >= 2 && this.textures.exists(ASSETS.facilities.fishShop.key)) {
       this.add.image(58, y, ASSETS.facilities.fishShop.key).setDisplaySize(82, 62).setDepth(4).setAlpha(0.92)
       this.add.text(58, y + 38, '魚屋', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.ink }).setOrigin(0.5).setDepth(5)
+      if (marketFeature) this._drawCatchAtShop(85, y + 12, art)
     }
     if ((facilities.festival ?? 0) >= 2 && this.textures.exists(ASSETS.facilities.diner.key)) {
       this.add.image(W - 58, y, ASSETS.facilities.diner.key).setDisplaySize(82, 62).setDepth(4).setAlpha(0.92)
       if (this.textures.exists(ASSETS.characters.dinerOwner.key)) this.add.image(W - 93, y + 20, ASSETS.characters.dinerOwner.key).setDisplaySize(28, 44).setDepth(5)
       this.add.text(W - 58, y + 38, '港食堂', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.ink }).setOrigin(0.5).setDepth(5)
+      if (dinerFeature) this._drawCatchAtShop(W - 85, y + 12, art)
     }
     const crowd = Math.min(8, Math.floor(total / 2))
     for (let i = 0; i < crowd; i++) {
@@ -291,12 +303,28 @@ export default class TownScene extends Phaser.Scene {
       g.fillStyle(i % 3 === 0 ? 0xff765a : i % 3 === 1 ? 0x5bb5d8 : 0x71d6a2, 0.82)
       g.fillCircle(px, py - 5, 3.5); g.fillRoundedRect(px - 3, py, 6, 10, 3)
     }
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa') === '1') {
+      this._qaTownFeaturedCatch = Object.freeze({
+        fishId: this._featuredCatch?.fishId ?? null,
+        marketTexture: marketFeature ? art.key : null,
+        dinerTexture: dinerFeature ? art.key : null,
+        owner: 'TownScene',
+      })
+    }
     if (total >= 12) {
       const boat = this.add.graphics().setDepth(3)
       boat.fillStyle(0xffffff, 0.72); boat.fillRoundedRect(W * 0.40, y - 42, 48, 10, 4)
       boat.fillStyle(0x2f86b6, 0.82); boat.fillTriangle(W * 0.42, y - 43, W * 0.46, y - 66, W * 0.46, y - 43)
     }
   }
+  _drawCatchAtShop(x, y, art) {
+    // Small diegetic fish emblem integrated on the existing shop artwork.
+    // The modal and shops remain Town-owned; no extra screen-filling overlay.
+    this.add.circle(x, y, 17, 0xfff9de, 0.94)
+      .setStrokeStyle(1.3, 0x2f86b6, 0.78).setDepth(5)
+    this.add.image(x, y, art.key).setDisplaySize(30, 18).setDepth(6)
+  }
+
   _legendPlaque(cx, y) {
     const g = this.add.graphics().setDepth(7)
     g.fillStyle(0x173248, 0.16)

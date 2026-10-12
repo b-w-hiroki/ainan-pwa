@@ -1,20 +1,10 @@
 import { ASSETS } from '../config/assetManifest.js'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
-import { getTownCatchReaction } from './townCatchReactions.js'
+import { getTownCatchReaction, TOWN_CATCH_ICONS } from './townCatchReactions.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
-const FISH_ART = {
-  aji: ASSETS.fish.ajiIcon,
-  tai: ASSETS.fish.madaiIcon,
-  bass: ASSETS.fish.blackBassIcon,
-  buri: ASSETS.fish.buriIcon,
-  kue: ASSETS.fish.kueIcon,
-  saba: ASSETS.fish.sabaIcon,
-  isaki: ASSETS.fish.isakiIcon,
-  hirame: ASSETS.fish.hirameIcon,
-  kanpachi: ASSETS.fish.kanpachiIcon,
-}
+const FISH_ART = TOWN_CATCH_ICONS
 
 const ARRIVAL_COPY = {
   common: {
