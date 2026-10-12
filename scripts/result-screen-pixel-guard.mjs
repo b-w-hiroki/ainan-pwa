@@ -6,7 +6,7 @@ import { inflateSync } from 'node:zlib'
 
 const targets = ['04-result.png', '27-kue-first-trophy.png', '39-player-result.png', '45-clearance-result.png', '57-clearance-result-stable.png', '50-bass-result.png', '51-saba-result.png', '52-isaki-result.png', '53-hirame-result.png', '54-kanpachi-result.png', '56-bass-result-stable.png']
 
-export function countGetHeaderPixels(file, dir = 'artifacts/e2e') {
+export function countGetHeaderPixels(file, dir = 'artifacts/e2e', bounds = null) {
   const png = readFileSync(join(dir, file))
   assert.ok(png.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), 'invalid PNG: ' + file)
   let at = 8, width = 0, height = 0, bitDepth = 0, colorType = 0
@@ -52,7 +52,8 @@ export function countGetHeaderPixels(file, dir = 'artifacts/e2e') {
     }
     // Gold GET! is above the fish in the approved Result screen. Battle shows
     // blue water in this exact upper-center region, even when QA DOM says caught.
-    if (y >= 115 && y < 202) for (let x = 82; x < 308; x++) {
+    const region = bounds ?? { top: 115, bottom: 202, left: 82, right: 308 }
+    if (y >= region.top && y < region.bottom) for (let x = region.left; x < region.right; x++) {
       const i = x * bpp
       const r = row[i], g = row[i + 1], b = row[i + 2]
       if (r > 165 && g > 98 && b < 125 && r > b * 1.5 && g > b * 1.15) gold++
