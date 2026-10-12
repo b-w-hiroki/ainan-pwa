@@ -5,7 +5,7 @@ import { inflateSync } from 'node:zlib'
 
 // Read rendered pixels rather than a PNG file hash: nondeterministic chunks,
 // filters, or encoding can change the file without changing the on-screen art.
-function readRgbPixels(filename) {
+export function readRgbPixels(filename) {
   const bytes = readFileSync(filename)
   assert.ok(bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), filename + ': PNG signature missing')
   let pos = 8

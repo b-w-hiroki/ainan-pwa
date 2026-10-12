@@ -137,6 +137,9 @@ jobs:
       - name: Verify foreground separation and landscape baseline
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-foreground-orientation.mjs
 
+      - name: Verify approved art pixel parity and negative control
+        run: node scripts/approved-master-pixel-parity.mjs artifacts/e2e
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
