@@ -300,6 +300,13 @@ assert.ok(workflow.includes('node scripts/capture-foreground-orientation.mjs'),
   'real browser must capture portrait and landscape')
 for (const id of ['66-approved-foreground-preview.png','67-landscape-current.png','68-landscape-foreground-preview.png'])
   assert.ok(foregroundCapture.includes(id), 'missing orientation/foreground evidence: ' + id)
+const foregroundQuality = read('docs/pipeline/FOREGROUND_QUALITY_GATES.md')
+assert.ok(foregroundQuality.includes('44 CSS-px') && foregroundQuality.includes('Hidden background'),
+  'portrait/landscape cutout quality acceptance rules must be documented')
+assert.ok(foregroundGenerator.includes('motionReady:false,backgroundInpainted:false'),
+  'coarse region masks must not claim inpainting or motion-ready completion')
+assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
+  'coarse mask boundary diagnostics must be present')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
