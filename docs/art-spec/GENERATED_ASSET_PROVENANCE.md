@@ -24,6 +24,16 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 | 蒼海湾のちょい巻きフィッシング.png | implementation target reference; composition rules are captured in canonical docs and asset definitions |
 | generated fishing asset sheet | production inventory represented by this table and `asset-definitions.json` |
 
+## Harbor caustics layer v2 — 2026-10-12
+
+- **Source/master:** `fishing-game/assets/generated/cast-layers/sea-caustics-v2.svg`; independent, deterministic authored SVG artwork, **not** a raster AI extraction or a fake pre-existing photo.
+- **Aim:** luminous turquoise Harbor water with organic caustic cells, subtle specular highlights and water depth, within the current in-game visual language. One isolated SEA part; no sky, player, fish, HUD or hit area is baked in.
+- **Output geometry:** 390×844 transparent outside the middle water playfield (roughly y258–620). Controlled by the existing `CastLayeredScene` SEA owner.
+- **Registration:** `ui.fishingLayerSeaV2` in assetManifest; scene preload follows existing ready UI assets.
+- **Switch:** only `?castLayers=1&castWaterV2=1` in prototype mode. Standard Cast retains the approved high-quality harbor composite and cannot silently opt in.
+- **Review evidence:** candidate vs former layered water PNG in CI (`62-layered-water-previous.png`, `63-layered-water-v2-preview.png`). **Not approved** until compared against current production Cast `46-mock-cast.png` at 390×844 and actual play-input behavior.
+- **Migration record:** `docs/pipeline/asset-migration-inventory.json`; previous `ui.fishingLayerSea` still active in normal layered preview. The candidate is at `manifested`, not `browser-reviewed` or `merged production replacement`.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.
