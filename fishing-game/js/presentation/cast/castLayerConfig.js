@@ -91,6 +91,7 @@ export function readCastLayerDevOptions(search = '') {
   const requestedWeather = params.get('castWeather')
   return Object.freeze({
     enabled: params.get('castLayers') === '1',
+    waterV2Preview: params.get('castLayers') === '1' && params.get('castWaterV2') === '1',
     adjustment,
     weather: CAST_LAYER_CONFIG.weather.presets[requestedWeather]
       ? requestedWeather
