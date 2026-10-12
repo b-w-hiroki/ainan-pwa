@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { existsSync, realpathSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { renameSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 const executable=process.env.PATH.split(':').map(folder=>join(folder,'playwright')).find(existsSync)
@@ -12,10 +13,13 @@ const cases=[
   ['kue','pointC','75-kue-jump.png'],
 ]
 mkdirSync('artifacts/e2e',{recursive:true})
+mkdirSync('artifacts/jump-motion',{recursive:true})
 const browser=await chromium.launch({headless:true})
 try{
   for(const [fishId,point,file] of cases){
-    const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1})
+    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,
+      recordVideo:{dir:'artifacts/jump-motion',size:{width:390,height:844}}})
+    const page=await context.newPage()
     try{
       const q=new URLSearchParams({qa:'1',scene:'GameScene',qaAction:'battle',qaJump:'1',qaFish:fishId,qaLocation:point})
       await page.goto('http://127.0.0.1:4173/fishing-game/?'+q.toString(),{waitUntil:'domcontentloaded'})
@@ -114,6 +118,18 @@ try{
       const landingFile=file.replace('-jump.png','-jump-landing.png')
       await page.screenshot({path:join('artifacts/e2e',landingFile),animations:'disabled'})
       console.log('Verified species Jump rise and landing:',file,JSON.stringify({state,takeoff,airborne,landing}))
-    }finally{await page.close()}
+    }finally{
+      // Persist actual Chromium frames, not screen captures made after the
+      // trace has already finished. Video shows real takeoff/peak/landing.
+      const video=page.video()
+      await page.close()
+      await context.close()
+      assert.ok(video,'real Jump motion must be recorded')
+      const captured=await video.path()
+      const finalPath=join('artifacts/jump-motion',fishId+'-jump.webm')
+      renameSync(captured,finalPath)
+      assert.ok(statSync(finalPath).size>5000,fishId+': empty rendered Jump video')
+      console.log('Recorded real Jump video:',finalPath)
+    }
   }
 }finally{await browser.close()}
