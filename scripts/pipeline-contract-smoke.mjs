@@ -186,8 +186,15 @@ const bossResultCapture = 'scripts/capture-boss-result-trophy.mjs'
 const bossResultEnabled = workflow.includes('node ' + bossResultCapture)
 const bossResultSource = bossResultEnabled ? read(bossResultCapture) : ''
 assert.ok(bossResultEnabled && bossResultSource.includes('countGetHeaderPixels(test.file)')
-    && bossResultSource.includes("state.badgeLabel,'★ TROPHY UNLOCKED ★'"),
-  'Kue first-trophy must validate actual rendered GET pixels and trophy badge')
+    && bossResultSource.includes("state.badgeLabel,'★ TROPHY UNLOCKED ★'")
+    && bossResultSource.includes('badgeInResultHost,true')
+    && bossResultSource.includes('trophyGold>1500'),
+  'Kue first-trophy must verify visible gold badge above Result instead of DOM-only feedback')
+const bossPresentation = read('fishing-game/js/game/installBossEventPolish.js')
+assert.ok(bossPresentation.includes('if (hostActive) resultHost.add(c)'),
+  'Boss trophy must be parented inside 6000-depth CastPresentationHost')
+assert.ok(bossPresentation.includes('H / 2 + 173'),
+  'Boss trophy must fit between Result summary and Town CTA')
 for (const file of ['22-boss-kue-result.png','27-kue-first-trophy.png']) {
   assert.ok(bossResultSource.includes("'" + file + "'"), 'missing state-aware Boss Result: ' + file)
   assert.ok(!workflow.split('\n').some(line=>line.includes('playwright@1.55.0 screenshot')
