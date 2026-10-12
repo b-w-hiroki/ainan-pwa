@@ -93,9 +93,27 @@ for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
   rgba.copy(isBlue?water:nonwater,at,at,at+4)
   if(isBlue)splitCount++
 }
+// Foreground extraction is a reversible, *static* segmentation pilot.
+ // Background pixels behind the player and quay are not hallucinated here.
+ // Moving extracted parts requires a separately reviewed background restoration.
+const player=Buffer.alloc(rgba.length),pier=Buffer.alloc(rgba.length),background=Buffer.alloc(rgba.length)
+let playerCount=0,pierCount=0
+for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const at=(y*w+x)*4
+  if(nonwater[at+3]===0)continue
+  // In the approved 391x783 frame, the fishing character occupies the
+  // lower-left region; rod and line are still controlled by native code.
+  const belongsToPlayer = x<184 && y>=345 && y<560
+    && x<172-(Math.max(0,345-y)*0.06)
+  const belongsToPier = y>=495 && (x>=150 || y>=562)
+  const target=belongsToPlayer?player:belongsToPier?pier:background
+  nonwater.copy(target,at,at,at+4)
+  if(belongsToPlayer)playerCount++
+  else if(belongsToPier)pierCount++
+}
 const recomposed=Buffer.alloc(rgba.length)
-for(let at=0;at<rgba.length;at+=4) {
-  const from=water[at+3]===0?nonwater:water
+for(let at=0;at<rgba.length;at+=4){
+  const from=water[at+3]?water:player[at+3]?player:pier[at+3]?pier:background
   from.copy(recomposed,at,at,at+4)
 }
 assert.ok(recomposed.equals(rgba),'water/remaining recomposition lost approved art pixels')
@@ -105,8 +123,12 @@ mkdirSync(outputFolder,{recursive:true})
 const outputs=[
   ['cast-harbor-water-extracted.png',water],
   ['cast-harbor-nonwater-extracted.png',nonwater],
+  ['cast-harbor-background-extracted.png',background],
+  ['cast-harbor-player-region-extracted.png',player],
+  ['cast-harbor-pier-region-extracted.png',pier],
 ]
 for(const [name,pixels] of outputs)writeFileSync(join(outputFolder,name),encodePng(w,h,pixels))
 console.log(JSON.stringify({source:'cast-harbor-composite-base.png',width:w,height:h,
   selectedWaterPixels:splitCount,waterFraction:Math.round(splitCount/(w*h)*1000)/1000,
+  playerRegionPixels:playerCount,pierRegionPixels:pierCount,
   outputs:outputs.map(x=>x[0]),sourcePixelsPreserved:true}))
