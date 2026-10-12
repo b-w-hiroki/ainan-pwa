@@ -90,12 +90,21 @@ try {
       { waitUntil: 'domcontentloaded' },
     )
     await firstTrophy.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    await firstTrophy.waitForFunction(() => {
+      const scene=window.__game?.scene?.getScene('GameScene')
+      const badge=scene?._bossRecordBadge
+      return Boolean(badge?.active && badge.alpha>0.95)
+    }, { timeout: 15000 })
     const assertFirstTrophy = async () => {
       const state = await firstTrophy.evaluate(() => {
         const scene = window.__game?.scene?.getScene('GameScene')
         const host = scene?._castPresentationHost
         const canvas = document.querySelector('#game-container canvas')
+        const badge=scene?._bossRecordBadge
         return {
+          trophyLabel:badge?.list?.find(item=>typeof item?.text==='string' && item.text.includes('TROPHY'))?.text??null,
+          badgeInResultHost:Boolean(badge?.parentContainer===host?.root),
+          badgeY:badge?.y,
           phase: scene?.phase, outcome: scene?._castPresentationOutcome,
           fish: scene?.fish?.id,
           resultVisible: host?.nodes?.resultForeground?.visible,
@@ -113,8 +122,17 @@ try {
       assert.equal(state.heroVisible,true,'27-kue-first-trophy.png: hero hidden')
       assert.ok(state.heroWidth>=290,'27-kue-first-trophy.png: hero too small')
       assert.equal(state.canvasPresent,true,'27-kue-first-trophy.png: canvas missing')
+      assert.equal(state.trophyLabel,'★ TROPHY UNLOCKED ★','27-kue-first-trophy.png: first trophy missing')
+      assert.equal(state.badgeInResultHost,true,'27-kue-first-trophy.png: trophy behind the Result host')
+      assert.ok(state.badgeY>=565 && state.badgeY<=620,
+        '27-kue-first-trophy.png: trophy overlaps hero summary or Town CTA')
     }
     await captureVisibleResult(firstTrophy,'27-kue-first-trophy.png',assertFirstTrophy)
+    const trophyGold = countGetHeaderPixels('27-kue-first-trophy.png',undefined,
+      { left:88, right:302, top:575, bottom:615 })
+    assert.ok(trophyGold>1500,
+      '27-kue-first-trophy.png: badge active in Phaser but not visibly gold ('+trophyGold+' pixels)')
+    console.log('Verified actual trophy banner pixels:',trophyGold)
   } finally {
     await firstTrophy.close()
   }
