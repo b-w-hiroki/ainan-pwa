@@ -15,6 +15,15 @@
 4. Compare default versus split at 390×844. Reject white seams, black alpha artifacts, duplicated character, rod/line mismatch, water flicker and differences from the current art style.
 5. Preserve asset provenance, use the migration inventory's `manifested` state rather than claiming a production replacement; record `reviewEvidence` only after screenshots and actual gameplay.
 
+## QA-only full-width landscape Cast prototype
+
+An opt-in test mode `?qa=1&landscapePrototype=1` now uses Phaser's full viewport geometry and keeps the approved Cast visual owner. For **Cast only** in landscape, the static Harbor slice remains at native visual scale and moves to the left, while a native-sized touch dock is reflowed to the right and the central/right water playfield is extended from an existing world texture.
+
+- The real physical Cast hit circle must be **at least 44 CSS pixels across**, not a ~20px shrunken portrait button. Playwright presses/releases the real button and asserts the charging state. Screenshot `76-landscape-cast-layout.png` records the result.
+- The same flag in portrait keeps the original layout geometry; screenshot `77-portrait-cast-regression.png` checks non-regression.
+- This is **a prototype, not approved landscape artwork**: the old Harbor art is still a cropped portrait panel, and Retrieve/Battle/Result + Home/Map/Town still use their current fallback. The water extension needs Art Direction Bible review and a proper wide master before production.
+- All layout/data handling is enabled only when both `qa=1` and `landscapePrototype=1`. Neither production PWA orientations nor existing saves are altered.
+
 ## Device orientation acceptance path
 
 | Stage | Portrait | Landscape |
