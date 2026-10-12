@@ -317,6 +317,23 @@ assert.ok(foregroundGenerator.includes('motionReady:false,backgroundInpainted:fa
   'coarse region masks must not claim inpainting or motion-ready completion')
 assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
   'coarse mask boundary diagnostics must be present')
+const responsiveMain = read('fishing-game/js/main.js')
+const responsiveHost = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
+const responsiveScene = read('fishing-game/js/scenes/GameScene.js')
+const responsiveQa = read('scripts/capture-responsive-landscape-cast.mjs')
+assert.ok(responsiveMain.includes("get('qa') === '1'")
+  && responsiveMain.includes("get('landscapePrototype') === '1'"),
+  'full-width Cast preview must never be enabled in production')
+assert.ok(responsiveScene.includes("artParams.get('landscapePrototype') === '1'"),
+  'landscape-specific water asset must be QA-only')
+assert.ok(responsiveHost.includes('landscapeCastPreviewEnabled()')
+  && responsiveHost.includes("this.root.setData('landscapeCastLayout', {"),
+  'Cast owner must have explicit full-width landscape layout')
+assert.ok(responsiveQa.includes('actionDiameterCss >= 44')
+  && responsiveQa.includes('page.mouse.down()') && responsiveQa.includes('page.mouse.up()'),
+  'real touch testing and physical target size must be enforced')
+assert.ok(workflow.includes('node scripts/capture-responsive-landscape-cast.mjs'),
+  'CI must capture landscape Cast reflow')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
