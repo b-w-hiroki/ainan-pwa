@@ -10,6 +10,11 @@ const cases=[
   ['aji','pointA','73-aji-jump.png'],
   ['saba','pointA','74-saba-jump.png'],
   ['kue','pointC','75-kue-jump.png'],
+  ['bass','pointB','81-bass-jump.png'],
+  ['buri','pointA','82-buri-jump.png'],
+  ['isaki','pointB','83-isaki-jump.png'],
+  ['hirame','pointB','84-hirame-jump.png'],
+  ['kanpachi','pointC','85-kanpachi-jump.png'],
 ]
 mkdirSync('artifacts/e2e',{recursive:true})
 const browser=await chromium.launch({headless:true})
