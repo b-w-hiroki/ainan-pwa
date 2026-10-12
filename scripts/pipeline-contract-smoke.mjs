@@ -172,6 +172,7 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+const jumpCaptureSource = read('scripts/capture-species-jumps.mjs')
 assert.ok(namedResultSource.includes("path: join('artifacts/e2e', '39-player-result.png')"),
   'player reward Result must be captured by the state-aware Playwright harness')
 assert.ok(namedResultSource.includes("assert.equal(state.rewardBadgePresent, true"),
@@ -184,7 +185,8 @@ for (const frame of golden.frames) {
   assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
   const capturedDirectly = workflow.includes('artifacts/e2e/' + frame.file)
   const capturedByVerifiedScript = namedResultEnabled && namedResultSource.includes("'" + frame.file + "'")
-  assert.ok(capturedDirectly || capturedByVerifiedScript, 'capture missing from CI: ' + frame.file)
+  const capturedByJumpScript = jumpCaptureSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript || capturedByJumpScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
