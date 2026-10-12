@@ -123,6 +123,18 @@
       "file": "60-saba-battle-cape.png",
       "purpose": "saba premium hero with distinct Cape overlay and real scene point",
       "phase": "battle"
+    },
+    {
+      "id": "town-aji-arrival",
+      "file": "71-town-aji-arrival.png",
+      "purpose": "Aji arrives at town with fresh fish art and a species-specific market/diner response",
+      "phase": "town"
+    },
+    {
+      "id": "town-kanpachi-arrival",
+      "file": "72-town-kanpachi-arrival.png",
+      "purpose": "Kanpachi artwork and dialogue differ without competing Town overlays",
+      "phase": "town"
     }
   ]
 }

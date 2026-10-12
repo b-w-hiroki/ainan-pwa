@@ -17,6 +17,10 @@ Battleのpremium魚と釣り場パーツは、既存のCastPresentationHostが�
 
 「標準ホストがBattle/Resultを描画する」ことは、新規Battle/Result描画ownerを増やす許可ではない。旧描画ownerは移行中の互換経路として扱う。
 
+## 町の釣果リアクション
+
+`installTownCatchArrival`（`fishing-game/js/game/installTownCatchArrival.js`）はTownへの釣果到着モーダルを描画する単一owner。魚種別台詞は `townCatchReactions.js` のデータのみとし、別のoverlayや新しいTown wrapperを増やさない。魚アートは全9種Townのpreload経路を通し、同じモーダル内で差し替える。
+
 ## 既存構造への適用
 
 - installFishingRuntime.js がinstaller順の唯一の参照元。現行順序とwrapperの責務を変えるときは先に照合する。

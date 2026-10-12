@@ -1,5 +1,6 @@
 import { ASSETS } from '../config/assetManifest.js'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
+import { getTownCatchReaction } from './townCatchReactions.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -9,6 +10,10 @@ const FISH_ART = {
   bass: ASSETS.fish.blackBassIcon,
   buri: ASSETS.fish.buriIcon,
   kue: ASSETS.fish.kueIcon,
+  saba: ASSETS.fish.sabaIcon,
+  isaki: ASSETS.fish.isakiIcon,
+  hirame: ASSETS.fish.hirameIcon,
+  kanpachi: ASSETS.fish.kanpachiIcon,
 }
 
 const ARRIVAL_COPY = {
@@ -42,6 +47,19 @@ export function installTownCatchArrival(TownScene) {
   if (TownScene.prototype.__ainanTownCatchArrivalInstalled) return
   TownScene.prototype.__ainanTownCatchArrivalInstalled = true
 
+  // Arrival is entered directly from Result; TownScene may be launched
+  // without GameScene, so preload its own dedicated fish icon textures.
+  const originalPreload = TownScene.prototype.preload
+  TownScene.prototype.preload = function (...args) {
+    const result = originalPreload.apply(this, args)
+    for (const art of Object.values(FISH_ART)) {
+      if (art?.status === 'ready' && !this.textures.exists(art.key)) {
+        this.load.image(art.key, art.path)
+      }
+    }
+    return result
+  }
+
   const originalCreate = TownScene.prototype.create
   TownScene.prototype.create = function (data = {}) {
     const result = originalCreate.call(this, data)
@@ -53,6 +71,7 @@ export function installTownCatchArrival(TownScene) {
   TownScene.prototype._showCatchArrival = function (catchArrival) {
     const { width: W, height: H } = this.scale
     const copy = arrivalCopy(catchArrival.rarity)
+    const bodyCopy = getTownCatchReaction(catchArrival.fishId) ?? copy.body
     const legendary = catchArrival.rarity === 'legendary'
     const rare = catchArrival.rarity === 'rare' || legendary
     const accent = legendary ? 0xffd95a : rare ? 0xff9f68 : 0x71d6a2
@@ -113,6 +132,14 @@ export function installTownCatchArrival(TownScene) {
       }).setOrigin(0.5)
     }
     items.push(fishVisual)
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('qa') === '1') {
+      this._qaCatchArrivalSnapshot = Object.freeze({
+        fishId: catchArrival.fishId,
+        fishTexture: fishVisual?.texture?.key ?? null,
+        reaction: bodyCopy,
+        speciesReaction: getTownCatchReaction(catchArrival.fishId) !== null,
+      })
+    }
 
     const statBg = this.add.graphics()
     statBg.fillStyle(0xdff5ff, 0.72)
@@ -138,7 +165,7 @@ export function installTownCatchArrival(TownScene) {
       color: UI_COLORS.ink,
     }).setOrigin(0.5))
 
-    items.push(this.add.text(W / 2, y + 318, copy.body, {
+    items.push(this.add.text(W / 2, y + 318, bodyCopy, {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '11px',
