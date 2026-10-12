@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
-import { existsSync, realpathSync, mkdirSync } from 'node:fs'
+import { existsSync, realpathSync, mkdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { renameSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 const executable=process.env.PATH.split(':').map(folder=>join(folder,'playwright')).find(existsSync)
@@ -17,8 +16,7 @@ mkdirSync('artifacts/e2e/jump-motion',{recursive:true})
 const browser=await chromium.launch({headless:true})
 try{
   for(const [fishId,point,file] of cases){
-    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,
-      recordVideo:{dir:'artifacts/e2e/jump-motion',size:{width:390,height:844}}})
+    const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1})
     const page=await context.newPage()
     try{
       const q=new URLSearchParams({qa:'1',scene:'GameScene',qaAction:'battle',qaJump:'1',qaFish:fishId,qaLocation:point})
@@ -112,24 +110,36 @@ try{
       assert.equal(state.resultHidden,true)
       assert.equal(state.rageLabel,true)
       assert.equal(state.owner,'cast-presentation-host')
-      await page.screenshot({path:join('artifacts/e2e',file),animations:'disabled'})
-      // Landing measurements above came from the same real in-browser cycle.
-      // Do not force the game clock or suppress the screenshot assertion.
+      // CDP screenshots actually contain Phaser WebGL pixels. Playwright
+      // screencast video yielded flat navy frames in headless CI, despite
+      // a nominally successful WebM output, so use *real rendered PNGs*
+      // separately captured at each observed motion stage instead.
+      const snapshot = async (phase, destination) => {
+        await page.waitForFunction(({id,phase}) => {
+          const scene=window.__game?.scene?.getScene('GameScene')
+          const fish=scene?._castPresentationHost?.nodes?.battleFish
+          if(scene?.phase!=='battle'||!scene?.battleState?.isRaging||
+             scene?.fish?.id!==id||fish?.texture?.key!=='fish_jump_'+id) return false
+          if(phase==='takeoff') return fish.y>=320
+          if(phase==='airborne') return fish.y<=305
+          if(phase==='landing') return fish.y>=322
+          return false
+        },{id:fishId,phase},{timeout:15000,polling:'raf'})
+        const path=join('artifacts/e2e',destination)
+        await page.screenshot({path,animations:'disabled'})
+        assert.ok(statSync(path).size>100000,
+          fishId+': rendered '+phase+' screenshot is unexpectedly empty')
+        console.log('Captured actual Phaser '+phase+' frame:',destination)
+      }
+      const takeoffFile=file.replace('-jump.png','-jump-takeoff.png')
       const landingFile=file.replace('-jump.png','-jump-landing.png')
-      await page.screenshot({path:join('artifacts/e2e',landingFile),animations:'disabled'})
+      await snapshot('takeoff',takeoffFile)
+      await snapshot('airborne',file)
+      await snapshot('landing',landingFile)
       console.log('Verified species Jump rise and landing:',file,JSON.stringify({state,takeoff,airborne,landing}))
     }finally{
-      // Persist actual Chromium frames, not screen captures made after the
-      // trace has already finished. Video shows real takeoff/peak/landing.
-      const video=page.video()
       await page.close()
       await context.close()
-      assert.ok(video,'real Jump motion must be recorded')
-      const captured=await video.path()
-      const finalPath=join('artifacts/e2e/jump-motion',fishId+'-jump.webm')
-      renameSync(captured,finalPath)
-      assert.ok(statSync(finalPath).size>5000,fishId+': empty rendered Jump video')
-      console.log('Recorded real Jump video:',finalPath)
     }
   }
 }finally{await browser.close()}
