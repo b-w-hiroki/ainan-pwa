@@ -33,6 +33,9 @@ try{
         return {
           phase:scene.phase,fish:scene.fish?.id,raging:scene.battleState?.isRaging,
           jumpTexture:image?.texture?.key,heroWidth:image?.displayWidth,
+          splashTexture:host.nodes.battleJumpFx?.texture?.key,
+          splashVisible:host.nodes.battleJumpFx?.visible,
+          splashInForeground:host.nodes.battleJumpFx?.parentContainer===host.nodes.battleForeground,
           heroVisible:image?.visible,heroForeground:image?.parentContainer===host.nodes.battleForeground,
           resultHidden:!host.nodes.resultForeground.visible,
           rageLabel:host.nodes.battleRage?.visible,
@@ -43,6 +46,9 @@ try{
       assert.equal(state.fish,fishId)
       assert.equal(state.raging,true)
       assert.equal(state.jumpTexture,'fish_jump_'+fishId)
+      assert.equal(state.splashTexture,'fish_jump_splash_'+fishId)
+      assert.equal(state.splashVisible,true)
+      assert.equal(state.splashInForeground,true)
       assert.ok(state.heroWidth>=290&&state.heroVisible&&state.heroForeground)
       assert.equal(state.resultHidden,true)
       assert.equal(state.rageLabel,true)
