@@ -174,6 +174,55 @@ for (const frame of golden.frames) {
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
 for (const reference of golden.canonicalReferences) exists(reference)
+
+// The visual remake must stay grounded in AINAN's approved live art and
+// canonical interaction composition, not in unrelated generated style guides.
+const artDirection = data('art-direction-contract.json')
+assert.equal(artDirection.schemaVersion, 1, 'art direction contract version changed')
+assert.deepEqual(artDirection.viewport, golden.viewport, 'art direction viewport drift')
+assert.equal(artDirection.implementation.presentationOwner, 'CastPresentationHost')
+assert.equal(artDirection.implementation.presentationFile,
+  'fishing-game/js/presentation/cast/CastPresentationHost.js')
+assert.ok(artDirection.referencePolicy.qualityEvidence.includes('not automatically an approved'),
+  'CI screenshots must not silently become approved art masters')
+const artBible = 'docs/pipeline/ART_DIRECTION_BIBLE.md'
+exists(artBible)
+assert.ok(read(artBible).includes('390×844') && read(artBible).includes('CastPresentationHost'),
+  'art direction must document actual phone composition and owner')
+exists(artDirection.referencePolicy.authority)
+exists(artDirection.referencePolicy.visualOwnerRegistry)
+exists(artDirection.referencePolicy.provenance)
+for (const reference of artDirection.referencePolicy.layoutReferences) {
+  exists(reference)
+  assert.ok(golden.canonicalReferences.includes(reference),
+    'unregistered canonical art reference: ' + reference)
+}
+assert.ok(artDirection.styleGuardrails.preserve.length >= 5, 'missing preserve priorities')
+assert.ok(artDirection.styleGuardrails.reject.length >= 4, 'missing regressions to reject')
+assert.deepEqual(artDirection.implementation.families.sort(),
+  requiredFamilies.slice().sort(), 'asset-family direction does not cover AINAN')
+unique(artDirection.anchors.map(x => x.id), 'art direction anchor')
+for (const anchor of artDirection.anchors) {
+  const [family, name, ...extra] = anchor.ref.split('.')
+  assert.ok(!extra.length && family && name, 'invalid art direction manifest ref: ' + anchor.ref)
+  const asset = ASSETS[family]?.[name]
+  assert.ok(asset?.status === 'ready', 'approved art anchor missing from manifest: ' + anchor.ref)
+  const relative = asset.path.startsWith('/') ? asset.path.slice(1) : asset.path
+  exists(relative)
+  assert.ok(anchor.role.includes('reference') || anchor.role.includes('current production'),
+    'anchor must distinguish reference from approved replacement: ' + anchor.id)
+}
+unique(artDirection.phaseScreens.map(x => x.id), 'art review screen')
+for (const frame of artDirection.phaseScreens) {
+  assert.ok(golden.frames.some(x => x.file === frame.file && x.id === frame.id),
+    'art review screen must exist in current golden capture manifest: ' + frame.file)
+  assert.ok(frame.required.length >= 2, 'art review frame needs actual visual checks: ' + frame.id)
+}
+assert.deepEqual(artDirection.implementation.candidateStates.slice(-3),
+  ['pr-green', 'merged'].length === 2 ? ['browser-reviewed', 'pr-green', 'merged'] : [],
+  'asset candidates must pass visual browser review and PR before promotion')
+console.log('  approved art anchors:', artDirection.anchors.length,
+  '| review frames:', artDirection.phaseScreens.length)
 // Captures must wait for the *actual* caught Result with camera flash settled;
 // screenshot size/hash alone cannot distinguish Battle or overexposed frames.
 const qaSource = read('fishing-game/js/game/installVerticalSliceQaMode.js')
