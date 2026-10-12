@@ -316,7 +316,7 @@ assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
   'coarse mask boundary diagnostics must be present')
 const jumpSource = read('scripts/art/build-species-jump-pilot.mjs')
 const jumpCapture = read('scripts/capture-species-jumps.mjs')
-assert.ok(jumpSource.includes("fish_hero_" + " + "id + '.svg'"),
+assert.ok(jumpSource.includes("'fish_hero_' + id + '.svg'"),
   'Jump generator must preserve premium hero source geometry')
 assert.ok(hostSource.includes('const FISH_JUMP_ART = Object.freeze(')
     && hostSource.includes("battle.isRaging && Object.hasOwn(FISH_JUMP_ART, battle.fishId)"),
