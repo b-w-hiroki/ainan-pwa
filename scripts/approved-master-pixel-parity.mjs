@@ -41,7 +41,7 @@ const candidates = [
 ]
 for (const frame of candidates) {
   const r = difference(frame)
-  assert.ok(r.fraction < 0.05, frame + ': extracted layers diverge from approved Cast too far (' + (r.fraction * 100).toFixed(2) + '%)')
+  assert.ok(r.fraction < 0.02, frame + ': extracted layers diverge from approved Cast too far (' + (r.fraction * 100).toFixed(2) + '%)')
   console.log('Approved Cast pixel parity:', JSON.stringify(r))
 }
 // Negative test against an authentic, unrelated gameplay phase. Deliberately
