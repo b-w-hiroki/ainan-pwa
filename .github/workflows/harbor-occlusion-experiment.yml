@@ -30,6 +30,7 @@ jobs:
         run: |
           mkdir -p artifacts/occlusion/source
           cp fishing-game/assets/approved-mock/cast-player-visible.png artifacts/occlusion/source/player-existing-cutout.png
+          cp fishing-game/assets/approved-mock/harbor-clean-water-390x844.png artifacts/occlusion/source/harbor-clean-water-reference.png
           cp fishing-game/assets/generated/harbor-aji-master-v2/cast-harbor-player-region-extracted.png artifacts/occlusion/source/player-coarse-region.png
       - name: Produce two background-fill candidates without changing production
         run: |
