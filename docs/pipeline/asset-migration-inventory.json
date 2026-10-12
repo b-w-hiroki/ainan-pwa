@@ -1744,6 +1744,36 @@
       "replacementRef": "ui.fishingApprovedSplitPierV3",
       "reviewEvidence": null,
       "note": "Lossless source-derived static region, QA-only: actual player/pier movement requires background inpainting, clean cutout edges and a separate visual review. Existing approved composite stays default."
+    },
+    {
+      "ref": "fishJump.aji",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_aji.svg",
+      "replacementRef": "fishJump.aji",
+      "reviewEvidence": null,
+      "note": "Source-preserving individually posed Jump pilot, connected to active CastPresentationHost rage state; requires real 390x844 visual comparison before art approval."
+    },
+    {
+      "ref": "fishJump.saba",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_saba.svg",
+      "replacementRef": "fishJump.saba",
+      "reviewEvidence": null,
+      "note": "Source-preserving individually posed Jump pilot, connected to active CastPresentationHost rage state; requires real 390x844 visual comparison before art approval."
+    },
+    {
+      "ref": "fishJump.kue",
+      "family": "fish",
+      "treatment": "audit-required",
+      "candidateStage": "manifested",
+      "sourceMaster": "fishing-game/assets/generated/hero/fish_hero_kue.svg",
+      "replacementRef": "fishJump.kue",
+      "reviewEvidence": null,
+      "note": "Source-preserving individually posed Jump pilot, connected to active CastPresentationHost rage state; requires real 390x844 visual comparison before art approval."
     }
   ]
 }
