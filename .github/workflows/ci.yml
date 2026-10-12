@@ -131,6 +131,9 @@ jobs:
       - name: Capture named Result fish with rendered state assertions
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
 
+      - name: Verify approved-art split against baseline Cast
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-approved-master-split.mjs
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
