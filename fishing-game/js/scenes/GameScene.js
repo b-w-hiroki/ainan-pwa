@@ -72,7 +72,10 @@ export default class GameScene extends Phaser.Scene {
       ASSETS.fishingField.locationCape,
       ...Object.values(ASSETS.ui).filter(asset =>
         asset.key !== ASSETS.ui.fishingApprovedSplitWaterV2.key &&
-        asset.key !== ASSETS.ui.fishingApprovedSplitBaseV2.key),
+        asset.key !== ASSETS.ui.fishingApprovedSplitBaseV2.key &&
+        asset.key !== ASSETS.ui.fishingApprovedSplitBackgroundV3.key &&
+        asset.key !== ASSETS.ui.fishingApprovedSplitPlayerV3.key &&
+        asset.key !== ASSETS.ui.fishingApprovedSplitPierV3.key),
       ASSETS.ui.resultFrame,
       ASSETS.ui.buttonPrimary,
       ASSETS.ui.panelHarbor,
