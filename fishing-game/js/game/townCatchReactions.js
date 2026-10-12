@@ -1,3 +1,30 @@
+import { ASSETS } from '../config/assetManifest.js'
+
+// Share the exact species icons between the arrival card and the in-world
+// market/diner display. This is presentation only; no new inventory/score.
+export const TOWN_CATCH_ICONS = Object.freeze({
+  aji: ASSETS.fish.ajiIcon,
+  tai: ASSETS.fish.madaiIcon,
+  bass: ASSETS.fish.blackBassIcon,
+  buri: ASSETS.fish.buriIcon,
+  kue: ASSETS.fish.kueIcon,
+  saba: ASSETS.fish.sabaIcon,
+  isaki: ASSETS.fish.isakiIcon,
+  hirame: ASSETS.fish.hirameIcon,
+  kanpachi: ASSETS.fish.kanpachiIcon,
+})
+
+export function getTownFeaturedCatch(catches) {
+  if (!Array.isArray(catches)) return null
+  for (let i = catches.length - 1; i >= 0; i--) {
+    const fishId = catches[i]?.fishId
+    if (Object.hasOwn(TOWN_CATCH_ICONS, fishId)) {
+      return Object.freeze({ fishId, art: TOWN_CATCH_ICONS[fishId] })
+    }
+  }
+  return null
+}
+
 // Species identity is expressed through the existing Town arrival owner.
 // This is a short line of dialogue, not a claim of new market inventory or
 // cooking/unlock functionality. Those systems have separate progression data.
