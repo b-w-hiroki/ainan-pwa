@@ -9,7 +9,7 @@ on:
       - ".github/workflows/harbor-occlusion-experiment.yml"
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   candidate:
     runs-on: ubuntu-latest
@@ -66,20 +66,6 @@ jobs:
           assert (Path("artifacts/occlusion/player-silhouette/player-mask-comparison.png")).stat().st_size > 10000
           print("Mask and inpainting prototypes remain review-only; source pixels unchanged")
           PY
-      - name: Commit only the reviewed source-derived silhouette to experiment branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/experiment/harbor-occlusion-repair-20261012'
-        run: |
-          set -euo pipefail
-          dest=fishing-game/assets/generated/harbor-aji-master-v2/cast-player-silhouette-candidate.png
-          mkdir -p "$(dirname "$dest")"
-          cp artifacts/occlusion/player-silhouette/player-silhouette-candidate.png "$dest"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- "$dest"
-          if ! git diff --cached --quiet; then
-            git commit -m 'art(experiment): source-derived silhouette binary for visual review'
-            git push origin HEAD:experiment/harbor-occlusion-repair-20261012
-          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
