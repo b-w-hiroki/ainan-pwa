@@ -68,6 +68,14 @@ export function castPresentationMode() {
     : 'host'
 }
 
+// Location art preview is QA-gated until the three-location Cast/Retrieve
+// screenshots prove that the approved water and player's silhouette stay clear.
+function castLocationPreviewEnabled() {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qa') === '1' && params.get('castLocationPreview') === '1'
+}
+
 function castFragmentPrototypeEnabled() {
   if (typeof window === 'undefined') return false
   return new URLSearchParams(window.location.search).get('castFragments') === '1'
@@ -175,6 +183,13 @@ export class CastPresentationHost {
       castField.add(approvedSceneFragments)
     }
 
+    // Reuse the same perspective assets as Battle. Insert beneath moving fish
+    // and the separate player, never above the HUD/interaction owner.
+    const castLocationOverlay = scene.add.image(
+      DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
+    ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+    if (castLocationPreviewEnabled() && !useLayeredScene) castField.add(castLocationOverlay)
+
     const fishLayout = useApprovedComposite || useLayeredScene
       ? CAST_LAYER_CONFIG.fish
       : L.cast.fish
@@ -243,7 +258,11 @@ export class CastPresentationHost {
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const retrieveLocationOverlay = scene.add.image(
+      DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
+    ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
     retrieveField.add(retrieveBase)
+    if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
 
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -554,6 +573,8 @@ export class CastPresentationHost {
       battleFish,
       battleJumpFx,
       battleLocationOverlay,
+      castLocationOverlay,
+      retrieveLocationOverlay,
       battleFishName,
       battleTensionFill,
       battleTensionStatus,
@@ -720,6 +741,17 @@ export class CastPresentationHost {
     if (!battleVisible) {
       this._jumpRageStartedAt = null
       this._jumpRageFishId = null
+    }
+    const locPoint = this.scene.env?.point ?? 'pointA'
+    const locAsset = BATTLE_LOCATION_ART[locPoint] ?? BATTLE_LOCATION_ART.pointA
+    for (const overlay of [this.nodes.castLocationOverlay, this.nodes.retrieveLocationOverlay]) {
+      if (!overlay) continue
+      const enabled = castLocationPreviewEnabled() && locPoint !== 'pointA'
+      overlay.setVisible(enabled)
+      if (enabled) {
+        overlay.setTexture(locAsset.key)
+          .setAlpha(locPoint === 'pointC' ? 0.19 : 0.22)
+      }
     }
     if (castVisible) {
       this.nodes.powerFill.clear()
