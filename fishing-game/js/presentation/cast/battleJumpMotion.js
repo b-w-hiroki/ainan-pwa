@@ -41,7 +41,7 @@ export function battleJumpFrame(fishId, elapsedMs, reducedMotion = false) {
         : 0.08
   return Object.freeze({
     phase,
-    liftY: -Math.round(species.lift * lift * 100) / 100,
+    liftY: lift === 0 ? 0 : -Math.round(species.lift * lift * 100) / 100,
     driftX: Math.round(drift * 100) / 100,
     angleDeg: -8 - Math.round(9 * lift * 100) / 100,
     splashAlpha: Math.round(clamp(splashAlpha, 0.08, 0.82) * 100) / 100,
