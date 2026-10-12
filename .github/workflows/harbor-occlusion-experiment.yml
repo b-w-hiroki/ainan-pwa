@@ -5,6 +5,7 @@ on:
       - "experiment/harbor-occlusion-*"
     paths:
       - "scripts/art/experiment-occlusion-repair.py"
+      - "scripts/art/segment-approved-player.py"
       - ".github/workflows/harbor-occlusion-experiment.yml"
   workflow_dispatch:
 permissions:
@@ -34,6 +35,8 @@ jobs:
         run: |
           python scripts/art/experiment-occlusion-repair.py --out artifacts/occlusion/mask-3px --dilation 3
           python scripts/art/experiment-occlusion-repair.py --out artifacts/occlusion/mask-8px --dilation 8
+      - name: Cut out the player as a review-only source-faithful silhouette
+        run: python scripts/art/segment-approved-player.py --out artifacts/occlusion/player-silhouette
       - name: Assert candidate artifacts remain non-production
         run: |
           python - <<'PY'
@@ -47,7 +50,13 @@ jobs:
               assert doc["human_visual_review"] == "not_checked"
               for name in ("approved-source.png","candidate-inpainted-background.png","review-hole-mask.png","review-side-by-side.png"):
                   assert (folder/name).stat().st_size > 10000, name
-          print("Inpainting prototype artifact and conservative state contract: passed")
+          cutout = json.loads(Path("artifacts/occlusion/player-silhouette/mask-report.json").read_text())
+          assert cutout["original_rgb_preserved"] is True
+          assert cutout["foreground_pixels_gt127"] > 9000
+          assert cutout["production_promoted"] is False
+          assert cutout["game_integrated"] is False
+          assert (Path("artifacts/occlusion/player-silhouette/player-mask-comparison.png")).stat().st_size > 10000
+          print("Mask and inpainting prototypes remain review-only; source pixels unchanged")
           PY
       - uses: actions/upload-artifact@v4
         if: always()
