@@ -165,6 +165,9 @@ const workflow = read('.github/workflows/ci.yml')
 const namedResultCapture = 'scripts/capture-named-results.mjs'
 const namedResultEnabled = workflow.includes('node ' + namedResultCapture)
 const namedResultSource = namedResultEnabled ? read(namedResultCapture) : ''
+const townArrivalCapture = 'scripts/capture-town-catch-reactions.mjs'
+const townArrivalEnabled = workflow.includes('node ' + townArrivalCapture)
+const townArrivalSource = townArrivalEnabled ? read(townArrivalCapture) : ''
 const resultPixelGuard = read('scripts/result-screen-pixel-guard.mjs')
 assert.ok(resultPixelGuard.includes('export function countGetHeaderPixels(file, dir'),
   'live screenshots must share the same rendered GET-pixel verifier as CI')
@@ -187,7 +190,9 @@ for (const frame of golden.frames) {
   assert.ok(frame.file.endsWith('.png') && frame.file.length > 7, 'invalid capture filename: ' + frame.file)
   const capturedDirectly = workflow.includes('artifacts/e2e/' + frame.file)
   const capturedByVerifiedScript = namedResultEnabled && namedResultSource.includes("'" + frame.file + "'")
-  assert.ok(capturedDirectly || capturedByVerifiedScript, 'capture missing from CI: ' + frame.file)
+  const capturedByTownScript = townArrivalEnabled
+    && townArrivalSource.includes("'" + frame.file + "'")
+  assert.ok(capturedDirectly || capturedByVerifiedScript || capturedByTownScript, 'capture missing from CI: ' + frame.file)
 }
 for (const id of ['cast','retrieve','battle','result'])
   assert.ok(golden.frames.some(x => x.id === id), 'missing canonical screenshot: ' + id)
@@ -317,6 +322,14 @@ assert.ok(foregroundGenerator.includes('motionReady:false,backgroundInpainted:fa
   'coarse region masks must not claim inpainting or motion-ready completion')
 assert.ok(foregroundGenerator.includes('cutoutEdgeStats:edgeStats'),
   'coarse mask boundary diagnostics must be present')
+const townArrivalImplementation = read('fishing-game/js/game/installTownCatchArrival.js')
+const townDialogueSource = read('fishing-game/js/game/townCatchReactions.js')
+assert.ok(townArrivalImplementation.includes("getTownCatchReaction(catchArrival.fishId) ?? copy.body"),
+  'Town species dialogue must fall back to approved rarity copy')
+assert.ok(townDialogueSource.includes('TOWN_CATCH_REACTION_IDS'),
+  'Town reactions must have a traceable full species registry')
+assert.ok(townArrivalEnabled && townArrivalSource.includes('state.fishTexture'),
+  'Town capture must verify the actual fish art rather than labels alone')
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,

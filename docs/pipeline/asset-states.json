@@ -556,6 +556,12 @@
           "refs": [
             "facilities.diner"
           ]
+        },
+        {
+          "id": "species-arrival-reaction",
+          "kind": "procedural",
+          "source": "fishing-game/js/game/townCatchReactions.js",
+          "note": "Nine species-specific market/diner/NPC dialogue states rendered by existing installTownCatchArrival owner; no new sprites or economy effects."
         }
       ]
     },

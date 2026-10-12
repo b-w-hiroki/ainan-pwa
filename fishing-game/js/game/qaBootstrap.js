@@ -50,6 +50,20 @@ export function routeQaScene(game) {
         const point = params.get('qaLocation')
         if (['pointA', 'pointB', 'pointC'].includes(point)) data.point = point
       }
+      if (scene === 'TownScene') {
+        const fishId = params.get('qaCatchArrival')
+        const names = {
+          aji: 'アジ', tai: 'マダイ', bass: 'ブラックバス',
+          buri: 'ブリ', kue: 'クエ', saba: 'サバ',
+          isaki: 'イサキ', hirame: 'ヒラメ', kanpachi: 'カンパチ',
+        }
+        if (Object.hasOwn(names, fishId)) {
+          data.catchArrival = {
+            fishId, name: names[fishId], rarity: fishId === 'kue' ? 'legendary' : 'common',
+            sizeCm: 42.5, score: 350, emoji: '🐟',
+          }
+        }
+      }
       game.scene.start(scene, data)
     } catch (error) {
       console.error('QA scene route failed', scene, error)
