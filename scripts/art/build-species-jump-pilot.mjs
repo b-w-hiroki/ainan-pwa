@@ -8,14 +8,20 @@ const originals = join(root, 'fishing-game/assets/generated/hero')
 const destination = join(root, 'fishing-game/assets/generated/jump-v2')
 
 // Keep the original fish-body path/painting. Only change the authored pose and
-// isolate short splash/wake FX so pilot variants can be reviewed one by one.
+// isolate short splash/wake FX so all nine species can be independently reviewed.
 const PILOT = Object.freeze({
   aji: { tilt: -17, translateY: -12, streak: '#b4f7ff' },
   saba: { tilt: -12, translateY: -19, streak: '#d4fcff' },
   kue: { tilt: -7, translateY: -11, streak: '#b6ebef' },
+  tai: { tilt: -15, translateY: -14, streak: '#d7f7ff' },
+  buri: { tilt: -12, translateY: -18, streak: '#b8f8fd' },
+  bass: { tilt: -19, translateY: -13, streak: '#c5f2ff' },
+  isaki: { tilt: -14, translateY: -11, streak: '#dcfbf5' },
+  hirame: { tilt: -8, translateY: -9, streak: '#b0eff4' },
+  kanpachi: { tilt: -13, translateY: -18, streak: '#e5fdff' },
 })
 const fishIds = Object.keys(PILOT)
-assert.deepEqual(fishIds.sort(), ['aji','kue','saba'])
+assert.deepEqual(fishIds.sort(), ['aji','bass','buri','hirame','isaki','kanpachi','kue','saba','tai'])
 mkdirSync(destination, { recursive: true })
 for (const id of fishIds) {
   const src = readFileSync(join(originals, 'fish_hero_' + id + '.svg'), 'utf8')
