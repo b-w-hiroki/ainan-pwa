@@ -51,6 +51,12 @@ function castPlayerCutoutPrototypeEnabled() {
   return new URLSearchParams(window.location.search).get('castPlayerCutout') === '1'
 }
 
+function castApprovedForegroundPreviewEnabled() {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  return params.get('qa') === '1' && params.get('castApprovedForeground') === '1'
+}
+
 function castApprovedSplitPreviewEnabled() {
   if (typeof window === 'undefined') return false
   const params = new URLSearchParams(window.location.search)
