@@ -75,6 +75,7 @@ export default class GameScene extends Phaser.Scene {
         asset.key !== ASSETS.ui.fishingApprovedSplitBaseV2.key &&
         asset.key !== ASSETS.ui.fishingApprovedSplitBackgroundV3.key &&
         asset.key !== ASSETS.ui.fishingApprovedSplitPlayerV3.key &&
+        asset.key !== ASSETS.ui.fishingApprovedBackfillPilot.key &&
         asset.key !== ASSETS.ui.fishingApprovedSplitPierV3.key),
       ASSETS.ui.resultFrame,
       ASSETS.ui.buttonPrimary,
