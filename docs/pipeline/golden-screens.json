@@ -135,6 +135,24 @@
       "file": "72-town-kanpachi-arrival.png",
       "purpose": "Kanpachi artwork and dialogue differ without competing Town overlays",
       "phase": "town"
+    },
+    {
+      "id": "aji-jump",
+      "file": "73-aji-jump.png",
+      "phase": "battle",
+      "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
+    },
+    {
+      "id": "saba-jump",
+      "file": "74-saba-jump.png",
+      "phase": "battle",
+      "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
+    },
+    {
+      "id": "kue-jump",
+      "file": "75-kue-jump.png",
+      "phase": "battle",
+      "purpose": "dedicated species jump artwork shown on actual Battle rage, fish remains foreground and controls unobscured"
     }
   ]
 }

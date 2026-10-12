@@ -42,6 +42,14 @@ All fishing-field parts generated during the September 2026 visual pass are trac
 - Real browser evidence: 390×844 `66-approved-foreground-preview.png`; landscape 844×390 `artifacts/orientation/67-landscape-current.png` and `68-landscape-foreground-preview.png`. Landscape is currently a scaled portrait baseline, **not yet true dual-orientation UX**.
 - Controls, save format, probabilities and current 1.0.0-rc.3 default visuals remain unchanged.
 
+## Aji / Saba / Kue species-specific Jump pilot — 2026-10-12
+
+- **Source masters:** `fishing-game/assets/generated/hero/fish_hero_aji.svg`, `fish_hero_saba.svg`, `fish_hero_kue.svg` (existing premium species illustrations). Anatomy, colors and existing highlights remain source-authentic; these are **new derivative poses**, not freshly AI-painted fish.
+- **Reproducible transformation:** `scripts/art/build-species-jump-pilot.mjs` derives distinct body poses (`fish_jump_{aji,saba,kue}.svg`) **and separately replaceable, transparent** splash FX (`jump_splash_{aji,saba,kue}.svg`). The fish uses the same species body, scaled to keep the approved large hero prominence; FX is a different asset and display node.
+- **Runtime contract:** `ASSETS.fishJump` preload; standard Battle hero remains unchanged until `battleState.isRaging`, when `CastPresentationHost` (existing final owner) uses the dedicated leaping artwork. No gameplay timing, hit calculation, probabilities or save format changed.
+- **Evidence:** Playwright `73-aji-jump.png`, `74-saba-jump.png`, `75-kue-jump.png`, with real Battle owner and rage-state assertions. Must compare against original Battle/Result art for fish silhouette, scale, clipping and visual consistency before approving the pilot.
+- **Incomplete:** Six other species keep `species-specific-jump: planned` until derivative master/individual art is authored and reviewed. This phase does not replace the high-quality Result fish.
+
 ## Policy
 
 - Generated source concepts are never discarded silently; every approved concept gets a managed counterpart or reference entry.

@@ -262,7 +262,7 @@ export function installStaminaSessionGate(GameScene) {
           if (this.battleState) {
             this.battleState.escape = 42
             this.battleState.reel = 58
-            this.battleState.isRaging = false
+            this.battleState.isRaging = params.get('qaJump') === '1'
             this.battleState.nextRageAt = Number.POSITIVE_INFINITY
           }
           this._syncBattleUI?.()
