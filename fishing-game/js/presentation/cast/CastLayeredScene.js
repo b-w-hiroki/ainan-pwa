@@ -124,7 +124,10 @@ export function createLayeredCastScene(scene) {
 
   if (!addFullCanvasAsset(scene, nodes.sky, ASSETS.ui.fishingLayerSky)) drawSky(scene, nodes.sky)
   if (!addFullCanvasAsset(scene, nodes.clouds, ASSETS.ui.fishingLayerClouds)) drawClouds(scene, nodes.clouds)
-  if (!addFullCanvasAsset(scene, nodes.sea, ASSETS.ui.fishingLayerSea)) drawSea(scene, nodes.sea, config.dockTop)
+  // Candidate-only preview. Production Cast keeps its approved composite.
+  // This adds exactly one sea texture to the existing sea owner, never an overlay.
+  const seaAsset = options.waterV2Preview ? ASSETS.ui.fishingLayerSeaV2 : ASSETS.ui.fishingLayerSea
+  if (!addFullCanvasAsset(scene, nodes.sea, seaAsset)) drawSea(scene, nodes.sea, config.dockTop)
   if (!addFullCanvasAsset(scene, nodes.distantHarbor, ASSETS.ui.fishingLayerDistantHarbor)) drawDistantHarbor(scene, nodes.distantHarbor)
   if (!addFullCanvasAsset(scene, nodes.platform, ASSETS.ui.fishingLayerPlatform)) drawPlatform(scene, nodes.platform)
   const characterAsset = ASSETS.characters.fishingCastRodless
