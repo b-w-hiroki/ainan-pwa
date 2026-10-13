@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
-import { CHARACTER_MOTION_LAYOUTS, CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING, DEFAULT_ROD_VISUAL_ID, ROD_VISUALS } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
+import { CHARACTER_MOTION_LAYOUTS, CHARACTER_MOTION_POSES, CHARACTER_MOTION_TIMING, DEFAULT_ROD_VISUAL_ID, ROD_VISUALS, readCharacterQaOffset, CharacterMotionController } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
 import { ROD_STATS } from '../fishing-game/js/game/params.js'
 
 const root = new URL('../', import.meta.url)
@@ -49,11 +49,41 @@ assert.ok(CHARACTER_MOTION_TIMING.sad.some(frame => frame.pose === 'sadMid'), 's
 assert.ok(CHARACTER_MOTION_LAYOUTS.battle.y < CHARACTER_MOTION_LAYOUTS.cast.y, 'battle actor must stay above the control dock')
 assert.ok(CHARACTER_MOTION_LAYOUTS.result.y < CHARACTER_MOTION_LAYOUTS.battle.y, 'result actor must stay above result actions')
 
+
+for (const [query, expected] of [
+  ['?qa=1&qaCharacterX=-18', -18],
+  ['?qa=1&qaCharacterX=0', 0],
+  ['?qa=1&qaCharacterX=18', 18],
+  ['?qa=1&qaCharacterX=19', 0],
+  ['?qa=1&qaCharacterX=1.5', 0],
+  ['?qa=1&qaCharacterX=Infinity', 0],
+  ['?qa=0&qaCharacterX=18', 0],
+  ['?qaCharacterX=-18', 0],
+]) assert.equal(readCharacterQaOffset(query), expected, 'QA-only player position must be validated')
+
+// All native rod-hand anchor coordinates share the same sprite-space transform.
+// QA root displacement must move the character and its rod grip identically.
+const mock = new CharacterMotionController({})
+for (const [phase, layout] of Object.entries(CHARACTER_MOTION_LAYOUTS)) {
+  mock.layout = layout
+  for (const [name, pose] of Object.entries(CHARACTER_MOTION_POSES)) {
+    if (!pose.grip) continue
+    const grip = mock._point(pose.grip)
+    const tip = mock._point(pose.tip)
+    assert.ok(Number.isFinite(grip.x) && Number.isFinite(grip.y) &&
+      Number.isFinite(tip.x) && Number.isFinite(tip.y), phase + ':' + name)
+    for (const dx of [-18, 0, 18]) {
+      assert.ok(Math.abs((grip.x + dx) - (tip.x + dx) - (grip.x - tip.x)) < 1e-8,
+        phase + ':' + name + ': actor and rod must translate together')
+    }
+  }
+}
+
 const controller = read('fishing-game/js/presentation/cast/CharacterMotionController.js')
 for (const token of ['isReducedMotion', "phase === 'battle'", "phase === 'result'", 'this.previous.charging', 'this.token += 1', 'fishingMotionHeldRod']) {
   assert.ok(controller.includes(token), `motion controller missing: ${token}`)
 }
-for (const token of ['ROD_VISUALS', 'rodTextureFallback', 'this._setRodVisual(rodType)', 'curveSteps = 8']) {
+for (const token of ['ROD_VISUALS', 'rodTextureFallback', 'this._setRodVisual(rodType)', 'curveSteps = 8', "setData('rodGripWorld'", "setData('rodLineTargetWorld'"]) {
   assert.ok(controller.includes(token), `rod visual integration missing: ${token}`)
 }
 for (const forbidden of ['_saveProgress', 'localStorage.setItem', 'totalScore +=', '_consumeBaitForCast']) {
