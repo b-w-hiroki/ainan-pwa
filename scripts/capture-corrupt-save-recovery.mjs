@@ -39,6 +39,13 @@ try {
       }))
       assert.deepEqual(values, { catches: history, score, phase: 'cast' },
         'Do not overwrite damaged save records during recovery')
+      await page.evaluate(() => window.__game.scene.getScene('GameScene')._beforeUnloadHandler())
+      const afterIdleUnload = await page.evaluate(() => ({
+        catches: localStorage.getItem('ainan_catches'),
+        score: localStorage.getItem('ainan_score'),
+      }))
+      assert.deepEqual(afterIdleUnload, {catches: history, score},
+        'Leaving Fishing without earning a catch must preserve raw recovery bytes')
     }
     // The entire real Fishing scene must still render after re-entry.
     // Retry screenshot capture only to allow the WebGL compositor to settle.
@@ -49,7 +56,20 @@ try {
     }
     assert.ok(statSync(output).size > 15000,
       'Recovered Fishing screen must contain rendered content, not a blank canvas')
-    console.log('Fishing recovered from 3 malformed histories without saving over original bytes')
+    // When gameplay legitimately earns a new catch, the same unload safety
+    // hook must persist it; do not accidentally suppress valid progress.
+    const saved = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      scene.catches.push({fishId: 'aji', score: 120, sizeCm: 23, timestamp: Date.now()})
+      scene.totalScore += 120
+      scene._beforeUnloadHandler()
+      return {score: localStorage.getItem('ainan_score'),
+        catches: JSON.parse(localStorage.getItem('ainan_catches'))}
+    })
+    assert.equal(saved.score, '120')
+    assert.equal(saved.catches.length, 1)
+    assert.equal(saved.catches[0].fishId, 'aji')
+    console.log('Fishing recovered from 3 malformed histories; idle unload preserved bytes and earned catch persisted')
   } finally {
     await page.close()
   }
