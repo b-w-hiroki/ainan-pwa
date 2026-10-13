@@ -10,6 +10,14 @@ import {
 export { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS } from '../equipmentVisuals.js'
 
 const FRAME = Object.freeze({ width: 320, height: 420 })
+// Only QA may displace the modular actor, rod and accessories. The canonical
+// approved Harbor composite and normal gameplay remain exactly unchanged.
+export function readCharacterQaOffset(search = '') {
+  const params = new URLSearchParams(search)
+  if (params.get('qa') !== '1') return 0
+  const requested = Number(params.get('qaCharacterX') ?? 0)
+  return Number.isInteger(requested) && [-18, 0, 18].includes(requested) ? requested : 0
+}
 const HELD_FISH_BOUNDS = Object.freeze({ width: 150, height: 86, offsetX: 44, liftY: 22 })
 export const CHARACTER_MOTION_LAYOUTS = Object.freeze({
   cast: Object.freeze({ x: 101, y: 670, displayWidth: 218, displayHeight: 286 }),
@@ -83,7 +91,10 @@ export class CharacterMotionController {
     const scene = this.scene
     this.ready = requiredAssets().every(asset => asset?.key && scene.textures.exists(asset.key))
     if (!this.ready) return this
-    this.root = scene.add.container(0, 0).setDepth(75)
+    const qaX = readCharacterQaOffset(typeof window !== 'undefined' ? window.location.search : '')
+    this.root = scene.add.container(qaX, 0).setDepth(75)
+    this.root.setData('qaCharacterX', qaX)
+    this.root.setData('actorMotionArtApproved', false)
     this.poseFront = scene.add.image(this.layout.x, this.layout.y, ASSETS.characters.fishingMotionIdle.key)
       .setOrigin(0.5, 1).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight)
     // Keep the rod as native geometry. Some browsers composited the transparent
@@ -123,11 +134,17 @@ export class CharacterMotionController {
   _applyRod(pose) {
     this.line.clear()
     if (!pose.grip || !pose.tip) {
+      this.root.setData('rodGripLocal', null)
       this.rod.setVisible(false)
       return
     }
     const grip = this._point(pose.grip)
     const poseTip = this._point(pose.tip)
+    this.root.setData('rodGripLocal', { x: grip.x, y: grip.y })
+    this.root.setData('rodGripWorld', {
+      x: grip.x + this.root.x,
+      y: grip.y + this.root.y,
+    })
     const visual = this.rodVisual ?? ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
     const poseDx = poseTip.x - grip.x
     const poseDy = poseTip.y - grip.y
@@ -162,11 +179,15 @@ export class CharacterMotionController {
     this.rod.fillStyle(0x183146, 1).fillCircle(grip.x, grip.y, 7)
     this.rod.fillStyle(visual.accent, 1).fillCircle(grip.x, grip.y, 4)
     this.rod.lineStyle(2, visual.accent, 0.95).strokeCircle(grip.x + 7, grip.y + 5, 5)
-    const target = phase === 'battle'
+    const stageTarget = phase === 'battle'
       ? { x: 228, y: 330 }
       : phase === 'result'
-        ? { x: tip.x + 14, y: tip.y + 24 }
+        ? { x: tip.x + 14 + this.root.x, y: tip.y + 24 + this.root.y }
         : { x: 310, y: 235 }
+    // Keep the lure/line target in stage coordinates as the entire character
+    // and its rod shift as one container during the QA art-offset experiment.
+    const target = { x: stageTarget.x - this.root.x, y: stageTarget.y - this.root.y }
+    this.root.setData('rodLineTargetWorld', stageTarget)
     const line = visual.line
     const lineDx = target.x - tip.x
     const lineDy = target.y - tip.y
@@ -189,6 +210,7 @@ export class CharacterMotionController {
     }
     this.line.strokePath()
     this.root.setData('rodTip', { x: Math.round(tip.x), y: Math.round(tip.y) })
+    this.root.setData('rodTipWorld', { x: tip.x + this.root.x, y: tip.y + this.root.y })
   }
 
   _setRodVisual(rodType, force = false) {
