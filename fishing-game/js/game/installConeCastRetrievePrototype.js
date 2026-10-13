@@ -69,9 +69,9 @@ function findValidDistance(scene, angleDeg, fromStart) {
 // Presentation-only spoke geometry: cast origin is the character-owned world
 // anchor, never the camera centre, the rod sprite's changing tip or an inset
 // rectangle on the sea. Landing validity remains owned by the water polygon.
-export function buildPlayerAnchoredFanGuides(range) {
+export function buildPlayerAnchoredFanGuides(range, visualOrigin = null) {
   const samples = range?.samples ?? []
-  const origin = range?.origin
+  const origin = visualOrigin ?? range?.origin
   if (!origin || !Number.isFinite(origin.x) || !Number.isFinite(origin.y) || samples.length < 3) return null
   const center = samples.reduce((best, item) =>
     Math.abs(item.angleDeg) < Math.abs(best.angleDeg) ? item : best)
@@ -225,9 +225,13 @@ function drawAim(scene) {
   overlay.setVisible(aiming)
   target.setVisible(aiming)
   if (!aiming) return
-  target.lineStyle(5, 0xffffff, 0.96).strokeCircle(scene.anchorX, scene.anchorY, pulling ? 24 : 20)
-  target.lineStyle(3, 0xffd95a, 1).strokeCircle(scene.anchorX, scene.anchorY, pulling ? 15 : 11)
-  target.fillStyle(0xffd95a, pulling ? 0.28 : 0.18).fillCircle(scene.anchorX, scene.anchorY, pulling ? 13 : 9)
+  // Gameplay keeps the world cast anchor. Only the fan illustration follows
+  // the animated player's rod grip; flight, landing and saved data are unchanged.
+  const hand = scene._cameraPanRodGrip ?? { x: scene.anchorX, y: scene.anchorY }
+  target.lineStyle(2, 0xb7f1ff, 0.34).strokeCircle(scene.anchorX, scene.anchorY, 16)
+  target.lineStyle(4, 0xffffff, 0.90).strokeCircle(hand.x, hand.y, pulling ? 16 : 13)
+  target.lineStyle(2, 0xffd95a, 0.96).strokeCircle(hand.x, hand.y, pulling ? 11 : 8)
+  target.fillStyle(0xffd95a, pulling ? 0.22 : 0.15).fillCircle(hand.x, hand.y, pulling ? 8 : 6)
   if (!pulling) {
     scene._coneCastPreview = null
     return
@@ -248,7 +252,7 @@ function drawAim(scene) {
   // The two sides must visibly converge at the player's real cast origin.
   // Keep the tinted landing band restricted to water; only the thin radial
   // guide lines cross the uncastable gap from the player to the sea.
-  const fan = geometry.playerFanGuides
+  const fan = buildPlayerAnchoredFanGuides(geometry, scene._cameraPanRodGrip)
   if (fan) {
     overlay.lineStyle(2.7, 0xe3faff, 0.82)
     for (const side of [fan.left, fan.right]) {
@@ -276,7 +280,7 @@ function drawAim(scene) {
   target.lineStyle(4, valid ? 0xffe26b : 0xff765a, 1).strokeCircle(raw.x, raw.y, 20)
   target.lineStyle(2, 0xffffff, 0.9).strokeCircle(raw.x, raw.y, 8)
   target.fillStyle(valid ? 0xffe26b : 0xff765a, 0.25).fillCircle(raw.x, raw.y, 17)
-  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: selection.power, origin: geometry.origin, rodTip: geometry.rodTip, rangeGeometry: geometry }
+  scene._coneCastPreview = { x: raw.x, y: raw.y, clampedX: raw.x, clampedY: raw.y, requestedX: requestedRaw.x, requestedY: requestedRaw.y, valid, abilityLimited, angleDeg: state.angleDeg, distancePx: state.distancePx, rangePx: range, power: selection.power, origin: geometry.origin, visualFanGuides: fan, rodTip: geometry.rodTip, rangeGeometry: geometry }
 }
 
 function syncHud(scene) {
