@@ -602,7 +602,7 @@ export default class TownScene extends Phaser.Scene {
     const hasMilestone = milestoneRewards.length > 0
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.44).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
-    const x = 34, y = 166, w = W - 68, h = 364
+    const x = 34, y = 166, w = W - 68, h = 406
     const bg = this.add.graphics()
     bg.fillStyle(0x173248, 0.14)
     bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
@@ -652,7 +652,7 @@ export default class TownScene extends Phaser.Scene {
     }
 
     const upgradeAction = getTownUpgradeAction(lv, cost, getScore())
-    if (upgradeAction) items.push(this._actionButton(W / 2, y + 319, upgradeAction.label, () => {
+    if (upgradeAction) items.push(this._actionButton(W / 2, y + 326, upgradeAction.label, () => {
       if (upgradeAction.kind === 'upgrade') this._upgrade(item.id, lv)
       else {
         // Insufficient catch points: return to an actual fishing choice,
@@ -661,7 +661,7 @@ export default class TownScene extends Phaser.Scene {
         this.scene.start('MapScene')
       }
     }))
-    items.push(this._plainButton(W / 2, y + h - 20, '閉じる', () => this._modal?.destroy(true)))
+    items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true), 126, 44))
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
