@@ -138,6 +138,11 @@ async function runCase(viewport, rod, edge) {
     }
   })
   if (!before.preview.valid || before.invalidRangePoints || before.transformError > 1) throw new Error(`invalid preview geometry ${JSON.stringify({ viewport, rod, edge, before })}`)
+  // A wider-than-world canvas must never inherit a negative horizontal scroll
+  // from the old clamp(0, worldWidth - viewportWidth) implementation.
+  if (viewport.width > 900 && Math.abs(before.scroll.x) > 0.5) {
+    throw new Error('wide landscape aim camera requested invalid horizontal scroll: '+JSON.stringify(before.scroll))
+  }
   if (edge === 'center') await page.screenshot({ path: path.join(output, `${viewport.width}x${viewport.height}-${rod}-aim.png`) })
   await page.evaluate(end => {
     const scene = window.__game.scene.getScene('GameScene')
@@ -164,6 +169,9 @@ async function runCase(viewport, rod, edge) {
     }
   })
   const landingError = Math.hypot(after.landing.x - before.preview.x, after.landing.y - before.preview.y)
+  if (viewport.width > 900 && Math.abs(after.camera.scrollX) > 0.5) {
+    throw new Error('wide landscape Retrieve camera requested invalid horizontal scroll: '+JSON.stringify(after.camera))
+  }
   if (landingError > 0.75 || after.rating !== 'good' || after.phase !== 'retrieve' || after.bait !== before.bait - 1) throw new Error(`landing mismatch ${JSON.stringify({ viewport, rod, edge, before, after, landingError })}`)
   // QA bootstrap intentionally rejects service worker registration while
   // exercising scenes without PWA caches. Do not ignore other page errors.
@@ -216,7 +224,7 @@ async function runZoomGeometryCase(viewport) {
 }
 
 const cases = []
-const viewports = [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 844, height: 390 }].filter(viewport => !process.env.QA_VIEWPORT || `${viewport.width}x${viewport.height}` === process.env.QA_VIEWPORT)
+const viewports = [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 844, height: 390 }, { width: 932, height: 430 }].filter(viewport => !process.env.QA_VIEWPORT || `${viewport.width}x${viewport.height}` === process.env.QA_VIEWPORT)
 const rods = ['basic', 'carbon', 'premium'].filter(rod => !process.env.QA_ROD || rod === process.env.QA_ROD)
 const edges = ['left', 'center', 'right'].filter(edge => !process.env.QA_EDGE || edge === process.env.QA_EDGE)
 for (const viewport of viewports) {
