@@ -148,12 +148,24 @@ try {
             ...(typeof node.text === 'string' ? [node.text] : []),
             ...(node.list?.filter(child => typeof child.text === 'string').map(child => child.text) ?? []),
           ]) ?? [],
+          controls: modal?.list?.filter(node => node.list?.some(child => typeof child.text === 'string'))
+            .map(node => ({
+              label: node.list.find(child => typeof child.text === 'string')?.text,
+              y: node.y, height: node.height,
+            })) ?? [],
           active: modal?.active === true,
         }
       })
       const wanted = expected === 'fish' ? 'あと180pt・釣りへ' : '180ptで発展'
       assert.equal(ui.active, true, filename + ': market modal not opened from actual tap')
       assert.ok(ui.labels.includes(wanted), filename + ': wrong purchase action '+JSON.stringify(ui.labels))
+      const primary = ui.controls.find(control => control.label === wanted)
+      const close = ui.controls.find(control => control.label === '閉じる')
+      assert.ok(primary && close, filename + ': two accessible actions required')
+      assert.ok(primary.height >= 44 && close.height >= 44,
+        filename + ': modal action target smaller than 44 CSS px')
+      assert.ok(primary.y + primary.height / 2 + 4 <= close.y - close.height / 2,
+        filename + ': primary/close CTA overlap in real Phaser layout')
       await captureTownWhenRendered(page, filename)
 
       // Tap the actual gold modal CTA: no programmatic call to _upgrade.
