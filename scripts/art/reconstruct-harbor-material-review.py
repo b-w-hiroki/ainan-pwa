@@ -30,7 +30,7 @@ def load_approved():
     return source, actor
 
 
-def make_world(source):
+def make_world(source, seam_offset=0):
     height, width = source.shape[:2]
     y, x = np.mgrid[0:height, 0:width].astype(np.float32)
     opening = np.zeros((height, width), np.uint8)
@@ -42,7 +42,9 @@ def make_world(source):
     # Perspective review estimate from the visible upper dock edge:
     # y approximately 423 + 0.315*x in source coordinates.
     # It is deliberately explicit, revisionable and NOT source truth.
-    pier = (opening > 0) & (y >= 423.0 + 0.315 * x)
+    if seam_offset not in (-6, 0, 6):
+        raise ValueError('Unsupported review-only boundary offset')
+    pier = (opening > 0) & (y >= 423.0 + seam_offset + 0.315 * x)
     water = (opening > 0) & (~pier)
     if int(pier.sum()) < 4000 or int(water.sum()) < 4000:
         raise ValueError("Materials not separately represented in the opening")
@@ -79,7 +81,7 @@ def make_world(source):
     # optically correct*. Measure only inside the missing region, not the
     # approved image where real perspective edges are intentional.
     # Flag (a) the guessed sea/quay material boundary and (b) the perimeter.
-    boundary_y = 423.0 + 0.315 * x
+    boundary_y = 423.0 + seam_offset + 0.315 * x
     near_material_seam = (opening > 0) & (np.abs(y - boundary_y) <= 3)
     interior = (opening > 0)
     seam_jump = cv2.absdiff(world[:, 1:, :3], world[:, :-1, :3])
@@ -101,6 +103,7 @@ def make_world(source):
     }
     stats = {
         "source_dimensions": [width, height],
+        "guessed_quay_edge_offset_px": seam_offset,
         "opened_pixels": opening_count,
         "water_filled_pixels": int(water.sum()),
         "pier_filled_pixels": int(pier.sum()),
@@ -159,6 +162,35 @@ def run(output_dir):
         boards.append(display_against_gray(frame))
     cv2.imwrite(str(output_dir / "material-motion-board.jpg"),
                 np.concatenate(boards, axis=1))
+    # The hidden dock edge is guessed, not measured. Compare three conservative
+    # placements while holding the approved source, sampling geometry, player
+    # silhouette and all known RGBA pixels constant.
+    variants = []
+    comparison_frames = []
+    for offset in (-6, 0, 6):
+        alternate, gap, alt_pier, alt_water, report = make_world(source, seam_offset=offset)
+        assert np.array_equal(gap, opening), "Boundary variant altered the subject mask"
+        assert np.array_equal(alternate[opening == 0], source[opening == 0]), (
+            "Boundary variant changed visible approved pixels"
+        )
+        assert report["donor_invalid_pixels"] == 0
+        middle = composite(alternate, player, 0)
+        filename = f"quay-edge-{offset:+d}-player-center.png"
+        cv2.imwrite(str(output_dir / filename), middle)
+        comparison_frames.append(display_against_gray(middle))
+        variants.append({
+            "quay_edge_offset_px": offset,
+            "center_preview_file": filename,
+            "material_seam_diagnostic": report["material_seam_diagnostic"],
+            "water_filled_pixels": report["water_filled_pixels"],
+            "pier_filled_pixels": report["pier_filled_pixels"],
+            "outside_opening_pixel_exact": True,
+            "approved": False,
+        })
+    cv2.imwrite(str(output_dir / "quay-edge-variants-board.jpg"),
+                np.concatenate(comparison_frames, axis=1))
+    stats["quay_edge_variants"] = variants
+    stats["variant_art_review_complete"] = False
     assert np.count_nonzero(opening) == stats["water_filled_pixels"] + stats["pier_filled_pixels"]
     stats.update({
         "source_sha256": hashlib.sha256(MASTER.read_bytes()).hexdigest(),
