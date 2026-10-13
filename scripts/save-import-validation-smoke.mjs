@@ -14,7 +14,7 @@ class MemoryStorage {
 globalThis.localStorage = new MemoryStorage()
 const {
   SAVE_VERSION, createSaveSnapshot, validateSnapshot, exportSaveData,
-  importSaveData, restoreBackup, getBackupSummaries,
+  importSaveData, restoreBackup, restoreLatestBackup, getBackupSummaries,
 } = await import('../fishing-game/js/game/saveSystem.js')
 
 // FNV-1a exactly matches historical on-disk checksum, for creating hostile
@@ -82,6 +82,34 @@ assert.equal(getBackupSummaries()[1].valid,true)
 assert.equal(validateSnapshot({version:3,data:{ainan_score:'12'}}),false,
   'missing v3 checksum is never a valid backup')
 
+// Rolling backup recovery must scan all three slots before relying on
+// the legacy copy. Do not let a corrupt newest checksum hide a valid history.
+localStorage.clear()
+localStorage.setItem('ainan_score','555')
+localStorage.setItem('ainan_save_backup_1','{broken')
+localStorage.setItem('ainan_save_backup_2',JSON.stringify({
+  version:3,data:{ainan_score:'222'},checksum:checksum({ainan_score:'222'}),
+}))
+localStorage.setItem('ainan_save_backup_3',JSON.stringify({
+  version:3,data:{ainan_score:'111'},checksum:checksum({ainan_score:'111'}),
+}))
+assert.equal(restoreLatestBackup(),true)
+checkScore('222')
+localStorage.setItem('ainan_save_backup_2','{also-broken')
+localStorage.setItem('ainan_score','555')
+assert.equal(restoreLatestBackup(),true)
+checkScore('111')
+localStorage.setItem('ainan_save_backup_3','{broken-third')
+localStorage.setItem('ainan_save_backup',JSON.stringify({
+  version:2,data:{ainan_score:'77'},
+}))
+localStorage.setItem('ainan_score','555')
+assert.equal(restoreLatestBackup(),true,'legacy fallback must survive three damaged current slots')
+checkScore('77')
+localStorage.setItem('ainan_save_backup','{broken-legacy')
+assert.equal(restoreLatestBackup(),false,'must reject every corrupt slot')
+checkScore('77')
+
 // Import must fail closed when backing up the existing save hits quota.
 localStorage.clear()
 localStorage.setItem('ainan_score','333')
@@ -90,4 +118,4 @@ assert.equal(importSaveData(payload({ainan_score:'444'})),false)
 checkScore('333')
 localStorage.fail.clear()
 
-console.log('AINAN save import validation smoke passed: v3 checksum, allowed keys, legacy backups, quota')
+console.log('AINAN save import validation smoke passed: v3 checksum, allowed keys, three-slot/legacy recovery, quota')
