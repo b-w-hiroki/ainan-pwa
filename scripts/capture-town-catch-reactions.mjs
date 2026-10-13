@@ -105,6 +105,77 @@ try {
       await page.close()
     }
   }
+
+  // Real 390x844 browser taps: unaffordable Town growth must navigate back
+  // to Map without spending; an affordable upgrade must keep buying in Town.
+  for (const { score, expected, filename } of [
+    { score: 0, expected: 'fish', filename: '96-town-upgrade-shortage.png' },
+    { score: 1000, expected: 'upgrade', filename: '97-town-upgrade-affordable.png' },
+  ]) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+    try {
+      await page.addInitScript(points => {
+        localStorage.setItem('ainan_score', String(points))
+        localStorage.setItem('ainan_town_facilities', JSON.stringify({
+          market: 0, pier: 0, guide: 0, festival: 0,
+        }))
+        localStorage.setItem('ainan_catches', '[]')
+      }, score)
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene', {
+        waitUntil: 'domcontentloaded',
+      })
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?.sys?.isActive?.(), null, {timeout:20000})
+      await page.waitForTimeout(320)
+      // This is a real pointer click on the upper-left (Market) facility card.
+      await page.mouse.click(100, 495)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?._modal?.active === true,
+        null, {timeout:5000})
+      await page.waitForTimeout(240)
+      const ui = await page.evaluate(() => {
+        const town = window.__game.scene.getScene('TownScene')
+        const modal = town._modal
+        return {
+          labels: modal?.list?.flatMap(node => [
+            ...(typeof node.text === 'string' ? [node.text] : []),
+            ...(node.list?.filter(child => typeof child.text === 'string').map(child => child.text) ?? []),
+          ]) ?? [],
+          active: modal?.active === true,
+        }
+      })
+      const wanted = expected === 'fish' ? 'あと180pt・釣りへ' : '180ptで発展'
+      assert.equal(ui.active, true, filename + ': market modal not opened from actual tap')
+      assert.ok(ui.labels.includes(wanted), filename + ': wrong purchase action '+JSON.stringify(ui.labels))
+      await captureTownWhenRendered(page, filename)
+
+      // Tap the actual gold modal CTA: no programmatic call to _upgrade.
+      await page.mouse.click(195, 485)
+      if (expected === 'fish') {
+        await page.waitForFunction(() => window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.(),
+          null, {timeout:7000})
+      } else {
+        await page.waitForFunction(() => {
+          const saved = JSON.parse(localStorage.getItem('ainan_town_facilities') ?? '{}')
+          return saved.market === 1
+        }, null, {timeout:7000})
+      }
+      const state = await page.evaluate(() => ({
+        score: Number(localStorage.getItem('ainan_score')),
+        market: JSON.parse(localStorage.getItem('ainan_town_facilities') ?? '{}').market,
+        mapActive: window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.() ?? false,
+      }))
+      if (expected === 'fish') {
+        assert.deepEqual(state, {score:0, market:0, mapActive:true},
+          filename + ': shortage should return to fishing without spending')
+      } else {
+        assert.equal(state.score, 820, filename + ': purchase deducted wrong amount')
+        assert.equal(state.market, 1, filename + ': purchase did not develop Market')
+        assert.equal(state.mapActive, false, filename + ': affordable purchase must remain in Town')
+      }
+      console.log('Town purchase affordance verified by real tap:', filename, JSON.stringify(state))
+    } finally {
+      await page.close()
+    }
+  }
 } finally {
   await browser.close()
 }
