@@ -48,6 +48,29 @@ for (const [width,height,insets] of tested) {
   assert.equal(pointerInWorld(l.dock.x+12,l.dock.y+12,l),null,'dock press interpreted as cast world input')
   assert.equal(pointerInWorld(-5,0,l),null)
 }
+// Adversarial rotation/safe-area measurements must fail closed, never
+// allocate buttons into unsafe insets or return NaN hit-testing coordinates.
+for (const [w,h,safe] of [
+  [844,390,{left:844}], [844,390,{top:390}],
+  [844,390,{right:Infinity}], [844,390,{bottom:-1}],
+  [844,390,{left:NaN}], [844,390,{top:200,bottom:200}],
+]) assert.equal(layoutLandscapeFishing(w,h,safe),null,'invalid safe area accepted')
+for (const [w,h,safe] of [
+  [844,390,{left:0,right:0}], [932,430,{left:24,right:24,top:0,bottom:8}],
+]) {
+  const l=layoutLandscapeFishing(w,h,safe)
+  assert.ok(l)
+  for (const edge of [
+    [l.world.x,l.world.y,0,0],
+    [l.world.x+l.world.width,l.world.y+l.world.height,1,1],
+  ]) {
+    const p=pointerInWorld(edge[0],edge[1],l)
+    assert.ok(p&&Math.abs(p.x-edge[2])<1e-8&&Math.abs(p.y-edge[3])<1e-8)
+  }
+  assert.equal(pointerInWorld(l.rail.x+4,l.rail.y+4,l),null)
+  assert.equal(pointerInWorld(l.dock.x+4,l.dock.y+4,l),null)
+  assert.equal(pointerInWorld(Number.NaN,l.world.y,l),null)
+}
 assert.equal(layoutLandscapeFishing(390,844),null,'portrait must not use landscape geometry')
 assert.equal(layoutLandscapeFishing(540,320),null,'unsupported size must not silently shrink input')
 assert.equal(layoutLandscapeFishing(844,355),null,'too-short landscape must not overlap controls')
