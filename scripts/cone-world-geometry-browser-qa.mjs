@@ -165,7 +165,10 @@ async function runCase(viewport, rod, edge) {
   })
   const landingError = Math.hypot(after.landing.x - before.preview.x, after.landing.y - before.preview.y)
   if (landingError > 0.75 || after.rating !== 'good' || after.phase !== 'retrieve' || after.bait !== before.bait - 1) throw new Error(`landing mismatch ${JSON.stringify({ viewport, rod, edge, before, after, landingError })}`)
-  if (errors.length) throw new Error(`${viewport.width}x${viewport.height}-${rod}-${edge}: ${errors.join(' | ')}`)
+  // QA bootstrap intentionally rejects service worker registration while
+  // exercising scenes without PWA caches. Do not ignore other page errors.
+  const unexpectedErrors = errors.filter(message => message !== 'service worker disabled in QA')
+  if (unexpectedErrors.length) throw new Error(`${viewport.width}x${viewport.height}-${rod}-${edge}: ${unexpectedErrors.join(' | ')}`)
   await context.close()
   return { viewport, rod, edge, selected, before, after, landingError }
 }
