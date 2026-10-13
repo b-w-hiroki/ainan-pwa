@@ -17,7 +17,9 @@ export function layoutLandscapeFishing(width, height, insets = {}) {
   const top = safe.top + outer
   const availableWidth = width - safe.left - safe.right - outer * 2
   const availableHeight = height - safe.top - safe.bottom - outer * 2
-  if (availableHeight < 280) return null
+  // Below 336px of usable height, the gauge, three 52px reel targets and
+  // 110px cast pad cannot coexist without overlap. Reject rather than shrink.
+  if (availableHeight < 336) return null
   const railWidth = clamp(Math.round(availableWidth * 0.14), 84, 112)
   const controlWidth = clamp(Math.round(availableWidth * 0.19), 128, 156)
   const worldWidth = availableWidth - railWidth - controlWidth - gap * 2
@@ -28,9 +30,11 @@ export function layoutLandscapeFishing(width, height, insets = {}) {
   const dock = rect(world.x + world.width + gap, top, controlWidth, availableHeight)
   const back = rect(rail.x + 2, rail.y + 2, 52, 52)
   const status = rect(rail.x + 2, rail.y + 66, rail.width - 4, Math.min(108, rail.height - 84))
-  const gauge = rect(dock.x + 10, dock.y + 65, dock.width - 20, 20)
-  const castCenter = Object.freeze({ x: dock.x + dock.width / 2, y: dock.y + dock.height - 84, radius: 55 })
-  const retrieve = [0, 1, 2].map(i => rect(dock.x + 8, dock.y + 69 + i * 63, dock.width - 16, 52))
+  // Reserve distinct physical hit areas. These are phase-specific controls,
+  // but their geometry must never cause an accidental overlap on reflow.
+  const gauge = rect(dock.x + 10, dock.y + 12, dock.width - 20, 20)
+  const retrieve = [0, 1, 2].map(i => rect(dock.x + 8, dock.y + 46 + i * 60, dock.width - 16, 52))
+  const castCenter = Object.freeze({ x: dock.x + dock.width / 2, y: dock.y + dock.height - 63, radius: 55 })
   const resultActions = [0, 1].map(i => rect(dock.x + 8, dock.y + 90 + i * 94, dock.width - 16, 64))
   return Object.freeze({
     viewport: rect(0, 0, width, height), safe, rail, world, dock, back, status, gauge,
