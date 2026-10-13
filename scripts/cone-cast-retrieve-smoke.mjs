@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { buildTrajectory } from '../fishing-game/js/game/cast.js'
-import { CONE_CAST_TUNING, buildCastRangeGeometry, isValidCastLanding } from '../fishing-game/js/game/installConeCastRetrievePrototype.js'
+import { CONE_CAST_TUNING, buildCastRangeGeometry, buildPlayerAnchoredFanGuides, isValidCastLanding } from '../fishing-game/js/game/installConeCastRetrievePrototype.js'
 import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8')
@@ -19,6 +19,27 @@ assert.ok(geometry.samples.every(sample => sample.innerDistance >= 522.85), 'fan
 assert.equal(isValidCastLanding({ x: 120, y: 1120 }), false, 'pier must not be advertised as castable water')
 assert.deepEqual(geometry.origin, { x: 192, y: 1056 }, 'fan origin must remain the logical world cast origin')
 assert.deepEqual(geometry.rodTip, { x: 188, y: 1072 }, 'visual rod-tip relationship must be retained')
+const anchoredFan = geometry.playerFanGuides
+assert.ok(anchoredFan, 'valid Cast geometry must have three player-anchored spokes')
+assert.deepEqual(anchoredFan.origin, geometry.origin)
+for (const [spoke, sample] of [[anchoredFan.left, geometry.samples[0]],
+  [anchoredFan.right, geometry.samples.at(-1)]]) {
+  assert.deepEqual(spoke.origin, geometry.origin, 'fan must begin at character anchor')
+  assert.deepEqual(spoke.waterStart, sample.inner, 'fan begins on validated sea')
+  assert.deepEqual(spoke.waterEnd, sample.outer, 'fan ends on validated sea')
+  assert.ok(isValidCastLanding(spoke.waterStart) && isValidCastLanding(spoke.waterEnd),
+    'fan lines must terminate on castable water')
+}
+assert.ok(anchoredFan.left.angleDeg < anchoredFan.center.angleDeg
+  && anchoredFan.center.angleDeg < anchoredFan.right.angleDeg,
+  'fan angles must order left, center, right')
+assert.notDeepEqual(anchoredFan.origin, geometry.rodTip,
+  'rod tip is a different rendering attachment, not the cast origin')
+assert.equal(buildPlayerAnchoredFanGuides(null), null)
+assert.equal(buildPlayerAnchoredFanGuides({ origin: { x: NaN, y: 1 }, samples: geometry.samples }), null)
+assert.match(source, /geometry\.playerFanGuides = buildPlayerAnchoredFanGuides\(geometry\)/)
+assert.match(source, /lineBetween\(fan\.origin\.x, fan\.origin\.y, side\.waterStart\.x, side\.waterStart\.y\)/)
+
 assert.match(source, /phase !== 'cast' \|\| this\._coneCastState\.castLocked/, 'cast needs a phase and re-entry guard')
 assert.match(source, /state\.hitCommitted \|\| state\.hitTransitioning \|\| this\.phase !== 'retrieve'/, 'hit transition needs a one-shot guard')
 assert.match(source, /state\.hitCommitted = this\.phase === 'wait'/, 'hit must commit only after the existing transition succeeds')
