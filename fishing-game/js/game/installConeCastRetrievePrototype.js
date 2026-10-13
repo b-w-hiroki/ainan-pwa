@@ -66,6 +66,30 @@ function findValidDistance(scene, angleDeg, fromStart) {
   return { distance: valid, point: selectionAt(scene, angleDeg, valid).raw }
 }
 
+// Presentation-only spoke geometry: cast origin is the character-owned world
+// anchor, never the camera centre, the rod sprite's changing tip or an inset
+// rectangle on the sea. Landing validity remains owned by the water polygon.
+export function buildPlayerAnchoredFanGuides(range) {
+  const samples = range?.samples ?? []
+  const origin = range?.origin
+  if (!origin || !Number.isFinite(origin.x) || !Number.isFinite(origin.y) || samples.length < 3) return null
+  const center = samples.reduce((best, item) =>
+    Math.abs(item.angleDeg) < Math.abs(best.angleDeg) ? item : best)
+  const copy = p => ({ x: p.x, y: p.y })
+  const makeSpoke = sample => Object.freeze({
+    origin: Object.freeze(copy(origin)),
+    waterStart: Object.freeze(copy(sample.inner)),
+    waterEnd: Object.freeze(copy(sample.outer)),
+    angleDeg: sample.angleDeg,
+  })
+  return Object.freeze({
+    origin: Object.freeze(copy(origin)),
+    left: makeSpoke(samples[0]),
+    center: makeSpoke(center),
+    right: makeSpoke(samples.at(-1)),
+  })
+}
+
 export function buildCastRangeGeometry(scene) {
   const cacheKey = `${scene.anchorX}:${scene.anchorY}:${scene.castRangePx ?? 620}`
   const cached = scene._coneCastRangeGeometryCache
@@ -90,6 +114,7 @@ export function buildCastRangeGeometry(scene) {
     polygon: [...samples.map(sample => sample.outer), ...samples.slice().reverse().map(sample => sample.inner)],
     samples,
   }
+  geometry.playerFanGuides = buildPlayerAnchoredFanGuides(geometry)
   scene._coneCastRangeGeometryCache = { cacheKey, geometry }
   return { ...geometry, rodTip: scene._cameraPanRodTip ? { ...scene._cameraPanRodTip } : null }
 }
@@ -219,6 +244,22 @@ function drawAim(scene) {
     overlay.lineStyle(1.5, 0xb7f1ff, 0.52)
       .lineBetween(geometry.inner[0].x, geometry.inner[0].y, geometry.outer[0].x, geometry.outer[0].y)
       .lineBetween(geometry.inner.at(-1).x, geometry.inner.at(-1).y, geometry.outer.at(-1).x, geometry.outer.at(-1).y)
+  }
+  // The two sides must visibly converge at the player's real cast origin.
+  // Keep the tinted landing band restricted to water; only the thin radial
+  // guide lines cross the uncastable gap from the player to the sea.
+  const fan = geometry.playerFanGuides
+  if (fan) {
+    overlay.lineStyle(2.7, 0xe3faff, 0.82)
+    for (const side of [fan.left, fan.right]) {
+      overlay.lineBetween(fan.origin.x, fan.origin.y, side.waterStart.x, side.waterStart.y)
+      overlay.lineBetween(side.waterStart.x, side.waterStart.y, side.waterEnd.x, side.waterEnd.y)
+    }
+    overlay.lineStyle(1.5, 0xc4faff, 0.4)
+    overlay.lineBetween(fan.center.origin.x, fan.center.origin.y,
+      fan.center.waterStart.x, fan.center.waterStart.y)
+    overlay.lineBetween(fan.center.waterStart.x, fan.center.waterStart.y,
+      fan.center.waterEnd.x, fan.center.waterEnd.y)
   }
   if (geometry.rodTip && Math.hypot(geometry.rodTip.x - cx, geometry.rodTip.y - cy) > 5) {
     const controlX = (geometry.rodTip.x + cx) / 2
