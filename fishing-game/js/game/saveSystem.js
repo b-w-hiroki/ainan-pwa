@@ -123,7 +123,11 @@ export function restoreBackup(slot = 1) {
 }
 
 export function restoreLatestBackup() {
-  if (restoreBackup(1)) return true
+  // A damaged newest slot must not make the older rolling backups
+  // unreachable; only then fall back to the pre-v3 legacy backup key.
+  for (let slot = 1; slot <= BACKUP_KEYS.length; slot++) {
+    if (restoreBackup(slot)) return true
+  }
   try {
     const legacy = JSON.parse(localStorage.getItem('ainan_save_backup') ?? 'null')
     return applySnapshot(legacy)
