@@ -35,6 +35,12 @@ assert.ok(anchoredFan.left.angleDeg < anchoredFan.center.angleDeg
   'fan angles must order left, center, right')
 assert.notDeepEqual(anchoredFan.origin, geometry.rodTip,
   'rod tip is a different rendering attachment, not the cast origin')
+const gripAnchored = buildPlayerAnchoredFanGuides(geometry, { x: 120, y: 1100 })
+assert.deepEqual(gripAnchored.origin, { x: 120, y: 1100 })
+assert.deepEqual(gripAnchored.left.waterEnd, anchoredFan.left.waterEnd,
+  'visual hand following must not shift water landing')
+assert.notDeepEqual(gripAnchored.origin, geometry.origin,
+  'physical hand may differ from world cast input')
 assert.equal(buildPlayerAnchoredFanGuides(null), null)
 assert.equal(buildPlayerAnchoredFanGuides({ origin: { x: NaN, y: 1 }, samples: geometry.samples }), null)
 assert.match(source, /geometry\.playerFanGuides = buildPlayerAnchoredFanGuides\(geometry\)/)
