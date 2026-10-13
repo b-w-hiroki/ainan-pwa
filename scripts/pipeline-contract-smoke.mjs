@@ -178,6 +178,14 @@ assert.ok(namedResultSource.includes("captureVisibleResult(defaultResult, '04-re
 assert.ok(!workflow.split('\n').some(line =>
   line.includes('playwright@1.55.0 screenshot') && line.includes('04-result.png')),
   'default Result cannot use a delayed CLI screenshot')
+assert.ok(namedResultSource.includes("captureVisibleResult(bossResult, '22-boss-kue-result.png', assertBossResult)"),
+  'Kue boss Result must capture the same verified state with gold-pixel retries')
+assert.ok(namedResultSource.includes("await bossResult.waitForSelector('body[data-qa-result-ready=\"caught\"]'"),
+  'Kue boss capture must wait for actual caught Result')
+assert.ok(!workflow.split('\n').some(line =>
+  line.includes('playwright@1.55.0 screenshot') && line.includes('22-boss-kue-result.png')),
+  'Kue boss must not regress to an unverified delayed CLI screenshot')
+
 const jumpCaptureScript = 'scripts/capture-species-jumps.mjs'
 const jumpCaptureEnabled = workflow.includes('node ' + jumpCaptureScript)
 const jumpCaptureSource = jumpCaptureEnabled ? read(jumpCaptureScript) : ''
