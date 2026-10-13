@@ -19,6 +19,23 @@ for (const [width,height,insets] of tested) {
   assert.equal(rectanglesOverlap(l.world,l.dock),false,'world overlaps right-side controls')
   assert.equal(rectanglesOverlap(l.world,l.rail),false,'world overlaps left-side status')
   assert.equal(rectanglesOverlap(l.gauge,l.resultActions[0]),false,'gauge obscured by result CTA')
+  // The geometry is reused for phase switches; it must be safe at native
+  // landscape pixel sizes, never inheriting portrait's scaled hit boxes.
+  const castBounds = {
+    x: l.castCenter.x - l.castCenter.radius,
+    y: l.castCenter.y - l.castCenter.radius,
+    width: l.castCenter.radius * 2,
+    height: l.castCenter.radius * 2,
+  }
+  assert.ok(inside(l.dock, castBounds), 'Cast hit area outside dock/safe area')
+  assert.equal(rectanglesOverlap(l.gauge, castBounds), false, 'gauge overlaps Cast')
+  for (const [index, target] of l.retrieve.entries()) {
+    assert.equal(rectanglesOverlap(l.gauge, target), false, 'gauge overlaps reel '+index)
+    assert.equal(rectanglesOverlap(castBounds, target), false, 'Cast overlaps reel '+index)
+    for (const other of l.retrieve.slice(index + 1)) {
+      assert.equal(rectanglesOverlap(target, other), false, 'reel controls overlap')
+    }
+  }
   assert.ok(l.world.width >= 330 && l.world.height >= 280,'world too small')
   for (const r of [l.back,...l.retrieve,...l.resultActions]) {
     assert.ok(r.width>=44&&r.height>=44,'touch target smaller than 44 CSS pixels')
@@ -33,6 +50,8 @@ for (const [width,height,insets] of tested) {
 }
 assert.equal(layoutLandscapeFishing(390,844),null,'portrait must not use landscape geometry')
 assert.equal(layoutLandscapeFishing(540,320),null,'unsupported size must not silently shrink input')
+assert.equal(layoutLandscapeFishing(844,355),null,'too-short landscape must not overlap controls')
+assert.ok(layoutLandscapeFishing(844,356),'minimum usable dock height must still fit 44px targets')
 
 const l=layoutLandscapeFishing(844,390)
 const box=(r,fill,label)=>`<rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.height}" fill="${fill}" rx="9"/><text x="${r.x+10}" y="${r.y+22}" font-size="13" fill="#f5f6f2">${label}</text>`
