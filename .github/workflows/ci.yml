@@ -85,7 +85,7 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/00-home-character-clearance.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene" artifacts/e2e/01-home.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=MapScene" artifacts/e2e/02-map.png
-          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle" artifacts/e2e/03-battle.png
+          npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-battle-state.mjs
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=4200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=1" artifacts/e2e/05-town-lv1.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3600 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=3" artifacts/e2e/06-town-lv3.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=4000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&townTier=5" artifacts/e2e/07-town-lv5.png
