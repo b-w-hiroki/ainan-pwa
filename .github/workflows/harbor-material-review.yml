@@ -45,6 +45,14 @@ jobs:
           assert [v["quay_edge_offset_px"] for v in offsets] == [-6,0,6]
           assert all(v["outside_opening_pixel_exact"] and not v["approved"] for v in offsets)
           assert d["variant_art_review_complete"] is False
+          edge=d["visible_edge_review"]
+          assert edge["hand_estimated"] and not edge["art_approved"]
+          assert edge["outside_opening_pixel_exact"] and not edge["production_promoted"]
+          assert len(edge["anchors"]) == 6
+          assert 0.38 < edge["slope"] < 0.54
+          assert edge["maximum_anchor_residual_px"] < 12
+          assert edge["anchored_pier_pixels"] != edge["legacy_pier_pixels"]
+          assert not edge["anchored_structure_reuse"]["safe_for_production"]
           topology=d["quay_topology_h02"]
           assert topology["partition_verified"] is True
           assert topology["water_target_pixels"] > 4000
@@ -67,7 +75,8 @@ jobs:
           assert diag["measurement_only"] and not diag["human_approval_inferred"]
           assert diag["seam_band_pixels"] > 0 and diag["opening_rim_pixels"] > 0
           assert 0 <= diag["seam_horizontal_abs_rgb_mean"] <= 255
-          for name in ("world-material-candidate.png", "material-mask.png", "seam-boundary-review.png", "donor-structure-risk-map.png", "quay-topology-h02-review.png", "material-motion-board.jpg",
+          for name in ("visible-edge-world-review.png", "visible-edge-motion-board.jpg", "quay-visible-edge-overlay.png",
+                       "world-material-candidate.png", "material-mask.png", "seam-boundary-review.png", "donor-structure-risk-map.png", "quay-topology-h02-review.png", "material-motion-board.jpg",
                        "quay-edge-variants-board.jpg", "quay-edge--6-player-center.png",
                        "quay-edge-+0-player-center.png", "quay-edge-+6-player-center.png",
                        "player-offset--18.png", "player-offset-+0.png", "player-offset-+18.png"):
