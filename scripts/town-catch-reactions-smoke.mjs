@@ -58,4 +58,56 @@ assert.ok(townLogic.includes('didFacilityLevelAdvance(before, getTownSummary(), 
 assert.ok(townSource.includes('isCurrentFacilityLevel(getTownSummary(), id, currentLevel)'),
   'stale modal taps must be rejected before points are deducted')
 
+// Exercise the real localStorage-backed transaction boundary, not just a
+// mocked TownScene label. A damaged backup or stale caller must not add
+// points, charge for an unknown facility or persist arbitrary object keys.
+const originalStorage = globalThis.localStorage
+const saved = new Map()
+globalThis.localStorage = {
+  getItem: key => saved.has(key) ? saved.get(key) : null,
+  setItem: (key, value) => { saved.set(key, String(value)) },
+  removeItem: key => { saved.delete(key) },
+}
+try {
+  const progress = await import('../fishing-game/js/game/progress.js')
+  assert.equal(progress.getScore(), 0)
+  assert.equal(progress.setScore(1000), true)
+  assert.equal(progress.getScore(), 1000)
+  assert.equal(progress.spendScore(-180), false, 'negative price must never credit points')
+  assert.equal(progress.spendScore(Infinity), false, 'non-finite price must never be accepted')
+  assert.equal(progress.spendScore(1.5), false, 'fractional charges must not silently round')
+  assert.equal(progress.getScore(), 1000)
+  assert.equal(progress.getTownFacilityCost('unknown'), null)
+  assert.equal(progress.upgradeTownFacility('__proto__').ok, false, 'prototype ID must not spend')
+  assert.equal(progress.upgradeTownFacility('other').ok, false, 'unknown ID must not spend')
+  assert.equal(progress.getScore(), 1000)
+  assert.deepEqual(progress.upgradeTownFacility('market'), {ok: true, level: 1})
+  assert.equal(progress.getTownFacilities().market, 1)
+  assert.equal(progress.getScore(), 820, 'one valid facility upgrade costs 180pt')
+  assert.deepEqual(progress.upgradeTownFacility('market'), {ok: true, level: 2})
+  assert.equal(progress.getScore(), 478, 'second upgrade charges the established 342pt cost')
+  saved.set('ainan_score', 'Infinity')
+  assert.equal(progress.getScore(), 0, 'corrupt points must not become Infinity')
+  assert.equal(progress.upgradeTownFacility('pier').ok, false)
+  assert.equal(progress.getTownFacilities().pier, 0, 'no facility advanced with corrupt points')
+  saved.set('ainan_score', '99.9')
+  assert.equal(progress.getScore(), 99, 'fractional older saves keep their integer point balance')
+  assert.equal(progress.setScore(NaN), false, 'invalid points must not be stored')
+  assert.equal(progress.getScore(), 99)
+
+  saved.set('ainan_town_facilities',
+    '{"market":2,"pier":"5","guide":-1,"festival":99,"__proto__":{"polluted":true}}')
+  const facilities = progress.getTownFacilities()
+  assert.deepEqual(facilities, {market:2,pier:0,guide:0,festival:0},
+    'corrupt saved levels and forged facility keys must be discarded')
+  assert.equal(Object.prototype.hasOwnProperty.call(facilities, '__proto__'), false)
+  assert.equal(progress.getTownFacilityCost('pier'), 260)
+  progress.saveTownFacilities({...facilities, unexpected:5})
+  assert.deepEqual(JSON.parse(saved.get('ainan_town_facilities')), facilities,
+    'facility save must write only the established four progression keys')
+} finally {
+  if (originalStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = originalStorage
+}
+
 console.log('Town catch species reactions QA passed:', fishIds.join(', '))

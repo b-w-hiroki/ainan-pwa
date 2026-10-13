@@ -379,7 +379,11 @@ const readJson = (key, fallback) => {
 }
 
 export function getScore() {
-  return parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
+  // Imported/backed-up saves can contain malformed strings or non-finite
+  // values. Never pass NaN/Infinity into facility pricing or rewards.
+  const value = Number(localStorage.getItem('ainan_score') ?? 0)
+  return Number.isFinite(value) && value >= 0 && Number.isSafeInteger(Math.trunc(value))
+    ? Math.floor(value) : 0
 }
 
 // ─── スタミナ（時間回復式）──────────────────────────────────────
@@ -409,7 +413,9 @@ export function consumeStamina(amount = 1) {
 }
 
 export function setScore(score) {
-  localStorage.setItem('ainan_score', String(Math.max(0, score)))
+  if (!Number.isFinite(score) || !Number.isSafeInteger(Math.trunc(score))) return false
+  localStorage.setItem('ainan_score', String(Math.max(0, Math.floor(score))))
+  return true
 }
 
 export function getGems() {
@@ -493,37 +499,47 @@ export function saveRewards(rewards) {
 }
 
 export function spendScore(cost) {
+  // An invalid/negative price must never credit score or bypass a purchase.
+  if (!Number.isSafeInteger(cost) || cost < 0) return false
   const score = getScore()
   if (score < cost) return false
-  setScore(score - cost)
-  return true
+  return setScore(score - cost)
+}
+
+function normalizeTownFacilities(saved) {
+  const safe = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {}
+  return Object.fromEntries(TOWN_FACILITY_META.map(({ id }) => {
+    const value = Object.prototype.hasOwnProperty.call(safe, id) ? safe[id] : 0
+    // Only known facility IDs and valid saved levels may drive pricing.
+    const level = Number.isInteger(value) && value >= 0 && value <= 5 ? value : 0
+    return [id, level]
+  }))
 }
 
 export function getTownFacilities() {
-  return {
-    market: 0,
-    pier: 0,
-    guide: 0,
-    festival: 0,
-    ...readJson('ainan_town_facilities', {}),
-  }
+  return normalizeTownFacilities(readJson('ainan_town_facilities', {}))
 }
 
 export function saveTownFacilities(facilities) {
-  localStorage.setItem('ainan_town_facilities', JSON.stringify(facilities))
+  localStorage.setItem('ainan_town_facilities', JSON.stringify(normalizeTownFacilities(facilities)))
 }
 
 export function getTownFacilityCost(id) {
   const meta = TOWN_FACILITY_META.find(f => f.id === id)
-  const lv = getTownFacilities()[id] ?? 0
-  return Math.round((meta?.baseCost ?? 100) * (1 + lv * 0.90))
+  if (!meta) return null
+  const lv = getTownFacilities()[id]
+  return Math.round(meta.baseCost * (1 + lv * 0.90))
 }
 
 export function upgradeTownFacility(id) {
+  // The UI validates its displayed level, but the game transaction itself
+  // must also reject unknown IDs and malformed prices before spending.
   const facilities = getTownFacilities()
-  const lv = facilities[id] ?? 0
+  if (!Object.prototype.hasOwnProperty.call(facilities, id)) return { ok: false, reason: 'facility' }
+  const lv = facilities[id]
   if (lv >= 5) return { ok: false, reason: 'max' }
   const cost = getTownFacilityCost(id)
+  if (!Number.isSafeInteger(cost) || cost < 0) return { ok: false, reason: 'cost' }
   if (!spendScore(cost)) return { ok: false, reason: 'score' }
   facilities[id] = lv + 1
   saveTownFacilities(facilities)
