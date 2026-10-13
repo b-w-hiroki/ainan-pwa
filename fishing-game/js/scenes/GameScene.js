@@ -24,7 +24,7 @@ import { BobberManager } from './components/BobberManager.js'
 import { CastUI } from './components/CastUI.js'
 import { BattleUI } from './components/BattleUI.js'
 import { ResultUI } from './components/ResultUI.js'
-import { consumeStamina, getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
+import { consumeStamina, getCatches, getScore, getEquipment, getInventory, getRankBonuses, getTownBonuses, markLicenseFlag, saveInventory } from '../game/progress.js'
 import { ASSETS } from '../config/assetManifest.js'
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -124,9 +124,9 @@ export default class GameScene extends Phaser.Scene {
     consumeStamina(1)
 
     // スコア・釣果（localStorage から復元、シーン再起動時は引き継ぐ）
-    this.totalScore = parseInt(localStorage.getItem('ainan_score') ?? '0', 10)
+    this.totalScore = getScore()
     /** @type {Array<{fishId: string, score: number, timestamp: number}>} */
-    this.catches = JSON.parse(localStorage.getItem('ainan_catches') ?? '[]')
+    this.catches = getCatches()
 
     /** @type {'cast'|'wait'|'battle'|'result'} */
     this.phase = 'cast'
