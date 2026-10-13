@@ -77,6 +77,21 @@ for (const [width, height] of [
   [932, 1500],
 ]) testViewport(width, height)
 
+// A resize can temporarily retain scroll coordinates from the previous
+// camera size. Follow interpolation must never leave an invalid intermediate
+// frame visible to the player (negative water scroll after rotation).
+const rotatedCamera = makeCamera(932, 430)
+const rotated = new FishingCameraController({ cameras: { main: rotatedCamera } })
+rotated.setup()
+rotatedCamera.scrollX = -32
+rotatedCamera.scrollY = -18
+rotated.updateCastFollow(820, 200)
+check(rotated, 'negative carry-over after rotation')
+rotatedCamera.scrollX = 150
+rotatedCamera.scrollY = 9999
+rotated.updateRetrieveFollow(820, 700)
+check(rotated, 'overshoot carry-over after rotation')
+
 // Preserve real horizontal camera travel on screens narrower than the world.
 const camera = makeCamera(390, 844)
 const controller = new FishingCameraController({ cameras: { main: camera } })
