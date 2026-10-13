@@ -18,7 +18,18 @@ try {
     page.on('pageerror', error => {
       if (error.message !== 'service worker disabled in QA') errors.push(error.message)
     })
-    await page.addInitScript(() => localStorage.setItem('ainan_sound_enabled', '0'))
+    await page.addInitScript(() => {
+      localStorage.setItem('ainan_sound_enabled', '0')
+      // Worm is the free/default bait by design. Use a stocked, consumable
+      // shrimp to ensure this test can detect single vs duplicate spending.
+      localStorage.setItem('ainan_inventory', JSON.stringify({
+        rods: { basic: 1, carbon: 1, premium: 1 },
+        baits: { worm: 12, shrimp: 15, special: 10 },
+      }))
+      localStorage.setItem('ainan_equipment', JSON.stringify({
+        rodType: 'carbon', baitType: 'shrimp',
+      }))
+    })
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() => {
       const game = window.__game?.scene?.getScene('GameScene')
@@ -51,6 +62,7 @@ try {
     assert.ok(before.origin.x > 65 && before.origin.x < 740 &&
       before.origin.y > 70 && before.origin.y < 292,
       'Slingshot origin must be reachable on the real canvas: ' + JSON.stringify(before.origin))
+    assert.equal(before.bait, 'shrimp', 'Single-consumption QA must use paid shrimp, not free worm')
     assert.ok(before.count > 0, 'QA must begin with usable bait')
     const endpoint = { x: before.origin.x - 25, y: before.origin.y + 73 }
     assert.ok(endpoint.x > 0 && endpoint.y < 386, 'Drag endpoint clipped')
