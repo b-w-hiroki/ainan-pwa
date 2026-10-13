@@ -30,7 +30,7 @@ try {
       const camera = scene.cameras.main
       // Keep the player's slingshot anchor inside the viewport for a genuine
       // downward drag; does not change world-space cast rules.
-      camera.setScroll(camera.scrollX, Math.min(1400 - camera.height, camera.scrollY + 90))
+      camera.setScroll(camera.scrollX, Math.max(0, camera.scrollY - 70))
       const origin = {
         x: (scene.anchorX - camera.scrollX) * camera.zoom + camera.x - (camera.zoom - 1) * camera.width / 2,
         y: (scene.anchorY - camera.scrollY) * camera.zoom + camera.y - (camera.zoom - 1) * camera.height / 2,
