@@ -12,6 +12,8 @@ class MemoryStorage {
 globalThis.localStorage = new MemoryStorage()
 
 const { getFishingJourney, getFishingPreparation, getRetryJourneyCopy } = await import('../fishing-game/js/game/fishingJourney.js')
+const { getCatches, getScore } = await import('../fishing-game/js/game/progress.js')
+
 
 function setReturnPlayer(overrides = {}) {
   localStorage.clear()
@@ -68,6 +70,36 @@ setReturnPlayer()
 const retry = getRetryJourneyCopy('pointC')
 assert.equal(retry.canRetry, true)
 assert.match(retry.primary, /−1ST/, 'retry copy must state its stamina cost')
+
+// A damaged save/import must not prevent GameScene from reaching Cast.
+// Reads must not overwrite the original bytes: the backup/restore UI can
+// still recover the user's original history.
+for (const raw of ['{broken-json', 'null', '{}', '42', '"not-an-array"']) {
+  localStorage.clear()
+  localStorage.setItem('ainan_catches', raw)
+  localStorage.setItem('ainan_score', 'not-a-number')
+  const before = localStorage.snapshot()
+  assert.deepEqual(getCatches(), [], 'bad catch storage must not crash or look like successful catches')
+  assert.equal(getScore(), 0, 'bad score must not become NaN in Fishing')
+  assert.equal(getFishingJourney().id, 'first-catch', 'bad catches must recover to first-catch flow')
+  assert.equal(localStorage.snapshot(), before, 'corrupt data remains intact for user backup/restore')
+}
+// A corrupted entry must not erase the valid records or their extra metadata.
+localStorage.clear()
+const legacy = {fishId:'aji',score:100,sizeCm:22,point:'pointA',timestamp:3,customFlag:'preserve'}
+localStorage.setItem('ainan_catches', JSON.stringify([null, legacy, 7, [], {wrong:'shape'}]))
+assert.deepEqual(getCatches(), [legacy])
+assert.equal(getFishingJourney().id, 'review-catch')
+assert.deepEqual(JSON.parse(localStorage.getItem('ainan_catches')), [null,legacy,7,[],{wrong:'shape'}],
+  'read-only recovery must never rewrite stored catches')
+for (const invalid of ['Infinity', 'NaN', '-100', '100000000000000000000']) {
+  localStorage.setItem('ainan_score', invalid)
+  assert.equal(getScore(), 0, 'invalid balance must be safely clamped')
+}
+const source = (await import('node:fs')).readFileSync(
+  new URL('../fishing-game/js/scenes/GameScene.js', import.meta.url), 'utf8')
+assert.ok(source.includes('this.totalScore = getScore()') && source.includes('this.catches = getCatches()'),
+  'GameScene must use validated save readers, not raw JSON.parse/parseInt')
 
 console.log('Fishing journey smoke QA passed')
 console.log('  first catch -> recorded town review -> town growth -> next challenge: OK')
