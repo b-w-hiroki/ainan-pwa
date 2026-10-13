@@ -20,7 +20,7 @@ import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityA
 import { REWARD_THEME } from '../game/rewardPresentation.js'
 import { getFishingJourney } from '../game/fishingJourney.js'
 import { getTownFeaturedCatch } from '../game/townCatchReactions.js'
-import { isCurrentFacilityLevel } from '../game/townUpgradeFeedback.js'
+import { isCurrentFacilityLevel, getTownUpgradeAction } from '../game/townUpgradeFeedback.js'
 import { addArtPanel, loadUiArt } from '../ui/UiArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -587,7 +587,8 @@ export default class TownScene extends Phaser.Scene {
       g.fillCircle(x + 18 + i * 18, y + 66, 4)
     }
     this.add.text(x + w - 12, y + 66, maxed ? '発展済み' : `${cost}pt`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: maxed ? UI_COLORS.success : UI_COLORS.warning,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900',
+      color: maxed ? UI_COLORS.success : getScore() >= cost ? UI_COLORS.warning : UI_COLORS.inkSoft,
     }).setOrigin(1, 0.5).setDepth(5)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0)
       .setDepth(6).setInteractive({ useHandCursor: true })
@@ -601,7 +602,7 @@ export default class TownScene extends Phaser.Scene {
     const hasMilestone = milestoneRewards.length > 0
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.44).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
-    const x = 34, y = 166, w = W - 68, h = 364
+    const x = 34, y = 166, w = W - 68, h = 406
     const bg = this.add.graphics()
     bg.fillStyle(0x173248, 0.14)
     bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
@@ -650,8 +651,17 @@ export default class TownScene extends Phaser.Scene {
       }).setOrigin(0.5))
     }
 
-    if (lv < 5) items.push(this._actionButton(W / 2, y + 319, `${cost}ptで発展`, () => this._upgrade(item.id, lv)))
-    items.push(this._plainButton(W / 2, y + h - 20, '閉じる', () => this._modal?.destroy(true)))
+    const upgradeAction = getTownUpgradeAction(lv, cost, getScore())
+    if (upgradeAction) items.push(this._actionButton(W / 2, y + 326, upgradeAction.label, () => {
+      if (upgradeAction.kind === 'upgrade') this._upgrade(item.id, lv)
+      else {
+        // Insufficient catch points: return to an actual fishing choice,
+        // without attempting a purchase, changing balance or adding overlays.
+        this._modal?.destroy(true)
+        this.scene.start('MapScene')
+      }
+    }))
+    items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true), 126, 44))
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
