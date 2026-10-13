@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import {
-  layoutLandscapeFishing, pointerInWorld, rectanglesOverlap,
+  layoutLandscapeFishing, pointerInWorld, rectanglesOverlap, landscapeActionAt,
 } from '../fishing-game/js/presentation/layouts/landscapeFishingGeometry.js'
 
 const inside = (container, child) =>
@@ -75,6 +75,31 @@ assert.equal(layoutLandscapeFishing(390,844),null,'portrait must not use landsca
 assert.equal(layoutLandscapeFishing(540,320),null,'unsupported size must not silently shrink input')
 assert.equal(layoutLandscapeFishing(844,355),null,'too-short landscape must not overlap controls')
 assert.ok(layoutLandscapeFishing(844,356),'minimum usable dock height must still fit 44px targets')
+
+
+const hit=(x,y,phase,l=layoutLandscapeFishing(844,390))=>landscapeActionAt(x,y,l,phase)
+const probe=(rect,phase)=>hit(rect.x+rect.width/2,rect.y+rect.height/2,phase)
+const native=layoutLandscapeFishing(844,390)
+assert.deepEqual(hit(native.castCenter.x,native.castCenter.y,'cast'),{type:'cast'})
+assert.equal(hit(native.castCenter.x,native.castCenter.y,'retrieve'),null,'Cast may never reel')
+assert.equal(hit(native.castCenter.x,native.castCenter.y,'result'),null,'Cast may never confirm Result')
+for(const [index,target] of native.retrieve.entries()){
+  assert.deepEqual(probe(target,'retrieve'),{type:'reel',index})
+  assert.equal(probe(target,'cast'),null,'Reel must not fire a Cast')
+}
+for(const [index,target] of native.resultActions.entries()){
+  assert.deepEqual(probe(target,'result'),{type:'result',index})
+  assert.equal(probe(target,'retrieve'),null,'Result button must not reel')
+}
+assert.deepEqual(probe(native.back,'cast'),{type:'back'})
+assert.deepEqual(probe(native.back,'retrieve'),{type:'back'})
+assert.equal(probe(native.gauge,'cast'),null,'Gauge must not start Cast')
+assert.equal(hit(native.world.x+10,native.world.y+10,'cast'),null,'World pointer must not be a dock action')
+assert.equal(hit(native.castCenter.x,native.castCenter.y,'battle'),null,'Unimplemented battle routing must fail closed')
+for(const point of [[NaN,10],[10,Infinity],[-1,10],[844,390]]) {
+  assert.equal(hit(point[0],point[1],'retrieve'),null)
+}
+assert.equal(landscapeActionAt(0,0,null,'cast'),null)
 
 const l=layoutLandscapeFishing(844,390)
 const box=(r,fill,label)=>`<rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.height}" fill="${fill}" rx="9"/><text x="${r.x+10}" y="${r.y+22}" font-size="13" fill="#f5f6f2">${label}</text>`
