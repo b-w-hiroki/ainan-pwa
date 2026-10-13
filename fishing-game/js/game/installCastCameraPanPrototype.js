@@ -41,6 +41,29 @@ function hideFixedPresentation(scene) {
   scene._qaHudObjects?.forEach?.(obj => obj?.setVisible?.(false))
 }
 
+// QA-only panoramic edge continuation for a viewport wider than our 900px
+// world artwork. Flip a second instance of the *same* approved clean water
+// texture so x=900 has matching source pixels without stretching the master.
+// Do not extend the gameplay water polygon, cast range or camera world bounds.
+function syncWideBackgroundEdge(scene) {
+  const requiresEdge = scene.scale.width > FISHING_WORLD.width
+  if (!requiresEdge) {
+    scene._cameraPanWideBackground?.destroy?.()
+    scene._cameraPanWideBackground = null
+    return
+  }
+  if (scene._cameraPanWideBackground?.active) return
+  const source = ASSETS.ui.fishingApprovedCleanHarbor
+  if (!source?.key || !scene.textures.exists(source.key)) return
+  scene._cameraPanWideBackground = scene.add.image(
+    FISHING_WORLD.width, FISHING_WORLD.height / 2, source.key,
+  ).setOrigin(0, 0.5)
+    .setDisplaySize(FISHING_WORLD.width, FISHING_WORLD.height)
+    .setFlipX(true)
+    .setDepth(0)
+    .setScrollFactor(1)
+}
+
 function buildWorld(scene) {
   scene.bg?._blueprintWaterLayers?.forEach(obj => obj?.destroy?.())
   scene.bg._blueprintWaterLayers = []
@@ -55,6 +78,7 @@ function buildWorld(scene) {
     return image
   }
   addLayer(ASSETS.ui.fishingApprovedCleanHarbor, 0)
+  syncWideBackgroundEdge(scene)
   const platform = scene.add.graphics().setDepth(6).setScrollFactor(1)
   platform.fillStyle(0x8a7357, 1).lineStyle(4, 0x4c4135, 1)
   const platformPoints = FISHING_WORLD.castLandPolygons[0]
@@ -522,6 +546,7 @@ export function installCastCameraPanPrototype(GameScene) {
     this._cancelPullCastMotion = () => cancelCastMotion(this, { idle: true })
     this._cameraPanResize = () => {
       buildHud(this)
+      syncWideBackgroundEdge(this)
       if (this.phase === 'cast') this.fishingCamera?.focusPlayer(true)
       else if (this.bobber?.visible) this.fishingCamera?.holdLure(this.bobber.x, this.bobber.y)
     }
@@ -624,6 +649,8 @@ export function installCastCameraPanPrototype(GameScene) {
     cancelCastMotion(this)
     this._cameraPanHud?.destroy?.(true)
     this._cameraPanHud = null
+    this._cameraPanWideBackground?.destroy?.()
+    this._cameraPanWideBackground = null
     this._cameraPanHudNodes = null
     this._cameraPanPlayer?.destroy?.()
     this._cameraPanPlayer = null
