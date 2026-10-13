@@ -5,12 +5,15 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 const rect = (x, y, width, height) => Object.freeze({ x, y, width, height })
 
 export function layoutLandscapeFishing(width, height, insets = {}) {
+  // Check runtime inset readings before allocating world and controls.
   const values = [width, height, insets.left ?? 0, insets.right ?? 0, insets.top ?? 0, insets.bottom ?? 0]
   if (!values.every(Number.isFinite) || values.some(v => v < 0) || width <= height || width < 600 || height < 300) return null
   const safe = {
     left: insets.left ?? 0, right: insets.right ?? 0,
     top: insets.top ?? 0, bottom: insets.bottom ?? 0,
   }
+  // The entire safe-area must fit before allocating the 3 independent rails.
+  if (safe.left + safe.right >= width || safe.top + safe.bottom >= height) return null
   const outer = 10
   const gap = 12
   const left = safe.left + outer
