@@ -114,17 +114,26 @@ try {
   ]) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
     try {
-      await page.addInitScript(points => {
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene', {
+        waitUntil: 'domcontentloaded',
+      })
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?.sys?.isActive?.(), null, {timeout:20000})
+      // qaBootstrap intentionally injects 25000pt and Lv5 facilities during
+      // startup; init scripts run BEFORE that fixture and get overwritten.
+      // Override only after boot, then rebuild the actual Town scene from
+      // the underfunded/affordable state being exercised.
+      await page.evaluate(points => {
         localStorage.setItem('ainan_score', String(points))
         localStorage.setItem('ainan_town_facilities', JSON.stringify({
           market: 0, pier: 0, guide: 0, festival: 0,
         }))
         localStorage.setItem('ainan_catches', '[]')
+        window.__game.scene.getScene('TownScene').scene.restart()
       }, score)
-      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene', {
-        waitUntil: 'domcontentloaded',
-      })
-      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?.sys?.isActive?.(), null, {timeout:20000})
+      await page.waitForFunction(() => {
+        const town = window.__game?.scene?.getScene('TownScene')
+        return town?.sys?.isActive?.() && town?._summary?.facilities?.market === 0
+      }, null, {timeout:20000})
       await page.waitForTimeout(320)
       // This is a real pointer click on the upper-left (Market) facility card.
       await page.mouse.click(100, 495)
