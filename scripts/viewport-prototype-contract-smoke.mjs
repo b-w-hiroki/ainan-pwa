@@ -37,7 +37,7 @@ assert.match(html, /html\[data-camera-pan-prototype='1'\] #game-container canvas
   'native canvas must fill its available CSS viewport in opt-in mode')
 assert.match(boot, /new URLSearchParams\(window\.location\.search\)\.get\('coneLoop'\) === '1'/,
   'runtime RESIZE must remain gated by coneLoop=1')
-assert.match(boot, /new URLSearchParams\(window\.location\.search\)\.get\('cameraPan'\) === '1'/,
+assert.match(boot, /\['1', 'true'\]\.includes\(new URLSearchParams\(window\.location\.search\)\.get\('cameraPan'\)\)/,
   'runtime RESIZE must remain gated by cameraPan=1')
 console.log('Prototype CSS/Phaser canvas modes agree across 8 URL variants')
 console.log('Production still uses approved portrait FIT; this is not landscape ship readiness')
