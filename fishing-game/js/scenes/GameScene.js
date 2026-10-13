@@ -127,6 +127,11 @@ export default class GameScene extends Phaser.Scene {
     this.totalScore = getScore()
     /** @type {Array<{fishId: string, score: number, timestamp: number}>} */
     this.catches = getCatches()
+    // Keep the originally imported storage bytes intact until gameplay
+    // actually changes progress; crash/unload must not destroy a recoverable
+    // malformed save merely because Fishing was opened.
+    this._initialSavedScore = this.totalScore
+    this._initialCatchCount = this.catches.length
 
     /** @type {'cast'|'wait'|'battle'|'result'} */
     this.phase = 'cast'
@@ -220,7 +225,10 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.setRoundPixels(true)
 
     // ブラウザ終了時にスコアを保存（クラッシュ対策）
-    this._beforeUnloadHandler = () => this._saveProgress()
+    this._beforeUnloadHandler = () => {
+      if (this.totalScore !== this._initialSavedScore
+        || this.catches.length !== this._initialCatchCount) this._saveProgress()
+    }
     window.addEventListener('beforeunload', this._beforeUnloadHandler)
 
     this._enterCast()
