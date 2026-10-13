@@ -30,6 +30,22 @@ def load_approved():
     return source, actor
 
 
+def structure_donor_risks(pier):
+    """Flag known mooring structures copied into the missing actor region.
+
+    These source ROIs are manually traced *review estimates*, not semantic
+    segmentation. They prevent 'opaque donor' from implying 'correct pier'.
+    """
+    h, w = pier.shape
+    yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+    quay_x = np.minimum(np.maximum(xx + 145, 195), 340)
+    quay_y = np.minimum(yy + 0.315 * (quay_x - xx), 573)
+    # Approximate the painted mooring bollard and curved rope in source space.
+    bollard = pier & (quay_x >= 209) & (quay_x <= 271) & (quay_y >= 485) & (quay_y <= 554)
+    rope = pier & (quay_x >= 133) & (quay_x <= 322) & (quay_y >= 518) & (quay_y <= 563)
+    return bollard, rope
+
+
 def make_world(source, seam_offset=0):
     height, width = source.shape[:2]
     y, x = np.mgrid[0:height, 0:width].astype(np.float32)
@@ -101,6 +117,7 @@ def make_world(source, seam_offset=0):
         "measurement_only": True,
         "human_approval_inferred": False,
     }
+    reused_bollard, reused_rope = structure_donor_risks(pier)
     stats = {
         "source_dimensions": [width, height],
         "guessed_quay_edge_offset_px": seam_offset,
@@ -110,6 +127,16 @@ def make_world(source, seam_offset=0):
         "donor_invalid_pixels": 0,
         "source_outside_opening_pixel_exact": True,
         "material_seam_diagnostic": diagnostic,
+        "donor_structure_reuse": {
+            "bollard_source_roi": [209, 485, 271, 554],
+            "rope_source_roi": [133, 518, 322, 563],
+            "bollard_target_pixels": int(reused_bollard.sum()),
+            "rope_target_pixels": int(reused_rope.sum()),
+            "pier_target_pixels": int(pier.sum()),
+            "hand_estimated_roi": True,
+            "measurement_only": True,
+            "safe_for_production": False,
+        },
     }
     return world, opening, pier, water, stats
 
@@ -155,6 +182,14 @@ def run(output_dir):
     mask_visual[pier] = (38, 63, 250, 255)
     mask_visual[water] = (230, 140, 31, 255)
     cv2.imwrite(str(output_dir / "material-mask.png"), mask_visual)
+    # Review under the missing character at source resolution. Red is copied
+    # bollard; yellow is copied rope; purple is both. No gameplay art changes.
+    reused_bollard, reused_rope = structure_donor_risks(pier)
+    donor_review = world.copy()
+    donor_review[reused_bollard, :3] = (0, 0, 255)
+    donor_review[reused_rope, :3] = (0, 255, 255)
+    donor_review[reused_bollard & reused_rope, :3] = (255, 0, 255)
+    cv2.imwrite(str(output_dir / "donor-structure-risk-map.png"), donor_review)
     boards = []
     for dx in OFFSETS:
         frame = composite(world, player, dx)
@@ -182,6 +217,7 @@ def run(output_dir):
             "quay_edge_offset_px": offset,
             "center_preview_file": filename,
             "material_seam_diagnostic": report["material_seam_diagnostic"],
+            "donor_structure_reuse": report["donor_structure_reuse"],
             "water_filled_pixels": report["water_filled_pixels"],
             "pier_filled_pixels": report["pier_filled_pixels"],
             "outside_opening_pixel_exact": True,
