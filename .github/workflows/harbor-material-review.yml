@@ -41,7 +41,11 @@ jobs:
           assert d["true_hidden_dock_art_approved"] is False
           assert d["actor_rod_line_connection_verified"] is False
           assert d["human_art_review"] == "pending"
-          for name in ("world-material-candidate.png", "material-mask.png", "material-motion-board.jpg",
+          diag=d["material_seam_diagnostic"]
+          assert diag["measurement_only"] and not diag["human_approval_inferred"]
+          assert diag["seam_band_pixels"] > 0 and diag["opening_rim_pixels"] > 0
+          assert 0 <= diag["seam_horizontal_abs_rgb_mean"] <= 255
+          for name in ("world-material-candidate.png", "material-mask.png", "seam-boundary-review.png", "material-motion-board.jpg",
                        "player-offset--18.png", "player-offset-+0.png", "player-offset-+18.png"):
               assert (root/name).stat().st_size > 500, name
           print("Material-separated world preview created; not production/animation approval")
