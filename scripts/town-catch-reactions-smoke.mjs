@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 import { getTownCatchReaction, TOWN_CATCH_REACTION_IDS, TOWN_CATCH_ICONS, getTownFeaturedCatch } from '../fishing-game/js/game/townCatchReactions.js'
 import { readFileSync } from 'node:fs'
-import { isCurrentFacilityLevel, didFacilityLevelAdvance } from '../fishing-game/js/game/townUpgradeFeedback.js'
+import { isCurrentFacilityLevel, didFacilityLevelAdvance, getTownUpgradeAction } from '../fishing-game/js/game/townUpgradeFeedback.js'
 
 const fishIds = FISH_LIST.map(fish => fish.id).sort()
 assert.deepEqual([...TOWN_CATCH_REACTION_IDS].sort(), fishIds, 'Every gameplay species must have a Town reaction')
@@ -109,5 +109,24 @@ try {
   if (originalStorage === undefined) delete globalThis.localStorage
   else globalThis.localStorage = originalStorage
 }
+
+// Real Town affordance: a shortfall must lead back to fishing instead of
+// charging or stranding the player in a purchase-error toast.
+assert.deepEqual(getTownUpgradeAction(0, 180, 180),
+  {kind:'upgrade', label:'180ptで発展', missing:0})
+assert.deepEqual(getTownUpgradeAction(0, 180, 0),
+  {kind:'fish', label:'あと180pt・釣りへ', missing:180})
+assert.equal(getTownUpgradeAction(4, 2024, 1500).kind, 'fish')
+assert.equal(getTownUpgradeAction(4, 2024, 2500).kind, 'upgrade')
+for (const bad of [
+  [5, 180, 500], [-1, 180, 500],
+  [0, -1, 500], [0, NaN, 500], [0, 180, Infinity], [0, 180, -1],
+]) assert.equal(getTownUpgradeAction(...bad), null, 'invalid cost/level/points cannot offer a purchase')
+assert.ok(townSource.includes('getTownUpgradeAction(lv, cost, getScore())'),
+  'Town must show the affordance based on the latest saved points')
+assert.ok(townSource.includes("upgradeAction.kind === 'upgrade'"),
+  'only an affordable CTA may invoke upgrade')
+assert.ok(townSource.includes("this.scene.start('MapScene')"),
+  'shortage CTA must have a usable navigation destination')
 
 console.log('Town catch species reactions QA passed:', fishIds.join(', '))
