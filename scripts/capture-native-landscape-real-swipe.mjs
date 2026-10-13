@@ -10,6 +10,8 @@ const { chromium } = await import(pathToFileURL(join(dirname(realpathSync(execut
 const folder = 'artifacts/orientation'
 mkdirSync(folder, { recursive: true })
 const pageUrl = 'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&cameraPan=1&coneLoop=1&castMotion=charged'
+const rotateBeforeCast = process.env.QA_ROTATE_BEFORE_CAST === '1'
+const filenamePrefix = rotateBeforeCast ? 'rotated-real-swipe-844x390' : 'real-swipe-844x390'
 const browser = await chromium.launch({ headless: true })
 try {
   const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1 })
@@ -36,6 +38,25 @@ try {
       return game?.sys?.isActive?.() && game.phase === 'cast' && game._coneCastHudNodes && game._cameraPanPlayer
     }, null, { timeout: 20000 })
 
+    if (rotateBeforeCast) {
+      // One live scene, two browser resize events, then the same real pointer
+      // gesture. A portrait-only letterbox or duplicated listener must fail.
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        return scene?.sys?.isActive?.() && scene?.scale?.width === 390
+          && scene?.scale?.height === 844 && scene?.phase === 'cast'
+      }, null, { timeout: 10000 })
+      await page.setViewportSize({ width: 844, height: 390 })
+      await page.waitForFunction(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const box = document.querySelector('#game-container canvas')?.getBoundingClientRect()
+        return scene?.sys?.isActive?.() && scene?.scale?.width === 844
+          && scene?.scale?.height === 390 && scene?.phase === 'cast'
+          && box?.width >= 830 && box?.height >= 380
+      }, null, { timeout: 10000 })
+      await page.waitForTimeout(250)
+    }
     const before = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       const camera = scene.cameras.main
@@ -87,7 +108,7 @@ try {
     assert.equal(aim.previewValid, true, 'Real swipe must create valid water landing preview')
     assert.ok(aim.pullDistance >= 45, 'Real drag distance did not reach Cast threshold')
 
-    const aimingImage = join(folder, 'real-swipe-844x390-aim.png')
+    const aimingImage = join(folder, filenamePrefix + '-aim.png')
     await page.screenshot({ path: aimingImage, animations: 'disabled' })
     assert.ok(statSync(aimingImage).size > 15000, 'Aiming screenshot missing rendered pixels')
     // Let the real game timer advance before the browser releases the pointer.
@@ -115,12 +136,12 @@ try {
     assert.equal(after.count, before.count - 1, 'One actual cast must use exactly one bait')
     assert.equal(after.scrollY, 0, 'Swipe must not scroll the page')
     assert.ok(after.documentWidth <= after.viewportWidth + 1, 'Landscape must not horizontally scroll')
-    const retrieveImage = join(folder, 'real-swipe-844x390-retrieve.png')
+    const retrieveImage = join(folder, filenamePrefix + '-retrieve.png')
     await page.waitForTimeout(300)
     await page.screenshot({ path: retrieveImage, animations: 'disabled' })
     assert.ok(statSync(retrieveImage).size > 15000, 'Retrieve screenshot missing rendered pixels')
     assert.deepEqual(errors, [], 'Unexpected real-input browser errors')
-    console.log('Native landscape browser pointer swipe reached Retrieve:', JSON.stringify({ before, aim, after }))
+    console.log('Native landscape browser pointer swipe reached Retrieve:', JSON.stringify({ rotateBeforeCast, before, aim, after }))
   } finally {
     await page.close()
   }
