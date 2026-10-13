@@ -35,6 +35,12 @@ assert.ok(anchoredFan.left.angleDeg < anchoredFan.center.angleDeg
   'fan angles must order left, center, right')
 assert.notDeepEqual(anchoredFan.origin, geometry.rodTip,
   'rod tip is a different rendering attachment, not the cast origin')
+const gripAnchored = buildPlayerAnchoredFanGuides(geometry, { x: 120, y: 1100 })
+assert.deepEqual(gripAnchored.origin, { x: 120, y: 1100 })
+assert.deepEqual(gripAnchored.left.waterEnd, anchoredFan.left.waterEnd,
+  'visual hand following must not shift water landing')
+assert.notDeepEqual(gripAnchored.origin, geometry.origin,
+  'physical hand may differ from world cast input')
 assert.equal(buildPlayerAnchoredFanGuides(null), null)
 assert.equal(buildPlayerAnchoredFanGuides({ origin: { x: NaN, y: 1 }, samples: geometry.samples }), null)
 assert.match(source, /geometry\.playerFanGuides = buildPlayerAnchoredFanGuides\(geometry\)/)
@@ -46,6 +52,8 @@ assert.match(source, /state\.hitCommitted = this\.phase === 'wait'/, 'hit must c
 assert.match(source, /event\.code === 'Enter'/, 'keyboard cast alternative missing')
 assert.match(source, /event\.code === 'KeyR'/, 'keyboard retrieve alternative missing')
 assert.match(source, /inSlingshotOrigin/, 'cast input must start from the character origin')
+assert.match(source, /Math\.hypot\(world\.x - grip\.x, world\.y - grip\.y\)/,
+  'on-screen player grip must accept real pull input')
 assert.match(source, /strokePoints\(selection\.points, false\)/, 'aim line must use the real lure trajectory')
 assert.match(source, /buildCastRangeGeometry/, 'fan must use world trajectory geometry')
 assert.match(source, /_coneCastRangeGeometryCache/, 'static world geometry must not be rebuilt every frame')
