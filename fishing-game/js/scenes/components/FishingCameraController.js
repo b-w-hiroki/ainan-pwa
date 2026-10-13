@@ -281,7 +281,9 @@ export class FishingCameraController {
 
   _moveToward(x, y, amount) {
     if (!this._canMove()) return
-    this.camera.scrollX = lerp(this.camera.scrollX, x, amount)
-    this.camera.scrollY = lerp(this.camera.scrollY, y, amount)
+    // A resize/rotation can leave the prior frame's scroll outside newly
+    // constrained bounds. Clamp the interpolated frame as well as the target.
+    this.camera.scrollX = clamp(lerp(this.camera.scrollX, x, amount), 0, worldScrollX(this))
+    this.camera.scrollY = clamp(lerp(this.camera.scrollY, y, amount), 0, worldScrollY(this))
   }
 }
