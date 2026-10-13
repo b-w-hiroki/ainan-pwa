@@ -463,7 +463,15 @@ export function claimDailyBonus() {
 }
 
 export function getCatches() {
-  return readJson('ainan_catches', [])
+  // A malformed import or interrupted write must never crash Fishing/Map/Town.
+  // Keep every valid historical catch (including its unknown future fields)
+  // and do not mutate localStorage while reading; backup recovery stays possible.
+  const stored = readJson('ainan_catches', [])
+  if (!Array.isArray(stored)) return []
+  return stored.filter(entry =>
+    entry !== null && typeof entry === 'object' && !Array.isArray(entry)
+    && typeof entry.fishId === 'string' && entry.fishId.length > 0
+  )
 }
 
 export function getInventory() {
