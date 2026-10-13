@@ -15,6 +15,14 @@
 4. Compare default versus split at 390×844. Reject white seams, black alpha artifacts, duplicated character, rod/line mismatch, water flicker and differences from the current art style.
 5. Preserve asset provenance, use the migration inventory's `manifested` state rather than claiming a production replacement; record `reviewEvidence` only after screenshots and actual gameplay.
 
+## Native landscape interaction geometry prototype — 2026-10-13
+
+`fishing-game/js/presentation/cast/landscapeLayout.js` now computes a **native CSS-pixel world rectangle**, a distinct right-side interaction rail, separate Cast and three Retrieve hit rectangles, HUD and back geometry, and world-local pointer conversion. It leaves the 390×844 production canvas untouched and does **not** claim to render or activate this prototype yet.
+
+The `qa:landscape-layout` contract validates 844×390, 932×430 and safe-area-constrained landscape variants; enforces nonoverlapping world/UI rectangles, 44px minimum targets, and a supported=false signal for small views that cannot satisfy gameplay readability. The acceptance gate for actual implementation remains: replace letterboxed composition with a reviewed Harbor/Bay/Cape wide world, wire Cast charge and camera coordinates to the active Host, then test *real gestures*, rotations and every scene in a browser.
+
+The previously measured 844×390 production canvas is only ~180px wide; the new native geometry **must not be confused with currently shipped UI**.
+
 ## Device orientation acceptance path
 
 | Stage | Portrait | Landscape |
