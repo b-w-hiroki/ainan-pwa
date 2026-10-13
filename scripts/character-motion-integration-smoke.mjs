@@ -73,7 +73,7 @@ for (const [phase, layout] of Object.entries(CHARACTER_MOTION_LAYOUTS)) {
     assert.ok(Number.isFinite(grip.x) && Number.isFinite(grip.y) &&
       Number.isFinite(tip.x) && Number.isFinite(tip.y), phase + ':' + name)
     for (const dx of [-18, 0, 18]) {
-      assert.equal(grip.x + dx - (tip.x + dx), grip.x - tip.x,
+      assert.ok(Math.abs((grip.x + dx) - (tip.x + dx) - (grip.x - tip.x)) < 1e-8,
         phase + ':' + name + ': actor and rod must translate together')
     }
   }
