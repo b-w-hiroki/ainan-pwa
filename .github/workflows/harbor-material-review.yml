@@ -1,0 +1,56 @@
+name: Harbor material-aware occlusion review
+
+on:
+  pull_request:
+    paths:
+      - "scripts/art/reconstruct-harbor-material-review.py"
+      - ".github/workflows/harbor-material-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  material-art-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned review dependencies
+        run: python -m pip install "numpy==1.26.4" "opencv-python-headless==4.10.0.84"
+      - name: Generate water AND dock test candidate
+        run: python scripts/art/reconstruct-harbor-material-review.py --out artifacts/art-review/harbor-material
+      - name: Assert review-only contract and source preservation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("artifacts/art-review/harbor-material")
+          d=json.loads((root/"material-review.json").read_text())
+          assert d["source_outside_opening_pixel_exact"] is True
+          assert d["donor_invalid_pixels"] == 0
+          assert 15000 <= d["opened_pixels"] <= 18000
+          assert d["pier_filled_pixels"] > 4000 and d["water_filled_pixels"] > 4000
+          assert d["pier_filled_pixels"]+d["water_filled_pixels"]==d["opened_pixels"]
+          assert d["player_offsets_review_px"] == [-18,0,18]
+          assert d["production_promoted"] is False
+          assert d["real_game_motion_integrated"] is False
+          assert d["true_hidden_dock_art_approved"] is False
+          assert d["actor_rod_line_connection_verified"] is False
+          assert d["human_art_review"] == "pending"
+          for name in ("world-material-candidate.png", "material-mask.png", "material-motion-board.jpg",
+                       "player-offset--18.png", "player-offset-+0.png", "player-offset-+18.png"):
+              assert (root/name).stat().st_size > 500, name
+          print("Material-separated world preview created; not production/animation approval")
+          PY
+      - name: Upload manual art-review evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harbor-material-aware-review
+          path: artifacts/art-review/harbor-material/
+          retention-days: 14
+          if-no-files-found: error
