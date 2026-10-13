@@ -162,7 +162,13 @@ function pointerWorld(scene, pointer) {
 function inSlingshotOrigin(scene, pointer) {
   const world = pointerWorld(scene, pointer)
   const zoom = Math.max(0.5, scene.cameras.main.zoom || 1)
-  return Math.hypot(world.x - scene.anchorX, world.y - scene.anchorY) <= PULL_CAST_TUNING.gesture.originRadiusPx / zoom
+  const radius = PULL_CAST_TUNING.gesture.originRadiusPx / zoom
+  const grip = scene._cameraPanRodGrip
+  // Visual grip and legacy cast-world anchor both activate the same gesture.
+  // Preserve old keyboard/QA input while making the highlighted player's hand
+  // a genuine touch target at native screen coordinates.
+  return Math.hypot(world.x - scene.anchorX, world.y - scene.anchorY) <= radius
+    || (grip && Math.hypot(world.x - grip.x, world.y - grip.y) <= radius)
 }
 
 function buildOverlay(scene) {
