@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict'
+import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
+
+function inside(a,b) {
+  return a.x>=b.x && a.y>=b.y && a.x+a.width<=b.x+b.width
+    && a.y+a.height<=b.y+b.height
+}
+function overlaps(a,b) {
+  return a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y
+}
+for(const [width,height,safe] of [
+  [844,390,{}],
+  [844,390,{top:12,bottom:16,left:28,right:32}],
+  [932,430,{left:40,right:40,top:8,bottom:8}],
+  [667,375,{left:16,right:16}],
+]) {
+  const a=makeFishingLandscapeLayout(width,height,safe)
+  assert.equal(a.orientation,'landscape')
+  assert.equal(a.supported,true,JSON.stringify({width,height,safe,reason:a.reason}))
+  assert.ok(inside(a.world,a.viewport)&&inside(a.sideDock,a.viewport))
+  assert.ok(!overlaps(a.world,a.sideDock),'camera world and controls must not overlap')
+  assert.ok(inside(a.hud,a.world)&&inside(a.back,a.world),'HUD/back must stay inside the world')
+  assert.ok(inside(a.cast,a.sideDock),'Cast control is not in the side dock')
+  assert.ok(a.cast.width>=LANDSCAPE_MIN_TOUCH)
+  for(const [i,action] of a.actions.entries()){
+    assert.ok(inside(action,a.sideDock),i+': action outside side dock')
+    assert.ok(action.width>=LANDSCAPE_MIN_TOUCH && action.height>=LANDSCAPE_MIN_TOUCH)
+    for(const other of a.actions.slice(i+1))assert.ok(!overlaps(action,other),'Retrieve controls overlap')
+  }
+  const pointer=landscapePointerToWorld({x:a.world.x+120,y:a.world.y+160},a.world)
+  assert.deepEqual(pointer,{x:120,y:160},'pointer must be mapped to world-local coordinate')
+  console.log('Landscape interaction proposal OK:',width,height,JSON.stringify({
+    world:a.world,sideDock:a.sideDock,actionSize:a.actions[0].width,
+  }))
+}
+const portrait=makeFishingLandscapeLayout(390,844)
+assert.equal(portrait.orientation,'portrait')
+assert.equal(portrait.supported,false,'portrait is still owned by the approved layout')
+assert.equal(makeFishingLandscapeLayout(568,320).supported,false,
+  'do not pretend the smallest landscape viewport fits 44px controls and large world')
+for(const [w,h] of [[0,390],[844,0],[NaN,390]])assert.throws(()=>makeFishingLandscapeLayout(w,h))
+console.log('AINAN landscape geometric readiness QA passed; runtime reflow is still pending')
