@@ -5,11 +5,9 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n))
 const rect = (x, y, width, height) => Object.freeze({ x, y, width, height })
 
 export function layoutLandscapeFishing(width, height, insets = {}) {
-  // Reject fractional viewport/safe-area geometry: CSS pointer hit regions
-  // must remain stable when devices rotate and inset readings change.
+  // Check runtime inset readings before allocating world and controls.
   const values = [width, height, insets.left ?? 0, insets.right ?? 0, insets.top ?? 0, insets.bottom ?? 0]
   if (!values.every(Number.isFinite) || values.some(v => v < 0) || width <= height || width < 600 || height < 300) return null
-  if (insets.left + insets.right + insets.top + insets.bottom < 0) return null
   const safe = {
     left: insets.left ?? 0, right: insets.right ?? 0,
     top: insets.top ?? 0, bottom: insets.bottom ?? 0,
