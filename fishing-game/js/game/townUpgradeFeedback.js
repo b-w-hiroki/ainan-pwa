@@ -1,7 +1,8 @@
 // Pure guards for one successful, player-visible Town upgrade transaction.
 // Feedback is earned only when the stored facility level moves forward.
+const VALID_FACILITIES = new Set(['market', 'pier', 'guide', 'festival'])
 const levelOf = (summary, id) => {
-  if (typeof id !== 'string' || !id || ['__proto__', 'constructor', 'prototype'].includes(id)) return null
+  if (!VALID_FACILITIES.has(id)) return null
   const facilities = summary?.facilities
   if (!facilities || !Object.prototype.hasOwnProperty.call(facilities, id)) return 0
   const value = facilities[id]
