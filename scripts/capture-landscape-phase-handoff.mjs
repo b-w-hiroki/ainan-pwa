@@ -84,13 +84,24 @@ try {
     // QA fixture, not proof that RNG naturally produced a fish interest event.
     const started=await page.evaluate(()=>{
       const s=window.__game.scene.getScene('GameScene')
-      const runtime=s.bg._fishRuntime.find(item=>item?.fishDef&&item.gfx)
-      if(!runtime)return {started:false}
-      s._beginRetrieveBite(runtime)
+      const state=s._coneCastState
+      const before=s.phase
+      const candidates=s.bg?._fishRuntime??[]
+      const runtime=candidates.find(item=>item?.fishDef&&item.gfx)
+      if(s.phase==='retrieve'&&runtime){
+        // Transition guard belongs to the actual one-shot fish interaction;
+        // reset only this controlled QA fixture after a finished Cast.
+        state.hitCommitted=false
+        state.hitTransitioning=false
+        s._beginRetrieveBite(runtime)
+      }
       if(s.phase==='wait')s.fish={...s.fish,biteRate:1}
-      return {started:s.phase==='wait',fishId:s.fish?.id}
+      return {started:s.phase==='wait',before,after:s.phase,
+        fishId:s.fish?.id,runtimeCount:candidates.length,
+        runtimeFound:Boolean(runtime),hitCommitted:state.hitCommitted,
+        hitTransitioning:state.hitTransitioning}
     })
-    assert.ok(started.started,'game bite transition did not enter Wait')
+    assert.ok(started.started,'game bite transition did not enter Wait: '+JSON.stringify(started))
     await page.waitForFunction(()=>window.__game.scene.getScene('GameScene').waitTapActive,
       null,{timeout:12000})
     await snapshot('03-hit-window')
