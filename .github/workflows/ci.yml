@@ -142,6 +142,9 @@ jobs:
       - name: Verify Fishing loads damaged saves without overwriting recovery data
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-corrupt-save-recovery.mjs
 
+      - name: Verify Settings backup failures, clipboard fallback and 44px touch targets
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-settings-storage-actions.mjs
+
       - name: Capture named Result fish with rendered state assertions
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
 
