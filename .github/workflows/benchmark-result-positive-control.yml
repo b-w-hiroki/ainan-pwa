@@ -1,0 +1,63 @@
+name: Benchmark Result positive-control (not AI A/B)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/benchmark-result-positive-control.yml'
+      - 'scripts/benchmark-result-positive-control.mjs'
+      - 'scripts/capture-named-results.mjs'
+      - 'scripts/result-screen-pixel-guard.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/benchmark-result-positive-control.yml'
+      - 'scripts/benchmark-result-positive-control.mjs'
+      - 'scripts/capture-named-results.mjs'
+      - 'scripts/result-screen-pixel-guard.mjs'
+permissions:
+  contents: read
+jobs:
+  positive-control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Preserve all existing build and QA gates
+        run: npm run build
+      - run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Start current PWA preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 4173 > "$RUNNER_TEMP/ainan-preview.log" 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/ainan-preview.log"
+          exit 1
+      - name: Capture real Phaser Result and assert scene ownership
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
+      - name: Decode rendered PNG and enforce existing Result gold pixel guard
+        run: node scripts/benchmark-result-positive-control.mjs
+      - name: Artifact for human before/after QA, not model ranking
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ainan-result-positive-control
+          path: |
+            artifacts/e2e/04-result.png
+            artifacts/e2e/22-boss-kue-result.png
+            artifacts/e2e/27-kue-first-trophy.png
+            artifacts/e2e/39-player-result.png
+            artifacts/e2e/45-clearance-result.png
+            artifacts/e2e/57-clearance-result-stable.png
+            artifacts/e2e/56-bass-result-stable.png
+            artifacts/benchmark/ainan-result-positive-control.json
+          if-no-files-found: warn
+          retention-days: 14
