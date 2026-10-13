@@ -246,7 +246,9 @@ export class FishingCameraController {
     if (!this._canMove()) return
     const centerX = lerp(this.player.x, fishX ?? this.player.x + 180, 0.42)
     const centerY = lerp(this.player.y - 160, fishY ?? this.player.y - 360, 0.42)
-    this.camera.pan(centerX, centerY, 320, 'Sine.easeInOut', true)
+    const scrollX = clamp(centerX - this.camera.width / 2, 0, worldScrollX(this))
+    const scrollY = clamp(centerY - this.camera.height / 2, 0, worldScrollY(this))
+    this.camera.pan(scrollX + this.camera.width / 2, scrollY + this.camera.height / 2, 320, 'Sine.easeInOut', true)
   }
 
   focusCatch() {
@@ -254,7 +256,9 @@ export class FishingCameraController {
     if (!this._canMove()) return
     const centerX = this.player.x + 70
     const centerY = this.player.y - 292
-    this.camera.pan(centerX, centerY, 280, 'Sine.easeInOut', true)
+    const scrollX = clamp(centerX - this.camera.width / 2, 0, worldScrollX(this))
+    const scrollY = clamp(centerY - this.camera.height / 2, 0, worldScrollY(this))
+    this.camera.pan(scrollX + this.camera.width / 2, scrollY + this.camera.height / 2, 280, 'Sine.easeInOut', true)
   }
 
   _followSafePoint(worldX, worldY, amount) {
