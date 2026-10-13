@@ -15,6 +15,8 @@ const SAVE_KEYS = [
 ]
 
 const BACKUP_KEYS = ['ainan_save_backup_1', 'ainan_save_backup_2', 'ainan_save_backup_3']
+const SAVE_KEY_SET = new Set(SAVE_KEYS)
+const MAX_IMPORT_CHARS = 2_000_000
 
 function checksumData(data) {
   const source = JSON.stringify(data)
@@ -36,9 +38,16 @@ export function createSaveSnapshot() {
 }
 
 export function validateSnapshot(snapshot) {
-  if (!snapshot?.data || typeof snapshot.data !== 'object') return false
-  if (!snapshot.checksum) return true
-  return snapshot.checksum === checksumData(snapshot.data)
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return false
+  if (!snapshot.data || Object.getPrototypeOf(snapshot.data) !== Object.prototype) return false
+  if (snapshot.version != null &&
+    (!Number.isInteger(snapshot.version) || snapshot.version < 1 || snapshot.version > SAVE_VERSION)) return false
+  // Legacy v1/v2 backups predate the checksum. Every current v3 snapshot must
+  // carry one; the checksum detects accidental corruption, not malicious edits.
+  if (snapshot.checksum == null) return snapshot.version == null || snapshot.version < SAVE_VERSION
+  return typeof snapshot.checksum === 'string' &&
+    /^[0-9a-f]{8}$/.test(snapshot.checksum) &&
+    snapshot.checksum === checksumData(snapshot.data)
 }
 
 export function backupSave() {
@@ -77,7 +86,11 @@ function applySnapshot(snapshot) {
     diagRecord('save_validation_failure', { version: snapshot?.version ?? null })
     return false
   }
-  Object.entries(snapshot.data).forEach(([key, value]) => localStorage.setItem(key, String(value)))
+  // Old snapshots may contain retired keys. Never let an imported/archived
+  // payload write unrelated browser storage (including backup slots).
+  Object.entries(snapshot.data).forEach(([key, value]) => {
+    if (SAVE_KEY_SET.has(key)) localStorage.setItem(key, String(value))
+  })
   initializeDefaults()
   localStorage.setItem('ainan_save_version', String(SAVE_VERSION))
   return true
@@ -128,10 +141,17 @@ export function exportSaveData() {
 
 export function importSaveData(text) {
   try {
-    const snapshot = JSON.parse(String(text ?? '').trim())
-    if (snapshot.format !== 'ainan-save') return false
-    if (!validateSnapshot(snapshot)) return false
-    backupSave()
+    const raw = String(text ?? '').trim()
+    if (!raw || raw.length > MAX_IMPORT_CHARS) return false
+    const snapshot = JSON.parse(raw)
+    if (snapshot?.format !== 'ainan-save' || !validateSnapshot(snapshot)) return false
+    // Imports are a stronger trust boundary than locally-created legacy
+    // backups: require a known schema and only current save-key strings.
+    if (!Number.isInteger(snapshot.version)) return false
+    if (!Object.entries(snapshot.data).every(([key, value]) =>
+      SAVE_KEY_SET.has(key) && typeof value === 'string')) return false
+    // Never replace the active save unless we can first retain a backup.
+    if (!backupSave()) return false
     return applySnapshot(snapshot)
   } catch (error) {
     diagCount('save_import_failure')
