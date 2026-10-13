@@ -100,6 +100,9 @@ const source = (await import('node:fs')).readFileSync(
   new URL('../fishing-game/js/scenes/GameScene.js', import.meta.url), 'utf8')
 assert.ok(source.includes('this.totalScore = getScore()') && source.includes('this.catches = getCatches()'),
   'GameScene must use validated save readers, not raw JSON.parse/parseInt')
+assert.ok(source.includes('this.totalScore !== this._initialSavedScore')
+  && source.includes('this.catches.length !== this._initialCatchCount'),
+  'Unchanged Fishing scenes must not overwrite damaged save bytes during unload')
 
 console.log('Fishing journey smoke QA passed')
 console.log('  first catch -> recorded town review -> town growth -> next challenge: OK')
