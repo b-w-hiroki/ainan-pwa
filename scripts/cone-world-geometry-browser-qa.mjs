@@ -1,11 +1,20 @@
 import fs from 'node:fs/promises'
+import { existsSync, realpathSync } from 'node:fs'
 import path from 'node:path'
-import { chromium } from '../../oh-edo-work/node_modules/playwright/index.mjs'
+import { pathToFileURL } from 'node:url'
 
-const base = process.env.AINAN_QA_URL ?? 'http://127.0.0.1:43941/fishing-game/index.html'
-const output = path.resolve('qa-artifacts/cone-world-geometry')
+// Resolve the CI-installed Playwright package without developer-machine
+// absolute paths. Other screenshot harnesses use the same executable contract.
+const executable = process.env.PATH.split(':')
+  .map(folder => path.join(folder, 'playwright')).find(existsSync)
+if (!executable) throw new Error('Playwright executable missing from CI PATH')
+const { chromium } = await import(pathToFileURL(
+  path.join(path.dirname(realpathSync(executable)), 'index.mjs')).href)
+
+const base = process.env.AINAN_QA_URL ?? 'http://127.0.0.1:4173/fishing-game/'
+const output = path.resolve('artifacts/orientation/cone-world-geometry')
 await fs.mkdir(output, { recursive: true })
-const browser = await chromium.launch({ channel: 'msedge', headless: true })
+const browser = await chromium.launch({ headless: true })
 
 const seed = rod => {
   localStorage.setItem('ainan_sound_enabled', '0')
