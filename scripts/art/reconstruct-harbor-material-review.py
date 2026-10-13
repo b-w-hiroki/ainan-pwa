@@ -18,6 +18,31 @@ ROOT = Path(__file__).resolve().parents[2]
 MASTER = ROOT / "fishing-game/assets/approved-mock/cast-harbor-composite-base.png"
 PLAYER = ROOT / "fishing-game/assets/generated/harbor-aji-master-v2/cast-player-silhouette-candidate.png"
 OFFSETS = (-18, 0, 18)
+VISIBLE_QUAY_EDGE_ANCHORS = (
+    (150, 470), (180, 486), (200, 507),
+    (290, 540), (310, 550), (350, 568),
+)
+
+
+def fitted_quay_edge():
+    samples = np.asarray(VISIBLE_QUAY_EDGE_ANCHORS, dtype=np.float64)
+    slope, intercept = np.polyfit(samples[:, 0], samples[:, 1], 1)
+    residual = np.abs(samples[:, 1] - (slope * samples[:, 0] + intercept))
+    if not 0.38 < slope < 0.54 or float(residual.max()) > 12:
+        raise ValueError("Inconsistent visible-edge review anchors")
+    return float(intercept), float(slope), float(residual.max())
+
+
+def edge_coordinates(edge_model):
+    if edge_model == "legacy":
+        return 423.0, 0.315
+    if edge_model == "visible-anchors-review":
+        intercept, slope, _ = fitted_quay_edge()
+        return intercept, slope
+    raise ValueError("Unknown review-only dock-edge model")
+
+
+
 
 
 def load_approved():
@@ -30,7 +55,7 @@ def load_approved():
     return source, actor
 
 
-def structure_donor_risks(pier):
+def structure_donor_risks(pier, edge_slope=0.315):
     """Flag known mooring structures copied into the missing actor region.
 
     These source ROIs are manually traced *review estimates*, not semantic
@@ -39,14 +64,14 @@ def structure_donor_risks(pier):
     h, w = pier.shape
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     quay_x = np.minimum(np.maximum(xx + 145, 195), 340)
-    quay_y = np.minimum(yy + 0.315 * (quay_x - xx), 573)
+    quay_y = np.minimum(yy + edge_slope * (quay_x - xx), 573)
     # Approximate the painted mooring bollard and curved rope in source space.
     bollard = pier & (quay_x >= 209) & (quay_x <= 271) & (quay_y >= 485) & (quay_y <= 554)
     rope = pier & (quay_x >= 133) & (quay_x <= 322) & (quay_y >= 518) & (quay_y <= 563)
     return bollard, rope
 
 
-def make_world(source, seam_offset=0):
+def make_world(source, seam_offset=0, edge_model='legacy'):
     height, width = source.shape[:2]
     y, x = np.mgrid[0:height, 0:width].astype(np.float32)
     opening = np.zeros((height, width), np.uint8)
@@ -63,7 +88,8 @@ def make_world(source, seam_offset=0):
     # H02 structure review: three distinct materials, not one flat "pier".
     # Both edge lines are explicit, provisional perspective hypotheses.
     # Never interpret their raster coverage as recovered hidden source art.
-    rear_edge = 423.0 + seam_offset + 0.315 * x
+    edge_intercept, edge_slope = edge_coordinates(edge_model)
+    rear_edge = edge_intercept + seam_offset + edge_slope * x
     front_edge = 495.0 + 0.22 * x
     pier = (opening > 0) & (y >= rear_edge)
     water = (opening > 0) & (~pier)
@@ -84,7 +110,7 @@ def make_world(source, seam_offset=0):
     source_x[water] = np.minimum(x[water] + 172, width - 1)
     # Quay: follow the dock's receding edge to painted quay samples.
     quay_x = np.minimum(np.maximum(x + 145, 195), 340)
-    quay_y = np.minimum(y + 0.315 * (quay_x - x), 573)
+    quay_y = np.minimum(y + edge_slope * (quay_x - x), 573)
     source_x[pier], source_y[pier] = quay_x[pier], quay_y[pier]
 
     donor_rgb = cv2.remap(source[:, :, :3], source_x, source_y,
@@ -110,7 +136,7 @@ def make_world(source, seam_offset=0):
     # optically correct*. Measure only inside the missing region, not the
     # approved image where real perspective edges are intentional.
     # Flag (a) the guessed sea/quay material boundary and (b) the perimeter.
-    boundary_y = 423.0 + seam_offset + 0.315 * x
+    boundary_y = edge_intercept + seam_offset + edge_slope * x
     near_material_seam = (opening > 0) & (np.abs(y - boundary_y) <= 3)
     interior = (opening > 0)
     seam_jump = cv2.absdiff(world[:, 1:, :3], world[:, :-1, :3])
@@ -130,10 +156,10 @@ def make_world(source, seam_offset=0):
         "measurement_only": True,
         "human_approval_inferred": False,
     }
-    reused_bollard, reused_rope = structure_donor_risks(pier)
+    reused_bollard, reused_rope = structure_donor_risks(pier, edge_slope)
     topology = {
         "units": "approved source pixels, 391x783",
-        "rear_edge_hypothesis": {"slope": 0.315, "intercept": 423.0 + seam_offset},
+        "rear_edge_hypothesis": {"slope": round(edge_slope, 6), "intercept": round(edge_intercept + seam_offset, 4)},
         "front_edge_hypothesis": {"slope": 0.22, "intercept": 495.0},
         "water_target_pixels": int(water.sum()),
         "deck_target_pixels": int(deck.sum()),
@@ -148,6 +174,9 @@ def make_world(source, seam_offset=0):
     stats = {
         "source_dimensions": [width, height],
         "guessed_quay_edge_offset_px": seam_offset,
+        "quay_edge_model": edge_model,
+        "quay_edge_intercept": round(edge_intercept, 4),
+        "quay_edge_slope": round(edge_slope, 6),
         "opened_pixels": opening_count,
         "water_filled_pixels": int(water.sum()),
         "pier_filled_pixels": int(pier.sum()),
@@ -274,6 +303,47 @@ def run(output_dir):
         })
     cv2.imwrite(str(output_dir / "quay-edge-variants-board.jpg"),
                 np.concatenate(comparison_frames, axis=1))
+    # H02: review a second world with geometry extrapolated from six known
+    # visible positions. Neither preview changes source pixels outside the hole.
+    anchored, same_opening, alt_pier, alt_water, anchor_stats = make_world(
+        source, edge_model="visible-anchors-review"
+    )
+    assert np.array_equal(same_opening, opening)
+    assert np.array_equal(anchored[opening == 0], source[opening == 0])
+    cv2.imwrite(str(output_dir / "visible-edge-world-review.png"), anchored)
+    visual_motion = [
+        display_against_gray(composite(anchored, player, dx)) for dx in OFFSETS
+    ]
+    cv2.imwrite(str(output_dir / "visible-edge-motion-board.jpg"),
+                np.concatenate(visual_motion, axis=1))
+    overlay = world.copy()
+    intercept, slope, residual = fitted_quay_edge()
+    for base, rise, color in (
+        (423.0, 0.315, (0, 0, 255, 255)),
+        (intercept, slope, (0, 230, 255, 255)),
+    ):
+        for xx in range(0, source.shape[1] - 5, 9):
+            xa, xb = xx, min(xx + 5, source.shape[1] - 1)
+            cv2.line(overlay, (xa, round(base + rise * xa)),
+                     (xb, round(base + rise * xb)), color, 2, cv2.LINE_AA)
+    for ax, ay in VISIBLE_QUAY_EDGE_ANCHORS:
+        if opening[ay, ax] or source[ay, ax, 3] < 245:
+            raise AssertionError("Review edge anchors must be known source")
+        cv2.circle(overlay, (ax, ay), 4, (70, 255, 60, 255), -1)
+    cv2.imwrite(str(output_dir / "quay-visible-edge-overlay.png"), overlay)
+    stats["visible_edge_review"] = {
+        "anchors": [list(pair) for pair in VISIBLE_QUAY_EDGE_ANCHORS],
+        "hand_estimated": True,
+        "intercept": round(intercept, 4),
+        "slope": round(slope, 6),
+        "maximum_anchor_residual_px": round(residual, 3),
+        "legacy_pier_pixels": stats["pier_filled_pixels"],
+        "anchored_pier_pixels": anchor_stats["pier_filled_pixels"],
+        "anchored_structure_reuse": anchor_stats["donor_structure_reuse"],
+        "outside_opening_pixel_exact": True,
+        "art_approved": False,
+        "production_promoted": False,
+    }
     stats["quay_edge_variants"] = variants
     stats["variant_art_review_complete"] = False
     assert np.count_nonzero(opening) == stats["water_filled_pixels"] + stats["pier_filled_pixels"]
