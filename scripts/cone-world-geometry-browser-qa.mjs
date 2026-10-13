@@ -135,11 +135,29 @@ async function runCase(viewport, rod, edge) {
       invalidRangePoints: invalidRangePoints.length,
       bait: scene.env.player.inventory.baits.shrimp,
       rangePx: scene.castRangePx,
+      wideBackdrop: {
+        active: Boolean(scene._cameraPanWideBackground?.active),
+        x: scene._cameraPanWideBackground?.x ?? null,
+        width: scene._cameraPanWideBackground?.displayWidth ?? null,
+        mirrored: scene._cameraPanWideBackground?.flipX === true,
+        worldWidth: scene.fishingCamera.world.width,
+      },
     }
   })
   if (!before.preview.valid || before.invalidRangePoints || before.transformError > 1) throw new Error(`invalid preview geometry ${JSON.stringify({ viewport, rod, edge, before })}`)
   // A wider-than-world canvas must never inherit a negative horizontal scroll
   // from the old clamp(0, worldWidth - viewportWidth) implementation.
+  // The clean background must cover the native wide screen; do not hide a
+  // 32px opaque viewport stripe just because landing/camera numbers pass.
+  if (viewport.width > before.wideBackdrop.worldWidth) {
+    if (!before.wideBackdrop.active || !before.wideBackdrop.mirrored
+      || before.wideBackdrop.x !== before.wideBackdrop.worldWidth
+      || before.wideBackdrop.width < viewport.width - before.wideBackdrop.worldWidth) {
+      throw new Error('wide landscape has uncovered background: ' + JSON.stringify(before.wideBackdrop))
+    }
+  } else if (before.wideBackdrop.active) {
+    throw new Error('unused panoramic edge should not render in a narrow viewport')
+  }
   if (viewport.width > 900 && Math.abs(before.scroll.x) > 0.5) {
     throw new Error('wide landscape aim camera requested invalid horizontal scroll: '+JSON.stringify(before.scroll))
   }
