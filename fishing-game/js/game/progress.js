@@ -382,7 +382,8 @@ export function getScore() {
   // Imported/backed-up saves can contain malformed strings or non-finite
   // values. Never pass NaN/Infinity into facility pricing or rewards.
   const value = Number(localStorage.getItem('ainan_score') ?? 0)
-  return Number.isSafeInteger(value) && value >= 0 ? value : 0
+  return Number.isFinite(value) && value >= 0 && Number.isSafeInteger(Math.trunc(value))
+    ? Math.floor(value) : 0
 }
 
 // ─── スタミナ（時間回復式）──────────────────────────────────────
