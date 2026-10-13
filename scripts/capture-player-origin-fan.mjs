@@ -61,7 +61,9 @@ try {
           && point.y >= water.minY && point.y <= water.maxY
         return {
           phase: scene.phase,
-          origin, fan, left: { inner: inner[0], outer: outer[0] },
+          origin, fan, playerGrip: scene._cameraPanRodGrip,
+          visualFan: scene._coneCastPreview.visualFanGuides,
+          left: { inner: inner[0], outer: outer[0] },
           right: { inner: inner.at(-1), outer: outer.at(-1) },
           valid: scene._coneCastPreview.valid,
           sidesValid: [fan.left, fan.center, fan.right].every(s => withinWater(s.waterStart) && withinWater(s.waterEnd)),
@@ -78,6 +80,14 @@ try {
       }
       assert.deepEqual(geometry.fan.left.waterStart, geometry.left.inner)
       assert.deepEqual(geometry.fan.right.waterEnd, geometry.right.outer)
+      assert.ok(geometry.playerGrip && geometry.visualFan, 'animated rod grip and visual cone missing')
+      assert.deepEqual(geometry.visualFan.origin, geometry.playerGrip,
+        'painted fan must open from the character hand, not detached world input origin')
+      assert.ok(Math.hypot(geometry.visualFan.origin.x - geometry.origin.x,
+        geometry.visualFan.origin.y - geometry.origin.y) > 8,
+        'visual review must distinguish the physical hand from the world cast anchor')
+      assert.deepEqual(geometry.visualFan.left.waterStart, geometry.left.inner)
+      assert.deepEqual(geometry.visualFan.right.waterEnd, geometry.right.outer)
       const image = join(folder, `player-anchored-fan-${width}x${height}.png`)
       let captured = false
       for (let attempt = 0; attempt < 4; attempt++) {
