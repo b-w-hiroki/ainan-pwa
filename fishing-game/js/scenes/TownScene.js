@@ -20,6 +20,7 @@ import { getTownFacilityArt, getTownFacilityArtSet } from '../game/townFacilityA
 import { REWARD_THEME } from '../game/rewardPresentation.js'
 import { getFishingJourney } from '../game/fishingJourney.js'
 import { getTownFeaturedCatch } from '../game/townCatchReactions.js'
+import { isCurrentFacilityLevel } from '../game/townUpgradeFeedback.js'
 import { addArtPanel, loadUiArt } from '../ui/UiArt.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -656,6 +657,11 @@ export default class TownScene extends Phaser.Scene {
   }
 
   _upgrade(id, currentLevel) {
+    // The modal can receive two taps before scene.restart completes. Never
+    // spend points twice using an obsolete displayed level.
+    if (!isCurrentFacilityLevel(getTownSummary(), id, currentLevel)) {
+      return this._toast('町の状態が更新されました')
+    }
     const milestoneRewards = getFacilityMilestoneRewards(id, currentLevel + 1)
     const result = upgradeTownFacility(id)
     if (!result.ok) return this._toast(result.reason === 'max' ? '最大レベルです' : 'ポイントが足りません')
