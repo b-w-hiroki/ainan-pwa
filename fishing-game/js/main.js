@@ -34,7 +34,7 @@ import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGua
 const pwaUpdate = installPwaUpdateGuard()
 
 const cameraPanPrototype = typeof window !== 'undefined'
-  && (new URLSearchParams(window.location.search).get('cameraPan') === '1'
+  && (['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan'))
     || new URLSearchParams(window.location.search).get('coneLoop') === '1')
 
 installFishingRuntime(GameScene)
