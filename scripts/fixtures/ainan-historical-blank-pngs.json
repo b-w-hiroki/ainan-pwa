@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "source": "Captured pixels from original failing GitHub Actions artifacts, independently inspected before archival; gzip is lossless and checksums are asserted during CI.",
+  "original_failure_replayed": false,
+  "artifacts": [
+    {
+      "file": "39-player-result.png",
+      "source_run": "https://github.com/b-w-hiroki/ainan-pwa/actions/runs/38193500479",
+      "artifact_id": 11722681801,
+      "historical_sha": "4f3049c8671c8eb6b1567accaaf09122f03e807e",
+      "size": 2742,
+      "sha256": "dd005f3af16034c98b7179aca03ec4b7e414c0ba3577fd29e44e1134d8c19e9f",
+      "uniform_rgb": [
+        255,
+        245,
+        190
+      ],
+      "gzip_base64": "H4sIAAAAAAAC/+sM8HPn5ZLiYmBg4PX0cAliYGBsY2Bg9uFgAopc55vrycDAle3p4hhSMefNFUNGBgWeAxtkP+tzht9JWOyupPT7nWRDm2wDjyqjoheT0xSWFg1OjkAhgUUqCi6eDh2TGgRGJUYlKJVY5jwaDKMSoxKjEqMSoxKjEsNX4gkzA8P//5URJn7A1icbqNnJzKAzjf+xdLPAcqAIg6ern8s6p4QmANtM/sC2CgAA"
+    },
+    {
+      "file": "03-battle.png",
+      "source_run": "https://github.com/b-w-hiroki/ainan-pwa/actions/runs/38360053785",
+      "artifact_id": 11794896899,
+      "historical_sha": "f195c6cb1f1a48e18121c3efcbf1ac30a0e789ff",
+      "size": 2744,
+      "sha256": "4cee34e316eac955852393f7eade03462b00de464d2c45528ccad2feb663dcfb",
+      "uniform_rgb": [
+        7,
+        55,
+        84
+      ],
+      "gzip_base64": "H4sIAAAAAAAC/+sM8HPn5ZLiYmBg4PX0cAliYGBsY2Bg9uFgAopc55vrycDAlevp4hhSMefNFUNBBgUeho18e52F3D6sZ5W2V1Ha9HwfY8YNxhMBQgKLVBRcPB06JjUIqDIqejE5TWFp0eDkCByVGJWgUCLBajQYRiVGJUYlRiVGJUYlhrGEHbDZ+f+/XfX/WiCDDdTwZGYo+sZ7uPDewxigCIOnq5/LOqeEJgBBrmYjuAoAAA=="
+    }
+  ]
+}

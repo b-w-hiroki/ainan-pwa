@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/benchmark-result-positive-control.yml'
       - 'scripts/benchmark-result-positive-control.mjs'
+      - 'scripts/benchmark-historical-image-forensics.mjs'
+      - 'scripts/fixtures/ainan-historical-blank-pngs.json'
       - 'scripts/capture-named-results.mjs'
       - 'scripts/result-screen-pixel-guard.mjs'
   push:
@@ -12,6 +14,8 @@ on:
     paths:
       - '.github/workflows/benchmark-result-positive-control.yml'
       - 'scripts/benchmark-result-positive-control.mjs'
+      - 'scripts/benchmark-historical-image-forensics.mjs'
+      - 'scripts/fixtures/ainan-historical-blank-pngs.json'
       - 'scripts/capture-named-results.mjs'
       - 'scripts/result-screen-pixel-guard.mjs'
 permissions:
@@ -45,6 +49,8 @@ jobs:
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
       - name: Decode rendered PNG and enforce existing Result gold pixel guard
         run: node scripts/benchmark-result-positive-control.mjs
+      - name: Reject two actual archived CI blank PNG frames and compare fresh Result
+        run: node scripts/benchmark-historical-image-forensics.mjs
       - name: Artifact for human before/after QA, not model ranking
         if: always()
         uses: actions/upload-artifact@v4
@@ -59,5 +65,6 @@ jobs:
             artifacts/e2e/57-clearance-result-stable.png
             artifacts/e2e/56-bass-result-stable.png
             artifacts/benchmark/ainan-result-positive-control.json
+            artifacts/benchmark/ainan-historical-png-forensics.json
           if-no-files-found: warn
           retention-days: 14
