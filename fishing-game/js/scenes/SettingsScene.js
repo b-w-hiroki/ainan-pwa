@@ -30,7 +30,11 @@ export default class SettingsScene extends Phaser.Scene {
         setHapticsEnabled(!isHapticsEnabled()); this.scene.restart()
       }],
       ['動きを減らす', isReducedMotion() ? 'ON' : 'OFF', () => { setReducedMotion(!isReducedMotion()); this.scene.restart() }],
-      ['バックアップ', '3世代 / 有効 ' + validBackups, () => { backupSave(); this._toast('バックアップしました'); this.time.delayedCall(350, () => this.scene.restart()) }],
+      ['バックアップ', '3世代 / 有効 ' + validBackups, () => {
+        if (!backupSave()) { this._toast('保存に失敗・空き容量を確認'); return }
+        this._toast('バックアップしました')
+        this.time.delayedCall(350, () => this.scene.restart())
+      }],
       ['最新を復旧', validBackups ? '復元可能' : 'バックアップなし', () => { if (restoreLatestBackup()) { this._toast('復元しました'); this.time.delayedCall(350, () => this.scene.start('HomeScene')) } else this._toast('復元できません') }],
       ['データを書き出す', 'JSONをコピー', () => this._export()],
       ['データを読み込む', 'JSONから復元', () => this._import()],
@@ -53,12 +57,22 @@ export default class SettingsScene extends Phaser.Scene {
     this.add.text(x + 16, y + 17, title, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     this.add.text(x + 16, y + 37, value, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.oceanDeep }).setDepth(5)
     const btn = this.add.text(x + w - 16, y + h / 2, '実行 ›', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.warning }).setOrigin(1, 0.5).setDepth(6)
-    btn.setInteractive({ useHandCursor: true }).on('pointerdown', action)
+    // The original 10px text alone was the hit target. Give every Settings
+    // action a 96×52 CSS-pixel touch zone without creating two listeners.
+    this.add.rectangle(x + w - 96, y, 96, h, 0x000000, 0.001)
+      .setOrigin(0).setDepth(7).setInteractive({ useHandCursor: true })
+      .on('pointerdown', action)
   }
   async _export() {
     const value = exportSaveData()
+    // Optional chaining used to report success even when clipboard.writeText
+    // was absent (notably on some standalone/Safari contexts).
+    if (typeof navigator.clipboard?.writeText !== 'function') {
+      window.prompt('このJSONを保存してください', value)
+      return
+    }
     try {
-      await navigator.clipboard?.writeText?.(value)
+      await navigator.clipboard.writeText(value)
       this._toast('セーブJSONをコピーしました')
     } catch {
       window.prompt('このJSONを保存してください', value)
@@ -66,8 +80,12 @@ export default class SettingsScene extends Phaser.Scene {
   }
   async _exportDiagnostics() {
     const value = exportDiagnostics()
+    if (typeof navigator.clipboard?.writeText !== 'function') {
+      window.prompt('この診断JSONを保存してください', value)
+      return
+    }
     try {
-      await navigator.clipboard?.writeText?.(value)
+      await navigator.clipboard.writeText(value)
       this._toast('診断ログをコピーしました')
     } catch {
       window.prompt('この診断JSONを保存してください', value)
@@ -77,7 +95,7 @@ export default class SettingsScene extends Phaser.Scene {
     const value = window.prompt('AINANのセーブJSONを貼り付けてください')
     if (!value) return
     if (importSaveData(value)) { this._toast('インポートしました'); this.time.delayedCall(350, () => this.scene.start('HomeScene')) }
-    else this._toast('データが不正です')
+    else this._toast('読み込みに失敗しました')
   }
   _toast(message) {
     const W = this.scale.width, H = this.scale.height

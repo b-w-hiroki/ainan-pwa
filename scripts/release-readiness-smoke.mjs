@@ -43,6 +43,23 @@ for (const token of ['ainan_save_backup_1','ainan_save_backup_2','ainan_save_bac
   assert.ok(save.includes(token), 'save readiness missing: ' + token)
 }
 
+const settings = read('fishing-game/js/scenes/SettingsScene.js')
+const settingsCapture = read('scripts/capture-settings-storage-actions.mjs')
+assert.ok(settings.includes('if (!backupSave())'),
+  'Settings must not claim backup success after storage write failure')
+assert.ok(settings.includes("typeof navigator.clipboard?.writeText !== 'function'"),
+  'Clipboard-unavailable Settings must show the prompt fallback')
+assert.ok(!settings.includes('await navigator.clipboard?.writeText?.('),
+  'Optional clipboard write must not falsely report success')
+assert.ok(settings.includes('this.add.rectangle(x + w - 96, y, 96, h'),
+  'Settings actions need full 96x52 touch regions')
+for (const part of ['window.__ainanFailBackupCount', "dialog.defaultValue()", '99-settings-backup-failed.png']) {
+  assert.ok(settingsCapture.includes(part), 'Missing actual Settings browser QA: ' + part)
+}
+const ci = read('.github/workflows/ci.yml')
+assert.ok(ci.includes('node scripts/capture-settings-storage-actions.mjs'),
+  'Settings storage/touch QA must run in full mobile E2E')
+
 console.log('Release readiness smoke QA passed')
 console.log('  safe-area / dynamic viewport: OK')
 console.log('  PWA manifest + icon + service worker: OK')
