@@ -30,6 +30,11 @@ export const FISHING_WORLD = {
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
 const lerp = (a, b, t) => a + (b - a) * t
+const scrollMax = (worldSize, cameraSize) => Math.max(0, worldSize - cameraSize)
+// A landscape camera can be wider than the current 900px world. Negative
+// maximum scroll values would push the entire world beyond its origin.
+const worldScrollX = controller => scrollMax(controller.world.width, controller.camera.width)
+const worldScrollY = controller => scrollMax(controller.world.height, controller.camera.height)
 export const AIM_CAMERA_TUNING = Object.freeze({
   portrait: Object.freeze({ left: 54, right: 42, top: 92, bottom: 214 }),
   landscape: Object.freeze({ left: 58, right: 14, top: 76, bottom: 142 }),
@@ -80,8 +85,8 @@ export class FishingCameraController {
     this.state = 'playerFocus'
     if (!this._canMove()) return
     const responsive = cameraPanPrototypeEnabled()
-    const desiredX = clamp(this.player.x - (responsive ? this.camera.width * 0.30 : 118), 0, this.world.width - this.camera.width)
-    const desiredY = clamp(this.player.y - (responsive ? this.camera.height * 0.78 : 650), 0, this.world.height - this.camera.height)
+    const desiredX = clamp(this.player.x - (responsive ? this.camera.width * 0.30 : 118), 0, worldScrollX(this))
+    const desiredY = clamp(this.player.y - (responsive ? this.camera.height * 0.78 : 650), 0, worldScrollY(this))
     if (immediate) {
       this.camera.setScroll(desiredX, desiredY)
       return
@@ -106,8 +111,8 @@ export class FishingCameraController {
     const power = clamp(Number(power01) || 0, 0, 1)
     const distance = (tuning.panDistancePx ?? 0) * (0.72 + power * 0.28)
     const angle = angleDeg * Math.PI / 180
-    const desiredX = clamp(this.camera.scrollX + Math.sin(angle) * distance, 0, this.world.width - this.camera.width)
-    const desiredY = clamp(this.camera.scrollY - Math.cos(angle) * distance, 0, this.world.height - this.camera.height)
+    const desiredX = clamp(this.camera.scrollX + Math.sin(angle) * distance, 0, worldScrollX(this))
+    const desiredY = clamp(this.camera.scrollY - Math.cos(angle) * distance, 0, worldScrollY(this))
     this.camera.pan(
       desiredX + this.camera.width / 2,
       desiredY + this.camera.height / 2,
@@ -123,10 +128,10 @@ export class FishingCameraController {
     if (cameraPanPrototypeEnabled()) {
       const distance = Math.hypot(x - this.player.x, y - this.player.y)
       const travel = clamp((distance - 480) / 260, 0, 1)
-      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, this.world.width - this.camera.width)
-      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, this.world.height - this.camera.height)
-      const lureX = clamp(x - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
-      const lureY = clamp(y - this.camera.height * 0.71, 0, this.world.height - this.camera.height)
+      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, worldScrollX(this))
+      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, worldScrollY(this))
+      const lureX = clamp(x - this.camera.width * 0.52, 0, worldScrollX(this))
+      const lureY = clamp(y - this.camera.height * 0.71, 0, worldScrollY(this))
       const amount = this.scene._castMotionProfile?.camera?.flightFollowAmount ?? (isReducedMotion() ? 0.52 : 0.18)
       this._moveToward(lerp(playerX, lureX, travel), lerp(playerY, lureY, travel), amount)
       return
@@ -162,8 +167,8 @@ export class FishingCameraController {
     if (screenY < safe.top) targetY = worldY - (safe.top + inset)
     else if (screenY > safe.bottom) targetY = worldY - (safe.bottom - inset)
 
-    targetX = clamp(targetX, 0, Math.max(0, this.world.width - this.camera.width))
-    targetY = clamp(targetY, 0, Math.max(0, this.world.height - this.camera.height))
+    targetX = clamp(targetX, 0, worldScrollX(this))
+    targetY = clamp(targetY, 0, worldScrollY(this))
     if (targetX !== this.camera.scrollX || targetY !== this.camera.scrollY) this._aimTarget = { x: targetX, y: targetY }
     if (!this._aimTarget) return
 
@@ -189,10 +194,10 @@ export class FishingCameraController {
     if (cameraPanPrototypeEnabled()) {
       const distance = Math.hypot(lureX - this.player.x, lureY - this.player.y)
       const travel = clamp((distance - 480) / 260, 0, 1)
-      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, this.world.width - this.camera.width)
-      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, this.world.height - this.camera.height)
-      const lureTargetX = clamp(lureX - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
-      const lureTargetY = clamp(lureY - this.camera.height * 0.68, 0, this.world.height - this.camera.height)
+      const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, worldScrollX(this))
+      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, worldScrollY(this))
+      const lureTargetX = clamp(lureX - this.camera.width * 0.52, 0, worldScrollX(this))
+      const lureTargetY = clamp(lureY - this.camera.height * 0.68, 0, worldScrollY(this))
       this._moveToward(lerp(playerX, lureTargetX, travel), lerp(playerY, lureTargetY, travel), isReducedMotion() ? 0.48 : 0.08)
       return
     }
@@ -205,8 +210,8 @@ export class FishingCameraController {
     this.state = 'lureFocus'
     if (!this._canMove()) return
     if (cameraPanPrototypeEnabled()) {
-      const desiredX = clamp(x - this.camera.width * 0.52, 0, this.world.width - this.camera.width)
-      const desiredY = clamp(y - this.camera.height * 0.68, 0, this.world.height - this.camera.height)
+      const desiredX = clamp(x - this.camera.width * 0.52, 0, worldScrollX(this))
+      const desiredY = clamp(y - this.camera.height * 0.68, 0, worldScrollY(this))
       if (isReducedMotion()) {
         this.camera.setScroll(desiredX, desiredY)
       } else {
@@ -229,8 +234,8 @@ export class FishingCameraController {
     if (!this._canMove()) return
     const focusX = lerp(lureX, fishX, 0.42)
     const focusY = lerp(lureY, fishY, 0.42)
-    const desiredX = clamp(focusX - this.camera.width * 0.54, 0, this.world.width - this.camera.width)
-    const desiredY = clamp(focusY - this.camera.height * 0.40, 0, this.world.height - this.camera.height)
+    const desiredX = clamp(focusX - this.camera.width * 0.54, 0, worldScrollX(this))
+    const desiredY = clamp(focusY - this.camera.height * 0.40, 0, worldScrollY(this))
     const centerX = desiredX + this.camera.width / 2
     const centerY = desiredY + this.camera.height / 2
     this.camera.pan(centerX, centerY, 180, 'Sine.easeOut', true)
@@ -265,8 +270,8 @@ export class FishingCameraController {
     if (sy < this.safeZone.top) targetY = worldY - this.safeZone.top
     else if (sy > this.safeZone.bottom) targetY = worldY - this.safeZone.bottom
 
-    targetX = clamp(targetX, 0, this.world.width - this.camera.width)
-    targetY = clamp(targetY, 0, this.world.height - this.camera.height)
+    targetX = clamp(targetX, 0, worldScrollX(this))
+    targetY = clamp(targetY, 0, worldScrollY(this))
     this._moveToward(targetX, targetY, amount)
   }
 
