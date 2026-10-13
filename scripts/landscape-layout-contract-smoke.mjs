@@ -33,6 +33,19 @@ for(const [width,height,safe] of [
     world:a.world,sideDock:a.sideDock,actionSize:a.actions[0].width,
   }))
 }
+// Browser safe-area/rotation APIs may transiently return invalid values.
+// Never reinterpret NaN, negative, strings or oversized readings as zero.
+for (const safe of [
+  {left: NaN}, {top: Infinity}, {right: -1}, {bottom: '12'},
+  {left: 81}, {top: 220, bottom: 220},
+]) {
+  const candidate = makeFishingLandscapeLayout(844,390,safe)
+  assert.equal(candidate.orientation,'landscape')
+  assert.equal(candidate.supported,false,'invalid safe area must not activate native controls: '+JSON.stringify(safe))
+}
+assert.equal(makeFishingLandscapeLayout(844,390,{left:80,right:80}).supported,true,
+  'valid maximum safe insets remain supported')
+
 const portrait=makeFishingLandscapeLayout(390,844)
 assert.equal(portrait.orientation,'portrait')
 assert.equal(portrait.supported,false,'portrait is still owned by the approved layout')

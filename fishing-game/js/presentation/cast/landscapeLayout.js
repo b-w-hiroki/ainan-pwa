@@ -4,12 +4,13 @@
 // portrait game). All rectangles are axis-aligned and safe-area inset.
 const clamp = (v, low, high) => Math.min(high, Math.max(low, v))
 const rect = (x, y, width, height) => Object.freeze({ x, y, width, height })
-const inset = (i = {}) => ({
-  top: clamp(Number(i.top) || 0, 0, 80),
-  right: clamp(Number(i.right) || 0, 0, 80),
-  bottom: clamp(Number(i.bottom) || 0, 0, 80),
-  left: clamp(Number(i.left) || 0, 0, 80),
-})
+const inset = (i = {}) => {
+  const values = ['top', 'right', 'bottom', 'left'].map(side => i[side] ?? 0)
+  // A malformed viewport measurement must not silently become a safe zero
+  // inset. Refuse landscape activation until the next valid resize.
+  if (!values.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 80)) return null
+  return Object.freeze(Object.fromEntries(['top', 'right', 'bottom', 'left'].map((side, index) => [side, values[index]])))
+}
 
 export const LANDSCAPE_MIN_TOUCH = 44
 
@@ -19,12 +20,15 @@ export function makeFishingLandscapeLayout(width, height, safeArea = {}) {
   }
   const s = inset(safeArea)
   const horizontal = width > height
-  if (!horizontal) return Object.freeze({
-    orientation: 'portrait',
+  if (!horizontal || !s) return Object.freeze({
+    orientation: horizontal ? 'landscape' : 'portrait',
     supported: false,
-    reason: 'Production portrait is owned by 390x844 approved Host',
+    reason: !s ? 'Invalid landscape safe-area measurements' : 'Production portrait is owned by 390x844 approved Host',
   })
 
+  if (s.left + s.right >= width || s.top + s.bottom >= height) return Object.freeze({
+    orientation: 'landscape', supported: false, reason: 'Safe-area exceeds viewport',
+  })
   const space = rect(s.left, s.top, width-s.left-s.right, height-s.top-s.bottom)
   // The side rail is independent from the camera so lure, character and HUD
   // can remain in the world rather than being shrunk with the portrait dock.
