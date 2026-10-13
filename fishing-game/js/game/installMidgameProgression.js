@@ -1,5 +1,7 @@
 import { BOSS_META, consumeMealUse, getActiveMeal, getProgressionBonuses, grantCatchLoot } from './midgameProgression.js'
 import { backupSave } from './saveSystem.js'
+import { getTownSummary } from './progress.js'
+import { didFacilityLevelAdvance } from './townUpgradeFeedback.js'
 import { haptic, playSfx, startAmbient, stopAmbient } from './feedback.js'
 
 function bossForScene(scene) {
@@ -99,9 +101,16 @@ export function installTownSensoryFeedback(TownScene, HomeScene) {
     TownScene.prototype.__ainanTownSensoryInstalled = true
     const originalUpgrade = TownScene.prototype._upgrade
     TownScene.prototype._upgrade = function (...args) {
-      playSfx('townUp')
-      haptic([25, 25, 45])
-      return originalUpgrade.apply(this, args)
+      const facilityId = args[0]
+      const before = getTownSummary()
+      const result = originalUpgrade.apply(this, args)
+      // A failed purchase must never sound or vibrate like a successful one.
+      // Compare persisted progression, not the modal return value (undefined).
+      if (didFacilityLevelAdvance(before, getTownSummary(), facilityId)) {
+        playSfx('townUp')
+        haptic([25, 25, 45])
+      }
+      return result
     }
   }
 
