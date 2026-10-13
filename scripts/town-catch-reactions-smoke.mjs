@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 import { getTownCatchReaction, TOWN_CATCH_REACTION_IDS, TOWN_CATCH_ICONS, getTownFeaturedCatch } from '../fishing-game/js/game/townCatchReactions.js'
 import { readFileSync } from 'node:fs'
+import { isCurrentFacilityLevel, didFacilityLevelAdvance } from '../fishing-game/js/game/townUpgradeFeedback.js'
 
 const fishIds = FISH_LIST.map(fish => fish.id).sort()
 assert.deepEqual([...TOWN_CATCH_REACTION_IDS].sort(), fishIds, 'Every gameplay species must have a Town reaction')
@@ -38,4 +39,23 @@ assert.ok(implementation.includes('getTownCatchReaction(catchArrival.fishId) ?? 
   'Rarity fallback must survive unknown fish IDs')
 assert.ok(implementation.includes('this.load.image(art.key, art.path)'),
   'Direct Result→Town route must preload all fish art')
+
+const before = { facilities: { market: 1, pier: 0, guide: 2, festival: 5 } }
+const after = { facilities: { ...before.facilities, market: 2 } }
+assert.equal(isCurrentFacilityLevel(before, 'market', 1), true)
+assert.equal(isCurrentFacilityLevel(before, 'market', 0), false, 'stale duplicate tap must not spend points')
+assert.equal(isCurrentFacilityLevel(before, '__proto__', 0), false, 'unsafe IDs must not match')
+assert.equal(isCurrentFacilityLevel(before, 'unknown', 0), false)
+assert.equal(isCurrentFacilityLevel(before, 'festival', 5), true)
+assert.equal(didFacilityLevelAdvance(before, after, 'market'), true)
+assert.equal(didFacilityLevelAdvance(before, before, 'market'), false, 'failed purchase has no success sound')
+assert.equal(didFacilityLevelAdvance(before, { facilities: { ...before.facilities, market: 3 } }, 'market'), false,
+  'abnormal +2 levels must not count as one successful purchase')
+assert.equal(didFacilityLevelAdvance(before, after, '__proto__'), false)
+const townLogic = readFileSync('fishing-game/js/game/installMidgameProgression.js','utf8')
+assert.ok(townLogic.includes('didFacilityLevelAdvance(before, getTownSummary(), facilityId)'),
+  'upgrade sound must check persisted successful transition')
+assert.ok(townSource.includes('isCurrentFacilityLevel(getTownSummary(), id, currentLevel)'),
+  'stale modal taps must be rejected before points are deducted')
+
 console.log('Town catch species reactions QA passed:', fishIds.join(', '))

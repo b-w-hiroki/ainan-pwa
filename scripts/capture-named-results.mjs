@@ -78,6 +78,48 @@ try {
     await defaultResult.close()
   }
 
+  // Restore the original non-fresh Kue boss Result fixture. Its delayed CLI
+  // capture occasionally emitted a 2742-byte blank WebGL compositor frame.
+  // Preserve the caught boss state, verify the host, then retry *only* pixels.
+  const bossResult = await browser.newPage({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 1,
+  })
+  try {
+    await bossResult.goto(
+      'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaBoss=kue',
+      { waitUntil: 'domcontentloaded' },
+    )
+    await bossResult.waitForSelector('body[data-qa-result-ready="caught"]', { timeout: 20000 })
+    await bossResult.waitForTimeout(450)
+    const assertBossResult = async () => {
+      const state = await bossResult.evaluate(() => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        const canvas = document.querySelector('#game-container canvas')
+        return {
+          phase: scene?.phase, outcome: scene?._castPresentationOutcome,
+          fish: scene?.fish?.id,
+          resultVisible: host?.nodes?.resultForeground?.visible,
+          battleVisible: host?.nodes?.battleForeground?.visible,
+          heroVisible: host?.nodes?.resultFish?.visible,
+          heroWidth: host?.nodes?.resultFish?.displayWidth,
+          canvasPresent: Boolean(canvas?.isConnected && canvas.width > 0 && canvas.height > 0),
+        }
+      })
+      assert.equal(state.phase, 'result', '22-boss-kue-result.png: incorrect phase')
+      assert.equal(state.outcome, 'caught', '22-boss-kue-result.png: missing catch outcome')
+      assert.equal(state.fish, 'kue', '22-boss-kue-result.png: wrong boss')
+      assert.equal(state.resultVisible, true, '22-boss-kue-result.png: Result foreground hidden')
+      assert.equal(state.battleVisible, false, '22-boss-kue-result.png: Battle foreground revived')
+      assert.equal(state.heroVisible, true, '22-boss-kue-result.png: hero absent')
+      assert.ok(state.heroWidth >= 290, '22-boss-kue-result.png: hero too small')
+      assert.equal(state.canvasPresent, true, '22-boss-kue-result.png: canvas missing')
+    }
+    await captureVisibleResult(bossResult, '22-boss-kue-result.png', assertBossResult)
+  } finally {
+    await bossResult.close()
+  }
+
   // Preserve the original first Kue boss-catch fixture. A DOM-ready
   // Result is insufficient: the old CLI sometimes wrote a 2742-byte blank
   // WebGL compositor PNG. Require actual Result state and decoded gold pixels.
