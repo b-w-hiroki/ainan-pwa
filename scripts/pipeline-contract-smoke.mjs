@@ -426,6 +426,22 @@ for (const name of ['90-harbor-cast.png','91-bay-cast-preview.png','92-cape-cast
   '93-harbor-retrieve.png','94-bay-retrieve-preview.png','95-cape-retrieve-preview.png']) {
   assert.ok(locationPreviewCapture.includes(name),'missing fishing-location QA frame: ' + name)
 }
+// Protect the four reward fixtures from regressing to single delayed CLI
+// screenshots: phase correctness and decoded gold-header pixels are mandatory.
+const rewardCapture = read('scripts/capture-reward-results.mjs')
+for (const filename of ['32-reward-first.png','33-reward-record.png',
+  '34-reward-rare.png','35-reward-legendary.png']) {
+  assert.ok(rewardCapture.includes(filename), filename + ': Result capture missing')
+  assert.ok(!workflow.includes(' ' + filename), filename + ': old one-shot CLI screenshot remains')
+}
+assert.ok(workflow.includes('node scripts/capture-reward-results.mjs'),
+  'CI must use phase-aware reward capture')
+assert.ok(rewardCapture.includes('countGetHeaderPixels(filename)')
+  && rewardCapture.includes("state.phase, 'result'")
+  && rewardCapture.includes('state.resultVisible, true')
+  && rewardCapture.includes('goldPixels > 450'),
+  'reward screenshot retries may never bypass live Result state or decoded PNG pixels')
+
 console.log('AINAN pipeline contract QA passed')
 console.log('  visual slots:', owners.slots.length)
 console.log('  state items:', states.items.length, '| asset refs:', assetRefs,
