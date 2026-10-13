@@ -125,6 +125,9 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3200 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle" artifacts/e2e/48-mock-battle.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=3000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result" artifacts/e2e/49-mock-result.png
 
+      - name: Verify Fishing loads damaged saves without overwriting recovery data
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-corrupt-save-recovery.mjs
+
       - name: Capture named Result fish with rendered state assertions
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-named-results.mjs
 
