@@ -1,0 +1,26 @@
+name: Diagonal Harbor review-only art gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/art/split-diagonal-harbor-review.py'
+      - 'scripts/art/test-split-diagonal-harbor.py'
+      - '.github/workflows/diagonal-harbor-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  partition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned image library
+        run: python -m pip install 'Pillow==11.1.0'
+      - name: Verify exact three-plane recomposition and no implicit approval
+        run: python scripts/art/test-split-diagonal-harbor.py
