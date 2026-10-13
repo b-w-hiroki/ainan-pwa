@@ -82,6 +82,9 @@ jobs:
       - name: Validate actual 844x390 mouse swipe and single cast reward
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-landscape-real-swipe.mjs
 
+      - name: Verify Cast after live portrait-landscape rotation
+        run: QA_ROTATE_BEFORE_CAST=1 npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-landscape-real-swipe.mjs
+
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e
