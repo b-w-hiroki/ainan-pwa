@@ -89,6 +89,7 @@ function buildWorld(scene) {
     .setScrollFactor(1)
     .setData('rodType', loadout.rod.id)
   scene._cameraPanRodLine = scene.add.graphics().setDepth(43).setScrollFactor(1)
+  scene._cameraPanRodGrip = null
   scene._cameraPanRodAngleOffset = 0
 }
 
@@ -199,6 +200,7 @@ function applyWorldRodBlend(scene, fromPhase, toPhase, amount) {
   rod.lineStyle(3.2, visual.accent, 1).beginPath().moveTo(handle.x, handle.y).lineTo(tip.x, tip.y).strokePath()
   rod.lineStyle(7, 0x263847, 1).beginPath().moveTo(grip.x, grip.y).lineTo(handle.x, handle.y).strokePath()
   rod.fillStyle(0xeef9ff, 1).lineStyle(2, 0x173248, 1).fillCircle(handle.x, handle.y, 4).strokeCircle(handle.x, handle.y, 4)
+  scene._cameraPanRodGrip = grip
   scene._cameraPanRodTip = tip
 }
 
@@ -257,6 +259,7 @@ function applyWorldRod(scene, poseName, rodAngleOffsetDeg = scene._cameraPanRodA
   rod.lineStyle(3.2, visual.accent, 1).beginPath().moveTo(handle.x, handle.y).lineTo(tip.x, tip.y).strokePath()
   rod.lineStyle(7, 0x263847, 1).beginPath().moveTo(grip.x, grip.y).lineTo(handle.x, handle.y).strokePath()
   rod.fillStyle(0xeef9ff, 1).lineStyle(2, 0x173248, 1).fillCircle(handle.x, handle.y, 4).strokeCircle(handle.x, handle.y, 4)
+  scene._cameraPanRodGrip = grip
   scene._cameraPanRodTip = tip
 }
 
