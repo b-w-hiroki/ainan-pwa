@@ -57,3 +57,26 @@ export function rectanglesOverlap(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x
     && a.y < b.y + b.height && a.y + a.height > b.y
 }
+
+// Native landscape hit routing is phase-scoped. Do not infer a Cast action
+// from a point in the world or reuse portrait-scaled hit boxes. The caller
+// owns the actual state transition; this function has no game side effects.
+export function landscapeActionAt(x, y, layout, phase) {
+  if (!layout || !Number.isFinite(x) || !Number.isFinite(y)) return null
+  const contains = r => x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height
+  if (contains(layout.back)) return Object.freeze({ type: 'back' })
+  if (phase === 'cast') {
+    const c = layout.castCenter
+    return (x - c.x) ** 2 + (y - c.y) ** 2 < c.radius ** 2
+      ? Object.freeze({ type: 'cast' }) : null
+  }
+  if (phase === 'retrieve') {
+    const index = layout.retrieve.findIndex(contains)
+    return index >= 0 ? Object.freeze({ type: 'reel', index }) : null
+  }
+  if (phase === 'result') {
+    const index = layout.resultActions.findIndex(contains)
+    return index >= 0 ? Object.freeze({ type: 'result', index }) : null
+  }
+  return null
+}
