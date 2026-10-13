@@ -75,6 +75,30 @@ def make_world(source):
     world[selected, 3] = 255
     if not np.array_equal(world[~selected], source[~selected]):
         raise AssertionError("Modified approved pixels outside player opening")
+    # Diagnose seam discontinuities *without claiming the reconstruction is
+    # optically correct*. Measure only inside the missing region, not the
+    # approved image where real perspective edges are intentional.
+    # Flag (a) the guessed sea/quay material boundary and (b) the perimeter.
+    boundary_y = 423.0 + 0.315 * x
+    near_material_seam = (opening > 0) & (np.abs(y - boundary_y) <= 3)
+    interior = (opening > 0)
+    seam_jump = cv2.absdiff(world[:, 1:, :3], world[:, :-1, :3])
+    seam_luma = np.mean(seam_jump.astype(np.float32), axis=2)
+    seam_pixels = near_material_seam[:, 1:] & near_material_seam[:, :-1]
+    seam_mean = float(seam_luma[seam_pixels].mean()) if seam_pixels.any() else 0.0
+    inward = cv2.erode(opening, np.ones((3, 3), np.uint8), iterations=1) > 0
+    rim = interior & (~inward)
+    boundary_preview = world.copy()
+    boundary_preview[near_material_seam, :3] = (0, 0, 255)
+    boundary_preview[rim, :3] = (0, 255, 255)
+    # Diagnostic paint is exported separately, never changes the world candidate.
+    diagnostic = {
+        "seam_band_pixels": int(near_material_seam.sum()),
+        "seam_horizontal_abs_rgb_mean": round(seam_mean, 3),
+        "opening_rim_pixels": int(rim.sum()),
+        "measurement_only": True,
+        "human_approval_inferred": False,
+    }
     stats = {
         "source_dimensions": [width, height],
         "opened_pixels": opening_count,
@@ -82,6 +106,7 @@ def make_world(source):
         "pier_filled_pixels": int(pier.sum()),
         "donor_invalid_pixels": 0,
         "source_outside_opening_pixel_exact": True,
+        "material_seam_diagnostic": diagnostic,
     }
     return world, opening, pier, water, stats
 
@@ -113,6 +138,14 @@ def run(output_dir):
     world, opening, pier, water, stats = make_world(source)
     output_dir.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(output_dir / "world-material-candidate.png"), world)
+    # Reconstruct the review mask from the same approved coordinate contract.
+    yy, xx = np.mgrid[0:world.shape[0], 0:world.shape[1]]
+    seam = (opening > 0) & (np.abs(yy - (423.0 + 0.315 * xx)) <= 3)
+    inner = cv2.erode(opening, np.ones((3, 3), np.uint8), iterations=1) > 0
+    seam_view = world.copy()
+    seam_view[seam, :3] = (0, 0, 255)
+    seam_view[(opening > 0) & (~inner), :3] = (0, 255, 255)
+    cv2.imwrite(str(output_dir / "seam-boundary-review.png"), seam_view)
     # Red: candidate quay, blue: candidate seawater. This image is a QA mask,
     # not a production game visual.
     mask_visual = np.zeros_like(world)
