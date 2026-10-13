@@ -52,6 +52,8 @@ assert.match(source, /state\.hitCommitted = this\.phase === 'wait'/, 'hit must c
 assert.match(source, /event\.code === 'Enter'/, 'keyboard cast alternative missing')
 assert.match(source, /event\.code === 'KeyR'/, 'keyboard retrieve alternative missing')
 assert.match(source, /inSlingshotOrigin/, 'cast input must start from the character origin')
+assert.match(source, /Math\.hypot\(world\.x - grip\.x, world\.y - grip\.y\)/,
+  'on-screen player grip must accept real pull input')
 assert.match(source, /strokePoints\(selection\.points, false\)/, 'aim line must use the real lure trajectory')
 assert.match(source, /buildCastRangeGeometry/, 'fan must use world trajectory geometry')
 assert.match(source, /_coneCastRangeGeometryCache/, 'static world geometry must not be rebuilt every frame')
