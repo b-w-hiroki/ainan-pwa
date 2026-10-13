@@ -60,8 +60,21 @@ def make_world(source, seam_offset=0):
     # It is deliberately explicit, revisionable and NOT source truth.
     if seam_offset not in (-6, 0, 6):
         raise ValueError('Unsupported review-only boundary offset')
-    pier = (opening > 0) & (y >= 423.0 + seam_offset + 0.315 * x)
+    # H02 structure review: three distinct materials, not one flat "pier".
+    # Both edge lines are explicit, provisional perspective hypotheses.
+    # Never interpret their raster coverage as recovered hidden source art.
+    rear_edge = 423.0 + seam_offset + 0.315 * x
+    front_edge = 495.0 + 0.22 * x
+    pier = (opening > 0) & (y >= rear_edge)
     water = (opening > 0) & (~pier)
+    deck = pier & (y < front_edge)
+    face = pier & (~deck)
+    if not (deck.sum() > 5000 and face.sum() > 500):
+        raise AssertionError("H02 quay top/front partition is degenerate")
+    if not np.array_equal((water | deck | face), opening > 0):
+        raise AssertionError("H02 water/deck/front must partition original opening")
+    if np.any(water & deck) or np.any(deck & face) or np.any(water & face):
+        raise AssertionError("H02 material faces overlap")
     if int(pier.sum()) < 4000 or int(water.sum()) < 4000:
         raise ValueError("Materials not separately represented in the opening")
 
@@ -118,6 +131,20 @@ def make_world(source, seam_offset=0):
         "human_approval_inferred": False,
     }
     reused_bollard, reused_rope = structure_donor_risks(pier)
+    topology = {
+        "units": "approved source pixels, 391x783",
+        "rear_edge_hypothesis": {"slope": 0.315, "intercept": 423.0 + seam_offset},
+        "front_edge_hypothesis": {"slope": 0.22, "intercept": 495.0},
+        "water_target_pixels": int(water.sum()),
+        "deck_target_pixels": int(deck.sum()),
+        "front_face_target_pixels": int(face.sum()),
+        "opening_target_pixels": int(opening.sum()),
+        "partition_verified": True,
+        "edges_traced_from_source": False,
+        "hidden_structure_authored": False,
+        "motion_ready": False,
+        "approved": False,
+    }
     stats = {
         "source_dimensions": [width, height],
         "guessed_quay_edge_offset_px": seam_offset,
@@ -127,6 +154,7 @@ def make_world(source, seam_offset=0):
         "donor_invalid_pixels": 0,
         "source_outside_opening_pixel_exact": True,
         "material_seam_diagnostic": diagnostic,
+        "quay_topology_h02": topology,
         "donor_structure_reuse": {
             "bollard_source_roi": [209, 485, 271, 554],
             "rope_source_roi": [133, 518, 322, 563],
@@ -182,6 +210,26 @@ def run(output_dir):
     mask_visual[pier] = (38, 63, 250, 255)
     mask_visual[water] = (230, 140, 31, 255)
     cv2.imwrite(str(output_dir / "material-mask.png"), mask_visual)
+    # QA-only painted hypothesis: separate the horizontal seawater, upper
+    # quay walking surface and quay's exposed front face. This output is an
+    # overlay over the *candidate*, never a replacement for the approved art.
+    yy, xx = np.mgrid[0:world.shape[0], 0:world.shape[1]]
+    face_edge = 495.0 + 0.22 * xx
+    deck = pier & (yy < face_edge)
+    front_face = pier & (~deck)
+    assert int(deck.sum() + front_face.sum()) == int(pier.sum())
+    review = world.copy()
+    for selection, rgb in [
+        (water, (245, 138, 32)),
+        (deck, (44, 207, 244)),
+        (front_face, (225, 84, 164)),
+    ]:
+        # BGR: cyan=water, yellow=deck, pink=front face.
+        review[selection, :3] = (
+            review[selection, :3].astype(np.float32) * 0.58
+            + np.array(rgb, dtype=np.float32) * 0.42
+        ).astype(np.uint8)
+    cv2.imwrite(str(output_dir / "quay-topology-h02-review.png"), review)
     # Review under the missing character at source resolution. Red is copied
     # bollard; yellow is copied rope; purple is both. No gameplay art changes.
     reused_bollard, reused_rope = structure_donor_risks(pier)
@@ -218,6 +266,7 @@ def run(output_dir):
             "center_preview_file": filename,
             "material_seam_diagnostic": report["material_seam_diagnostic"],
             "donor_structure_reuse": report["donor_structure_reuse"],
+            "quay_topology_h02": report["quay_topology_h02"],
             "water_filled_pixels": report["water_filled_pixels"],
             "pier_filled_pixels": report["pier_filled_pixels"],
             "outside_opening_pixel_exact": True,
