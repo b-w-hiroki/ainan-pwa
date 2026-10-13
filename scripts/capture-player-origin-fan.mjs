@@ -36,11 +36,13 @@ try {
         // Same world-to-browser mapping as Phaser's getWorldPoint inverse.
         const visibleX = camera.scrollX + camera.width / 2 - camera.width / (2 * camera.zoom)
         const visibleY = camera.scrollY + camera.height / 2 - camera.height / (2 * camera.zoom)
-        return { x: camera.x + (scene.anchorX - visibleX) * camera.zoom,
-          y: camera.y + (scene.anchorY - visibleY) * camera.zoom }
+        const grip = scene._cameraPanRodGrip
+        if (!grip) throw new Error('real character grip unavailable')
+        return { x: camera.x + (grip.x - visibleX) * camera.zoom,
+          y: camera.y + (grip.y - visibleY) * camera.zoom }
       })
       assert.ok(anchor.x > 50 && anchor.x < width - 60 && anchor.y > 50 && anchor.y < height - 120,
-        'Slingshot origin clipped from touchable world: ' + JSON.stringify({ width, height, anchor }))
+        'Character hand clipped from touchable world: ' + JSON.stringify({ width, height, anchor }))
       const endpoint = { x: anchor.x - 25, y: anchor.y + 73 }
       assert.ok(endpoint.x > 0 && endpoint.y < height - 4, 'real swipe endpoint outside canvas')
       await page.mouse.move(anchor.x, anchor.y)
