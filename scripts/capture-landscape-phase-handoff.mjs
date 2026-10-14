@@ -80,6 +80,14 @@ try {
     assert.ok(retrieve.n>0,'actual fish runtime unavailable')
     await snapshot('02-retrieve')
 
+    // Bounded QA-only HIT window extension: screenshot + GPU readback can
+    // consume the normal 1200ms input window. This does not change any
+    // production code or bypass the real Playwright pointer-based HIT.
+    await page.evaluate(()=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      const original=scene._openHitWindow.bind(scene)
+      scene._openHitWindow=(ms=1200)=>original(Math.max(ms,5000))
+    })
     // Exercise the real Retrieve decision methods before deterministic bite.
     // Vertical Slice agency requires >=2 meaningful actions, and fish
     // readability requires a 320ms hesitation. Never disable either gate.
@@ -132,12 +140,28 @@ try {
     await page.waitForFunction(()=>window.__game.scene.getScene('GameScene').waitTapActive,
       null,{timeout:12000})
     await snapshot('03-hit-window')
+    const beforeHit=await page.evaluate(()=>{
+      const s=window.__game.scene.getScene('GameScene')
+      return {phase:s.phase,windowActive:s.waitTapActive,
+        skipNext:s._skipNextDown,
+        target:document.elementFromPoint(450,198)?.tagName??null,
+        canvas:document.querySelector('#game-container canvas')?.getBoundingClientRect().toJSON()}
+    })
+    assert.equal(beforeHit.phase,'wait','HIT window closed before physical input: '+JSON.stringify(beforeHit))
+    assert.equal(beforeHit.windowActive,true,'real HIT click would miss timing window: '+JSON.stringify(beforeHit))
     // Real browser pointer hook; chance is fixed to 100% only in this QA page.
     await page.mouse.click(450,198)
     await page.waitForFunction(()=>{
       const s=window.__game.scene.getScene('GameScene')
       return s.phase==='battle'&&s.battleState
-    },null,{timeout:5000})
+    },null,{timeout:5000}).catch(async e=>{
+      const after=await page.evaluate(()=>{
+        const s=window.__game.scene.getScene('GameScene')
+        return {phase:s.phase,windowActive:s.waitTapActive,skipNext:s._skipNextDown,
+          battle:Boolean(s.battleState)}
+      })
+      throw Error('real HIT pointer failed: '+JSON.stringify({beforeHit,after})+'; '+e.message)
+    })
     const battle=await page.evaluate(()=>{
       const s=window.__game.scene.getScene('GameScene')
       return {phase:s.phase,fish:s.fish?.id,owner:s._castPresentationHost?.root?.name,
