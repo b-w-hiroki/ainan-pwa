@@ -709,6 +709,15 @@ export default class GameScene extends Phaser.Scene {
       this.resultUI.drawResultStripe('caught')
       this.resLabel.setText('GET!')
       this._showResultFishVisual(this.fish)
+      // The fallback emoji is authored before the wide Result layout and can
+      // retain its legacy centered coordinates on the real catch transition.
+      // Re-anchor whichever fish object is actually displayed. This affects
+      // visuals only; original score/catch data and hit areas are unchanged.
+      if (this._nativeResultLayout?.mode === 'landscape') {
+        const { width: W, height: H } = this._nativeResultLayout
+        const hero = this.resIcon ?? this.resEmoji
+        hero.setPosition(145 - W / 2, 185 - H / 2)
+      }
       this.resName.setText(this.fish.name)
       this.resPts.setText(`サイズ  ${sizeCm} cm   +${score} pt\nレア度  ${{ common: '★☆☆☆☆', uncommon: '★★☆☆☆', rare: '★★★☆☆', legendary: '★★★★★' }[this.fish.rarity] ?? '★☆☆☆☆'}`)
       this.resHint.setText('釣った魚を町へ持ち帰ろう')
