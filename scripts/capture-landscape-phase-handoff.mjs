@@ -93,14 +93,19 @@ try {
         // reset only this controlled QA fixture after a finished Cast.
         state.hitCommitted=false
         state.hitTransitioning=false
-        s._beginRetrieveBite(runtime)
+        var biteResult=s._beginRetrieveBite(runtime)
       }
       if(s.phase==='wait')s.fish={...s.fish,biteRate:1}
       return {started:s.phase==='wait',before,after:s.phase,
         fishId:s.fish?.id,runtimeCount:candidates.length,
         runtimeFound:Boolean(runtime),hitCommitted:state.hitCommitted,
-        hitTransitioning:state.hitTransitioning}
+        hitTransitioning:state.hitTransitioning,
+        biteResult:String(biteResult),inBite:s._retrieveInBite,
+        biteSequenceActive:s._biteSequenceActive,
+        methodBody:String(s._beginRetrieveBite).slice(0,340),
+        runtimeIndex:runtime?.index,runtimeActive:runtime?.gfx?.active}
     })
+    console.log('Handoff diagnostic (fixture only):',JSON.stringify(started))
     assert.ok(started.started,'game bite transition did not enter Wait: '+JSON.stringify(started))
     await page.waitForFunction(()=>window.__game.scene.getScene('GameScene').waitTapActive,
       null,{timeout:12000})
