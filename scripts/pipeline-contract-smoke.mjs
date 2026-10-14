@@ -403,7 +403,7 @@ assert.ok(townReactionSource.includes('export function getTownFeaturedCatch(catc
   'Town fish identity must be selected through one shared validated registry')
 assert.ok(townCaptureSource.includes("88-town-aji-featured.png")
   && townCaptureSource.includes("89-town-kanpachi-featured.png")
-  && townCaptureSource.includes("await page.mouse.click(195, 530)"),
+  && townCaptureSource.includes("await page.mouse.click(195, 526)"),
   'CI must capture actual post-modal market/diner fish response')
 const bossBadgeSource=read('fishing-game/js/game/installBossEventPolish.js')
 assert.ok(bossBadgeSource.includes('if (hostActive) resultHost.add(c)')
