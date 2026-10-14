@@ -188,6 +188,16 @@ try{
           'Landscape NEW RECORD banner must remain inside wide Result card: '
           +JSON.stringify({w,h,record}))
         await page.screenshot({path:join(folder,'record-'+w+'x'+h+'.png'),animations:'disabled'})
+        // Also capture the post-cut-in steady state. The transient BIG HIT
+        // animation may briefly cover the title; keep an independent visual
+        // reference for layout once its authored sequence has completed.
+        await page.waitForTimeout(1900)
+        assert.equal(await page.evaluate(()=>
+          window.__game.scene.getScene('GameScene')?.phase),'result')
+        await page.screenshot({
+          path:join(folder,'record-settled-'+w+'x'+h+'.png'),
+          animations:'disabled'
+        })
       }
       assert.deepEqual(errors,[],'Unexpected native Result browser error')
       writeFileSync(join(folder,'layout-'+w+'x'+h+'.json'),
