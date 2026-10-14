@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { getFishingGroundName } from '../fishing-game/js/game/fishingGroundNames.js'
 import { existsSync, realpathSync, mkdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -8,7 +9,7 @@ assert.ok(executable,'Playwright executable missing in QA environment')
 const { chromium }=await import(pathToFileURL(join(dirname(realpathSync(executable)),'index.mjs')).href)
 mkdirSync('artifacts/location-preview',{recursive:true})
 const browser=await chromium.launch({headless:true})
-const labels = Object.freeze({ pointA:'汐風港', pointB:'愛南湾', pointC:'外海岬' })
+const labels = Object.freeze({ pointA:getFishingGroundName('pointA'), pointB:getFishingGroundName('pointB'), pointC:getFishingGroundName('pointC') })
 const cases=[
   ['cast','pointA','90-harbor-cast.png'],
   ['cast','pointB','91-bay-cast-preview.png'],
