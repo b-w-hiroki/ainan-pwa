@@ -37,8 +37,14 @@ function show(scene, rewards) {
   const objects = []
 
   rewards.slice(0, 2).forEach((reward, i) => {
-    const y = H / 2 - 184 + i * 34
-    const c = scene.add.container(W / 2 - 132, y).setDepth(145).setScrollFactor(0).setAlpha(0)
+    // Native landscape has a left fish and a right text column. The portrait
+    // placement (H/2 - 184) clips NEW RECORD! above the 390px viewport.
+    // Anchor rewards inside the card's upper-right free area; portrait keeps
+    // its original approved positions and reward animations.
+    const wide = scene._nativeResultLayout?.mode === 'landscape'
+    const y = wide ? 109 + i * 37 : H / 2 - 184 + i * 34
+    const x = wide ? W - 210 : W / 2 - 132
+    const c = scene.add.container(x, y).setDepth(145).setScrollFactor(0).setAlpha(0)
 
     if (reward.kind === 'record') {
       // Native gold badge mirrors the generated NEW RECORD concept while
