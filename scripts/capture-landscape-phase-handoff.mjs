@@ -198,12 +198,17 @@ try {
     assert.equal(outcome.catches,before.catchCount+1)
     assert.equal(outcome.mode,'legacy','Result must keep its cameraPan legacy presentation owner')
     assert.equal(outcome.legacyResultVisible,true,'legacy Result card must be visible')
-    assert.equal(outcome.getHeading,'GET!','real Result heading must show the catch')
-    await page.waitForFunction(()=>{
+    assert.ok(['GET!','BOSS CATCH','★ BOSS RECORD ★'].includes(outcome.getHeading),
+      'real Result must show an authored catch heading: '+JSON.stringify(outcome))
+    // The real catch first displays GET! and can subsequently promote the
+    // authored BOSS CATCH payoff. Do not mistake that valid title animation
+    // for a lost Result; still require the same phase/owner and catch record.
+    await page.waitForFunction(expectedCatchCount=>{
       const s=window.__game.scene.getScene('GameScene')
       return s.phase==='result'&&s._castPresentationMode==='legacy'
-        &&s.resultOverlay?.visible&&s.resLabel?.text==='GET!'
-    },null,{timeout:6000}).catch(async error=>{
+        &&s.resultOverlay?.visible&&s.catches?.length===expectedCatchCount
+        &&['GET!','BOSS CATCH','★ BOSS RECORD ★'].includes(s.resLabel?.text)
+    },outcome.catches,{timeout:6000}).catch(async error=>{
       // Keep the assertion, but distinguish an actual Result regression from
       // compositor/tween timing under the full 50-screen CI runner.
       const debug=await page.evaluate(()=>{

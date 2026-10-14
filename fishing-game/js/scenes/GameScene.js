@@ -290,6 +290,7 @@ export default class GameScene extends Phaser.Scene {
   // PHASES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _enterCast() {
+    this.resultUI?.setNativeActionsVisible(false)
     this._cleanupBattle()
     this.phase = 'cast'
     this.isCharging = false
@@ -709,6 +710,15 @@ export default class GameScene extends Phaser.Scene {
       this.resultUI.drawResultStripe('caught')
       this.resLabel.setText('GET!')
       this._showResultFishVisual(this.fish)
+      // The fallback emoji is authored before the wide Result layout and can
+      // retain its legacy centered coordinates on the real catch transition.
+      // Re-anchor whichever fish object is actually displayed. This affects
+      // visuals only; original score/catch data and hit areas are unchanged.
+      if (this._nativeResultLayout?.mode === 'landscape') {
+        const { width: W, height: H } = this._nativeResultLayout
+        const hero = this.resIcon ?? this.resEmoji
+        hero.setPosition(145 - W / 2, 185 - H / 2)
+      }
       this.resName.setText(this.fish.name)
       this.resPts.setText(`サイズ  ${sizeCm} cm   +${score} pt\nレア度  ${{ common: '★☆☆☆☆', uncommon: '★★☆☆☆', rare: '★★★☆☆', legendary: '★★★★★' }[this.fish.rarity] ?? '★☆☆☆☆'}`)
       this.resHint.setText('釣った魚を町へ持ち帰ろう')
@@ -759,7 +769,12 @@ export default class GameScene extends Phaser.Scene {
     const iconKey = FISH_ICON_KEYS[fish.id]
     if (iconKey && this.textures.exists(iconKey)) {
       this.resEmoji.setText('')
-      this.resIcon = this.add.image(0, -24, iconKey).setDisplaySize(76, 76).setAngle(0)
+      const wide = this._nativeResultLayout?.mode === 'landscape'
+      this.resIcon = this.add.image(
+        wide ? 145 - this.scale.width / 2 : 0,
+        wide ? 185 - this.scale.height / 2 : -24,
+        iconKey,
+      ).setDisplaySize(wide ? 118 : 76, wide ? 118 : 76).setAngle(0)
       this.resultOverlay.add(this.resIcon)
     } else {
       this.resEmoji.setText(fish.emoji).setAngle(0)

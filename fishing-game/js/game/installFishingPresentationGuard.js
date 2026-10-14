@@ -1044,10 +1044,25 @@ export function installFishingPresentationGuard(GameScene) {
     if (result === false) return result
     this._castPresentationOutcome = outcome
     setFishingPlayerVisible(this, false)
-    this.resLabel?.setText?.('GET!')
-      ?.setPosition?.(0, -304)
-      ?.setFontSize?.(58)
+    // The legacy Result presentation is still used in the native wide
+    // prototype, but its portrait heading offset clips the entire title.
+    // Preserve the authored wide layout and only apply portrait offsets to
+    // the approved 390x844 production screen.
+    if (this._nativeResultLayout?.mode !== 'landscape') {
+      this.resLabel?.setText?.('GET!')
+        ?.setPosition?.(0, -304)
+        ?.setFontSize?.(58)
+    }
     this._applyRcFishingPresentation?.('result')
+    // The cameraPan QA-only legacy Result can be made visible by the final
+    // presentation owner *after* the earlier Result polish wrapper returned.
+    // It previously showed a tiny legacy icon and no premium hero or GET art.
+    // Complete presentation once the Result field is actually visible.
+    if (this._nativeResultLayout?.mode === 'landscape'
+      && outcome === 'caught' && this.resultOverlay?.visible
+      && !this._resultHeroFish?.active) {
+      this._polishCaughtResultPresentation?.()
+    }
     return result
   }
 

@@ -32,8 +32,10 @@ function ensureResultGetAsset(scene) {
   scene.resLabel?.setVisible?.(false)
   const asset = ASSETS.ui?.fishingResultGet
   if (!asset?.key || !scene.textures.exists(asset.key)) return
-  const img = scene.add.image(scene.scale.width / 2, 104, asset.key)
-    .setDisplaySize(224, 86)
+  const wide = scene._nativeResultLayout?.mode === 'landscape'
+  const img = scene.add.image(wide ? Math.min(scene.scale.width - 350, 420) : scene.scale.width / 2,
+    wide ? 100 : 104, asset.key)
+    .setDisplaySize(wide ? 148 : 224, wide ? 56 : 86)
     .setDepth(151)
     .setScrollFactor(0)
   scene._resultGetAsset = img
@@ -58,6 +60,18 @@ function buildPayoffVisuals(scene) {
   if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
   const { width: W, height: H } = scene.scale
   const rarity = RARITY[scene.fish?.rarity] ?? RARITY.common
+  // Keep the reward glow contained in the left artwork column, not over
+  // the wide-screen title, score or CTA. Portrait keeps the existing payoff.
+  if (scene._nativeResultLayout?.mode === 'landscape') {
+    const glow = scene.add.circle(166, Math.min(196, H / 2), 80,
+      rarity.color, 0.15).setDepth(128).setScrollFactor(0)
+    const ring = scene.add.circle(166, Math.min(196, H / 2), 89,
+      rarity.color, 0).setStrokeStyle(2, 0xffffff, 0.24)
+      .setDepth(129).setScrollFactor(0)
+    scene._payoffVisuals = [glow, ring]
+    scene._payoffTweens = []
+    return
+  }
   const cx = W / 2, cy = H / 2 - 116
   const objects = []
   const tweens = []
@@ -208,15 +222,18 @@ function buildResultHero(scene) {
   const { width: W, height: H } = scene.scale
   const premiumKey = FISH_HERO_KEYS[scene.fish?.id]
   const usePremiumHero = Boolean(premiumKey && scene.textures.exists(premiumKey))
-  const heroWidth = L.result.fish.width
-  const heroHeight = L.result.fish.height
+  const wide = scene._nativeResultLayout?.mode === 'landscape'
+  const heroWidth = wide ? 208 : L.result.fish.width
+  const heroHeight = wide ? 138 : L.result.fish.height
+  const heroX = wide ? 164 : L.result.fish.x
+  const heroY = wide ? 191 : L.result.fish.y
   const textureKey = usePremiumHero ? premiumKey : icon.texture.key
-  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 34, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
+  const shadow = scene.add.ellipse(heroX + 7, heroY + (wide ? 49 : 34), heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
     .setDepth(131)
     .setScrollFactor(0)
     .setAlpha(0)
   scene._resultHeroShadow = shadow
-  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, textureKey)
+  const hero = scene.add.image(heroX, heroY, textureKey)
     .setDisplaySize(heroWidth, heroHeight)
     .setDepth(132)
     .setScrollFactor(0)
@@ -251,14 +268,21 @@ function buildResultHero(scene) {
 function polishCaughtResult(scene) {
   if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
 
-  scene.resIcon?.setPosition?.(0, -116)
-  scene.resEmoji?.setPosition?.(0, -116)
-  scene.resEmoji?.setFontSize?.(108)
-  scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)
+  const wide = scene._nativeResultLayout?.mode === 'landscape'
+  if (!wide) {
+    scene.resIcon?.setPosition?.(0, -116)
+    scene.resEmoji?.setPosition?.(0, -116)
+    scene.resEmoji?.setFontSize?.(108)
+    scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)
+    scene.resName?.setY?.(47)
+    scene.resPts?.setY?.(111)
+    scene.resHint?.setY?.(162)
+  } else {
+    // Text and fallback fish stay where ResultUI's native wide layout put
+    // them; these coordinates were previously overwritten by portrait polish.
+    scene.resLabel?.setText?.('GET!')
+  }
   ensureResultGetAsset(scene)
-  scene.resName?.setY?.(47)
-  scene.resPts?.setY?.(111)
-  scene.resHint?.setY?.(162)
 
   scene.resultOverlay.setAlpha(0)
   scene.tweens.add({
