@@ -91,11 +91,13 @@ try {
       const [confirm, next] = actions.sort((left, right) => left.y - right.y)
       assert.ok(confirm.y + confirm.height / 2 + 4 <= next.y - next.height / 2,
         filename + ': arrival action hit areas overlap')
+      assert.ok(next.y + next.height / 2 <= 602,
+        filename + ': secondary action encroaches on the card border')
       await captureTownWhenRendered(page, filename)
       console.log('Town species arrival verified:', filename, JSON.stringify(state))
       // Dismiss the arrival card through its real tap target. The in-world
       // market/diner should still visibly carry the same recorded species.
-      await page.mouse.click(195, 530)
+      await page.mouse.click(195, 526)
       await page.waitForFunction(() => {
         const town = window.__game?.scene?.getScene('TownScene')
         return town?.sys?.isActive?.()
@@ -138,7 +140,7 @@ try {
         score: localStorage.getItem('ainan_score'),
         catches: localStorage.getItem('ainan_catches'),
       }))
-      await page.mouse.click(195, 582)
+      await page.mouse.click(195, 578)
       await page.waitForFunction(() =>
         window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.(),
         null, { timeout: 7000 })
