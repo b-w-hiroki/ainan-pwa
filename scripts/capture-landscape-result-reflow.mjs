@@ -37,11 +37,15 @@ try{
           actions:buttons.list.filter(o=>o.type==='Rectangle'&&o.input?.enabled)
             .map(o=>({x:root.x+buttons.x+o.x,y:root.y+buttons.y+o.y,w:o.width,h:o.height}))}
       })
+      console.log('Native Result layout evidence',JSON.stringify({viewport:[w,h],state}))
+      // Preserve actual rendered evidence even on a failed geometry gate.
+      const diagnostic=join(folder,'result-'+w+'x'+h+'.png')
+      await page.screenshot({path:diagnostic,animations:'disabled'})
       assert.equal(state.phase,'result')
       if(w>h){
         assert.equal(state.mode,'landscape')
         assert.equal(state.actions.length,2,'Both CTA hit targets should exist')
-        assert.ok(state.label.y>=70&&state.label.y<=130)
+        assert.ok(state.label.y>=70&&state.label.y<=130,'label: '+JSON.stringify(state))
         assert.ok(state.name.y>=120&&state.name.y<=200)
         assert.ok(state.points.y>state.name.y&&state.points.y<h-80)
         assert.ok(state.fish.x>50&&state.fish.x<w/2)
