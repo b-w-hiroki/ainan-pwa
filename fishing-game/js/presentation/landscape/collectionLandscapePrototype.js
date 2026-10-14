@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { FISH_META, getCatches } from '../../game/progress.js'
@@ -144,8 +145,7 @@ export function installNativeLandscapeCollectionPrototype(CollectionScene) {
   CollectionScene.prototype.__nativeLandscapeCollectionInstalled=true
   const previous=CollectionScene.prototype.create
   CollectionScene.prototype.create=function(...args){
-    const params=typeof window==='undefined'?null:new URLSearchParams(window.location.search)
-    if(params?.get('qa')==='1'&&params.get('nativeLandscapeCollection')==='1'){
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeCollection')){
       const layout=getNativeCollectionLayout(this.scale.width,this.scale.height)
       if(layout)return renderCollection(this,layout)
     }
