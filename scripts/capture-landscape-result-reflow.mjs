@@ -113,9 +113,29 @@ try{
       }
       assert.ok(visible,'Blank WebGL Result frame')
       if(w>h){
+        await page.evaluate(()=>{
+          const sc=window.__game.scene.getScene('GameScene')
+          window.__ainanTownButtonTrace={events:[]}
+          sc.input.on('gameobjectdown',(_,target)=>window.__ainanTownButtonTrace.events.push('down:'+target?.type))
+          sc.input.on('gameobjectup',(_,target)=>window.__ainanTownButtonTrace.events.push('up:'+target?.type))
+        })
         await page.mouse.click(state.actions[0].x,state.actions[0].y)
         await page.waitForFunction(()=>window.__game?.scene?.getScene('TownScene')?.sys?.isActive?.(),
-          null,{timeout:6000})
+          null,{timeout:6000}).catch(async error=>{
+          const debug=await page.evaluate(()=>{
+            const game=window.__game
+            const sc=game.scene.getScene('GameScene')
+            return {phase:sc?.phase,resultVisible:sc?.resultOverlay?.visible,
+              townActive:game.scene.getScene('TownScene')?.sys?.isActive?.(),
+              scenes:game.scene.getScenes(true).map(s=>s.sys.settings.key),
+              trace:window.__ainanTownButtonTrace,
+              events:window.__ainanTownButtonTrace?.events,
+              actualPointer:{x:sc.input.activePointer.x,y:sc.input.activePointer.y},
+              errors:window.__ainanTownNavErrors}
+          })
+          await page.screenshot({path:join(folder,'town-click-failed-'+w+'x'+h+'.png'),animations:'disabled'})
+          throw new Error('Town CTA click did not navigate: '+JSON.stringify({debug,errors})+'; '+error.message)
+        })
       }
       assert.deepEqual(errors,[],'Unexpected native Result browser error')
       writeFileSync(join(folder,'layout-'+w+'x'+h+'.json'),
