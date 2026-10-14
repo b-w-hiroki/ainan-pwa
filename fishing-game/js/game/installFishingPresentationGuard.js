@@ -1044,9 +1044,15 @@ export function installFishingPresentationGuard(GameScene) {
     if (result === false) return result
     this._castPresentationOutcome = outcome
     setFishingPlayerVisible(this, false)
-    this.resLabel?.setText?.('GET!')
-      ?.setPosition?.(0, -304)
-      ?.setFontSize?.(58)
+    // The legacy Result presentation is still used in the native wide
+    // prototype, but its portrait heading offset clips the entire title.
+    // Preserve the authored wide layout and only apply portrait offsets to
+    // the approved 390x844 production screen.
+    if (this._nativeResultLayout?.mode !== 'landscape') {
+      this.resLabel?.setText?.('GET!')
+        ?.setPosition?.(0, -304)
+        ?.setFontSize?.(58)
+    }
     this._applyRcFishingPresentation?.('result')
     return result
   }
