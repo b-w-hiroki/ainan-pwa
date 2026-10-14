@@ -109,6 +109,9 @@ jobs:
       - name: Verify QA-only native Collection horizontal presentation
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-collection-landscape.mjs
 
+      - name: Verify QA-only native Menu horizontal presentation
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-menu-landscape.mjs
+
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e

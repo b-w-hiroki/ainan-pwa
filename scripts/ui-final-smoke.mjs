@@ -16,8 +16,10 @@ assert.ok(home.includes("glyph: 'ticket'"), 'Home license shortcut must use shar
 assert.ok(home.includes("glyph: 'gift'"), 'Home daily shortcut must use shared glyph')
 
 const menu = read('fishing-game/js/scenes/MenuScene.js')
+const menuEntries = read('fishing-game/js/game/menuEntries.js')
 for (const token of ['book','trophy','gift','shop','rank','profile','help','settings']) {
-  assert.ok(menu.includes(`glyph: '${token}'`), 'Menu card must use shared glyph: ' + token)
+  assert.ok(menu.includes('getMenuEntries()') && menuEntries.includes(`glyph: '${token}'`),
+    'Menu and its shared registry must retain glyph: ' + token)
 }
 
 const feedback = read('fishing-game/js/game/feedback.js')
