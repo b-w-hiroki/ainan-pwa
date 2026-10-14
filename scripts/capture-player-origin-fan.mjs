@@ -11,7 +11,8 @@ mkdirSync(folder, { recursive: true })
 const baseUrl = 'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&cameraPan=1&coneLoop=1&castMotion=charged'
 const browser = await chromium.launch({ headless: true })
 try {
-  for (const [width, height] of [[390, 844], [844, 390]]) {
+  // Cover small and large portraits as well as native narrow/wide landscape.
+  for (const [width, height] of [[320, 568], [390, 844], [430, 932], [844, 390], [932, 430]]) {
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
     const page = await context.newPage()
     const errors = []
