@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaResize } from '../presentation/landscape/nativeLandscapeQaFlags.js'
 import { buildTrajectory } from './cast.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { isReducedMotion } from './feedback.js'
@@ -7,8 +8,10 @@ import { PULL_CAST_TUNING, classifyPullRelease, pullChargeRatio, slingshotAimFro
 // remains clamped by the current rod range and authored water bounds.
 export const CONE_CAST_TUNING = Object.freeze({ halfAngleDeg: 52, minDistancePx: 180, maxDistancePx: 780 })
 
-const enabled = () => typeof window !== 'undefined'
-  && new URLSearchParams(window.location.search).get('coneLoop') === '1'
+const enabled = () => typeof window !== 'undefined' && (
+  new URLSearchParams(window.location.search).get('coneLoop') === '1' ||
+  isNativeLandscapeQaResize(window.location.search)
+)
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
 function pointInPolygon(point, polygon) {
