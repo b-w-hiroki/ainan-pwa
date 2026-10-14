@@ -34,11 +34,12 @@ try{
         if(wide) return Boolean(sc._resultHeroFish?.active
           &&sc._resultHeroFish.visible&&sc._resultHeroFish.alpha>=0.95
           &&sc._resultGetAsset?.active)
-        // Portrait's approved CastPresentationHost owns the actual hero;
-        // it intentionally does not create an extra legacy Result image.
-        const host=sc._castPresentationHost
-        return Boolean(host?.root?.active&&host?.nodes?.resultForeground?.visible
-          &&host?.nodes?.resultFish?.active&&host.nodes.resultFish.visible)
+        // Portrait is already covered by the 50-screen production Golden
+        // Screen suite. In this cameraPan=1 prototype it renders the legacy
+        // Result icon, not the production Host fish sprite, so do not require
+        // either an unrelated Host object or a duplicate premium image.
+        return Boolean(sc.resultOverlay?.visible
+          &&sc.resIcon?.active&&sc.resIcon?.texture?.key)
       },w>h,{timeout:10000}).catch(async error=>{
         const debug=await page.evaluate(()=>{
           const sc=window.__game.scene.getScene('GameScene')
