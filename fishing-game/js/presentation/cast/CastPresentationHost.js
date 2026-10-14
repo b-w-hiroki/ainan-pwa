@@ -422,6 +422,12 @@ export class CastPresentationHost {
     resultForeground.addAt(resultFish, 1)
     field.add([battleForeground, resultForeground])
 
+    // The Retrieve master bitmap has Harbor's label painted in its HUD.
+    // A fully opaque Bay/Cape underlay is needed: the normal HUD's 0.96
+    // alpha still leaves the old text visibly ghosting through.
+    const retrieveHudCover = scene.add.graphics().setVisible(false)
+    retrieveHudCover.fillStyle(0xffffff, 1)
+    retrieveHudCover.fillRoundedRect(10, 14, DESIGN_WIDTH - 20, 52, 15)
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
     hudBase.fillRoundedRect(10, 14, DESIGN_WIDTH - 20, 52, 15)
@@ -474,7 +480,7 @@ export class CastPresentationHost {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
     instruction.add([instructionBase, instructionSkin, instructionText])
-    chrome.add([hudBase, hudSkin, back, pin, location, rod, distance, tackle, instruction])
+    chrome.add([retrieveHudCover, hudBase, hudSkin, back, pin, location, rod, distance, tackle, instruction])
 
     const dockBase = scene.add.graphics()
     dockBase.fillStyle(0x031d2e, 0.94)
@@ -554,6 +560,7 @@ export class CastPresentationHost {
       distance,
       powerFill,
       hudSkin,
+      retrieveHudCover,
       instruction,
       instructionSkin,
       buttonRing,
@@ -734,7 +741,13 @@ export class CastPresentationHost {
     this.nodes.retrieveDock.setVisible(false)
     this.nodes.castInteraction.setVisible(castVisible)
     this.nodes.retrieveInteraction.setVisible(retrieveVisible)
-    this.nodes.chrome.setVisible(castVisible)
+    // Bay/Cape Retrieve needs a native location label above its Harbor-based
+    // approved bitmap. Shield the baked lettering with an opaque backing.
+    // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
+    const nonHarborRetrieveHud = retrieveVisible
+      && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
+    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud)
+    this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)
     this.nodes.distance.setText(view.distanceLabel)
