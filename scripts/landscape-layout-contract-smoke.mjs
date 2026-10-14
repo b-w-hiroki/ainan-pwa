@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { getNativeHomeLayout } from '../fishing-game/js/presentation/landscape/homeLandscapePrototype.js'
 import { getNativeMapLayout } from '../fishing-game/js/presentation/landscape/mapLandscapePrototype.js'
 import { getNativeTownLayout } from '../fishing-game/js/presentation/landscape/townLandscapePrototype.js'
+import { getNativeCollectionLayout } from '../fishing-game/js/presentation/landscape/collectionLandscapePrototype.js'
 import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
 
 function inside(a,b) {
@@ -109,3 +110,25 @@ for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
 }
 for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeTownLayout(w,h),null)
 console.log('Native Town QA-only layout geometry passed')
+
+for(const [w,h] of [[844,390],[932,430],[1024,430]]){
+  const layout=getNativeCollectionLayout(w,h)
+  assert.ok(layout,'wide Collection layout missing')
+  assert.equal(layout.cards.length,9,'Collection must display all nine species')
+  const r=layout.back
+  assert.ok(r.width>=44&&r.height>=44)
+  for(const card of layout.cards){
+    assert.ok(card.width>=44&&card.height>=44)
+    assert.ok(card.x-card.width/2>=0&&card.x+card.width/2<=w)
+    assert.ok(card.y-card.height/2>=0&&card.y+card.height/2<=h)
+  }
+  for(let i=0;i<layout.cards.length;i++) for(let j=i+1;j<layout.cards.length;j++){
+    const a=layout.cards[i],b=layout.cards[j]
+    assert.ok(a.x+a.width/2<=b.x-b.width/2||
+      b.x+b.width/2<=a.x-a.width/2||
+      a.y+a.height/2<=b.y-b.height/2||
+      b.y+b.height/2<=a.y-a.height/2,'Gallery hit areas overlap')
+  }
+}
+for(const [w,h] of [[390,844],[568,320],[0,390]]) assert.equal(getNativeCollectionLayout(w,h),null)
+console.log('QA-only native Collection grid and touch layout passed')
