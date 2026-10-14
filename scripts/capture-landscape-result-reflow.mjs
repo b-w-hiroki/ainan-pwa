@@ -159,6 +159,32 @@ try{
           await page.screenshot({path:join(folder,'town-click-failed-'+w+'x'+h+'.png'),animations:'disabled'})
           throw new Error('Town CTA click did not navigate: '+JSON.stringify({debug,errors})+'; '+error.message)
         })
+        // A new record on wide screens must not be clipped at the top.
+        // Exercise the actual reward presentation, not just the Rarity badge.
+        await page.goto(
+          'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=record&cameraPan=1&coneLoop=1&qaLocation=pointB',
+          {waitUntil:'domcontentloaded'})
+        await page.waitForFunction(()=>{
+          const sc=window.__game?.scene?.getScene('GameScene')
+          return sc?.phase==='result' && sc.resultOverlay?.visible
+            && sc._catchRewardVisuals?.some(c=>
+              c.list?.some(child=>child?.text==='NEW RECORD!'))
+        },null,{timeout:20000})
+        const record=await page.evaluate(()=>{
+          const sc=window.__game.scene.getScene('GameScene')
+          const badge=sc._catchRewardVisuals.find(c=>
+            c.list?.some(child=>child?.text==='NEW RECORD!'))
+          return {x:badge.x,y:badge.y,alpha:badge.alpha,
+            fish:sc.fish?.id,phase:sc.phase,
+            bannerText:badge.list.find(child=>child?.text==='NEW RECORD!')?.text}
+        })
+        assert.equal(record.phase,'result')
+        assert.equal(record.bannerText,'NEW RECORD!')
+        assert.ok(record.x >= w-212 && record.x+152 <= w-36
+          && record.y >= 92 && record.y <= 150,
+          'Landscape NEW RECORD banner must remain inside wide Result card: '
+          +JSON.stringify({w,h,record}))
+        await page.screenshot({path:join(folder,'record-'+w+'x'+h+'.png'),animations:'disabled'})
       }
       assert.deepEqual(errors,[],'Unexpected native Result browser error')
       writeFileSync(join(folder,'layout-'+w+'x'+h+'.json'),
