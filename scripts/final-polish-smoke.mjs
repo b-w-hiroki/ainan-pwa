@@ -126,6 +126,7 @@ const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.met
 const helpSource = readFileSync(new URL('../fishing-game/js/scenes/HelpScene.js', import.meta.url), 'utf8')
 const menuSource = readFileSync(new URL('../fishing-game/js/scenes/MenuScene.js', import.meta.url), 'utf8')
 const settingsSource = readFileSync(new URL('../fishing-game/js/scenes/SettingsScene.js', import.meta.url), 'utf8')
+const settingsEntriesSource = readFileSync(new URL('../fishing-game/js/game/settingsEntries.js', import.meta.url), 'utf8')
 const feedbackSource = readFileSync(new URL('../fishing-game/js/game/feedback.js', import.meta.url), 'utf8')
 for (const scene of ['WorkshopScene', 'HarborServicesScene', 'ProfileScene', 'SettingsScene']) {
   assert.ok(mainSource.includes(scene), scene + ' must be registered')
@@ -133,8 +134,9 @@ for (const scene of ['WorkshopScene', 'HarborServicesScene', 'ProfileScene', 'Se
 assert.ok(helpSource.includes('魚市場Lv.2で魚屋'))
 assert.ok(helpSource.includes('日替わり天候'))
 assert.ok(menuSource.includes("scene: 'ProfileScene'"))
-assert.ok(settingsSource.includes('動きを減らす'))
-assert.ok(settingsSource.includes('振動'))
+assert.ok(settingsSource.includes('buildSettingsCards(this)') && settingsEntriesSource.includes('動きを減らす'),
+  'approved Settings must still expose reduced-motion setting through shared actions')
+assert.ok(settingsEntriesSource.includes('振動'), 'haptic settings option missing from shared actions')
 assert.ok(feedbackSource.includes('export function unlockAudio()'), 'explicit audio unlock helper missing')
 assert.ok(mainSource.includes("addEventListener('pointerdown', unlockAudio"), 'first pointerdown must explicitly unlock audio')
 
