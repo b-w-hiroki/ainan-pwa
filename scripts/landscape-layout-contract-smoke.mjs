@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { getNativeHomeLayout } from '../fishing-game/js/presentation/landscape/homeLandscapePrototype.js'
 import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
 
 function inside(a,b) {
@@ -53,3 +54,20 @@ assert.equal(makeFishingLandscapeLayout(568,320).supported,false,
   'do not pretend the smallest landscape viewport fits 44px controls and large world')
 for(const [w,h] of [[0,390],[844,0],[NaN,390]])assert.throws(()=>makeFishingLandscapeLayout(w,h))
 console.log('AINAN landscape geometric readiness QA passed; runtime reflow is still pending')
+
+// Native Home is a separate opt-in layout and may not silently fall back to
+// tiny portrait controls when explicitly staged for a wide QA viewport.
+for (const [width,height] of [[844,390],[932,430],[1024,430]]) {
+  const layout=getNativeHomeLayout(width,height)
+  assert.ok(layout,'native Home candidate missing for '+width+'x'+height)
+  assert.equal(Object.keys(layout.actions).length,4)
+  for(const button of Object.values(layout.actions)) {
+    assert.ok(button.width>=44&&button.height>=44,'native Home has undersized action')
+    assert.ok(button.x-button.width/2>=layout.panel.x+12)
+    assert.ok(button.x+button.width/2<=layout.panel.x+layout.panel.width-12)
+  }
+}
+for (const [width,height] of [[390,844],[568,320],[0,390],[844,0],[NaN,390]]) {
+  assert.equal(getNativeHomeLayout(width,height),null,'unsupported native Home must opt out')
+}
+console.log('QA-only native Home horizontal layout geometry passed; no production activation')
