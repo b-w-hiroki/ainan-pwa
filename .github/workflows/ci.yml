@@ -91,6 +91,9 @@ jobs:
       - name: Verify landscape Cast, real HIT tap, Battle and Result ownership
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-landscape-phase-handoff.mjs
 
+      - name: Verify native landscape Result layout and real Town CTA
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-landscape-result-reflow.mjs
+
       - name: Verify Cast after live portrait-landscape rotation
         run: QA_ROTATE_BEFORE_CAST=1 npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-landscape-real-swipe.mjs
 
