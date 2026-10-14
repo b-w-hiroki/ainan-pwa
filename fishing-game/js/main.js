@@ -33,6 +33,7 @@ import { installNativeLandscapeTownPrototype } from './presentation/landscape/to
 import { installNativeLandscapeCollectionPrototype } from './presentation/landscape/collectionLandscapePrototype.js'
 import { installNativeLandscapeMenuPrototype } from './presentation/landscape/menuLandscapePrototype.js'
 import { installNativeLandscapeSettingsPrototype } from './presentation/landscape/settingsLandscapePrototype.js'
+import { isNativeLandscapeQaResize } from './presentation/landscape/nativeLandscapeQaFlags.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
@@ -41,7 +42,8 @@ const pwaUpdate = installPwaUpdateGuard()
 
 const cameraPanPrototype = typeof window !== 'undefined'
   && (['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan'))
-    || new URLSearchParams(window.location.search).get('coneLoop') === '1')
+    || new URLSearchParams(window.location.search).get('coneLoop') === '1'
+    || isNativeLandscapeQaResize(window.location.search))
 
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)

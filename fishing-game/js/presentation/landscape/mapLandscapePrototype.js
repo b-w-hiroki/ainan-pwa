@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { getFishingGroundName } from '../../game/fishingGroundNames.js'
@@ -81,8 +82,7 @@ export function installNativeLandscapeMapPrototype(MapScene) {
   MapScene.prototype.__nativeLandscapeMapPrototypeInstalled=true
   const previous=MapScene.prototype.create
   MapScene.prototype.create=function(...args) {
-    const params=typeof window==='undefined'?null:new URLSearchParams(window.location.search)
-    if(params?.get('qa')==='1'&&params.get('nativeLandscapeMap')==='1'){
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeMap')){
       const layout=getNativeMapLayout(this.scale.width,this.scale.height)
       if(layout) return renderMap(this,layout)
     }

@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaResize } from '../presentation/landscape/nativeLandscapeQaFlags.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { isReducedMotion } from './feedback.js'
@@ -6,9 +7,11 @@ import { PULL_CAST_TUNING } from './pullCastTuning.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
 import { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
-const enabled = () => typeof window !== 'undefined'
-  && ['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan') ?? '')
-  || (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('coneLoop') === '1')
+const enabled = () => typeof window !== 'undefined' && (
+  ['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan') ?? '') ||
+  new URLSearchParams(window.location.search).get('coneLoop') === '1' ||
+  isNativeLandscapeQaResize(window.location.search)
+)
 
 const fieldAssets = () => [
   ASSETS.ui.fishingApprovedCleanHarbor,

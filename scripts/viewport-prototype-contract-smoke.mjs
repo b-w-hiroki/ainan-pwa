@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import vm from 'node:vm'
+import { isNativeLandscapeQaEnabled, isNativeLandscapeQaResize } from '../fishing-game/js/presentation/landscape/nativeLandscapeQaFlags.js'
 
 const html = readFileSync(new URL('../fishing-game/index.html', import.meta.url), 'utf8')
 const boot = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
@@ -29,6 +30,10 @@ const cases = [
   ['?coneLoop=1', true],
   ['?cameraPan=0&coneLoop=1', true],
   ['?cameraPan=true&coneLoop=0', true],
+  ['?qa=1&nativeLandscapeAll=1', true],
+  ['?qa=0&nativeLandscapeAll=1', false],
+  ['?nativeLandscapeAll=1', false],
+  ['?qa=1&nativeLandscapeAll=0', false],
 ]
 for (const [query, expected] of cases) {
   assert.equal(htmlMode(query), expected, 'viewport mode mismatch for '+query)
@@ -39,5 +44,26 @@ assert.match(boot, /new URLSearchParams\(window\.location\.search\)\.get\('coneL
   'runtime RESIZE must remain gated by coneLoop=1')
 assert.match(boot, /\['1', 'true'\]\.includes\(new URLSearchParams\(window\.location\.search\)\.get\('cameraPan'\)\)/,
   'runtime RESIZE must remain gated by cameraPan=1')
-console.log('Prototype CSS/Phaser canvas modes agree across 8 URL variants')
+assert.match(boot,/isNativeLandscapeQaResize\(window\.location\.search\)/,
+  'continuous QA preview must enable Phaser RESIZE with matching CSS gate')
+
+// Native staging flags must remain safe even when a non-QA visitor copies
+// the preview URL. Explicit per-scene QA flags remain supported.
+for (const sceneFlag of ['Home','Map','Town','Collection','Menu','Settings']) {
+  const key='nativeLandscape'+sceneFlag
+  assert.equal(isNativeLandscapeQaEnabled('?nativeLandscapeAll=1',key),false)
+  assert.equal(isNativeLandscapeQaEnabled('?qa=0&nativeLandscapeAll=1',key),false)
+  assert.equal(isNativeLandscapeQaEnabled('?qa=1&nativeLandscapeAll=1',key),true)
+  assert.equal(isNativeLandscapeQaEnabled('?qa=1&'+key+'=1',key),true)
+  assert.equal(isNativeLandscapeQaEnabled('?qa=1&'+key+'=0',key),false)
+  const path=new URL('../fishing-game/js/presentation/landscape/'+sceneFlag.toLowerCase()+'LandscapePrototype.js',import.meta.url)
+  const source=readFileSync(path,'utf8')
+  assert.ok(source.includes('isNativeLandscapeQaEnabled(')&&source.includes("'"+key+"'"),
+    'Scene must use the same QA-only shared native layout switch: '+key)
+}
+assert.equal(isNativeLandscapeQaResize('?qa=1&nativeLandscapeAll=1'),true)
+assert.equal(isNativeLandscapeQaResize('?qa=0&nativeLandscapeAll=1'),false)
+assert.equal(isNativeLandscapeQaResize('?nativeLandscapeAll=1'),false)
+
+console.log('Prototype CSS/Phaser canvas modes agree across 12 URL variants')
 console.log('Production still uses approved portrait FIT; this is not landscape ship readiness')

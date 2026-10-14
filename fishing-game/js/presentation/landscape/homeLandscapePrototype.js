@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { getCatches, getScore } from '../../game/progress.js'
@@ -115,8 +116,7 @@ export function installNativeLandscapeHomePrototype(HomeScene) {
   HomeScene.prototype.__nativeLandscapeHomePrototypeInstalled=true
   const previous=HomeScene.prototype.create
   HomeScene.prototype.create=function(...args) {
-    const params=typeof window==='undefined' ? null : new URLSearchParams(window.location.search)
-    if(params?.get('qa')==='1'&&params.get('nativeLandscapeHome')==='1') {
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeHome')){
       const layout=getNativeHomeLayout(this.scale.width,this.scale.height)
       if(layout) return renderHome(this,layout)
     }

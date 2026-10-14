@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { getTownFacilityArt } from '../../game/townFacilityArt.js'
@@ -103,8 +104,7 @@ export function installNativeLandscapeTownPrototype(TownScene) {
   TownScene.prototype.__nativeLandscapeTownInstalled=true
   const previous=TownScene.prototype.create
   TownScene.prototype.create=function(...args){
-    const params=typeof window==='undefined'?null:new URLSearchParams(window.location.search)
-    if(params?.get('qa')==='1'&&params.get('nativeLandscapeTown')==='1'){
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeTown')){
       const layout=getNativeTownLayout(this.scale.width,this.scale.height)
       if(layout)return renderTown(this,layout)
     }
