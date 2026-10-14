@@ -32,7 +32,10 @@ function hideFixedPresentation(scene) {
   scene._mockTopChrome?.setVisible?.(false)
   scene._blueprintCastInstruction?.setVisible?.(false)
   scene._rcRetrieveLine?.setVisible?.(false)
-  scene.escapeBar?.setVisible?.(false)
+  // In the native panning prototype the legacy owner still renders Battle.
+  // Hiding Escape every update makes the tension control disappear as soon
+  // as _enterBattle() finishes; keep it visible *only* for actual Battle.
+  scene.escapeBar?.setVisible?.(scene._castPresentationMode === 'legacy' && scene.phase === 'battle')
   scene._bossEncounterCutin?.setVisible?.(false)
   // The legacy battle hero is an SVG rendered above the world fish. In the
   // panning WebGL composition its transparent canvas is promoted as an opaque
