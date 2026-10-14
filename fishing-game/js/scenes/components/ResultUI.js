@@ -129,6 +129,29 @@ export class ResultUI {
 
     scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, retrySub])
     scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, guide, scene.resultSuccessActions])
+    if (W > H && H < 520) {
+      // Native landscape: preserve actual 154x58 input zones. Translate only
+      // screen-space Result presentation; portrait Golden Screen is untouched.
+      scene._nativeResultLayout = { mode: 'landscape', width: W, height: H }
+      const left = x => x - W / 2
+      const top = y => y - H / 2
+      card.clear()
+      card.fillStyle(0x031f33, 0.92).lineStyle(2, 0xc9f4ff, 0.72)
+        .fillRoundedRect(left(18), top(66), W - 36, H - 77, 18)
+        .strokeRoundedRect(left(18), top(66), W - 36, H - 77, 18)
+      halo.clear()
+      halo.fillStyle(0xffd95a, 0.08).fillCircle(left(145), top(185), 86)
+      halo.lineStyle(2, 0xffffff, 0.22).strokeCircle(left(145), top(185), 81)
+      stats.clear()
+      scene.resLabel.setPosition(left(325), top(102)).setOrigin(0, 0.5).setFontSize(36)
+      scene.resEmoji.setPosition(left(145), top(185)).setFontSize(84)
+      scene.resName.setPosition(left(325), top(151)).setOrigin(0, 0.5).setFontSize(24)
+      scene.resPts.setPosition(left(325), top(207)).setOrigin(0, 0.5).setFontSize(15)
+      scene.resHint.setPosition(left(325), top(254)).setOrigin(0, 0.5).setFontSize(11)
+      scene.resultSuccessActions.setPosition(70, -150)
+      retrySub.setVisible(false)
+    }
+
   }
 
   drawResultStripe(outcome) {
@@ -139,8 +162,12 @@ export class ResultUI {
     const isKue = outcome === 'caught' && scene.fish?.id === 'kue' && scene.env?.point === 'pointC'
     const color = isKue ? 0xffd95a : outcome === 'caught' ? 0x2f9ed4 : 0xff765a
     g.fillStyle(color, 0.96)
-    g.fillRoundedRect(-92, -236, 184, 34, 15)
-    scene._resultGuideGroup?.setVisible?.(outcome === 'caught')
+    if (scene._nativeResultLayout?.mode === 'landscape') {
+      g.fillRoundedRect(-scene.scale.width / 2 + 25, -scene.scale.height / 2 + 78, 145, 10, 5)
+    } else {
+      g.fillRoundedRect(-92, -236, 184, 34, 15)
+    }
+    scene._resultGuideGroup?.setVisible?.(outcome === 'caught' && !scene._nativeResultLayout)
     if (isKue) this._showKueClearCutin()
   }
 
