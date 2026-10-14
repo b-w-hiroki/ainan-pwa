@@ -290,6 +290,7 @@ export default class GameScene extends Phaser.Scene {
   // PHASES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _enterCast() {
+    this.resultUI?.setNativeActionsVisible(false)
     this._cleanupBattle()
     this.phase = 'cast'
     this.isCharging = false
