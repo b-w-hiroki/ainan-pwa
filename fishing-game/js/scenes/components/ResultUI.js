@@ -129,6 +129,22 @@ export class ResultUI {
 
     scene.resultSuccessActions = scene.add.container(0, 0, [...town, ...retry, retrySub])
     scene.resultOverlay.add([scrim, card, scene.resStripe, scene.resLabel, halo, scene.resEmoji, scene.resName, stats, scene.resPts, scene.resHint, guide, scene.resultSuccessActions])
+    if (W > H && H < 520) {
+      // Native landscape: two columns, not a scaled-down portrait Result.
+      // Preserve the original 154×58 real button hit areas.
+      const side = W * 0.25
+      card.setPosition(side, -104)
+      stats.setPosition(side, -100)
+      scene.resStripe.setPosition(side, 121)
+      scene.resLabel.setPosition(side, -108).setFontSize(36)
+      halo.setPosition(-W * 0.22, 142)
+      scene.resEmoji.setPosition(-W * 0.22, 10).setFontSize(88)
+      scene.resName.setPosition(side, -60).setFontSize(24)
+      scene.resPts.setPosition(side, 12).setFontSize(14)
+      scene.resHint.setPosition(side, 66)
+      scene.resultSuccessActions.setPosition(side, -148)
+      guide.setVisible(false)
+    }
   }
 
   drawResultStripe(outcome) {
@@ -140,7 +156,8 @@ export class ResultUI {
     const color = isKue ? 0xffd95a : outcome === 'caught' ? 0x2f9ed4 : 0xff765a
     g.fillStyle(color, 0.96)
     g.fillRoundedRect(-92, -236, 184, 34, 15)
-    scene._resultGuideGroup?.setVisible?.(outcome === 'caught')
+    scene._resultGuideGroup?.setVisible?.(outcome === 'caught' &&
+      !(scene.scale.width > scene.scale.height && scene.scale.height < 520))
     if (isKue) this._showKueClearCutin()
   }
 
