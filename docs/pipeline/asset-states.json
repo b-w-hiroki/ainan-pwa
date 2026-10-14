@@ -937,6 +937,48 @@
           "refs": [
             "fishJump.fxKue"
           ]
+        },
+        {
+          "id": "tai",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxTai"
+          ]
+        },
+        {
+          "id": "buri",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxBuri"
+          ]
+        },
+        {
+          "id": "bass",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxBass"
+          ]
+        },
+        {
+          "id": "isaki",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxIsaki"
+          ]
+        },
+        {
+          "id": "hirame",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxHirame"
+          ]
+        },
+        {
+          "id": "kanpachi",
+          "kind": "asset",
+          "refs": [
+            "fishJump.fxKanpachi"
+          ]
         }
       ]
     }
