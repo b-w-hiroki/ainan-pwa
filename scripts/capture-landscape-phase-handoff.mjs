@@ -80,33 +80,55 @@ try {
     assert.ok(retrieve.n>0,'actual fish runtime unavailable')
     await snapshot('02-retrieve')
 
-    // Deterministically schedule the game's real bite sequence: this is a
-    // QA fixture, not proof that RNG naturally produced a fish interest event.
+    // Exercise the real Retrieve decision methods before deterministic bite.
+    // Vertical Slice agency requires >=2 meaningful actions, and fish
+    // readability requires a 320ms hesitation. Never disable either gate.
+    const decisions=await page.evaluate(()=>{
+      const s=window.__game.scene.getScene('GameScene')
+      if(s.phase!=='retrieve'||!s.retrieveState)return {phase:s.phase,count:0}
+      s._twitchRetrieve()
+      s._startSlowRetrieve()
+      const count=s.retrieveState?.decisionCount??0
+      s._stopSlowRetrieve()
+      return {phase:s.phase,count}
+    })
+    assert.equal(decisions.phase,'retrieve','player decisions unexpectedly ended Retrieve')
+    assert.ok(decisions.count>=2,'two real Retrieve decisions are required before bite: '+JSON.stringify(decisions))
+
+    const primed=await page.evaluate(()=>{
+      const s=window.__game.scene.getScene('GameScene')
+      const candidates=s.bg?._fishRuntime??[]
+      const runtime=candidates.find(item=>item?.fishDef&&item.gfx?.active)
+      if(s.phase==='retrieve'&&runtime){
+        // QA-only controlled fish-ready event, NOT a claim about fish RNG.
+        runtime.state='biteReady'
+        runtime._biteReadableReadyAt=0
+        s._coneCastState.hitCommitted=false
+        s._coneCastState.hitTransitioning=false
+        s._beginRetrieveBite(runtime)
+      }
+      return {ready:Boolean(runtime),phase:s.phase,
+        hesitationUntil:runtime?._biteReadableReadyAt??null,
+        time:s.time.now,decisionCount:s.retrieveState?.decisionCount}
+    })
+    assert.ok(primed.ready&&primed.phase==='retrieve'&&primed.hesitationUntil>primed.time,
+      'fish should visibly hesitate before the real bite: '+JSON.stringify(primed))
+    await page.waitForTimeout(390)
     const started=await page.evaluate(()=>{
       const s=window.__game.scene.getScene('GameScene')
       const state=s._coneCastState
-      const before=s.phase
       const candidates=s.bg?._fishRuntime??[]
-      const runtime=candidates.find(item=>item?.fishDef&&item.gfx)
-      if(s.phase==='retrieve'&&runtime){
-        // Transition guard belongs to the actual one-shot fish interaction;
-        // reset only this controlled QA fixture after a finished Cast.
-        state.hitCommitted=false
-        state.hitTransitioning=false
-        var biteResult=s._beginRetrieveBite(runtime)
-      }
+      const runtime=candidates.find(item=>item?.fishDef&&item.gfx?.active&&item._biteReadableReadyAt)
+      const before=s.phase
+      if(runtime&&s.phase==='retrieve')s._beginRetrieveBite(runtime)
       if(s.phase==='wait')s.fish={...s.fish,biteRate:1}
       return {started:s.phase==='wait',before,after:s.phase,
-        fishId:s.fish?.id,runtimeCount:candidates.length,
-        runtimeFound:Boolean(runtime),hitCommitted:state.hitCommitted,
-        hitTransitioning:state.hitTransitioning,
-        biteResult:String(biteResult),inBite:s._retrieveInBite,
-        biteSequenceActive:s._biteSequenceActive,
-        methodBody:String(s._beginRetrieveBite).slice(0,340),
-        runtimeIndex:runtime?.index,runtimeActive:runtime?.gfx?.active}
+        runtimeFound:Boolean(runtime),runtimeCount:candidates.length,
+        decisionCount:s.retrieveState?.decisionCount,
+        fishId:s.fish?.id,hitCommitted:state.hitCommitted,
+        hitTransitioning:state.hitTransitioning}
     })
-    console.log('Handoff diagnostic (fixture only):',JSON.stringify(started))
-    assert.ok(started.started,'game bite transition did not enter Wait: '+JSON.stringify(started))
+    assert.ok(started.started,'game bite transition did not enter Wait after real decision and hesitation: '+JSON.stringify({decisions,primed,started}))
     await page.waitForFunction(()=>window.__game.scene.getScene('GameScene').waitTapActive,
       null,{timeout:12000})
     await snapshot('03-hit-window')
