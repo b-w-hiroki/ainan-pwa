@@ -189,10 +189,15 @@ function buildOverlay(scene) {
   const gaugeW = PULL_CAST_TUNING.ui.gaugeWidthPx
   const gaugeX = buttonX - radius - gaugeW - 18
   const gaugeY = castY - gaugeH / 2
-  const infoX = 16
+  // Native landscape: reserve the left/bottom quadrant for the player and
+  // the right rail for the reel/charge gauge. The info card belongs between
+  // them, not across the hand holding the rod.
+  const infoX = compact ? Math.round(W * 0.36) : 16
   const infoH = compact ? 52 : 68
   const infoY = H - infoH - (compact ? 8 : 14)
-  const infoW = Math.min(compact ? 430 : 248, Math.max(190, buttonX - radius - infoX - 12))
+  const infoW = compact
+    ? Math.max(184, Math.min(300, gaugeX - infoX - 16))
+    : Math.min(248, Math.max(190, buttonX - radius - infoX - 12))
   const root = scene.add.container(0, 0).setDepth(9200).setScrollFactor(0)
   const castChrome = scene.add.graphics()
   castChrome.fillStyle(0x062c44, 0.72).lineStyle(3, 0xffffff, 0.94).fillRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10).strokeRoundedRect(gaugeX - 4, gaugeY - 4, gaugeW + 8, gaugeH + 8, 10)
