@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { buildSettingsCards } from '../../game/settingsEntries.js'
@@ -76,8 +77,7 @@ export function installNativeLandscapeSettingsPrototype(SettingsScene){
   SettingsScene.prototype.__nativeLandscapeSettingsInstalled=true
   const original=SettingsScene.prototype.create
   SettingsScene.prototype.create=function(...args){
-    const p=typeof window==='undefined'?null:new URLSearchParams(window.location.search)
-    if(p?.get('qa')==='1'&&p.get('nativeLandscapeSettings')==='1'){
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeSettings')){
       const layout=getNativeSettingsLayout(this.scale.width,this.scale.height)
       if(layout)return renderSettings(this,layout)
     }
