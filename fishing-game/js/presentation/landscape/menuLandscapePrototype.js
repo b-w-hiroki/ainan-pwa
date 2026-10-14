@@ -52,7 +52,7 @@ function renderMenu(scene,layout) {
     if(desc.width>c.width-30){
       const chars=Array.from(item.desc)
       const midpoint=Math.ceil(chars.length/2)
-      desc.setText(chars.slice(0,midpoint).join('')+'\\n'+chars.slice(midpoint).join(''))
+      desc.setText(chars.slice(0,midpoint).join('')+'\n'+chars.slice(midpoint).join(''))
     }
     if(item.badge){
       scene.add.text(x+c.width-12,y+21,item.badge,{
