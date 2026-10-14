@@ -127,6 +127,7 @@ const helpSource = readFileSync(new URL('../fishing-game/js/scenes/HelpScene.js'
 const menuSource = readFileSync(new URL('../fishing-game/js/scenes/MenuScene.js', import.meta.url), 'utf8')
 const menuEntriesSource = readFileSync(new URL('../fishing-game/js/game/menuEntries.js', import.meta.url), 'utf8')
 const settingsSource = readFileSync(new URL('../fishing-game/js/scenes/SettingsScene.js', import.meta.url), 'utf8')
+const settingsEntriesSource = readFileSync(new URL('../fishing-game/js/game/settingsEntries.js', import.meta.url), 'utf8')
 const feedbackSource = readFileSync(new URL('../fishing-game/js/game/feedback.js', import.meta.url), 'utf8')
 for (const scene of ['WorkshopScene', 'HarborServicesScene', 'ProfileScene', 'SettingsScene']) {
   assert.ok(mainSource.includes(scene), scene + ' must be registered')
@@ -135,8 +136,8 @@ assert.ok(helpSource.includes('魚市場Lv.2で魚屋'))
 assert.ok(helpSource.includes('日替わり天候'))
 assert.ok(menuSource.includes('getMenuEntries()') && menuEntriesSource.includes("scene: 'ProfileScene'"),
   'Both approved and wide Menu must retain Profile navigation via the shared registry')
-assert.ok(settingsSource.includes('動きを減らす'))
-assert.ok(settingsSource.includes('振動'))
+assert.ok(settingsSource.includes('buildSettingsCards(this)') && settingsEntriesSource.includes('動きを減らす'), 'Settings must expose reduced motion through registry')
+assert.ok(settingsEntriesSource.includes('振動'), 'Settings must expose haptics through registry')
 assert.ok(feedbackSource.includes('export function unlockAudio()'), 'explicit audio unlock helper missing')
 assert.ok(mainSource.includes("addEventListener('pointerdown', unlockAudio"), 'first pointerdown must explicitly unlock audio')
 

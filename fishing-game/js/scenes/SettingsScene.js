@@ -6,6 +6,7 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 import { backupSave, exportSaveData, getBackupSummaries, importSaveData, restoreLatestBackup, SAVE_VERSION } from '../game/saveSystem.js'
 import { isHapticsEnabled, isReducedMotion, isSoundEnabled, setHapticsEnabled, setReducedMotion, setSoundEnabled, supportsHaptics } from '../game/feedback.js'
 import { exportDiagnostics } from '../game/diagnostics.js'
+import { buildSettingsCards } from '../game/settingsEntries.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -20,26 +21,7 @@ export default class SettingsScene extends Phaser.Scene {
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
     this.add.rectangle(W / 2, H / 2, W, H, 0xf7fcff, 0.92).setDepth(1)
     this._header(W)
-    const backups = getBackupSummaries()
-    const validBackups = backups.filter(item => item.exists && item.valid).length
-    const hapticsSupported = supportsHaptics()
-    const cards = [
-      ['サウンド', isSoundEnabled() ? 'ON' : 'OFF', () => { setSoundEnabled(!isSoundEnabled()); this.scene.restart() }],
-      ['振動', hapticsSupported ? (isHapticsEnabled() ? 'ON' : 'OFF') : 'この端末では非対応', () => {
-        if (!hapticsSupported) { this._toast('この端末では振動APIを利用できません'); return }
-        setHapticsEnabled(!isHapticsEnabled()); this.scene.restart()
-      }],
-      ['動きを減らす', isReducedMotion() ? 'ON' : 'OFF', () => { setReducedMotion(!isReducedMotion()); this.scene.restart() }],
-      ['バックアップ', '3世代 / 有効 ' + validBackups, () => {
-        if (!backupSave()) { this._toast('保存に失敗・空き容量を確認'); return }
-        this._toast('バックアップしました')
-        this.time.delayedCall(350, () => this.scene.restart())
-      }],
-      ['最新を復旧', validBackups ? '復元可能' : 'バックアップなし', () => { if (restoreLatestBackup()) { this._toast('復元しました'); this.time.delayedCall(350, () => this.scene.start('HomeScene')) } else this._toast('復元できません') }],
-      ['データを書き出す', 'JSONをコピー', () => this._export()],
-      ['データを読み込む', 'JSONから復元', () => this._import()],
-      ['診断ログを書き出す', '端末内ログをコピー', () => this._exportDiagnostics()],
-    ]
+    const cards = buildSettingsCards(this)
     cards.forEach((item, i) => this._card(W, 96 + i * 61, item[0], item[1], item[2]))
     this.add.text(30, 592, 'SAVE VERSION  ' + SAVE_VERSION, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
     this.add.text(30, 612, '書き出しデータには端末内のゲーム進行だけが含まれます。', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: W - 60 } }).setDepth(5)

@@ -32,6 +32,7 @@ import { installNativeLandscapeMapPrototype } from './presentation/landscape/map
 import { installNativeLandscapeTownPrototype } from './presentation/landscape/townLandscapePrototype.js'
 import { installNativeLandscapeCollectionPrototype } from './presentation/landscape/collectionLandscapePrototype.js'
 import { installNativeLandscapeMenuPrototype } from './presentation/landscape/menuLandscapePrototype.js'
+import { installNativeLandscapeSettingsPrototype } from './presentation/landscape/settingsLandscapePrototype.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
@@ -51,6 +52,7 @@ installNativeLandscapeMapPrototype(MapScene)
 installNativeLandscapeTownPrototype(TownScene)
 installNativeLandscapeCollectionPrototype(CollectionScene)
 installNativeLandscapeMenuPrototype(MenuScene)
+installNativeLandscapeSettingsPrototype(SettingsScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {

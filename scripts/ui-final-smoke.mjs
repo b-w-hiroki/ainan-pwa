@@ -26,8 +26,9 @@ const feedback = read('fishing-game/js/game/feedback.js')
 assert.ok(feedback.includes('export function supportsHaptics()'), 'haptics capability detection missing')
 assert.ok(feedback.includes('!supportsHaptics()'), 'haptic() must gracefully no-op on unsupported browsers')
 const settings = read('fishing-game/js/scenes/SettingsScene.js')
-assert.ok(settings.includes('supportsHaptics'), 'Settings must expose haptics capability')
-assert.ok(settings.includes('この端末では非対応'), 'Settings must label unsupported haptics')
+const settingsEntries = read('fishing-game/js/game/settingsEntries.js')
+assert.ok(settings.includes('buildSettingsCards(this)') && settingsEntries.includes('supportsHaptics'), 'Settings shared haptics capability missing')
+assert.ok(settingsEntries.includes('この端末では非対応'), 'Settings must label unsupported haptics')
 
 // The final 390x844 Result is owned by CastPresentationHost, not ResultUI.
 const resultHost = read('fishing-game/js/presentation/cast/CastPresentationHost.js')

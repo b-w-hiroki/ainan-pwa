@@ -44,8 +44,9 @@ for (const token of ['ainan_save_backup_1','ainan_save_backup_2','ainan_save_bac
 }
 
 const settings = read('fishing-game/js/scenes/SettingsScene.js')
+const settingsActions = read('fishing-game/js/game/settingsEntries.js')
 const settingsCapture = read('scripts/capture-settings-storage-actions.mjs')
-assert.ok(settings.includes('if (!backupSave())'),
+assert.ok(settings.includes('buildSettingsCards(this)') && settingsActions.includes('if (!backupSave())'),
   'Settings must not claim backup success after storage write failure')
 assert.ok(settings.includes("typeof navigator.clipboard?.writeText !== 'function'"),
   'Clipboard-unavailable Settings must show the prompt fallback')
