@@ -74,8 +74,12 @@ try{
             visible:s._resultGetAsset?.visible},
           name:{x:root.x+s.resName.x,y:root.y+s.resName.y},
           points:{x:root.x+s.resPts.x,y:root.y+s.resPts.y},
-          actions:buttons.list.filter(o=>o.type==='Rectangle'&&o.input?.enabled)
-            .map(o=>({x:root.x+buttons.x+o.x,y:root.y+buttons.y+o.y,w:o.width,h:o.height}))}
+          actions:wide
+            ? (s._nativeResultZones??[]).filter(z=>z.input?.enabled)
+                .map(z=>({x:z.x,y:z.y,w:z.width,h:z.height,type:z.type}))
+            : buttons.list.filter(o=>o.type==='Rectangle'&&o.input?.enabled)
+                .map(o=>({x:root.x+buttons.x+o.x,y:root.y+buttons.y+o.y,
+                  w:o.width,h:o.height,type:o.type}))}
       })
       console.log('Native Result layout evidence',JSON.stringify({viewport:[w,h],state}))
       // Preserve actual rendered evidence even on a failed geometry gate.
