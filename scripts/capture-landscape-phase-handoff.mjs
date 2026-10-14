@@ -201,7 +201,8 @@ try {
     assert.equal(outcome.getHeading,'GET!','real Result heading must show the catch')
     await page.waitForFunction(()=>{
       const s=window.__game.scene.getScene('GameScene')
-      return s.phase==='result'&&s._castPresentationHost?.nodes?.resultForeground?.visible
+      return s.phase==='result'&&s._castPresentationMode==='legacy'
+        &&s.resultOverlay?.visible&&s.resLabel?.text==='GET!'
     },null,{timeout:6000})
     await snapshot('05-result')
     assert.deepEqual(errors,[],'Unexpected browser errors')
