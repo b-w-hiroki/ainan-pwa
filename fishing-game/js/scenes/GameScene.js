@@ -622,7 +622,20 @@ export default class GameScene extends Phaser.Scene {
     })
   }
 
+  _clearBigHitCutin() {
+    this._bigHitCutinDelay?.remove(false)
+    this._bigHitCutinDelay = null
+    if (this._bigHitCutin?.active) {
+      this.tweens.killTweensOf(this._bigHitCutin)
+      this._bigHitCutin.destroy(true)
+    }
+    this._bigHitCutin = null
+  }
+
   _showBigHitCutin(rarity) {
+    // A fast Battle outcome (or QA fixture) can enter Result before the
+    // old banner's fade timer expires. It must never cover GET, fish or CTAs.
+    this._clearBigHitCutin()
     const { width: W, height: H } = this.scale
     const danger = rarity === 'legendary'
     const c = this.add.container(W / 2, H * 0.30).setDepth(130)
@@ -643,9 +656,18 @@ export default class GameScene extends Phaser.Scene {
       color: '#ffffff',
     }).setOrigin(0.5)
     c.add([bg, label, sub])
+    this._bigHitCutin = c
     this.cameras.main.shake(220, danger ? 0.012 : 0.006)
-    this.time.delayedCall(650, () => {
-      this.tweens.add({ targets: c, alpha: 0, y: '-=18', duration: 240, onComplete: () => c.destroy(true) })
+    this._bigHitCutinDelay = this.time.delayedCall(650, () => {
+      this._bigHitCutinDelay = null
+      if (!c.active || this.phase !== 'battle') return
+      this.tweens.add({
+        targets: c, alpha: 0, y: '-=18', duration: 240,
+        onComplete: () => {
+          if (this._bigHitCutin === c) this._bigHitCutin = null
+          c.destroy(true)
+        },
+      })
     })
   }
 
@@ -673,6 +695,7 @@ export default class GameScene extends Phaser.Scene {
       return false
     }
     this._cleanupBattle()
+    this._clearBigHitCutin()
     // バトル終了後、接近していた魚影を通常の泳ぎに戻す
     this._resetFishToStart(this._targetFishIndex)
     this._targetFishIndex = null
@@ -1036,6 +1059,7 @@ export default class GameScene extends Phaser.Scene {
     this.tackleUI?.destroy()
     this.battleUI?.destroy()
     this._cleanupBattle()
+    this._clearBigHitCutin()
     this._killWaitTimers()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.resultEmojiTween?.stop(); this.resultEmojiTween?.destroy(); this.resultEmojiTween = null
