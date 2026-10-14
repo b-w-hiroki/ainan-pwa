@@ -48,6 +48,7 @@ try{
           inputVisible:phase==='cast'?host.nodes.castInteraction.visible:host.nodes.retrieveInteraction.visible,
           canvasPresent:Boolean(document.querySelector('#game-container canvas')?.isConnected),
           hudVisible:host.nodes.chrome.visible,
+          hudBackingVisible:host.nodes.retrieveHudCover.visible,
           instructionVisible:host.nodes.instruction.visible,
           locationLabel:host.nodes.location.text,
           distanceLabel:host.nodes.distance.text,
@@ -62,6 +63,8 @@ try{
       assert.equal(state.locationLabel,labels[point],filename+': wrong live fishing ground name')
       assert.equal(state.hudVisible,phase==='cast'||point!=='pointA',
         filename+': native HUD must replace stale baked Retrieve label only off Harbor')
+      assert.equal(state.hudBackingVisible,phase==='retrieve'&&point!=='pointA',
+        filename+': opaque HUD backing must only cover non-Harbor Retrieve')
       assert.equal(state.instructionVisible,phase==='cast',
         filename+': Cast-only instruction must not appear over Retrieve')
       if(phase==='retrieve'&&point!=='pointA') assert.equal(state.distanceLabel,'18m')
@@ -102,6 +105,7 @@ try{
           distance:host.nodes.distance.text,
           overlayVisible:host.nodes.retrieveLocationOverlay?.visible,
           instructionVisible:host.nodes.instruction.visible,
+          hudBackingVisible:host.nodes.retrieveHudCover.visible,
           nativeOwner:host.root.name,
         }
       })
@@ -109,6 +113,7 @@ try{
       assert.equal(result.distance,'18m')
       assert.equal(result.overlayVisible,false,'QA-only location overlay leaked into production')
       assert.equal(result.instructionVisible,false)
+      assert.equal(result.hudBackingVisible,true,'baked Harbor header needs full opacity')
       assert.equal(result.nativeOwner,'cast-presentation-host')
       const destination=join('artifacts/location-preview',filename)
       await page.screenshot({path:destination,animations:'disabled'})
