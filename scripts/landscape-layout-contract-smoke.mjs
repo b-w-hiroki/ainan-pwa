@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { getNativeHomeLayout } from '../fishing-game/js/presentation/landscape/homeLandscapePrototype.js'
 import { getNativeMapLayout } from '../fishing-game/js/presentation/landscape/mapLandscapePrototype.js'
+import { getNativeMenuLayout } from '../fishing-game/js/presentation/landscape/menuLandscapePrototype.js'
 import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
 
 function inside(a,b) {
@@ -91,3 +92,23 @@ for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
 }
 for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeMapLayout(w,h),null)
 console.log('QA-only native Map geometry checks passed')
+
+for(const [w,h] of [[844,390],[932,430],[1024,430]]){
+  const layout=getNativeMenuLayout(w,h)
+  assert.ok(layout,'QA wide Menu layout missing')
+  assert.equal(layout.cards.length,8)
+  for(const c of [...layout.cards,layout.back]){
+    assert.ok(c.width>=44&&c.height>=44)
+    assert.ok(c.x-c.width/2>=0&&c.x+c.width/2<=w)
+    assert.ok(c.y-c.height/2>=0&&c.y+c.height/2<=h)
+  }
+  for(let i=0;i<layout.cards.length;i++)for(let j=i+1;j<layout.cards.length;j++){
+    const a=layout.cards[i],b=layout.cards[j]
+    assert.ok(a.x+a.width/2<=b.x-b.width/2||
+      b.x+b.width/2<=a.x-a.width/2||
+      a.y+a.height/2<=b.y-b.height/2||
+      b.y+b.height/2<=a.y-a.height/2,'Menu cards overlap')
+  }
+}
+for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeMenuLayout(w,h),null)
+console.log('QA-only native Menu 8-action geometry passed')
