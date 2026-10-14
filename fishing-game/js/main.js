@@ -30,6 +30,7 @@ import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.
 import { installNativeLandscapeHomePrototype } from './presentation/landscape/homeLandscapePrototype.js'
 import { installNativeLandscapeMapPrototype } from './presentation/landscape/mapLandscapePrototype.js'
 import { installNativeLandscapeTownPrototype } from './presentation/landscape/townLandscapePrototype.js'
+import { installNativeLandscapeSettingsPrototype } from './presentation/landscape/settingsLandscapePrototype.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
@@ -47,6 +48,7 @@ installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyS
 installNativeLandscapeHomePrototype(HomeScene)
 installNativeLandscapeMapPrototype(MapScene)
 installNativeLandscapeTownPrototype(TownScene)
+installNativeLandscapeSettingsPrototype(SettingsScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
