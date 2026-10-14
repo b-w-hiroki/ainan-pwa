@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { getNativeHomeLayout } from '../fishing-game/js/presentation/landscape/homeLandscapePrototype.js'
 import { getNativeMapLayout } from '../fishing-game/js/presentation/landscape/mapLandscapePrototype.js'
+import { getNativeTownLayout } from '../fishing-game/js/presentation/landscape/townLandscapePrototype.js'
 import { getNativeCollectionLayout } from '../fishing-game/js/presentation/landscape/collectionLandscapePrototype.js'
 import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
 
@@ -92,6 +93,23 @@ for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
 }
 for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeMapLayout(w,h),null)
 console.log('QA-only native Map geometry checks passed')
+
+for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
+  const layout=getNativeTownLayout(w,h)
+  assert.ok(layout,'native Town layout missing')
+  assert.deepEqual(layout.cards.map(x=>x.id),['market','pier','guide','festival'])
+  for(const item of [...layout.cards,...Object.values(layout.navigation)]) {
+    assert.ok(item.width>=44 && item.height>=44,'native Town target below 44px')
+    assert.ok(item.x-item.width/2>=0 && item.y-item.height/2>=0)
+    assert.ok(item.x+item.width/2<=w && item.y+item.height/2<=h)
+  }
+  for(let i=0;i<layout.cards.length-1;i++) {
+    const a=layout.cards[i],b=layout.cards[i+1]
+    assert.ok(a.x+a.width/2<=b.x-b.width/2,'Town facility cards overlap')
+  }
+}
+for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeTownLayout(w,h),null)
+console.log('Native Town QA-only layout geometry passed')
 
 for(const [w,h] of [[844,390],[932,430],[1024,430]]){
   const layout=getNativeCollectionLayout(w,h)
