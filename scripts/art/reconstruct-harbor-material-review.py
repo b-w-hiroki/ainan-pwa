@@ -55,7 +55,7 @@ def load_approved():
     return source, actor
 
 
-def structure_donor_risks(pier, edge_slope=0.315):
+def structure_donor_risks(pier, edge_slope=0.315, donor_x=None, donor_y=None):
     """Flag known mooring structures copied into the missing actor region.
 
     These source ROIs are manually traced *review estimates*, not semantic
@@ -63,15 +63,19 @@ def structure_donor_risks(pier, edge_slope=0.315):
     """
     h, w = pier.shape
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
-    quay_x = np.minimum(np.maximum(xx + 145, 195), 340)
-    quay_y = np.minimum(yy + edge_slope * (quay_x - xx), 573)
+    quay_x = (np.minimum(np.maximum(xx + 145, 195), 340)
+              if donor_x is None else donor_x)
+    quay_y = (np.minimum(yy + edge_slope * (quay_x - xx), 573)
+              if donor_y is None else donor_y)
     # Approximate the painted mooring bollard and curved rope in source space.
     bollard = pier & (quay_x >= 209) & (quay_x <= 271) & (quay_y >= 485) & (quay_y <= 554)
     rope = pier & (quay_x >= 133) & (quay_x <= 322) & (quay_y >= 518) & (quay_y <= 563)
     return bollard, rope
 
 
-def make_world(source, seam_offset=0, edge_model='legacy'):
+def make_world(source, seam_offset=0, edge_model='legacy', donor_model='legacy'):
+    if donor_model not in ('legacy', 'clean-pier-review'):
+        raise ValueError('Unsupported QA-only donor model')
     height, width = source.shape[:2]
     y, x = np.mgrid[0:height, 0:width].astype(np.float32)
     opening = np.zeros((height, width), np.uint8)
@@ -112,6 +116,22 @@ def make_world(source, seam_offset=0, edge_model='legacy'):
     quay_x = np.minimum(np.maximum(x + 145, 195), 340)
     quay_y = np.minimum(y + edge_slope * (quay_x - x), 573)
     source_x[pier], source_y[pier] = quay_x[pier], quay_y[pier]
+    if donor_model == 'clean-pier-review':
+        # H02 review only: avoid the visible mooring bollard/rope source ROIs.
+        # Sample an unobstructed right-hand pier strip rather than duplicating
+        # ropes or pillars across the missing player-shaped opening. The deck
+        # and front face use different source Y bands, so this is a *material
+        # proposal*, not a valid authored reconstruction of hidden geometry.
+        clean_x = np.minimum(382.0, 292.0 + x * 0.49)
+        deck_y = np.clip(581.0 + (y - rear_edge) * 0.25, 581.0, 618.0)
+        face_y = np.clip(626.0 + (y - front_edge) * 0.52, 620.0, 721.0)
+        source_x[pier] = clean_x[pier]
+        source_y[deck] = deck_y[deck]
+        source_y[face] = face_y[face]
+        # All selected donor pixels must be known, opaque source. Merely
+        # avoiding named structures cannot establish correct dock perspective.
+        assert np.all(source_x[pier] >= 292.0)
+        assert np.all(source_y[pier] >= 581.0)
 
     donor_rgb = cv2.remap(source[:, :, :3], source_x, source_y,
                           cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
@@ -156,7 +176,9 @@ def make_world(source, seam_offset=0, edge_model='legacy'):
         "measurement_only": True,
         "human_approval_inferred": False,
     }
-    reused_bollard, reused_rope = structure_donor_risks(pier, edge_slope)
+    reused_bollard, reused_rope = structure_donor_risks(
+        pier, edge_slope, donor_x=source_x, donor_y=source_y
+    )
     topology = {
         "units": "approved source pixels, 391x783",
         "rear_edge_hypothesis": {"slope": round(edge_slope, 6), "intercept": round(edge_intercept + seam_offset, 4)},
@@ -175,6 +197,7 @@ def make_world(source, seam_offset=0, edge_model='legacy'):
         "source_dimensions": [width, height],
         "guessed_quay_edge_offset_px": seam_offset,
         "quay_edge_model": edge_model,
+        "donor_model": donor_model,
         "quay_edge_intercept": round(edge_intercept, 4),
         "quay_edge_slope": round(edge_slope, 6),
         "opened_pixels": opening_count,
@@ -343,6 +366,40 @@ def run(output_dir):
         "outside_opening_pixel_exact": True,
         "art_approved": False,
         "production_promoted": False,
+    }
+    # Additional review hypothesis with clean pier donor strips. Retain the
+    # accepted master and original candidate unchanged for side-by-side QA.
+    clean_world, clean_opening, clean_pier, clean_water, clean_stats = make_world(
+        source, edge_model="visible-anchors-review", donor_model="clean-pier-review"
+    )
+    assert np.array_equal(clean_opening, opening)
+    assert np.array_equal(clean_world[opening == 0], source[opening == 0])
+    clean_reuse = clean_stats["donor_structure_reuse"]
+    assert clean_reuse["bollard_target_pixels"] == 0
+    assert clean_reuse["rope_target_pixels"] == 0
+    cv2.imwrite(str(output_dir / "clean-pier-donor-world-review.png"), clean_world)
+    clean_frames = [display_against_gray(composite(clean_world, player, dx))
+                    for dx in OFFSETS]
+    cv2.imwrite(str(output_dir / "clean-pier-donor-motion-board.jpg"),
+                np.concatenate(clean_frames, axis=1))
+    cv2.imwrite(str(output_dir / "legacy-vs-clean-pier-donor.jpg"),
+                np.concatenate([display_against_gray(world),
+                                display_against_gray(clean_world)], axis=1))
+    stats["clean_pier_donor_review"] = {
+        "model": "clean-pier-review",
+        "source_outside_opening_pixel_exact": True,
+        "rejected_donor_structure_pixels": {
+            "bollard": clean_reuse["bollard_target_pixels"],
+            "rope": clean_reuse["rope_target_pixels"],
+        },
+        "donor_is_source_opaque": clean_stats["donor_invalid_pixels"] == 0,
+        "motion_offsets": list(OFFSETS),
+        "candidate_only": True,
+        "geometry_authored": False,
+        "motion_ready": False,
+        "art_approved": False,
+        "production_promoted": False,
+        "reason": "No mooring-structure copying; continuity, perspective, wood grain and water seams still need review",
     }
     stats["quay_edge_variants"] = variants
     stats["variant_art_review_complete"] = False
