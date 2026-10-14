@@ -20,18 +20,32 @@ try{
     })
     try{
       await page.addInitScript(()=>localStorage.setItem('ainan_sound_enabled','0'))
-      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&cameraPan=1&coneLoop=1',{waitUntil:'domcontentloaded'})
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&cameraPan=1&coneLoop=1&qaFish=aji&qaLocation=pointA',{waitUntil:'domcontentloaded'})
       await page.waitForFunction(()=>{
         const s=window.__game?.scene?.getScene?.('GameScene')
         return s?.sys?.isActive?.()&&s.phase==='result'&&s.resultOverlay?.visible
       },null,{timeout:20000})
+      // Aji / Harbor intentionally has no boss cut-in. Wait for the visible
+      // premium Result fish and GET artwork after actual Phaser tweens settle;
+      // the hidden legacy icon is not evidence of the rendered fish position.
+      await page.waitForFunction(()=>{
+        const sc=window.__game.scene.getScene('GameScene')
+        return sc.fish?.id==='aji'&&sc._resultHeroFish?.active
+          &&sc._resultHeroFish.visible&&sc._resultHeroFish.alpha>=0.95
+          &&sc._resultGetAsset?.active
+      },null,{timeout:10000})
       const state=await page.evaluate(()=>{
         const s=window.__game.scene.getScene('GameScene')
         const root=s.resultOverlay
         const buttons=s.resultSuccessActions
         return {phase:s.phase,mode:s._nativeResultLayout?.mode??'portrait',
           label:{x:root.x+s.resLabel.x,y:root.y+s.resLabel.y},
-          fish:{x:root.x+(s.resIcon?.x??s.resEmoji.x),y:root.y+(s.resIcon?.y??s.resEmoji.y)},
+          fish:{x:s._resultHeroFish?.x,y:s._resultHeroFish?.y,
+            width:s._resultHeroFish?.displayWidth,height:s._resultHeroFish?.displayHeight,
+            alpha:s._resultHeroFish?.alpha,texture:s._resultHeroFish?.texture?.key},
+          getArtwork:{x:s._resultGetAsset?.x,y:s._resultGetAsset?.y,
+            width:s._resultGetAsset?.displayWidth,height:s._resultGetAsset?.displayHeight,
+            visible:s._resultGetAsset?.visible},
           name:{x:root.x+s.resName.x,y:root.y+s.resName.y},
           points:{x:root.x+s.resPts.x,y:root.y+s.resPts.y},
           actions:buttons.list.filter(o=>o.type==='Rectangle'&&o.input?.enabled)
@@ -48,7 +62,15 @@ try{
         assert.ok(state.label.y>=70&&state.label.y<=130,'label: '+JSON.stringify(state))
         assert.ok(state.name.y>=120&&state.name.y<=200)
         assert.ok(state.points.y>state.name.y&&state.points.y<h-80)
-        assert.ok(state.fish.x>50&&state.fish.x<w/2)
+        assert.ok(state.fish.x>50&&state.fish.x<w/2
+          &&state.fish.y>90&&state.fish.y<h-85
+          &&state.fish.width>=180&&state.fish.alpha>=0.95,
+          'Premium fish must appear in left artwork column: '+JSON.stringify(state.fish))
+        assert.ok(state.getArtwork.visible
+          &&state.getArtwork.x-state.getArtwork.width/2>300
+          &&state.getArtwork.y-state.getArtwork.height/2>60
+          &&state.getArtwork.y+state.getArtwork.height/2<state.name.y,
+          'GET artwork must not obscure fish or name: '+JSON.stringify(state.getArtwork))
         for(const hit of state.actions){
           assert.ok(hit.w>=44&&hit.h>=44
             &&hit.x-hit.w/2>=10&&hit.x+hit.w/2<=w-10
