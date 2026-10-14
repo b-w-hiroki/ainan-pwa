@@ -62,6 +62,8 @@ assert.match(source, /isReducedMotion\(\)/, 'reduced-motion timing path missing'
 assert.ok(!/localStorage|saveState|award|reward|score\s*[+]=/.test(source), 'prototype must not own save, economy, or reward writes')
 assert.match(camera, /!scene\.bobber\?\.visible/, 'bait shortage must release camera/input lock after the tuned release event')
 assert.match(camera, /battleHero\?\.removeFromDisplayList/, 'camera prototype must suppress the duplicate transparent battle hero')
+assert.match(camera, /scene\.escapeBar\?\.setVisible\?\.\(scene\._castPresentationMode === 'legacy' && scene\.phase === 'battle'\)/,
+  'legacy landscape Battle must retain the real Escape gauge')
 
 console.log('Cone cast/retrieve smoke QA passed')
 console.log('  slingshot aim + release commit + keyboard alternatives: OK')
