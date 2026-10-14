@@ -244,21 +244,29 @@ export class BattleUI {
 
   buildReelCTA(W, H) {
     const scene = this.scene
-    const controlsTop = H - MOBILE_FRAME.bottomControlsHeight
+    // Preserve the portrait dock. Reusing its full height in a native
+    // landscape world covers half the fish/water area.
+    const landscape = W > H && H < 520
+    const controlsHeight = landscape ? 116 : MOBILE_FRAME.bottomControlsHeight
+    const controlsTop = H - controlsHeight
     scene.reelCTA = scene.add.container(0, 0).setDepth(92).setVisible(false).setScrollFactor(0)
 
     const shade = scene.add.graphics()
     shade.fillStyle(0x031d2e, 0.98)
-    shade.fillRect(0, controlsTop, W, MOBILE_FRAME.bottomControlsHeight)
+    shade.fillRect(0, controlsTop, W, controlsHeight)
     shade.lineStyle(1.5, 0x8edfff, 0.34)
     shade.lineBetween(0, controlsTop, W, controlsTop)
 
-    const cx = W / 2
-    const cy = controlsTop + 76
+    const cx = landscape ? W - 92 : W / 2
+    const cy = landscape ? controlsTop + controlsHeight / 2 : controlsTop + 76
+    const dialSize = landscape ? 104 : 168
     const dial = scene.add.image(cx, cy, ASSETS.ui.fishingBattleDial.key)
-      .setDisplaySize(168, 168)
+      .setDisplaySize(dialSize, dialSize)
 
-    const text = scene.add.text(W / 2, controlsTop + 158, 'タイミングよく下へスワイプ', {
+    const text = scene.add.text(
+      landscape ? W * 0.43 : W / 2,
+      landscape ? controlsTop + controlsHeight / 2 : controlsTop + 158,
+      'タイミングよく下へスワイプ', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '13px',
@@ -269,6 +277,10 @@ export class BattleUI {
     }).setOrigin(0.5)
 
     scene.reelCTA.add([shade, dial, text])
+    scene._reelCtaLayout = Object.freeze({
+      landscape, controlsTop, controlsHeight, dialX: cx, dialY: cy,
+      dialSize, textX: landscape ? W * 0.43 : W / 2,
+    })
 
   }
 
