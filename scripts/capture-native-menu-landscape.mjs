@@ -31,6 +31,7 @@ try{
           actions:Object.entries(scene._qaNativeMenuControls).map(([destination,ctrl])=>({
             destination,title:ctrl.title,x:ctrl.hit.x,y:ctrl.hit.y,
             width:ctrl.hit.width,height:ctrl.hit.height,enabled:ctrl.hit.input?.enabled,
+            copyWidth:ctrl.descriptionNode?.width,copyHeight:ctrl.descriptionNode?.height,
           })),
           back:{width:scene._qaNativeMenuBack.width,height:scene._qaNativeMenuBack.height},
           scrollWidth:document.body.scrollWidth,scrollHeight:document.body.scrollHeight,
@@ -42,6 +43,8 @@ try{
       assert.ok(info.canvas.width>width*.95&&info.canvas.height>height*.95)
       assert.equal(info.actions.length,8)
       assert.ok(info.actions.every(x=>x.enabled&&x.width>=44&&x.height>=44))
+      assert.ok(info.actions.every(x=>x.copyWidth<=x.width-28&&x.copyHeight<=40),
+        'Menu Japanese description runs into the next card or beyond card height')
       assert.ok(info.back.width>=44&&info.back.height>=44)
       assert.ok(info.scrollWidth<=width+1&&info.scrollHeight<=height+1)
       const filename=join(folder,'menu-'+width+'x'+height+'.png')
