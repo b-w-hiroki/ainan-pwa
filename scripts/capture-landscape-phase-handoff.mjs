@@ -203,7 +203,24 @@ try {
       const s=window.__game.scene.getScene('GameScene')
       return s.phase==='result'&&s._castPresentationMode==='legacy'
         &&s.resultOverlay?.visible&&s.resLabel?.text==='GET!'
-    },null,{timeout:6000})
+    },null,{timeout:6000}).catch(async error=>{
+      // Keep the assertion, but distinguish an actual Result regression from
+      // compositor/tween timing under the full 50-screen CI runner.
+      const debug=await page.evaluate(()=>{
+        const s=window.__game?.scene?.getScene('GameScene')
+        return {active:s?.sys?.isActive?.(),phase:s?.phase,
+          owner:s?._castPresentationMode,
+          overlayVisible:s?.resultOverlay?.visible,
+          overlayAlpha:s?.resultOverlay?.alpha,
+          heading:s?.resLabel?.text,
+          catches:s?.catches?.length,
+          sceneKey:s?.sys?.settings?.key,
+          resultBaseVisible:s?._resultGetAsset?.visible,
+          payoffCount:s?._payoffVisuals?.length??0}
+      })
+      throw Error('Result follow-up vanished after synchronous success: '+
+        JSON.stringify({outcome,debug})+'; '+error.message)
+    })
     await snapshot('05-result')
     assert.deepEqual(errors,[],'Unexpected browser errors')
     writeFileSync(join(path,'evidence.json'),
