@@ -27,6 +27,7 @@ import { installFishingRuntime } from './game/installFishingRuntime.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
 import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
+import { installNativeLandscapeHomePrototype } from './presentation/landscape/homeLandscapePrototype.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
@@ -41,6 +42,7 @@ installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
 installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
+installNativeLandscapeHomePrototype(HomeScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
