@@ -14,7 +14,7 @@ try {
     const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1})
     const page=await context.newPage()
     const errors=[]
-    page.on('pageerror',e=>errors.push(e.message))
+    page.on('pageerror',e=>{ if(e.message!=='service worker disabled in QA') errors.push(e.message) })
     try {
       await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=HomeScene&cameraPan=1&nativeLandscapeHome=1',{waitUntil:'domcontentloaded'})
       await page.waitForFunction(()=>{
