@@ -1,11 +1,6 @@
 import { oscillatePower } from '../../game/cast.js'
 import { getVisualLoadout } from '../equipmentVisuals.js'
-
-const LOCATION_LABELS = Object.freeze({
-  pointA: '汐風港',
-  pointB: '愛南湾',
-  pointC: '外海岬',
-})
+import { getFishingGroundName } from '../../game/fishingGroundNames.js'
 
 export function readCastViewModel(scene) {
   const isCharging = Boolean(scene.isCharging)
@@ -21,7 +16,7 @@ export function readCastViewModel(scene) {
 
   return Object.freeze({
     phase: scene.phase,
-    locationLabel: LOCATION_LABELS[scene.env?.point] ?? LOCATION_LABELS.pointA,
+    locationLabel: getFishingGroundName(scene.env?.point),
     distanceLabel: scene.phase === 'cast' ? '28m' : '18m',
     tackleLabel: scene.rod?.name ?? '',
     rodType: visualLoadout.rod.id,
