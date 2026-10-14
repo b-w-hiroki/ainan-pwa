@@ -1,0 +1,47 @@
+name: WebKit native fishing pointer QA
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/capture-webkit-fishing-cast.mjs'
+      - '.github/workflows/webkit-fishing-cast.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  webkit-cast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production and verify smoke
+        run: npm run build
+      - name: Install WebKit browser
+        run: npx --yes playwright@1.55.0 install --with-deps webkit
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ainan-preview.log
+          exit 1
+      - name: Exercise actual WebKit Cast and Retrieve in two orientations
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-webkit-fishing-cast.mjs
+      - name: Keep nonblank screenshots and evidence on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webkit-fishing-cast-evidence
+          path: artifacts/orientation/webkit/
+          retention-days: 14
+          if-no-files-found: warn
