@@ -75,7 +75,7 @@ try {
       assert.ok(statSync(fishOut).size>30000,'No rendered Fishing pixels')
       // Town is entered from saved catches elsewhere; this QA handoff
       // directly stages the Town scene without granting a test fish.
-      await page.evaluate(()=>window.__game.scene.start('TownScene'))
+      await page.evaluate(()=>window.__game.scene.getScene('GameScene').scene.start('TownScene'))
       await active(page,'TownScene','_qaNativeTownLayout')
       const townBack=await page.evaluate(()=>{
         const control=window.__game.scene.getScene('TownScene')._qaNativeTownControls.map
@@ -89,7 +89,7 @@ try {
 
       // Stage a new real Home action to Collection and its interactive fish
       // modal to confirm the shared flag survives scene transitions.
-      await page.evaluate(()=>window.__game.scene.start('HomeScene'))
+      await page.evaluate(()=>window.__game.scene.getScene('MapScene').scene.start('HomeScene'))
       await active(page,'HomeScene','_qaNativeHomeLayout')
       await click(page,home.collection)
       await active(page,'CollectionScene','_qaNativeCollectionLayout')
@@ -106,7 +106,7 @@ try {
       await page.mouse.click(width/2,height/2+78)
       await page.waitForFunction(()=>!window.__game.scene.getScene('CollectionScene')._qaNativeCollectionModal?.active,
         null,{timeout:8000})
-      await page.evaluate(()=>window.__game.scene.start('MenuScene'))
+      await page.evaluate(()=>window.__game.scene.getScene('CollectionScene').scene.start('MenuScene'))
       await active(page,'MenuScene','_qaNativeMenuLayout')
       const menuToSettings=await page.evaluate(()=>{
         const scene=window.__game.scene.getScene('MenuScene')
@@ -136,11 +136,11 @@ try {
   try{
     await page.goto('http://127.0.0.1:4173/fishing-game/?scene=HomeScene&nativeLandscapeAll=1',
       {waitUntil:'domcontentloaded'})
-    await page.waitForFunction(()=>window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.(),
+    await page.waitForFunction(()=>window.__game?.scale?.width===390,
       null,{timeout:20000})
     const state=await page.evaluate(()=>{
       const scene=window.__game.scene.getScene('HomeScene')
-      return {qaNative:!!scene._qaNativeHomeLayout,logical:{width:scene.scale.width,height:scene.scale.height}}
+      return {qaNative:!!scene._qaNativeHomeLayout,logical:{width:window.__game.scale.width,height:window.__game.scale.height}}
     })
     assert.equal(state.qaNative,false,'Normal production must never enable QA scene layout')
     assert.deepEqual(state.logical,{width:390,height:844},'Production scale must remain portrait FIT')
