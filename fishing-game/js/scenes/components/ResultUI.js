@@ -150,6 +150,23 @@ export class ResultUI {
       scene.resHint.setPosition(left(325), top(254)).setOrigin(0, 0.5).setFontSize(11)
       scene.resultSuccessActions.setPosition(70, -150)
       retrySub.setVisible(false)
+      // World-camera scrolling can leave the nested Container's visual
+      // rectangles painted on-screen but disconnected from input hit tests.
+      // Keep the existing drawn buttons and handlers, but transfer their
+      // input ownership to exactly two top-level fixed-screen Zones.
+      scene._nativeResultZones = [town[2], retry[2]].map(hit => {
+        hit.disableInteractive()
+        const x = scene.resultOverlay.x + scene.resultSuccessActions.x + hit.x
+        const y = scene.resultOverlay.y + scene.resultSuccessActions.y + hit.y
+        const zone = scene.add.zone(x, y, hit.width, hit.height)
+          .setScrollFactor(0).setDepth(160).setInteractive({ useHandCursor: true })
+          .setVisible(false)
+        zone.input.enabled = false
+        zone.on('pointerdown', () => hit.emit('pointerdown'))
+        zone.on('pointerup', () => hit.emit('pointerup'))
+        zone.on('pointerout', () => hit.emit('pointerout'))
+        return zone
+      })
     }
 
   }
@@ -168,6 +185,7 @@ export class ResultUI {
       g.fillRoundedRect(-92, -236, 184, 34, 15)
     }
     scene._resultGuideGroup?.setVisible?.(outcome === 'caught' && !scene._nativeResultLayout)
+    this.setNativeActionsVisible(outcome === 'caught')
     if (isKue) this._showKueClearCutin()
   }
 
@@ -202,6 +220,19 @@ export class ResultUI {
     this.scene.tweens.add({ targets: [t, bg], alpha: 0, y: '-=22', duration: 700, onComplete: () => { t.destroy(); bg.destroy() } })
   }
 
+  setNativeActionsVisible(visible) {
+    for (const zone of this.scene._nativeResultZones ?? []) {
+      if (!zone.active) continue
+      zone.setVisible(Boolean(visible))
+      if (zone.input) zone.input.enabled = Boolean(visible)
+    }
+  }
+
   buildBackBtn() { this._backBtn = null }
-  destroy() { this._backBtn?.destroy() }
+  destroy() {
+    this.setNativeActionsVisible(false)
+    this.scene._nativeResultZones?.forEach(zone => zone?.destroy?.())
+    this.scene._nativeResultZones = null
+    this._backBtn?.destroy()
+  }
 }
