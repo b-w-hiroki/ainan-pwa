@@ -164,12 +164,17 @@ try {
     })
     const battle=await page.evaluate(()=>{
       const s=window.__game.scene.getScene('GameScene')
-      return {phase:s.phase,fish:s.fish?.id,owner:s._castPresentationHost?.root?.name,
-        battleVisible:s._castPresentationHost?.nodes?.battleForeground?.visible}
+      const mode=s._castPresentationMode
+      return {phase:s.phase,fish:s.fish?.id,mode,
+        legacyBattleVisible:Boolean(s.battleHero?.active&&s.battleHero.visible),
+        hostBattleVisible:Boolean(s._castPresentationHost?.nodes?.battleForeground?.visible),
+        escapeVisible:Boolean(s.escapeBar?.visible)}
     })
     assert.equal(battle.phase,'battle')
-    assert.equal(battle.owner,'cast-presentation-host')
-    assert.equal(battle.battleVisible,true)
+    // cameraPan=1 explicitly opts into the legacy RC owner, not CastPresentationHost.
+    assert.equal(battle.mode,'legacy','cameraPan prototype must use its actual legacy owner')
+    assert.equal(battle.legacyBattleVisible,true,'legacy Battle hero must be rendered')
+    assert.equal(battle.escapeVisible,true,'legacy Battle UI must be rendered')
     await snapshot('04-battle')
 
     // Short-circuit only the lengthy outcome simulation in this QA fixture;
@@ -178,11 +183,16 @@ try {
       const s=window.__game.scene.getScene('GameScene')
       const result=s._finishBattle('caught')
       return {result,phase:s.phase,catches:s.catches.length,
-        owner:s._castPresentationHost?.root?.name}
+        mode:s._castPresentationMode,
+        legacyResultVisible:Boolean(s.resultOverlay?.visible),
+        getHeading:s.resLabel?.text}
     })
     assert.notEqual(outcome.result,false)
     assert.equal(outcome.phase,'result')
     assert.equal(outcome.catches,before.catchCount+1)
+    assert.equal(outcome.mode,'legacy','Result must keep its cameraPan legacy presentation owner')
+    assert.equal(outcome.legacyResultVisible,true,'legacy Result card must be visible')
+    assert.equal(outcome.getHeading,'GET!','real Result heading must show the catch')
     await page.waitForFunction(()=>{
       const s=window.__game.scene.getScene('GameScene')
       return s.phase==='result'&&s._castPresentationHost?.nodes?.resultForeground?.visible
