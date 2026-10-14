@@ -9,7 +9,7 @@
 - 魚の自然抽選は固定しない。ゲーム本来の`_twitchRetrieve`と`_startSlowRetrieve`をQA画面上で呼び、**有効な判断が2回以上記録されたこと**を確認してから魚の`biteReady`をQA用に作る。
 - 魚の320msの予兆・ためは実装された制約を維持し、実時間経過後に本来の`_beginRetrieveBite`を通す。
 - WebGLの画像保存に時間がかかって実HITを取り逃がさないよう、**QAページ上だけ**タップ猶予を最短5秒へ拡大する。ブラウザの実マウスクリックを要求し、Playwrightの`force`やJSクリックは使用しない。
-- `cameraPan=1`は意図的に`castPresentationMode=legacy`。そのためBattleはLegacyの`battleHero`/escapeBar、Resultは`resultOverlay`/`GET!`を検証する。`cast-presentation-host`というホストの存在を捏造しない。
+- `cameraPan=1`は意図的に`castPresentationMode=legacy`。そのためBattleはLegacyの`battleHero`と`reelCTA`（TENSIONダイヤル）を検証する。数値用`battlePanel`/escapeBarは`BattleUI`が意図的に隠すため合格条件にしない。Resultは`resultOverlay`/`GET!`を検証する。`cast-presentation-host`というホストの存在を捏造しない。
 - 成功後、`_finishBattle('caught')`で長い戦闘結果だけ合成する**QA-only勝利フィクスチャ**を使う。釣果が一件だけ増え、Resultの実画素とエサ消費を検証する。
 
 ## 限界とDone
