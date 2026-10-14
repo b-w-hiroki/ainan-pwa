@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaResize } from '../landscape/nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FISHING_MOCK_LAYOUT as L } from '../layouts/fishingMockLayout.js'
 import { readCastViewModel } from './CastViewModel.js'
@@ -62,7 +63,7 @@ const FISH_JUMP_FX = Object.freeze({
 export function castPresentationMode() {
   if (typeof window === 'undefined') return 'host'
   const params = new URLSearchParams(window.location.search)
-  if (params.get('cameraPan') === '1') return 'legacy'
+  if (params.get('cameraPan') === '1' || isNativeLandscapeQaResize(window.location.search)) return 'legacy'
   return params.get('castPresentation') === 'legacy'
     ? 'legacy'
     : 'host'
