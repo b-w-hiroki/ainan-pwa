@@ -759,7 +759,12 @@ export default class GameScene extends Phaser.Scene {
     const iconKey = FISH_ICON_KEYS[fish.id]
     if (iconKey && this.textures.exists(iconKey)) {
       this.resEmoji.setText('')
-      this.resIcon = this.add.image(0, -24, iconKey).setDisplaySize(76, 76).setAngle(0)
+      const wide = this._nativeResultLayout?.mode === 'landscape'
+      this.resIcon = this.add.image(
+        wide ? 145 - this.scale.width / 2 : 0,
+        wide ? 185 - this.scale.height / 2 : -24,
+        iconKey,
+      ).setDisplaySize(wide ? 118 : 76, wide ? 118 : 76).setAngle(0)
       this.resultOverlay.add(this.resIcon)
     } else {
       this.resEmoji.setText(fish.emoji).setAngle(0)
