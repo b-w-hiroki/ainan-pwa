@@ -176,10 +176,13 @@ try{
             c.list?.some(child=>child?.text==='NEW RECORD!'))
           return {x:badge.x,y:badge.y,alpha:badge.alpha,
             fish:sc.fish?.id,phase:sc.phase,
+            qaOverlayActive:!!sc._qaRewardBadge?.active,
             bannerText:badge.list.find(child=>child?.text==='NEW RECORD!')?.text}
         })
         assert.equal(record.phase,'result')
         assert.equal(record.bannerText,'NEW RECORD!')
+        assert.equal(record.qaOverlayActive,false,
+          'QA-only reward overlay must not obscure the actual native Result')
         assert.ok(record.x >= w-212 && record.x+152 <= w-36
           && record.y >= 92 && record.y <= 150,
           'Landscape NEW RECORD banner must remain inside wide Result card: '
