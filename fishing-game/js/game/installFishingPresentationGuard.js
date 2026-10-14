@@ -1054,6 +1054,15 @@ export function installFishingPresentationGuard(GameScene) {
         ?.setFontSize?.(58)
     }
     this._applyRcFishingPresentation?.('result')
+    // The cameraPan QA-only legacy Result can be made visible by the final
+    // presentation owner *after* the earlier Result polish wrapper returned.
+    // It previously showed a tiny legacy icon and no premium hero or GET art.
+    // Complete presentation once the Result field is actually visible.
+    if (this._nativeResultLayout?.mode === 'landscape'
+      && outcome === 'caught' && this.resultOverlay?.visible
+      && !this._resultHeroFish?.active) {
+      this._polishCaughtResultPresentation?.()
+    }
     return result
   }
 
