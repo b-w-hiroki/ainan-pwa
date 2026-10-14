@@ -32,8 +32,12 @@ function ensureResultGetAsset(scene) {
   scene.resLabel?.setVisible?.(false)
   const asset = ASSETS.ui?.fishingResultGet
   if (!asset?.key || !scene.textures.exists(asset.key)) return
-  const img = scene.add.image(scene.scale.width / 2, 104, asset.key)
-    .setDisplaySize(224, 86)
+  const landscape = scene.scale.width > scene.scale.height && scene.scale.height < 520
+  const img = scene.add.image(
+    landscape ? scene.scale.width * 0.28 : scene.scale.width / 2,
+    landscape ? 110 : 104,
+    asset.key,
+  ).setDisplaySize(landscape ? 190 : 224, landscape ? 64 : 86)
     .setDepth(151)
     .setScrollFactor(0)
   scene._resultGetAsset = img
@@ -58,7 +62,9 @@ function buildPayoffVisuals(scene) {
   if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
   const { width: W, height: H } = scene.scale
   const rarity = RARITY[scene.fish?.rarity] ?? RARITY.common
-  const cx = W / 2, cy = H / 2 - 116
+  const landscape = W > H && H < 520
+  const cx = landscape ? W * 0.28 : W / 2
+  const cy = landscape ? H * 0.55 : H / 2 - 116
   const objects = []
   const tweens = []
   const reduced = isReducedMotion()
@@ -208,15 +214,18 @@ function buildResultHero(scene) {
   const { width: W, height: H } = scene.scale
   const premiumKey = FISH_HERO_KEYS[scene.fish?.id]
   const usePremiumHero = Boolean(premiumKey && scene.textures.exists(premiumKey))
-  const heroWidth = L.result.fish.width
-  const heroHeight = L.result.fish.height
+  const landscape = W > H && H < 520
+  const heroWidth = landscape ? Math.min(288, W * 0.34) : L.result.fish.width
+  const heroHeight = landscape ? heroWidth * (L.result.fish.height / L.result.fish.width) : L.result.fish.height
+  const heroX = landscape ? W * 0.28 : L.result.fish.x
+  const heroY = landscape ? H * 0.55 : L.result.fish.y
   const textureKey = usePremiumHero ? premiumKey : icon.texture.key
-  const shadow = scene.add.ellipse(L.result.fish.x + 7, L.result.fish.y + 34, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
+  const shadow = scene.add.ellipse(heroX + 7, heroY + 34, heroWidth * 0.62, Math.max(26, heroHeight * 0.20), 0x021723, 0.24)
     .setDepth(131)
     .setScrollFactor(0)
     .setAlpha(0)
   scene._resultHeroShadow = shadow
-  const hero = scene.add.image(L.result.fish.x, L.result.fish.y, textureKey)
+  const hero = scene.add.image(heroX, heroY, textureKey)
     .setDisplaySize(heroWidth, heroHeight)
     .setDepth(132)
     .setScrollFactor(0)
@@ -251,14 +260,24 @@ function buildResultHero(scene) {
 function polishCaughtResult(scene) {
   if (scene.phase !== 'result' || !scene.resultOverlay?.visible) return
 
-  scene.resIcon?.setPosition?.(0, -116)
-  scene.resEmoji?.setPosition?.(0, -116)
-  scene.resEmoji?.setFontSize?.(108)
-  scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)
+  const landscape = scene.scale.width > scene.scale.height && scene.scale.height < 520
+  if (landscape) {
+    const side = scene.scale.width * 0.25
+    scene.resIcon?.setPosition?.(-scene.scale.width * 0.22, 10)
+    scene.resEmoji?.setPosition?.(-scene.scale.width * 0.22, 10)?.setFontSize?.(88)
+    scene.resLabel?.setText?.('GET!')?.setPosition?.(side, -108)?.setFontSize?.(36)
+    scene.resName?.setPosition?.(side, -60)
+    scene.resPts?.setPosition?.(side, 12)
+    scene.resHint?.setPosition?.(side, 66)
+  } else {
+    scene.resIcon?.setPosition?.(0, -116)
+    scene.resEmoji?.setPosition?.(0, -116)?.setFontSize?.(108)
+    scene.resLabel?.setText?.('GET!')?.setPosition?.(0, -316)?.setFontSize?.(72)
+    scene.resName?.setY?.(47)
+    scene.resPts?.setY?.(111)
+    scene.resHint?.setY?.(162)
+  }
   ensureResultGetAsset(scene)
-  scene.resName?.setY?.(47)
-  scene.resPts?.setY?.(111)
-  scene.resHint?.setY?.(162)
 
   scene.resultOverlay.setAlpha(0)
   scene.tweens.add({
