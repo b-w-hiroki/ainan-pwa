@@ -19,7 +19,7 @@ export function getNativeCollectionLayout(width,height) {
   if(entries.length!==9) return null
   const side=18,gapX=10,gapY=8
   const cardW=(width-side*2-gapX*2)/3
-  const available=height-110
+  const available=height-124
   const cardH=Math.floor((available-gapY*2)/3)
   if(cardW<210||cardH<68)return null
   const cards=Object.freeze(entries.map((id,i)=>Object.freeze({
@@ -37,12 +37,15 @@ function drawButton(scene,bounds,label,onTap,depth=12) {
   g.fillStyle(0xf8fdff,0.98).lineStyle(1.8,0xb2def0,0.95)
     .fillRoundedRect(x-width/2,y-height/2,width,height,15)
     .strokeRoundedRect(x-width/2,y-height/2,width,height,15)
-  scene.add.text(x,y,label,{
+  const text=scene.add.text(x,y,label,{
     fontFamily:FONT,fontSize:'16px',fontStyle:'bold',color:'#173248',
   }).setOrigin(0.5).setDepth(depth+1)
-  return scene.add.rectangle(x,y,width,height,0,0.001)
+  const hit=scene.add.rectangle(x,y,width,height,0,0.001)
     .setDepth(depth+2).setInteractive({useHandCursor:true})
     .on('pointerdown',pointer=>{pointer?.event?.stopPropagation?.();onTap()})
+  // Modal callers must transfer all three visuals to the modal owner.
+  hit._qaParts=[g,text]
+  return hit
 }
 
 function showFish(scene,id,count) {
@@ -73,9 +76,8 @@ function showFish(scene,id,count) {
   const close=drawButton(scene,{x:W/2,y:y+h-37,width:170,height:52},'閉じる',()=>{
     scene._qaNativeCollectionModal?.destroy(true)
     scene._qaNativeCollectionModal=null
-    close.destroy()
   },101)
-  c.add(close)
+  c.add([...close._qaParts,close])
   scene._qaNativeCollectionSelection=id
 }
 
