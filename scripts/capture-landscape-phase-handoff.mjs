@@ -169,14 +169,19 @@ try {
         legacyBattleVisible:Boolean(s.battleHero?.active&&s.battleHero.visible),
         hostBattleVisible:Boolean(s._castPresentationHost?.nodes?.battleForeground?.visible),
         battlePanelVisible:Boolean(s.battlePanel?.visible),
-        escapeVisible:Boolean(s.escapeBar?.visible)}
+        escapeVisible:Boolean(s.escapeBar?.visible),
+        reelDialVisible:Boolean(s.reelCTA?.active&&s.reelCTA.visible),
+        raging:Boolean(s.battleState?.isRaging)}
     })
     assert.equal(battle.phase,'battle')
     // cameraPan=1 explicitly opts into the legacy RC owner, not CastPresentationHost.
     assert.equal(battle.mode,'legacy','cameraPan prototype must use its actual legacy owner')
     assert.equal(battle.legacyBattleVisible,true,'legacy Battle hero must be rendered')
     await snapshot('04-battle')
-    assert.equal(battle.battlePanelVisible,true,'legacy Battle controls must be rendered')
+    // BattleUI intentionally hides the numerical battlePanel and escapeBar:
+    // the actual wide-screen control is the TENSION/reelCTA dial.
+    assert.ok(battle.reelDialVisible||battle.raging,
+      'active Legacy Battle must show reel tension control or rage cue: '+JSON.stringify(battle))
 
     // Short-circuit only the lengthy outcome simulation in this QA fixture;
     // production Battle odds and controls remain unchanged.
