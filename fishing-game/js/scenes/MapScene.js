@@ -10,6 +10,7 @@ import { addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { getConditionSummary, getWorldConditions } from '../game/worldConditions.js'
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 import { getFishingPreparation } from '../game/fishingJourney.js'
+import { getFishingGroundName } from '../game/fishingGroundNames.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -33,19 +34,19 @@ const POINT_PIN = {
 
 const FISHING_POINTS = [
   {
-    id: 'pointA', name: '汐風港', description: 'アジ・マダイが狙える港の定番ポイント',
+    id: 'pointA', name: getFishingGroundName('pointA'), description: 'アジ・マダイが狙える港の定番ポイント',
     trait: '港', summary: '港の定番スポット', difficulty: 1,
     fish: ['アジ', 'マダイ', 'サバ', 'ブリ', 'カンパチ'], fishIds: ['aji', 'tai', 'saba', 'buri', 'kanpachi'], fishShadows: 12,
     env: '昼は見通し良好 / 魚影多め', accent: 0x5bb5d8, pos: { x: 0.35, y: 0.32 },
   },
   {
-    id: 'pointB', name: '蒼海湾', description: '穏やかな入り江に潜む穴場スポット',
+    id: 'pointB', name: getFishingGroundName('pointB'), description: '穏やかな入り江に潜む穴場スポット',
     trait: '入り江', summary: '静かな入り江', difficulty: 2,
     fish: ['アジ', 'ブラックバス', 'イサキ', 'ヒラメ'], fishIds: ['aji', 'bass', 'isaki', 'hirame'], fishShadows: 8,
     env: '入り江で静か / レア魚の気配', accent: 0x8f80e8, pos: { x: 0.62, y: 0.51 },
   },
   {
-    id: 'pointC', name: '黒潮崎', description: '伝説のクエが眠る激流の激難ポイント',
+    id: 'pointC', name: getFishingGroundName('pointC'), description: '伝説のクエが眠る激流の激難ポイント',
     trait: '沖磯', summary: '激流の難所', difficulty: 3,
     fish: ['マダイ', 'ブリ', 'カンパチ', 'クエ', 'サバ', 'イサキ'], fishIds: ['tai', 'buri', 'kanpachi', 'kue', 'saba', 'isaki'], fishShadows: 5,
     env: '流れが速い / 大物チャンス', accent: 0xff765a, pos: { x: 0.38, y: 0.70 },
