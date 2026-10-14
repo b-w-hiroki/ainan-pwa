@@ -28,12 +28,18 @@ try{
       // Aji / Harbor intentionally has no boss cut-in. Wait for the visible
       // premium Result fish and GET artwork after actual Phaser tweens settle;
       // the hidden legacy icon is not evidence of the rendered fish position.
-      await page.waitForFunction(()=>{
+      await page.waitForFunction(wide=>{
         const sc=window.__game.scene.getScene('GameScene')
-        return sc.fish?.id==='aji'&&sc._resultHeroFish?.active
+        if(sc.fish?.id!=='aji'||sc.phase!=='result')return false
+        if(wide) return Boolean(sc._resultHeroFish?.active
           &&sc._resultHeroFish.visible&&sc._resultHeroFish.alpha>=0.95
-          &&sc._resultGetAsset?.active
-      },null,{timeout:10000}).catch(async error=>{
+          &&sc._resultGetAsset?.active)
+        // Portrait's approved CastPresentationHost owns the actual hero;
+        // it intentionally does not create an extra legacy Result image.
+        const host=sc._castPresentationHost
+        return Boolean(host?.root?.active&&host?.nodes?.resultForeground?.visible
+          &&host?.nodes?.resultFish?.active&&host.nodes.resultFish.visible)
+      },w>h,{timeout:10000}).catch(async error=>{
         const debug=await page.evaluate(()=>{
           const sc=window.__game.scene.getScene('GameScene')
           const hero=sc._resultHeroFish
@@ -55,11 +61,13 @@ try{
         const s=window.__game.scene.getScene('GameScene')
         const root=s.resultOverlay
         const buttons=s.resultSuccessActions
+        const wide=s._nativeResultLayout?.mode==='landscape'
+        const fish=wide?s._resultHeroFish:s._castPresentationHost?.nodes?.resultFish
         return {phase:s.phase,mode:s._nativeResultLayout?.mode??'portrait',
           label:{x:root.x+s.resLabel.x,y:root.y+s.resLabel.y},
-          fish:{x:s._resultHeroFish?.x,y:s._resultHeroFish?.y,
-            width:s._resultHeroFish?.displayWidth,height:s._resultHeroFish?.displayHeight,
-            alpha:s._resultHeroFish?.alpha,texture:s._resultHeroFish?.texture?.key},
+          fish:{x:fish?.x,y:fish?.y,
+            width:fish?.displayWidth,height:fish?.displayHeight,
+            alpha:fish?.alpha,texture:fish?.texture?.key},
           getArtwork:{x:s._resultGetAsset?.x,y:s._resultGetAsset?.y,
             width:s._resultGetAsset?.displayWidth,height:s._resultGetAsset?.displayHeight,
             visible:s._resultGetAsset?.visible},
