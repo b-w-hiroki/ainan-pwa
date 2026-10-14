@@ -1,3 +1,4 @@
+import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
 import { getMenuEntries } from '../../game/menuEntries.js'
@@ -84,8 +85,7 @@ export function installNativeLandscapeMenuPrototype(MenuScene){
   MenuScene.prototype.__nativeLandscapeMenuInstalled=true
   const previous=MenuScene.prototype.create
   MenuScene.prototype.create=function(...args){
-    const params=typeof window==='undefined'?null:new URLSearchParams(window.location.search)
-    if(params?.get('qa')==='1'&&params.get('nativeLandscapeMenu')==='1'){
+    if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeMenu')){
       const layout=getNativeMenuLayout(this.scale.width,this.scale.height)
       if(layout)return renderMenu(this,layout)
     }
