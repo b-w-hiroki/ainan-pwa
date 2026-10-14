@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { getNativeHomeLayout } from '../fishing-game/js/presentation/landscape/homeLandscapePrototype.js'
+import { getNativeMapLayout } from '../fishing-game/js/presentation/landscape/mapLandscapePrototype.js'
 import { getNativeTownLayout } from '../fishing-game/js/presentation/landscape/townLandscapePrototype.js'
 import { makeFishingLandscapeLayout, landscapePointerToWorld, LANDSCAPE_MIN_TOUCH } from '../fishing-game/js/presentation/cast/landscapeLayout.js'
 
@@ -72,6 +73,25 @@ for (const [width,height] of [[390,844],[568,320],[0,390],[844,0],[NaN,390]]) {
   assert.equal(getNativeHomeLayout(width,height),null,'unsupported native Home must opt out')
 }
 console.log('QA-only native Home horizontal layout geometry passed; no production activation')
+
+// Map native-width staging must preserve three distinct, independently
+// hit-testable point choices with no overlap, plus a real 44px back action.
+for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
+  const layout=getNativeMapLayout(w,h)
+  assert.ok(layout,'wide Map layout missing')
+  assert.deepEqual(layout.cards.map(card=>card.point),['pointA','pointB','pointC'])
+  for(const item of [...layout.cards,layout.back]) {
+    assert.ok(item.width>=44&&item.height>=44)
+    assert.ok(item.x-item.width/2>=0&&item.y-item.height/2>=0)
+    assert.ok(item.x+item.width/2<=w&&item.y+item.height/2<=h)
+  }
+  for(let i=0;i<layout.cards.length;i++) for(let j=i+1;j<layout.cards.length;j++) {
+    const a=layout.cards[i],b=layout.cards[j]
+    assert.ok(a.x+a.width/2<=b.x-b.width/2,'Map point hit areas overlap')
+  }
+}
+for(const [w,h] of [[390,844],[568,320],[0,390]])assert.equal(getNativeMapLayout(w,h),null)
+console.log('QA-only native Map geometry checks passed')
 
 for(const [w,h] of [[844,390],[932,430],[1024,430]]) {
   const layout=getNativeTownLayout(w,h)
