@@ -18,7 +18,13 @@ try{
     const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'})
     const page=await context.newPage()
     const errors=[]
-    page.on('pageerror',e=>{if(e.message!=='service worker disabled in QA')errors.push(e.message)})
+    // The QA bootstrap intentionally rejects SW registration in WebKit with
+    // an "Error: " prefix; whitelist only that known sentinel, not generic
+    // failures or network errors.
+    page.on('pageerror',e=>{
+      if(!['service worker disabled in QA','Error: service worker disabled in QA'].includes(e.message))
+        errors.push(e.message)
+    })
     try{
       await page.addInitScript(()=>{
         localStorage.setItem('ainan_sound_enabled','0')
