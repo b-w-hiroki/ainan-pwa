@@ -29,6 +29,8 @@ import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installNativeLandscapeHomePrototype } from './presentation/landscape/homeLandscapePrototype.js'
 import { installNativeLandscapeMapPrototype } from './presentation/landscape/mapLandscapePrototype.js'
+import { installNativeLandscapeTownPrototype } from './presentation/landscape/townLandscapePrototype.js'
+import { installNativeLandscapeCollectionPrototype } from './presentation/landscape/collectionLandscapePrototype.js'
 import { installNativeLandscapeMenuPrototype } from './presentation/landscape/menuLandscapePrototype.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
@@ -46,6 +48,8 @@ installTownSensoryFeedback(TownScene, HomeScene)
 installSceneVisualPowerPass(HomeScene, MapScene, TownScene, ProfileScene, DailyScene, AchievementScene, CollectionScene, WorkshopScene, HarborServicesScene, SettingsScene)
 installNativeLandscapeHomePrototype(HomeScene)
 installNativeLandscapeMapPrototype(MapScene)
+installNativeLandscapeTownPrototype(TownScene)
+installNativeLandscapeCollectionPrototype(CollectionScene)
 installNativeLandscapeMenuPrototype(MenuScene)
 
 /** @type {Phaser.Types.Core.GameConfig} */
