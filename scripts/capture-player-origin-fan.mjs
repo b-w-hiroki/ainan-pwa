@@ -11,7 +11,8 @@ mkdirSync(folder, { recursive: true })
 const baseUrl = 'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&cameraPan=1&coneLoop=1&castMotion=charged'
 const browser = await chromium.launch({ headless: true })
 try {
-  for (const [width, height] of [[390, 844], [844, 390]]) {
+  // Cover small and large portraits as well as native narrow/wide landscape.
+  for (const [width, height] of [[320, 568], [390, 844], [430, 932], [844, 390], [932, 430]]) {
     const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
     const page = await context.newPage()
     const errors = []
@@ -61,8 +62,12 @@ try {
         const water = scene.fishingCamera.world.waterBounds
         const withinWater = point => point.x >= water.minX && point.x <= water.maxX
           && point.y >= water.minY && point.y <= water.maxY
+        const hud = scene._coneCastHudNodes
         return {
           phase: scene.phase,
+          hud: { x: hud.infoX, y: hud.infoY, width: hud.infoW, height: hud.infoH,
+            gaugeX: hud.gaugeX, right: hud.infoX + hud.infoW,
+            messageWidth: hud.label.width, modeWidth: hud.mode.width },
           origin, fan, playerGrip: scene._cameraPanRodGrip,
           visualFan: scene._coneCastPreview.visualFanGuides,
           left: { inner: inner[0], outer: outer[0] },
@@ -76,6 +81,18 @@ try {
       assert.equal(geometry.valid, true)
       assert.equal(geometry.sidesValid, true)
       assert.equal(geometry.touchCount, 1)
+      if (width > height) {
+        assert.ok(geometry.hud.x >= width * 0.35,
+          'landscape action card obstructs player and rod: ' + JSON.stringify(geometry.hud))
+        assert.ok(geometry.hud.width >= 184 &&
+          geometry.hud.right <= geometry.hud.gaugeX - 12,
+          'landscape information panel overlaps action rail: ' + JSON.stringify(geometry.hud))
+        assert.ok(geometry.hud.y >= 0 &&
+          geometry.hud.y + geometry.hud.height <= height,
+          'landscape information panel clipped from viewport')
+      } else {
+        assert.equal(geometry.hud.x, 16, 'portrait card placement must not change')
+      }
       for (const side of ['left', 'center', 'right']) {
         assert.deepEqual(geometry.fan[side].origin, geometry.origin,
           side + ' ray must emanate from player origin')
