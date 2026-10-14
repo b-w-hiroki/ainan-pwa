@@ -2,7 +2,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { getTownCatchReaction, TOWN_CATCH_ICONS } from './townCatchReactions.js'
 
-const TEXT_RES = window.devicePixelRatio ?? 1
+const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 
 const FISH_ART = TOWN_CATCH_ICONS
 
@@ -29,8 +29,10 @@ const ARRIVAL_COPY = {
   },
 }
 
-function arrivalCopy(rarity) {
-  return ARRIVAL_COPY[rarity] ?? ARRIVAL_COPY.common
+export function getTownArrivalCopy(rarity) {
+  // Scene transition input is display-only, but malformed imported saves or
+  // QA data must not expose Object.prototype as an arrival copy.
+  return Object.hasOwn(ARRIVAL_COPY, rarity) ? ARRIVAL_COPY[rarity] : ARRIVAL_COPY.common
 }
 
 export function installTownCatchArrival(TownScene) {
@@ -60,7 +62,7 @@ export function installTownCatchArrival(TownScene) {
 
   TownScene.prototype._showCatchArrival = function (catchArrival) {
     const { width: W, height: H } = this.scale
-    const copy = arrivalCopy(catchArrival.rarity)
+    const copy = getTownArrivalCopy(catchArrival.rarity)
     const bodyCopy = getTownCatchReaction(catchArrival.fishId) ?? copy.body
     const legendary = catchArrival.rarity === 'legendary'
     const rare = catchArrival.rarity === 'rare' || legendary
@@ -165,16 +167,16 @@ export function installTownCatchArrival(TownScene) {
       wordWrap: { width: w - 70 },
     }).setOrigin(0.5, 0))
 
-    const confirm = this._actionButton(W / 2, y + h - 76, '釣果は登録済み・港を見る', () => {
+    const confirm = this._actionButton(W / 2, y + h - 80, '釣果は登録済み・港を見る', () => {
       container.destroy(true)
       this.cameras.main.flash(180, 235, 250, 255, true)
     }, 226, 48)
     items.push(confirm)
 
-    const returnFishing = this._actionButton(W / 2, y + h - 24, '次の釣り場を選ぶ', () => {
+    const returnFishing = this._actionButton(W / 2, y + h - 28, '次の釣り場を選ぶ', () => {
       container.destroy(true)
       this.scene.start('MapScene')
-    }, 226, 40)
+    }, 226, 48)
     items.push(returnFishing)
 
     const container = this.add.container(0, 18, items).setDepth(220).setAlpha(0)

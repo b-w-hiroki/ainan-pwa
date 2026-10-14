@@ -74,11 +74,30 @@ try {
       assert.ok(state.reaction?.length > 15, filename + ': reaction missing')
       assert.equal(state.sceneActive, true, filename + ': Town scene not active')
       assert.equal(state.canvasPresent, true, filename + ': canvas not visible')
+      // Inspect Phaser's *actual* hit areas, not the drawn button graphics.
+      const actions = await page.evaluate(() => {
+        const town = window.__game.scene.getScene('TownScene')
+        const modal = town.children.list.find(node =>
+          node.active && node.depth === 220 && node.type === 'Container')
+        return modal?.list.filter(node => node.type === 'Container' && node.input)
+          .map(node => ({
+            label: node.list.find(child => typeof child.text === 'string')?.text,
+            y: node.y, width: node.width, height: node.height,
+          })) ?? []
+      })
+      assert.equal(actions.length, 2, filename + ': expected two arrival actions')
+      assert.ok(actions.every(action => action.width >= 44 && action.height >= 44),
+        filename + ': arrival action hit area below 44 logical CSS px')
+      const [confirm, next] = actions.sort((left, right) => left.y - right.y)
+      assert.ok(confirm.y + confirm.height / 2 + 4 <= next.y - next.height / 2,
+        filename + ': arrival action hit areas overlap')
+      assert.ok(next.y + next.height / 2 <= 602,
+        filename + ': secondary action encroaches on the card border')
       await captureTownWhenRendered(page, filename)
       console.log('Town species arrival verified:', filename, JSON.stringify(state))
       // Dismiss the arrival card through its real tap target. The in-world
       // market/diner should still visibly carry the same recorded species.
-      await page.mouse.click(195, 530)
+      await page.mouse.click(195, 526)
       await page.waitForFunction(() => {
         const town = window.__game?.scene?.getScene('TownScene')
         return town?.sys?.isActive?.()
@@ -101,6 +120,35 @@ try {
       await captureTownWhenRendered(page, worldFile)
       console.log('Town in-world catch verified:',worldFile,JSON.stringify(feature))
 
+    } finally {
+      await page.close()
+    }
+  }
+
+  // The secondary arrival CTA must be usable by a real pointer tap and
+  // navigate to Map without changing points or registering a second catch.
+  {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 })
+    try {
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&qaCatchArrival=aji',
+        { waitUntil: 'domcontentloaded' })
+      await page.waitForFunction(() =>
+        window.__game?.scene?.getScene('TownScene')?._qaCatchArrivalSnapshot?.fishId === 'aji',
+        null, { timeout: 20000 })
+      await page.waitForTimeout(400)
+      const before = await page.evaluate(() => ({
+        score: localStorage.getItem('ainan_score'),
+        catches: localStorage.getItem('ainan_catches'),
+      }))
+      await page.mouse.click(195, 578)
+      await page.waitForFunction(() =>
+        window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.(),
+        null, { timeout: 7000 })
+      const after = await page.evaluate(() => ({
+        score: localStorage.getItem('ainan_score'),
+        catches: localStorage.getItem('ainan_catches'),
+      }))
+      assert.deepEqual(after, before, 'Arrival navigation must not grant or lose catches or points')
     } finally {
       await page.close()
     }
