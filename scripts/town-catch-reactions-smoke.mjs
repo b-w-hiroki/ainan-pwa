@@ -15,6 +15,16 @@ for (const [index, body] of reactions.entries()) {
 }
 assert.equal(getTownCatchReaction('unknown'), null, 'Unknown fish must use rarity fallback')
 assert.equal(getTownCatchReaction('__proto__'), null, 'Prototype fields are not valid fish IDs')
+// Arrival rarity is a display hint, not a trusted object lookup key.
+const { getTownArrivalCopy } = await import('../fishing-game/js/game/installTownCatchArrival.js')
+const commonArrival = getTownArrivalCopy('common')
+for (const rarity of ['uncommon', 'rare', 'legendary']) {
+  assert.ok(getTownArrivalCopy(rarity)?.title, rarity + ': missing supported arrival copy')
+}
+for (const invalid of ['__proto__', 'constructor', 'toString', null, undefined, 'unknown']) {
+  assert.equal(getTownArrivalCopy(invalid), commonArrival,
+    String(invalid) + ': invalid rarity must fall back to ordinary display copy')
+}
 const implementation = readFileSync('fishing-game/js/game/installTownCatchArrival.js', 'utf8')
 const townSource = readFileSync('fishing-game/js/scenes/TownScene.js','utf8')
 const { ASSETS } = await import('../fishing-game/js/config/assetManifest.js')
