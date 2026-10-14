@@ -71,11 +71,18 @@ jobs:
           assert reuse["rope_target_pixels"] <= reuse["pier_target_pixels"]
           assert all(v["donor_structure_reuse"]["safe_for_production"] is False for v in offsets)
           assert all(v["quay_topology_h02"]["approved"] is False for v in offsets)
+          clean=d["clean_pier_donor_review"]
+          assert clean["candidate_only"] and not clean["art_approved"] and not clean["production_promoted"]
+          assert not clean["geometry_authored"] and not clean["motion_ready"]
+          assert clean["source_outside_opening_pixel_exact"] and clean["donor_is_source_opaque"]
+          assert clean["rejected_donor_structure_pixels"] == {"bollard":0,"rope":0}
+          assert clean["motion_offsets"] == [-18,0,18]
           diag=d["material_seam_diagnostic"]
           assert diag["measurement_only"] and not diag["human_approval_inferred"]
           assert diag["seam_band_pixels"] > 0 and diag["opening_rim_pixels"] > 0
           assert 0 <= diag["seam_horizontal_abs_rgb_mean"] <= 255
-          for name in ("visible-edge-world-review.png", "visible-edge-motion-board.jpg", "quay-visible-edge-overlay.png",
+          for name in ("clean-pier-donor-world-review.png", "clean-pier-donor-motion-board.jpg", "legacy-vs-clean-pier-donor.jpg",
+                       "visible-edge-world-review.png", "visible-edge-motion-board.jpg", "quay-visible-edge-overlay.png",
                        "world-material-candidate.png", "material-mask.png", "seam-boundary-review.png", "donor-structure-risk-map.png", "quay-topology-h02-review.png", "material-motion-board.jpg",
                        "quay-edge-variants-board.jpg", "quay-edge--6-player-center.png",
                        "quay-edge-+0-player-center.png", "quay-edge-+6-player-center.png",
