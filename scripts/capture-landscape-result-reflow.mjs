@@ -74,6 +74,14 @@ try{
             visible:s._resultGetAsset?.visible},
           name:{x:root.x+s.resName.x,y:root.y+s.resName.y},
           points:{x:root.x+s.resPts.x,y:root.y+s.resPts.y},
+          accent: (() => {
+            const objects=s._visualUpgradeResultAccent?.objects??[]
+            const label=objects.find(o=>o.type==='Text'
+              && ['COMMON','UNCOMMON','RARE','LEGENDARY'].includes(o.text))
+            const halo=objects.find(o=>o.type==='Ellipse')
+            return {label:label?{x:label.x,y:label.y,text:label.text,visible:label.visible}:null,
+              halo:halo?{x:halo.x,y:halo.y,visible:halo.visible}:null}
+          })(),
           actions:wide
             ? (s._nativeResultZones??[]).filter(z=>z.input?.enabled)
                 .map(z=>({x:z.x,y:z.y,w:z.width,h:z.height,type:z.type}))
@@ -89,6 +97,17 @@ try{
       if(w>h){
         assert.equal(state.mode,'landscape')
         assert.equal(state.actions.length,2,'Both CTA hit targets should exist')
+        assert.ok(state.accent.label && state.accent.halo
+          && state.accent.label.visible && state.accent.halo.visible,
+          'Wide Result rarity decoration must be present: '+JSON.stringify(state.accent))
+        assert.ok(state.accent.label.x>=90 && state.accent.label.x<=250
+          && state.accent.label.y>=85 && state.accent.label.y<=125,
+          'Wide rarity badge must stay inside the artwork column, not clip top: '
+          +JSON.stringify(state.accent))
+        assert.ok(Math.abs(state.accent.halo.x-state.fish.x)<5
+          && Math.abs(state.accent.halo.y-state.fish.y)<15,
+          'Rarity aura should be anchored to the visible premium fish: '
+          +JSON.stringify(state.accent))
         assert.ok(state.label.y>=70&&state.label.y<=130,'label: '+JSON.stringify(state))
         assert.ok(state.name.y>=120&&state.name.y<=200)
         assert.ok(state.points.y>state.name.y&&state.points.y<h-80)
@@ -139,6 +158,45 @@ try{
           })
           await page.screenshot({path:join(folder,'town-click-failed-'+w+'x'+h+'.png'),animations:'disabled'})
           throw new Error('Town CTA click did not navigate: '+JSON.stringify({debug,errors})+'; '+error.message)
+        })
+        // A new record on wide screens must not be clipped at the top.
+        // Exercise the actual reward presentation, not just the Rarity badge.
+        await page.goto(
+          'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&qaReward=record&cameraPan=1&coneLoop=1&qaLocation=pointB',
+          {waitUntil:'domcontentloaded'})
+        await page.waitForFunction(()=>{
+          const sc=window.__game?.scene?.getScene('GameScene')
+          return sc?.phase==='result' && sc.resultOverlay?.visible
+            && sc._catchRewardVisuals?.some(c=>
+              c.list?.some(child=>child?.text==='NEW RECORD!'))
+        },null,{timeout:20000})
+        const record=await page.evaluate(()=>{
+          const sc=window.__game.scene.getScene('GameScene')
+          const badge=sc._catchRewardVisuals.find(c=>
+            c.list?.some(child=>child?.text==='NEW RECORD!'))
+          return {x:badge.x,y:badge.y,alpha:badge.alpha,
+            fish:sc.fish?.id,phase:sc.phase,
+            qaOverlayActive:!!sc._qaRewardBadge?.active,
+            bannerText:badge.list.find(child=>child?.text==='NEW RECORD!')?.text}
+        })
+        assert.equal(record.phase,'result')
+        assert.equal(record.bannerText,'NEW RECORD!')
+        assert.equal(record.qaOverlayActive,false,
+          'QA-only reward overlay must not obscure the actual native Result')
+        assert.ok(record.x >= w-212 && record.x+152 <= w-36
+          && record.y >= 92 && record.y <= 150,
+          'Landscape NEW RECORD banner must remain inside wide Result card: '
+          +JSON.stringify({w,h,record}))
+        await page.screenshot({path:join(folder,'record-'+w+'x'+h+'.png'),animations:'disabled'})
+        // Also capture the post-cut-in steady state. The transient BIG HIT
+        // animation may briefly cover the title; keep an independent visual
+        // reference for layout once its authored sequence has completed.
+        await page.waitForTimeout(1900)
+        assert.equal(await page.evaluate(()=>
+          window.__game.scene.getScene('GameScene')?.phase),'result')
+        await page.screenshot({
+          path:join(folder,'record-settled-'+w+'x'+h+'.png'),
+          animations:'disabled'
         })
       }
       assert.deepEqual(errors,[],'Unexpected native Result browser error')

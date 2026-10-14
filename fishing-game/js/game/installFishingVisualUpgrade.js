@@ -200,11 +200,17 @@ function buildResultAccent(scene) {
   clearResultAccent(scene)
   const { width: W, height: H } = scene.scale
   const rarity = rarityTheme(scene)
-  const heroY = H / 2 - 116
+  // The native wide Result fish lives in the left artwork column. Portrait
+  // keeps the established centered accolade, whereas a shared W/2 coordinate
+  // clipped the COMMON badge against the top edge of 932x430 screens.
+  const wide = scene._nativeResultLayout?.mode === 'landscape'
+  const heroX = wide ? 164 : W / 2
+  const heroY = wide ? Math.min(191, H / 2) : H / 2 - 116
   const objects = []
   const tweens = []
 
-  const halo = scene.add.ellipse(W / 2, heroY, 194, 194, rarity.accent, 0.13)
+  const halo = scene.add.ellipse(heroX, heroY,
+    wide ? 174 : 194, wide ? 174 : 194, rarity.accent, 0.13)
     .setStrokeStyle(2.4, rarity.accent, 0.42)
     .setDepth(131)
     .setScrollFactor(0)
@@ -223,8 +229,8 @@ function buildResultAccent(scene) {
   if (scene.fish?.rarity === 'rare' || scene.fish?.rarity === 'legendary') {
     for (let i = 0; i < 8; i++) {
       const angle = (Math.PI * 2 * i) / 8
-      const x = W / 2 + Math.cos(angle) * 105
-      const y = heroY + Math.sin(angle) * 105
+      const x = heroX + Math.cos(angle) * (wide ? 90 : 105)
+      const y = heroY + Math.sin(angle) * (wide ? 90 : 105)
       const sparkle = scene.add.circle(x, y, i % 2 ? 2.4 : 3.2, rarity.accent, 0.58)
         .setDepth(133)
         .setScrollFactor(0)
@@ -242,12 +248,14 @@ function buildResultAccent(scene) {
     }
   }
 
+  const badgeX = heroX
+  const badgeY = wide ? 101 : heroY - 99
   const badge = scene.add.graphics().setDepth(134).setScrollFactor(0)
   badge.fillStyle(0x073754, 0.90)
-  badge.fillRoundedRect(W / 2 - 54, heroY - 112, 108, 26, 13)
+  badge.fillRoundedRect(badgeX - 54, badgeY - 13, 108, 26, 13)
   badge.lineStyle(1.6, rarity.accent, 0.95)
-  badge.strokeRoundedRect(W / 2 - 54, heroY - 112, 108, 26, 13)
-  const label = scene.add.text(W / 2, heroY - 99, rarity.label, {
+  badge.strokeRoundedRect(badgeX - 54, badgeY - 13, 108, 26, 13)
+  const label = scene.add.text(badgeX, badgeY, rarity.label, {
     fontFamily: 'Nunito, sans-serif',
     resolution: TEXT_RES,
     fontSize: '11px',
