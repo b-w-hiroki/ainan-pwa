@@ -734,7 +734,11 @@ export class CastPresentationHost {
     this.nodes.retrieveDock.setVisible(false)
     this.nodes.castInteraction.setVisible(castVisible)
     this.nodes.retrieveInteraction.setVisible(retrieveVisible)
-    this.nodes.chrome.setVisible(castVisible)
+    // Retrieve uses an approved Harbor bitmap with a baked-in Harbor label.
+    // For Bay/Cape only, overlay the existing native HUD owner to replace
+    // that stale location text. Keep Harbor/portrait pixels unchanged.
+    // The Cast-only instruction remains hidden during Retrieve.
+    this.nodes.chrome.setVisible(castVisible || (retrieveVisible && this.scene.env?.point !== 'pointA'))
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)
     this.nodes.distance.setText(view.distanceLabel)
