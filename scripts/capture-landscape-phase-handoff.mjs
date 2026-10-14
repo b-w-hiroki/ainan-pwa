@@ -168,14 +168,15 @@ try {
       return {phase:s.phase,fish:s.fish?.id,mode,
         legacyBattleVisible:Boolean(s.battleHero?.active&&s.battleHero.visible),
         hostBattleVisible:Boolean(s._castPresentationHost?.nodes?.battleForeground?.visible),
+        battlePanelVisible:Boolean(s.battlePanel?.visible),
         escapeVisible:Boolean(s.escapeBar?.visible)}
     })
     assert.equal(battle.phase,'battle')
     // cameraPan=1 explicitly opts into the legacy RC owner, not CastPresentationHost.
     assert.equal(battle.mode,'legacy','cameraPan prototype must use its actual legacy owner')
     assert.equal(battle.legacyBattleVisible,true,'legacy Battle hero must be rendered')
-    assert.equal(battle.escapeVisible,true,'legacy Battle UI must be rendered')
     await snapshot('04-battle')
+    assert.equal(battle.battlePanelVisible,true,'legacy Battle controls must be rendered')
 
     // Short-circuit only the lengthy outcome simulation in this QA fixture;
     // production Battle odds and controls remain unchanged.
