@@ -33,7 +33,24 @@ try{
         return sc.fish?.id==='aji'&&sc._resultHeroFish?.active
           &&sc._resultHeroFish.visible&&sc._resultHeroFish.alpha>=0.95
           &&sc._resultGetAsset?.active
-      },null,{timeout:10000})
+      },null,{timeout:10000}).catch(async error=>{
+        const debug=await page.evaluate(()=>{
+          const sc=window.__game.scene.getScene('GameScene')
+          const hero=sc._resultHeroFish
+          const get=sc._resultGetAsset
+          const resIcon=sc.resIcon
+          return {phase:sc.phase,fish:sc.fish?.id,mode:sc._nativeResultLayout?.mode,
+            resultOverlay:sc.resultOverlay?.visible,
+            hero:{active:hero?.active,visible:hero?.visible,alpha:hero?.alpha,
+              key:hero?.texture?.key,x:hero?.x,y:hero?.y},
+            get:{active:get?.active,visible:get?.visible,key:get?.texture?.key},
+            resIcon:{active:resIcon?.active,key:resIcon?.texture?.key,x:resIcon?.x,y:resIcon?.y},
+            title:sc.resLabel?.text,
+          }
+        })
+        await page.screenshot({path:join(folder,'diagnostic-'+w+'x'+h+'.png'),animations:'disabled'})
+        throw new Error('Premium Result state not ready: '+JSON.stringify(debug)+'; '+error.message)
+      })
       const state=await page.evaluate(()=>{
         const s=window.__game.scene.getScene('GameScene')
         const root=s.resultOverlay
