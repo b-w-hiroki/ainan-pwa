@@ -46,6 +46,15 @@ for (const slot of owners.slots.filter(slot => slot.presentationOwner)) {
 const states = data('asset-states.json')
 assert.equal(states.schemaVersion, 1)
 unique(states.items.map(x => x.id), 'asset-state item')
+const jumpFxStates=states.items.find(item=>item.id==='fx.species-jump-splash')?.states??[]
+assert.equal(jumpFxStates.length,FISH_LIST.length,'Every fish Jump has an independent splash state')
+const fxRegistry=Object.fromEntries(jumpFxStates.map(state=>[state.id,state]))
+for(const fish of FISH_LIST){
+  const ref='fishJump.fx'+fish.id.charAt(0).toUpperCase()+fish.id.slice(1)
+  assert.equal(fxRegistry[fish.id]?.kind,'asset',fish.id+': missing splash asset')
+  assert.deepEqual(fxRegistry[fish.id]?.refs,[ref],fish.id+': splash manifest drift')
+}
+
 const requiredFamilies = ['world', 'player', 'fish', 'ui', 'fx', 'town']
 for (const family of requiredFamilies)
   assert.ok(states.items.some(x => x.family === family), 'missing family: ' + family)
