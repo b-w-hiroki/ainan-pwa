@@ -137,6 +137,35 @@ def make_world(source, seam_offset=0, edge_model='legacy', donor_model='legacy')
                           cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
     donor_alpha = cv2.remap(source[:, :, 3], source_x, source_y,
                             cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT_101)
+    fallback_donor_pixels = 0
+    if donor_model == 'clean-pier-review':
+        # Some visually plausible right-side samples still land on transparent
+        # parts of the source. Build the *actual* nearest known opaque donor
+        # map, limited to the right-side pier, rather than pretending those
+        # invalid source samples contain drawable material.
+        invalid = (pier & (donor_alpha < 245))
+        fallback_donor_pixels = int(invalid.sum())
+        if fallback_donor_pixels:
+            yy_all, xx_all = np.mgrid[0:height, 0:width]
+            acceptable = ((source[:, :, 3] >= 250)
+                          & (xx_all >= 285) & (yy_all >= 575))
+            if int(acceptable.sum()) < 100:
+                raise AssertionError("No known opaque right pier donor available")
+            _, labels = cv2.distanceTransformWithLabels(
+                (~acceptable).astype(np.uint8), cv2.DIST_L2, 5,
+                labelType=cv2.DIST_LABEL_PIXEL)
+            known_y, known_x = np.where(acceptable)
+            lookup_x = np.zeros(int(labels.max()) + 1, np.int32)
+            lookup_y = np.zeros(int(labels.max()) + 1, np.int32)
+            lookup_x[labels[known_y, known_x]] = known_x
+            lookup_y[labels[known_y, known_x]] = known_y
+            sampled_x = np.clip(np.rint(source_x[invalid]).astype(np.int32), 0, width - 1)
+            sampled_y = np.clip(np.rint(source_y[invalid]).astype(np.int32), 0, height - 1)
+            closest_labels = labels[sampled_y, sampled_x]
+            x_safe, y_safe = lookup_x[closest_labels], lookup_y[closest_labels]
+            donor_rgb[invalid] = source[y_safe, x_safe, :3]
+            donor_alpha[invalid] = source[y_safe, x_safe, 3]
+            source_x[invalid], source_y[invalid] = x_safe, y_safe
     if int(((donor_alpha < 235) & (opening > 0)).sum()):
         raise AssertionError("Material donors include missing/transparent pixels")
 
@@ -198,6 +227,7 @@ def make_world(source, seam_offset=0, edge_model='legacy', donor_model='legacy')
         "guessed_quay_edge_offset_px": seam_offset,
         "quay_edge_model": edge_model,
         "donor_model": donor_model,
+        "opaque_donor_recovery_pixels": fallback_donor_pixels,
         "quay_edge_intercept": round(edge_intercept, 4),
         "quay_edge_slope": round(edge_slope, 6),
         "opened_pixels": opening_count,
@@ -393,6 +423,7 @@ def run(output_dir):
             "rope": clean_reuse["rope_target_pixels"],
         },
         "donor_is_source_opaque": clean_stats["donor_invalid_pixels"] == 0,
+        "opaque_donor_recovery_pixels": clean_stats["opaque_donor_recovery_pixels"],
         "motion_offsets": list(OFFSETS),
         "candidate_only": True,
         "geometry_authored": False,
