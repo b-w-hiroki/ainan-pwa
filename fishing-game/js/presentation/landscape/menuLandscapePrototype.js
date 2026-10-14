@@ -44,10 +44,16 @@ function renderMenu(scene,layout) {
     scene.add.text(x+15,y+35,item.title,{
       fontFamily:FONT,fontSize:'18px',fontStyle:'bold',color:'#173248',
     }).setDepth(10)
-    scene.add.text(x+15,y+62,item.desc,{
+    const desc=scene.add.text(x+15,y+61,item.desc,{
       fontFamily:FONT,fontSize:'11px',color:'#476a7d',
-      wordWrap:{width:c.width-26},
     }).setDepth(10)
+    // Phaser word-wrap splits on spaces, not Japanese character boundaries.
+    // Fit the actual measured text into the card; no tiny horizontal scaling.
+    if(desc.width>c.width-30){
+      const chars=Array.from(item.desc)
+      const midpoint=Math.ceil(chars.length/2)
+      desc.setText(chars.slice(0,midpoint).join('')+'\\n'+chars.slice(midpoint).join(''))
+    }
     if(item.badge){
       scene.add.text(x+c.width-12,y+21,item.badge,{
         fontFamily:FONT,fontSize:'9px',fontStyle:'bold',color:'#b66d18',
@@ -56,7 +62,7 @@ function renderMenu(scene,layout) {
     const hit=scene.add.rectangle(c.x,c.y,c.width,c.height,0,0.001)
       .setDepth(11).setInteractive({useHandCursor:true})
       .on('pointerdown',()=>scene.scene.start(item.scene))
-    controls[item.scene]={hit,title:item.title,description:item.desc}
+    controls[item.scene]={hit,title:item.title,description:item.desc,descriptionNode:desc}
   }
   const b=layout.back
   const g=scene.add.graphics().setDepth(12)
