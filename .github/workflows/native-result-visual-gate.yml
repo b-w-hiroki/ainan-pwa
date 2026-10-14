@@ -6,6 +6,7 @@ on:
       - 'fishing-game/js/scenes/components/ResultUI.js'
       - 'fishing-game/js/scenes/GameScene.js'
       - 'fishing-game/js/game/installFishingResultPresentation.js'
+      - 'fishing-game/js/game/installFishingVisualUpgrade.js'
       - 'fishing-game/js/game/installFishingPresentationGuard.js'
       - 'scripts/capture-landscape-result-reflow.mjs'
       - '.github/workflows/native-result-visual-gate.yml'
