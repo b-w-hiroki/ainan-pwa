@@ -17,6 +17,14 @@ function pickQaTarget(scene) {
 function stabilizeQaRewardBadge(scene, kind) {
   if (!kind) return
   scene._qaRewardBadge?.destroy?.(true)
+  // The native wide Result renders the real reward token beside the fish.
+  // This portrait-only QA badge otherwise doubles the reward and masks the
+  // GET heading/fish label in landscape screenshot reviews. Keep production
+  // reward art and portrait QA entirely unchanged.
+  if (scene._nativeResultLayout?.mode === 'landscape') {
+    scene._qaRewardBadge = null
+    return
+  }
   const labels = {
     first: '★ FIRST CATCH',
     record: '★ NEW RECORD',
