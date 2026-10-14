@@ -69,7 +69,26 @@ try {
       await page.waitForFunction(()=>{
         const scene=window.__game?.scene?.getScene('GameScene')
         return scene?.sys?.isActive?.()&&scene.env?.point==='pointA'
-      },null,{timeout:15000})
+          &&scene._castPresentationMode==='legacy'
+          &&scene._cameraPanPlayer?.active&&scene._coneCastState
+          &&scene._cameraPanHud?.active
+      },null,{timeout:20000})
+      const nativeFishing=await page.evaluate(()=>{
+        const scene=window.__game.scene.getScene('GameScene')
+        return {
+          mode:scene._castPresentationMode,
+          width:scene.scale.width,
+          height:scene.scale.height,
+          worldPlayerActive:Boolean(scene._cameraPanPlayer?.active),
+          worldHudActive:Boolean(scene._cameraPanHud?.active),
+          coneActive:Boolean(scene._coneCastState),
+          insetVisible:Boolean(scene._castPresentationHost?.root?.visible),
+        }
+      })
+      assert.deepEqual(nativeFishing,{
+        mode:'legacy',width,height,worldPlayerActive:true,
+        worldHudActive:true,coneActive:true,insetVisible:false,
+      },'QA journey must show a real wide Fishing world, never a centered portrait inset')
       const fishOut=join(output,'fishing-'+width+'x'+height+'.png')
       await page.screenshot({path:fishOut,animations:'disabled'})
       assert.ok(statSync(fishOut).size>30000,'No rendered Fishing pixels')
