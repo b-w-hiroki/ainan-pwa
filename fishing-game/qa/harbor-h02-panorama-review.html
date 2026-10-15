@@ -1,0 +1,60 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AINAN H02 | world-only QA camera review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#12283c;color:#e9f7ff;font-family:system-ui,"Noto Sans JP",sans-serif}
+header,main,footer{width:min(1100px,100%);margin:auto;padding:12px 16px}header h1{font-size:1.14rem;margin:0 0 4px}header small{font-size:.83rem;color:#a4c8d6}
+main{display:flex;gap:20px;align-items:start;flex-wrap:wrap}.screen-holder{position:relative;flex:none;overflow:hidden}.screen{position:absolute;left:0;top:0;overflow:hidden;background:#16466e;box-shadow:0 12px 36px #0006}
+.layer{position:absolute;left:0;top:0;width:2160px;height:1800px;max-width:none;pointer-events:none}.over{position:absolute;inset:0;pointer-events:none}.right{flex:1;min-width:250px}
+label{display:block;margin:14px 0 6px;font-weight:650}select,input{width:100%}select{padding:11px;background:#e5f5fd;color:#162f3d;border:0;border-radius:8px}
+input[type=range]{accent-color:#64d0f2}.stat{font:12px/1.6 monospace;color:#b7dcec;white-space:pre-wrap;overflow-wrap:anywhere}
+.bad{color:#ffd8a8}.status{background:#294458;border-radius:8px;padding:12px;font-size:.89rem;line-height:1.55}
+.stageTag{position:absolute;left:12px;top:12px;background:#13344cc9;border-radius:4px;padding:6px;font-size:13px;color:white}
+footer{font-size:.79rem;color:#91bbcc}
+</style></head><body>
+<header><h1>H02｜広域港ワールドとカメラ追従レビュー</h1>
+<small>QA専用・ワールドのレイヤー配置検証。承認済み原画や本番ゲーム表示ではありません。</small></header>
+<main>
+<div class="screen-holder" id="holder"><div class="screen" id="screen">
+<img class="layer" id="far" src="../assets/qa/harbor-h02-far-qa.svg" alt="">
+<img class="layer" id="sea" src="../assets/qa/harbor-h02-sea-qa.svg" alt="">
+<img class="layer" id="quay" src="../assets/qa/harbor-h02-quay-qa.svg" alt="">
+<svg class="over" id="markers" xmlns="http://www.w3.org/2000/svg"></svg>
+<div class="stageTag">未承認｜QAワールド試作</div>
+</div></div>
+<div class="right"><div class="status"><strong>検証範囲</strong>
+<p>カメラがプレイヤー付近から釣り餌へ移動し、旧画面外にも海が続くか確認する。右上の進行方向は、桟橋・猫・ロープなどを置かない。</p>
+<p class="bad">キャラクター・装備・高品質な海/桟橋の完成素材ではありません。Cast/Resultの実ゲームプレイ確認ではありません。</p>
+</div>
+<label for="viewport">端末フレーム</label>
+<select id="viewport"><option value="390,844">390×844（縦）</option><option value="844,390">844×390（横）</option><option value="932,430">932×430（横）</option></select>
+<label for="progress">キャスト飛行：<output id="step">0 / 40</output></label>
+<input type="range" id="progress" min="0" max="40" step="1" value="0"/>
+<div class="stat" id="info" aria-live="polite"></div>
+</div>
+</main><footer>world 2160×1800 / far・sea・quayの独立QAレイヤー。正式採用には原画との美術比較、実ブラウザゲーム検証、Issue #140 承認が必要。</footer>
+<script type="module">
+import { HARBOR_WIDE_H02, previewWorldCameraPath } from '../js/presentation/harborWideWorldH02.js'
+const $=id=>document.getElementById(id), layers=['far','sea','quay']
+function draw(){
+ const [width,height]=$('viewport').value.split(',').map(Number)
+ const progress=Number($('progress').value)
+ const data=previewWorldCameraPath(HARBOR_WIDE_H02,{width,height})
+ const frame=data.flight[progress]
+ const zoom=Math.min(1, (window.innerWidth-32)/width, (window.innerHeight-175)/height)
+ const holder=$('holder'),screen=$('screen')
+ holder.style.width=(width*zoom)+'px';holder.style.height=(height*zoom)+'px'
+ screen.style.width=width+'px';screen.style.height=height+'px'
+ screen.style.transform='scale('+zoom+')';screen.style.transformOrigin='top left'
+ for(const id of layers) $(id).style.transform=`translate(${-frame.camera.x}px,${-frame.camera.y}px)`
+ const x=data.rodTip.x-frame.camera.x, y=data.rodTip.y-frame.camera.y
+ const lx=frame.lure.x-frame.camera.x, ly=frame.lure.y-frame.camera.y
+ const marker=$('markers');marker.setAttribute('viewBox',`0 0 ${width} ${height}`)
+ marker.innerHTML=`<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="#fff1b1" stroke-width="1.5" stroke-dasharray="8 6"/><circle cx="${x}" cy="${y}" r="11" fill="#fdbc5f" stroke="#fff" stroke-width="2"/><circle cx="${lx}" cy="${ly}" r="9" fill="#f4ebca" stroke="#185776" stroke-width="3"/>`
+ $('step').textContent=progress+' / 40'
+ $('info').textContent=`Camera scroll: (${frame.camera.x.toFixed(1)}, ${frame.camera.y.toFixed(1)})\nLure world: (${frame.lure.x.toFixed(1)}, ${frame.lure.y.toFixed(1)})\nCast clear: ${data.castLane.clear?'YES':'BLOCKED'}\nWorld coverage: ${data.coversEveryFrame?'PASS':'FAIL'}\nWide art approved: NO`
+}
+['viewport','progress'].forEach(id=>$(id).addEventListener('input',draw))
+window.addEventListener('resize',draw)
+draw()
+</script></body></html>
