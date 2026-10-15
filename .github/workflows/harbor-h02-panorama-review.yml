@@ -5,6 +5,8 @@ on:
     paths:
       - "fishing-game/assets/qa/harbor-h02-*.svg"
       - "fishing-game/js/presentation/harborWideWorldH02.js"
+      - "fishing-game/js/presentation/harborH02CastFanAudit.js"
+      - "scripts/harbor-h02-cast-fan-smoke.mjs"
       - "fishing-game/qa/harbor-h02-panorama-review.html"
       - "scripts/harbor-h02-wide-world-smoke.mjs"
       - "scripts/capture-harbor-h02-panorama.mjs"
@@ -26,7 +28,9 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Check cast lane and world atlas viewport coverage
-        run: node scripts/harbor-h02-wide-world-smoke.mjs
+        run: |
+          node scripts/harbor-h02-wide-world-smoke.mjs
+          node scripts/harbor-h02-cast-fan-smoke.mjs
       - name: Install Chromium
         run: npx --yes playwright@1.55.0 install --with-deps chromium
       - name: Capture opt-in world-only wireframe
