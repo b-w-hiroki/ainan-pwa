@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { getFishingGroundName } from '../fishing-game/js/game/fishingGroundNames.js'
-import { existsSync, realpathSync, mkdirSync, statSync } from 'node:fs'
+import { existsSync, realpathSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
+import { readRgbPixels } from './field-pixel-diff-guard.mjs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -123,3 +124,40 @@ try{
     }finally{await page.close()}
   }
 }finally{await browser.close()}
+
+// Decoded WebGL pixel comparison. A unique location label/HUD cannot fake
+// water-world variation: measure only the central fishing field, not text.
+const folder='artifacts/location-preview'
+function meaningfulWaterPixels(first,second) {
+  const a=readRgbPixels(join(folder,first))
+  const b=readRgbPixels(join(folder,second))
+  let changed=0, sum=0
+  for(let y=140;y<550;y++) for(let x=60;x<350;x++) {
+    const i=(y*390+x)*3
+    const diff=Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2])
+    if(diff>=24)changed++
+    sum+=diff
+  }
+  return {changedPixels:changed,totalPixels:410*290,meanRgbDistance:Math.round(sum/(410*290)*100)/100}
+}
+const comparisons=[
+  ['cast','harbor-bay','90-harbor-cast.png','91-bay-cast-preview.png',950],
+  ['cast','harbor-cape','90-harbor-cast.png','92-cape-cast-preview.png',950],
+  ['cast','bay-cape','91-bay-cast-preview.png','92-cape-cast-preview.png',950],
+  ['retrieve','harbor-bay','93-harbor-retrieve.png','94-bay-retrieve-preview.png',750],
+  ['retrieve','harbor-cape','93-harbor-retrieve.png','95-cape-retrieve-preview.png',950],
+  ['retrieve','bay-cape','94-bay-retrieve-preview.png','95-cape-retrieve-preview.png',950],
+]
+const results=comparisons.map(([phase,places,a,b,floor])=>({
+  phase,places,...meaningfulWaterPixels(a,b),requiredPixels:floor,previewOnly:true,
+}))
+for(const result of results){
+  assert.ok(result.changedPixels>=result.requiredPixels,
+    result.phase+'/'+result.places+': rendered fishing water did not visibly differ ('+JSON.stringify(result)+')')
+}
+assert.equal(meaningfulWaterPixels('90-harbor-cast.png','90-harbor-cast.png').changedPixels,0,
+  'Negative control: identical pixels must not be reported as a location difference')
+writeFileSync(join(folder,'location-phase-pixel-contrast.json'),
+  JSON.stringify({source:'real 390x844 WebGL PNGs',roi:{x:[60,350],y:[140,550]},
+    presentation:'QA-only location preview; no art approval',comparisons:results},null,2)+'\\n')
+console.log('Visible fishing-field pixel contrast QA passed; art approval still pending',JSON.stringify(results))
