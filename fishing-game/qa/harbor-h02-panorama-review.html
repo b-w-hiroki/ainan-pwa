@@ -35,6 +35,8 @@ footer{font-size:.79rem;color:#91bbcc}
 </main><footer>world 2160×1800 / far・sea・quayの独立QAレイヤー。正式採用には原画との美術比較、実ブラウザゲーム検証、Issue #140 承認が必要。</footer>
 <script type="module">
 import { HARBOR_WIDE_H02, previewWorldCameraPath } from '../js/presentation/harborWideWorldH02.js'
+import { auditHarborH02Fan } from '../js/presentation/harborH02CastFanAudit.js'
+const fanResult=auditHarborH02Fan()
 const $=id=>document.getElementById(id), layers=['far','sea','quay']
 function draw(){
  const [width,height]=$('viewport').value.split(',').map(Number)
@@ -52,7 +54,7 @@ function draw(){
  const marker=$('markers');marker.setAttribute('viewBox',`0 0 ${width} ${height}`)
  marker.innerHTML=`<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" stroke="#fff1b1" stroke-width="1.5" stroke-dasharray="8 6"/><circle cx="${x}" cy="${y}" r="11" fill="#fdbc5f" stroke="#fff" stroke-width="2"/><circle cx="${lx}" cy="${ly}" r="9" fill="#f4ebca" stroke="#185776" stroke-width="3"/>`
  $('step').textContent=progress+' / 40'
- $('info').textContent=`Camera scroll: (${frame.camera.x.toFixed(1)}, ${frame.camera.y.toFixed(1)})\nLure world: (${frame.lure.x.toFixed(1)}, ${frame.lure.y.toFixed(1)})\nCast clear: ${data.castLane.clear?'YES':'BLOCKED'}\nWorld coverage: ${data.coversEveryFrame?'PASS':'FAIL'}\nWide art approved: NO`
+ $('info').textContent=`Camera scroll: (${frame.camera.x.toFixed(1)}, ${frame.camera.y.toFixed(1)})\nLure world: (${frame.lure.x.toFixed(1)}, ${frame.lure.y.toFixed(1)})\nCast clear: ${data.castLane.clear?'YES':'BLOCKED'}\n90 cast sweep: ${fanResult.allClear?'PASS':'BLOCKED'} (${fanResult.checked} checks)\nWorld coverage: ${data.coversEveryFrame?'PASS':'FAIL'}\nWide art approved: NO`
 }
 ['viewport','progress'].forEach(id=>$(id).addEventListener('input',draw))
 window.addEventListener('resize',draw)
