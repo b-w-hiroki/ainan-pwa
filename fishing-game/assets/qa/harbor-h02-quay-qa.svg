@@ -5,6 +5,8 @@
  <linearGradient id="edge" x1="0" y1="0" x2=".4" y2="1"><stop stop-color="#d2c5a2"/><stop offset="1" stop-color="#504c49"/></linearGradient>
  <clipPath id="floor"><path d="M0 1508L368 1414 655 1800H0z"/></clipPath>
 </defs>
+<!-- Shift launch quay to show visible Harbor skyline in the initial portrait camera. -->
+<g transform="translate(0,-340)">
 <path d="M0 1508L368 1414 655 1800H0z" fill="url(#top)"/>
 <g clip-path="url(#floor)"><path d="M-50 1530l115 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
 <path d="M-24 1523.76l145 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
@@ -64,4 +66,5 @@
 <ellipse cx="74" cy="1504" rx="24" ry="11" fill="#586d70" stroke="#2f3d43" stroke-width="4"/>
 <path d="M43 1630q76 31 115 38" stroke="#99754e" stroke-width="13" fill="none" opacity=".95"/>
 <path d="M43 1627q76 31 115 38" stroke="#dbc79d" stroke-width="3" fill="none" opacity=".85"/>
+</g>
 </svg>
