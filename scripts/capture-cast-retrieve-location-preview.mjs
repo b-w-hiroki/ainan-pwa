@@ -159,5 +159,5 @@ assert.equal(meaningfulWaterPixels('90-harbor-cast.png','90-harbor-cast.png').ch
   'Negative control: identical pixels must not be reported as a location difference')
 writeFileSync(join(folder,'location-phase-pixel-contrast.json'),
   JSON.stringify({source:'real 390x844 WebGL PNGs',roi:{x:[60,350],y:[140,550]},
-    presentation:'QA-only location preview; no art approval',comparisons:results},null,2)+'\\n')
+    presentation:'QA-only location preview; no art approval',comparisons:results},null,2)+'\n')
 console.log('Visible fishing-field pixel contrast QA passed; art approval still pending',JSON.stringify(results))
