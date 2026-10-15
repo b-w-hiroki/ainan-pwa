@@ -36,6 +36,12 @@ for(const viewport of viewports){
   assert.equal(p.castLane.clear,true, `Cast lane blocked at ${viewport.width}x${viewport.height}`)
   assert.equal(p.coversEveryFrame,true, 'World art does not cover viewport')
   assert.equal(p.realWorldCameraTravel,true, 'No substantial camera movement toward sea')
+  if(viewport.width===390 && viewport.height===844){
+    const skylineY=476-p.playerScroll.y
+    const feetY=HARBOR_WIDE_H02.playerFeet.y-p.playerScroll.y
+    assert.ok(skylineY>=80 && skylineY<=200, 'Idle frame must actually show the Harbor horizon')
+    assert.ok(feetY>730 && feetY<830, 'Idle feet must remain near the bottom without clipping')
+  }
   assert.equal(p.flight.length,41,'Original cast arc must stay 40 samples')
   assert.equal(p.artApproved,false)
   assert.ok(p.flight.every(({lure,camera})=>Number.isFinite(lure.x+lure.y+camera.x+camera.y)))
