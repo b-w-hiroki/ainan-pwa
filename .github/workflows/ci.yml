@@ -118,6 +118,9 @@ jobs:
       - name: Verify continuous QA-only horizontal scene journey
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-landscape-journey.mjs
 
+      - name: Verify QA native scene reflow after live device rotation
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-native-qa-rotation.mjs
+
       - name: Capture iPhone QA flows
         run: |
           mkdir -p artifacts/e2e

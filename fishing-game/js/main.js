@@ -34,6 +34,7 @@ import { installNativeLandscapeCollectionPrototype } from './presentation/landsc
 import { installNativeLandscapeMenuPrototype } from './presentation/landscape/menuLandscapePrototype.js'
 import { installNativeLandscapeSettingsPrototype } from './presentation/landscape/settingsLandscapePrototype.js'
 import { isNativeLandscapeQaResize } from './presentation/landscape/nativeLandscapeQaFlags.js'
+import { installQaOrientationReflow } from './presentation/landscape/qaOrientationReflow.js'
 import { installGlobalDiagnostics } from './game/diagnostics.js'
 import { unlockAudio } from './game/feedback.js'
 import { installPwaUpdateGuard, shouldApplyPwaUpdate } from './game/pwaUpdateGuard.js'
@@ -55,6 +56,14 @@ installNativeLandscapeTownPrototype(TownScene)
 installNativeLandscapeCollectionPrototype(CollectionScene)
 installNativeLandscapeMenuPrototype(MenuScene)
 installNativeLandscapeSettingsPrototype(SettingsScene)
+for(const [SceneClass,property] of [
+  [HomeScene,'_qaNativeHomeLayout'],
+  [MapScene,'_qaNativeMapLayout'],
+  [TownScene,'_qaNativeTownLayout'],
+  [CollectionScene,'_qaNativeCollectionLayout'],
+  [MenuScene,'_qaNativeMenuLayout'],
+  [SettingsScene,'_qaNativeSettingsLayout'],
+]) installQaOrientationReflow(SceneClass,property)
 
 /** @type {Phaser.Types.Core.GameConfig} */
 const config = {
