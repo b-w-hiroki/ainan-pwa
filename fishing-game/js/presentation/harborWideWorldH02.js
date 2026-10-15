@@ -10,23 +10,23 @@ export const HARBOR_WIDE_H02 = Object.freeze({
   readyForProduction: false,
   requiresExplicitVisualApproval: true,
   size: Object.freeze({ width: 2160, height: 1800 }),
-  playerFeet: freezePoint(320, 1490),
-  castOrigin: freezePoint(365, 1330),
+  playerFeet: freezePoint(320, 1150),
+  castOrigin: freezePoint(365, 990),
   // Keep the game engine's existing distance/odds untouched. This is
   // only a visual composition study for an independent image production.
   castTest: Object.freeze({ angleDeg: 36, power01: 0.95, rangePx: 780 }),
   waterPolygon: Object.freeze([
     freezePoint(0, 470), freezePoint(2160, 470),
-    freezePoint(2160, 1800), freezePoint(650, 1800),
-    freezePoint(370, 1420), freezePoint(0, 1510),
+    freezePoint(2160, 1800), freezePoint(650, 1460),
+    freezePoint(370, 1080), freezePoint(0, 1170),
   ]),
   // The accessible launch quay is not an obstacle. Only protruding props
   // count here: keep them physically behind the character and cast line.
   reviewObstacles: Object.freeze([
-    Object.freeze({ id: 'back-left-bollard', kind: 'circle', center: freezePoint(74, 1570), radius: 27 }),
+    Object.freeze({ id: 'back-left-bollard', kind: 'circle', center: freezePoint(74, 1230), radius: 27 }),
     Object.freeze({ id: 'rear-rope', kind: 'polygon', points: Object.freeze([
-      freezePoint(42, 1630), freezePoint(158, 1660),
-      freezePoint(158, 1675), freezePoint(42, 1643),
+      freezePoint(42, 1290), freezePoint(158, 1320),
+      freezePoint(158, 1335), freezePoint(42, 1303),
     ]) }),
   ]),
   // All layers share the same world-space atlas; a transparent front layer
@@ -59,7 +59,7 @@ export function previewWorldCameraPath(contract = HARBOR_WIDE_H02, viewport = co
   })
   const playerScroll = scroll(
     contract.playerFeet.x - viewport.width * .30,
-    contract.playerFeet.y - viewport.height * .78,
+    contract.playerFeet.y - viewport.height * (viewport.height >= 650 ? .93 : .78),
   )
   // A representative camera tracking the rod tip, then the lure along its
   // actual world trajectory, then settling on the real splash position.
