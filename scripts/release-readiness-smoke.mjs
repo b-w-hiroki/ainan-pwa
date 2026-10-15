@@ -61,6 +61,27 @@ const ci = read('.github/workflows/ci.yml')
 assert.ok(ci.includes('node scripts/capture-settings-storage-actions.mjs'),
   'Settings storage/touch QA must run in full mobile E2E')
 
+// Production must not silently enable the QA-only native-wide previews.
+// Their Playwright success covers layout staging, not physical iPhone or
+// approved world art; the final 1.0.0 readiness gate stays independent.
+const boot=read('fishing-game/js/main.js')
+const wideFlags=read('fishing-game/js/presentation/landscape/nativeLandscapeQaFlags.js')
+const viewportContract=read('scripts/viewport-prototype-contract-smoke.mjs')
+assert.ok(boot.includes('cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT'),
+  'Default production viewport must stay portrait FIT until release gate')
+assert.ok(boot.includes('isNativeLandscapeQaResize(window.location.search)'),
+  'Wide QA Phaser viewport must use explicit opt-in')
+assert.ok(game.includes("isQa && pageParams.get('nativeLandscapeAll') === '1'"),
+  'Wide QA CSS viewport must require QA permission')
+assert.ok(wideFlags.includes("params.get('qa') === '1'") &&
+  wideFlags.includes("params.get('qa') !== '1'"),
+  'Wide QA scene flags must never activate without QA')
+assert.ok(viewportContract.includes("['?nativeLandscapeAll=1', false]") &&
+  viewportContract.includes("['?qa=1&nativeLandscapeAll=1', true]"),
+  'Wide QA preview must test both authorized and unauthorized launch URLs')
+assert.ok(read('package.json').includes('"version": "1.0.0-rc.3"'),
+  'Do not promote 1.0.0 before physical-iPhone and visual art approval')
+
 console.log('Release readiness smoke QA passed')
 console.log('  safe-area / dynamic viewport: OK')
 console.log('  PWA manifest + icon + service worker: OK')
