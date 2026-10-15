@@ -16,7 +16,7 @@ assert.match(camera, /updateCastFollow\(x, y\)/, 'existing flight follow owner m
 assert.match(camera, /updateRetrieveFollow\(lureX, lureY\)/, 'existing retrieve follow owner must be reused')
 assert.match(camera, /Math\.max\(0, worldSize - cameraSize\)/, 'rotation safety clamp must remain')
 assert.match(cone, /isValidCastLanding\(raw\)/, 'landing-only collision gate has changed; review corridor integration separately')
-assert.match(pan, /this\._cameraPanRodTip = tip/, 'rod tip world/socket source missing')
+assert.match(pan, /scene\._cameraPanRodTip = tip/, 'rod tip world/socket source missing')
 assert.match(pan, /if \(!enabled\(\)\) return/, 'camera test scene must stay opt-in')
 
 const path = [{ x: 0, y: 0 }, { x: 120, y: 0 }]
