@@ -21,7 +21,8 @@ assert.ok(audit.samples.some(s=>s.tipOffsetId==='left'))
 assert.ok(audit.samples.some(s=>s.tipOffsetId==='right'))
 assert.deepEqual(H02_QA_CAST_SAMPLES.angles,[34,36,40,44,48,52])
 assert.ok(isInsideH02Water({x:950,y:800}))
-assert.equal(isInsideH02Water({x:150,y:1000}), false, 'The concrete launch foothold must not be water')
+assert.equal(isInsideH02Water({x:150,y:1200}), false, 'The concrete launch foothold must not be water')
+assert.equal(isInsideH02Water({x:150,y:1000}), true, 'The area in front of the quay must stay castable sea')
 assert.equal(isInsideH02Water({x:500,y:400}),false,'Above the coastline is not a catchable sea landing')
 
 // A near-center angle can be geometrically clear of objects, but the splash
