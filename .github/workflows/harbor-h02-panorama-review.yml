@@ -1,0 +1,41 @@
+name: H02 wide Harbor world review (QA only)
+
+on:
+  pull_request:
+    paths:
+      - "fishing-game/assets/qa/harbor-h02-*.svg"
+      - "fishing-game/js/presentation/harborWideWorldH02.js"
+      - "fishing-game/qa/harbor-h02-panorama-review.html"
+      - "scripts/harbor-h02-wide-world-smoke.mjs"
+      - "scripts/capture-harbor-h02-panorama.mjs"
+      - ".github/workflows/harbor-h02-panorama-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  panoramic-layout-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check cast lane and world atlas viewport coverage
+        run: node scripts/harbor-h02-wide-world-smoke.mjs
+      - name: Install Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Capture opt-in world-only wireframe
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-h02-panorama.mjs
+      - name: Upload H02 screenshots and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harbor-h02-wide-world-layout-qa
+          path: artifacts/art-review/harbor-h02-panorama/
+          retention-days: 14
+          if-no-files-found: warn
