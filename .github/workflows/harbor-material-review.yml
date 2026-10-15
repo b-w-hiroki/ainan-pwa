@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/art/reconstruct-harbor-material-review.py"
       - "scripts/art/harbor-deck-texture-guard.py"
+      - "scripts/art/reconstruct-harbor-authored-review.py"
+      - "scripts/art/harbor-authored-review-smoke.py"
       - ".github/workflows/harbor-material-review.yml"
   workflow_dispatch:
 
@@ -90,6 +92,37 @@ jobs:
             --candidate artifacts/art-review/harbor-material/world-material-candidate.png \
             --material-mask artifacts/art-review/harbor-material/material-mask.png \
             --report artifacts/art-review/harbor-material/deck-texture-guard.json
+
+      - name: Test geometry-authored quay reconstruction (H02 QA only)
+        run: |
+          python scripts/art/harbor-authored-review-smoke.py
+          python scripts/art/reconstruct-harbor-authored-review.py \
+            --out artifacts/art-review/harbor-material/authored-h02
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('artifacts/art-review/harbor-material/authored-h02')
+          report=json.loads((root/'h02-authored-review.json').read_text())
+          assert report['source_dimensions']==[391,783]
+          assert 15000 <= report['opened_pixels'] <= 18000
+          assert sum(report[key] for key in ('water_pixels','deck_pixels','front_face_pixels'))==report['opened_pixels']
+          assert report['outside_opening_pixel_exact'] and report['cutout_filled_opaque']
+          assert report['materials']['bollard_or_rope_pixels_donor_copied']==0
+          assert report['materials']['water_donor_max_y'] < 478
+          assert not report['art_approved'] and not report['production_promoted']
+          assert not report['existing_actor_cutout_is_clean']
+          assert not report['full_wide_ocean_world_ready']
+          assert not report['game_motion_implemented']
+          for name in ('h02-authored-world-candidate.png','h02-authored-material-mask.png',
+                       'h02-authored-edge-diagnostic.png','h02-authored-motion-board.jpg',
+                       'h02-authored-player--18.png','h02-authored-player-+0.png','h02-authored-player-+18.png'):
+            assert (root/name).stat().st_size>500,name
+          print('H02 output contract OK. Visual approval remains pending.')
+          PY
+          python scripts/art/harbor-deck-texture-guard.py \
+            --candidate artifacts/art-review/harbor-material/authored-h02/h02-authored-world-candidate.png \
+            --material-mask artifacts/art-review/harbor-material/authored-h02/h02-authored-material-mask.png \
+            --report artifacts/art-review/harbor-material/authored-h02/deck-texture-guard.json
 
       - name: Upload manual art-review evidence
         uses: actions/upload-artifact@v4
