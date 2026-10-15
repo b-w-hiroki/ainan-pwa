@@ -4,10 +4,12 @@
 
 ## Release Candidate
 
-- Version: `1.0.0-rc.1`
+- Version: `1.0.0-rc.3`（`package.json` に準拠。正式 `1.0.0` への昇格前）
 - 基準画面: 390×844
 - 自動QA: build / smoke / mobile E2E / visual screenshot guard / PWA readiness
-- 最終リリース条件: `docs/qa/iphone-release-checklist.md` の物理iPhone QA完了
+- 最終リリース条件: `docs/qa/iphone-release-checklist.md` の物理iPhone QA完了、および [固定残タスク基準](docs/pipeline/REMAINING_BACKLOG_BASELINE_20261015.md) の各Done条件達成
+- 横画面: QA専用試作段階。本番利用可能・全端末対応とみなさない
+- 港の背景・人物分離: アート承認前の候補は本番に採用しない
 - 実機QA管理: GitHub Issue #27
 
 ## 起動
@@ -40,8 +42,7 @@ npm run preview
 手元で GitHub Pages 用ビルドだけ試す場合（`<リポジトリ名>` は実際の名前に置き換え）:
 
 ```bash
-set VITE_BASE_PATH=/リポジトリ名
-npm run build
+VITE_BASE_PATH=/リポジトリ名/ npm run build
 npm run preview
 ```
 
