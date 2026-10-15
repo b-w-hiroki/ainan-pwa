@@ -41,7 +41,7 @@ try{
     for(const step of [0,20,40]){
       await page.$eval('#progress',(e,step)=>{e.value=step;e.dispatchEvent(new Event('input',{bubbles:true}))},step)
       const txt=await page.locator('#info').textContent()
-      assert.ok(txt.includes('Cast clear: YES')&&txt.includes('World coverage: PASS')&&txt.includes('Wide art approved: NO'),`Invalid H02 state: ${txt}`)
+      assert.ok(txt.includes('Cast clear: YES')&&txt.includes('90 cast sweep: PASS (90 checks)')&&txt.includes('World coverage: PASS')&&txt.includes('Wide art approved: NO'),`Invalid H02 state: ${txt}`)
       const dest=`${out}/h02-${size}-flight-${step}.png`
       await page.locator('#screen').screenshot({path:dest})
       assert.ok(statSync(dest).size>5000,'Blank/invalid screenshot: '+dest)
