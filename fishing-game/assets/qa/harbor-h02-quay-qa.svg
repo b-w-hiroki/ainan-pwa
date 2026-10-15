@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2160" height="1800" viewBox="0 0 2160 1800">
+<!-- QA-only unobstructed launch quay, not final approved production art. -->
+<defs>
+ <linearGradient id="top" x1="0" y1="0" x2=".45" y2="1"><stop stop-color="#b4aa8c"/><stop offset=".55" stop-color="#968b73"/><stop offset="1" stop-color="#756e64"/></linearGradient>
+ <linearGradient id="edge" x1="0" y1="0" x2=".4" y2="1"><stop stop-color="#d2c5a2"/><stop offset="1" stop-color="#504c49"/></linearGradient>
+ <clipPath id="floor"><path d="M0 1508L368 1414 655 1800H0z"/></clipPath>
+</defs>
+<path d="M0 1508L368 1414 655 1800H0z" fill="url(#top)"/>
+<g clip-path="url(#floor)"><path d="M-50 1530l115 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M-24 1523.76l145 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M2 1517.52l175 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M28 1511.28l205 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M54 1505.04l115 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M80 1498.8l145 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M106 1492.56l175 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M132 1486.32l205 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M158 1480.08l115 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M184 1473.84l145 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M210 1467.6l175 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M236 1461.36l205 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M262 1455.12l115 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M288 1448.88l145 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M314 1442.64l175 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M340 1436.4l205 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M366 1430.16l115 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M392 1423.92l145 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M418 1417.68l175 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M444 1411.44l205 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M470 1405.2l115 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M496 1398.96l145 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M522 1392.72l175 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M548 1386.48l205 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M574 1380.24l115 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M600 1374l145 234" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M626 1367.76l175 248" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M652 1361.52l205 220" stroke="#817b71" stroke-width="3" opacity=".30"/>
+<path d="M678 1355.28l115 234" stroke="#817b71" stroke-width="3" opacity=".30"/><path d="M-10 1470L520 1378" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1488L526 1401" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1506L532 1424" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1524L538 1447" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1542L544 1470" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1560L550 1493" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1578L556 1516" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1596L562 1539" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1614L568 1562" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1632L574 1585" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1650L580 1608" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1668L586 1631" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1686L592 1654" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1704L598 1677" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1722L604 1700" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1740L610 1723" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1758L616 1746" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1776L622 1769" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1794L628 1792" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1812L634 1815" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1830L640 1838" stroke="#6b6962" stroke-width="2.5" opacity=".24"/>
+<path d="M-10 1848L646 1861" stroke="#6b6962" stroke-width="2.5" opacity=".24"/></g>
+<path d="M0 1508L368 1414 655 1800" fill="none" stroke="#333e44" stroke-width="16"/>
+<path d="M0 1507L368 1411 655 1796" fill="none" stroke="#d5c9aa" stroke-width="7"/>
+<!-- Mooring equipment is BEHIND the player/behind cast corridor -->
+<ellipse cx="74" cy="1577" rx="44" ry="15" fill="#384b54" opacity=".26"/>
+<path d="M55 1507L52 1550q15 17 45 5v-49z" fill="#4e5e65" stroke="#293940" stroke-width="5"/>
+<ellipse cx="74" cy="1504" rx="24" ry="11" fill="#586d70" stroke="#2f3d43" stroke-width="4"/>
+<path d="M43 1630q76 31 115 38" stroke="#99754e" stroke-width="13" fill="none" opacity=".95"/>
+<path d="M43 1627q76 31 115 38" stroke="#dbc79d" stroke-width="3" fill="none" opacity=".85"/>
+</svg>
