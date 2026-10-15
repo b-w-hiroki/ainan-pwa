@@ -67,7 +67,7 @@ def paint_authored_materials(source, regions, edges):
     # Sea donor is strictly ABOVE visible bollard/rope and OUTSIDE the subject
     # opening. Do not sample x<180 (the missing subject area) or the deck.
     sample_x = np.clip(xx + 186 + 9 * np.sin(yy * 0.051), 184, width - 10).astype(np.float32)
-    sample_y = np.maximum(150, yy - 2 * np.cos(xx * 0.12)).astype(np.float32)
+    sample_y = np.clip(yy - 2 * np.cos(xx * 0.12), 150, 462).astype(np.float32)
     donor = cv2.remap(source, sample_x, sample_y, cv2.INTER_LINEAR,
                       borderMode=cv2.BORDER_REFLECT_101)
     unsafe = water & ((donor[:, :, 3] < 245) | (sample_y >= 478))
