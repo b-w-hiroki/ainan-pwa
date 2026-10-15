@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "scripts/art/reconstruct-harbor-material-review.py"
+      - "scripts/art/harbor-deck-texture-guard.py"
       - ".github/workflows/harbor-material-review.yml"
   workflow_dispatch:
 
@@ -83,6 +84,13 @@ jobs:
               assert (root/name).stat().st_size > 500, name
           print("Material-separated world preview created; not production/animation approval")
           PY
+      - name: Screen stretched/flat pier donor texture (not an art approval)
+        run: |
+          python scripts/art/harbor-deck-texture-guard.py --self-test \
+            --candidate artifacts/art-review/harbor-material/world-material-candidate.png \
+            --material-mask artifacts/art-review/harbor-material/material-mask.png \
+            --report artifacts/art-review/harbor-material/deck-texture-guard.json
+
       - name: Upload manual art-review evidence
         uses: actions/upload-artifact@v4
         if: always()
