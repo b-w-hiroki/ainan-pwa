@@ -1,10 +1,11 @@
 import { ACCESSORY_VISUALS, createAccessoryAccent, getVisualLoadout, ROD_VISUALS } from '../presentation/equipmentVisuals.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
+import { resolveModularSocket } from '../presentation/modularPlayerParts.js'
 
 // H03 QA-only. Existing equipment ownership remains in progress/save code;
 // these are independent DISPLAY objects attached to the live Phaser actor.
 // Body gender/outfit sprites and the final cat painting are NOT available yet.
-const FRAME = Object.freeze({ width: 320, height: 420 })
+// Existing preview-gating policy must not disappear in a socket refactor.
 export function isHarborModularQaEnabled(search = '') {
   const p = new URLSearchParams(search)
   return p.get('qa') === '1' && p.get('qaHarborPlayable') === '1'
@@ -12,29 +13,9 @@ export function isHarborModularQaEnabled(search = '') {
     && p.get('qaParts') === '1'
 }
 const search = () => typeof window === 'undefined' ? '' : window.location.search
-const rotation = (x, y, degrees) => {
-  const a = degrees * Math.PI / 180
-  return { x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) }
-}
-export function resolveHarborPartSocket(actor, rawAnchor) {
-  if (!actor || !Array.isArray(rawAnchor) || rawAnchor.length < 2
-    || !Number.isFinite(actor.x) || !Number.isFinite(actor.y)
-    || !Number.isFinite(actor.displayWidth) || !Number.isFinite(actor.displayHeight)
-    || !Number.isFinite(actor.angle)
-    || !rawAnchor.slice(0, 3).every(value => value === undefined || Number.isFinite(value))) {
-    throw new TypeError('Actor transform and pose socket must be finite')
-  }
-  const local = rotation(
-    (rawAnchor[0] - FRAME.width / 2) * actor.displayWidth / FRAME.width,
-    (rawAnchor[1] - FRAME.height) * actor.displayHeight / FRAME.height,
-    actor.angle,
-  )
-  return Object.freeze({
-    x: actor.x + local.x, y: actor.y + local.y,
-    rotation: (actor.angle + (rawAnchor[2] ?? 0)) * Math.PI / 180,
-    scale: actor.displayWidth / FRAME.width,
-  })
-}
+
+// One shared socket transform for all W03 asset layers and existing QA hats/bags.
+export const resolveHarborPartSocket = resolveModularSocket
 
 // A clearly provisional silhouette/marker rather than a baked-in cat bitmap.
 // Cat is its own object, stays BEHIND the casting hand and never moves with
