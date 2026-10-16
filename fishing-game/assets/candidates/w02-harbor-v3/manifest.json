@@ -1,0 +1,35 @@
+{
+  "workUnit": "W02",
+  "candidateId": "w02-harbor-v3-split",
+  "source": "harbor-morning.png",
+  "sourceSha256": "2b41c51f802e1612b404ef222ff401bdb421f00aba8272b8db2563f531de2df2",
+  "sourceDimensions": [
+    1536,
+    1024
+  ],
+  "exactSourceReassembly": true,
+  "artApproved": false,
+  "productionSwitched": false,
+  "limitations": [
+    "1536x1024 is half the requested 3072x2048; needs human size/quality review",
+    "edges are hard masks and need visual review on town/breakwater seams",
+    "props (decor) and FX are not separated from this master"
+  ],
+  "assets": {
+    "far": {
+      "path": "far.png",
+      "sha256": "36ff6d6c7d5c641083c11c37e4f2e38d8bebf3d2e54b4a692ead5f215858ff7e",
+      "opaquePixels": 270319
+    },
+    "sea": {
+      "path": "sea.png",
+      "sha256": "d1f3ae97619326ebfd3adfdff7fc0b1b348ce72805f854e8e75c6cb0f8b9ff4a",
+      "opaquePixels": 1234759
+    },
+    "quay": {
+      "path": "quay.png",
+      "sha256": "48a474212ec1aa62386438a04e2056ec6b5f819b12c42ea6ea3617989f5bd276",
+      "opaquePixels": 67786
+    }
+  }
+}
