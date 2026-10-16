@@ -6,6 +6,9 @@ on:
       - "fishing-game/assets/qa/harbor-h02-*.svg"
       - "fishing-game/js/presentation/harborWideWorldH02.js"
       - "fishing-game/js/game/installHarborPlayableQa.js"
+      - "fishing-game/js/game/installHarborModularQa.js"
+      - "scripts/harbor-modular-qa-smoke.mjs"
+      - "scripts/capture-harbor-modular-qa.mjs"
       - "fishing-game/js/game/installFishingRuntime.js"
       - "fishing-game/js/scenes/components/FishingCameraController.js"
       - "scripts/harbor-playable-qa-smoke.mjs"
@@ -53,6 +56,8 @@ jobs:
           exit 1
       - name: Capture real GameScene cast and lure camera follow
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-playable-game.mjs
+      - name: Capture real accessory and option layers with cast
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-modular-qa.mjs
       - name: Upload H02 screenshots and provenance
         if: always()
         uses: actions/upload-artifact@v4
@@ -61,5 +66,6 @@ jobs:
           path: |
             artifacts/art-review/harbor-h02-panorama/
             artifacts/art-review/harbor-playable/
+            artifacts/art-review/harbor-modular/
           retention-days: 14
           if-no-files-found: warn
