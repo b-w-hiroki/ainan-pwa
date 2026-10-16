@@ -110,7 +110,8 @@ export function installHarborModularQa(GameScene) {
         .setRotation(transform.rotation).setScale(transform.scale)
     }
     parts.cat.setVisible(parts.show.cat && this.phase !== 'result')
-    parts.cat.setPosition(actor.x - 72, actor.y - 4)
+    // Keep the option behind the actor in perspective, clear of the bottom cast HUD.
+    parts.cat.setPosition(actor.x - 72, actor.y - 27)
     this._qaHarborPartSnapshot = Object.freeze({
       pose, rodId: parts.rod, bodyVariant: 'existing-approved-pose',
       independentBodyVariantsReady: false,
