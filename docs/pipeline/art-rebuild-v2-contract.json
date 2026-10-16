@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 2,
+  "name": "AINAN full asset reboot — authoring acceptance contract",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/217",
+  "parent": "https://github.com/b-w-hiroki/ainan-pwa/issues/216",
+  "sourceOfTruth": {
+    "gameplay": "docs/concept-art/canonical/README.md",
+    "style": "docs/pipeline/ART_DIRECTION_BIBLE.md",
+    "oldStyleJson": "docs/pipeline/art-direction-contract.json",
+    "oldStates": "docs/pipeline/asset-states.json",
+    "manifest": "fishing-game/js/config/assetManifest.js",
+    "owners": "docs/pipeline/visual-owners.json",
+    "screenRefs": "docs/pipeline/golden-screens.json",
+    "reviewGuide": "https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/ASSET-WORK-UNITS.md"
+  },
+  "viewport": {
+    "portrait": [
+      {
+        "width": 320,
+        "height": 568
+      },
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 430,
+        "height": 932
+      }
+    ],
+    "landscape": [
+      {
+        "width": 844,
+        "height": 390
+      },
+      {
+        "width": 932,
+        "height": 430
+      }
+    ],
+    "portraitGolden": {
+      "width": 390,
+      "height": 844
+    },
+    "landscapeStatus": "QA-only until explicit production acceptance",
+    "safeTouchMinCssPx": 44
+  },
+  "inventoryClassPolicy": {
+    "legacy-compatible-manifest": "Existing ready production/reference assets. Still load in current app; retire only after accepted replacement and rollback.",
+    "qa-only": "Experiment/geometry-only preview. Never silently promoted to production, even when CI succeeds.",
+    "composition-reference": "Existing mock/source preserved as art/interaction benchmark, not render-ready replacement.",
+    "candidate": "New independently authored source and transparent parts pending pixel/QA review.",
+    "accepted": "Visual and browser acceptance linked to specific asset hashes and a reviewer decision.",
+    "production": "Explicitly switched in the current game with tested fallback/rollback, distinct from accepted."
+  },
+  "assetContract": {
+    "requiredFields": [
+      "assetId",
+      "workUnit",
+      "family",
+      "layer",
+      "sourcePath",
+      "outputPath",
+      "sha256",
+      "alphaMode",
+      "canvasPx",
+      "worldRect",
+      "pivot",
+      "sockets",
+      "zDepth",
+      "phases",
+      "sourceVersion",
+      "artApproval",
+      "browserQa",
+      "gameOwner",
+      "rollbackAssetRef"
+    ],
+    "states": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "review",
+      "rejected",
+      "accepted"
+    ],
+    "promotionGates": [
+      "valid independent source file / no embedded player+UI into world",
+      "alpha and pixel checksum, pivot/socket metadata",
+      "matching baseline perspective/lighting/material",
+      "clear cast flight + retrieve corridor",
+      "390x844 and true landscape real Browser screenshot with no clipping",
+      "input/save/probability regression",
+      "human visual signoff",
+      "CI PR and main deployed state; physical iPhone is separately checked"
+    ],
+    "forbidden": [
+      "patch old hidden actor hole by horizontal copy, Telea-only fill, or stretched water",
+      "publish an explanatory mock board as gameplay background",
+      "overlay character/rod/cat/HUD permanently into world layer",
+      "auto-approve visual quality from gradients, seam counters, golden comparisons, or green CI",
+      "delete old art or silently mutate IDs / saved data before replacement accepted"
+    ]
+  },
+  "art": {
+    "source": "docs/pipeline/ART_DIRECTION_BIBLE.md",
+    "light": "Bright coastal sun, coherent directional shading throughout sea, quay and player",
+    "sea": "Saturated teal toward rich deep cyan, irregular sparkle/wave clusters, visible depth with clear lure and fish contrast",
+    "harbor": "Actual dock top + front face in perspective; warm sunlit board/stone with believable joins, never copied mooring structures",
+    "character": "Readable illustrated warm outfit/face and rod at phone scale, consistent head/body/perspective among variants; no baked scenery",
+    "fish": "Species-specific silhouettes and fins with restrained highlights; heroes distinct without generic recolors",
+    "ui": "Compact pale-blue HUD, dark navy/gold controls, high contrast; UI separate from scrollable world",
+    "reject": [
+      "single flat vector-like game scene",
+      "photo collage",
+      "inconsistent character vs scene rendering",
+      "large UI blocking cast/water",
+      "identical textures pasted into distant ocean"
+    ]
+  },
+  "world": {
+    "castAxis": "visual from lower-left toward upper-right; input mechanics unchanged until W04",
+    "camera": "follow rod tip then lure beyond viewport, ease on splash, favor lure and fish on retrieve",
+    "safeZone": "no obstacles in rod swing, flight arc or taut line retrieve including visual cat / options",
+    "layers": [
+      {
+        "id": "far",
+        "role": "sky/mountains/town",
+        "alpha": "opaque-or-alpha-world",
+        "owner": "W02"
+      },
+      {
+        "id": "sea",
+        "role": "non-repeating continuous open ocean, reflection, swells",
+        "alpha": "independent",
+        "owner": "W02"
+      },
+      {
+        "id": "quay",
+        "role": "footing only: dock top/front away from cast lane",
+        "alpha": "transparent",
+        "owner": "W02"
+      },
+      {
+        "id": "decor",
+        "role": "behind player/nonblocking dock objects",
+        "alpha": "transparent",
+        "owner": "W02"
+      },
+      {
+        "id": "player",
+        "role": "body/skin with interchangeable gender variant",
+        "alpha": "transparent",
+        "owner": "W03"
+      },
+      {
+        "id": "outfit",
+        "role": "hair, headgear, upper/lower/shoes/bag per pose",
+        "alpha": "transparent",
+        "owner": "W03"
+      },
+      {
+        "id": "rod",
+        "role": "single native rod owner and separate reel/line",
+        "alpha": "transparent-native",
+        "owner": "W03"
+      },
+      {
+        "id": "companion",
+        "role": "independent cat/option behind player and outside clear lane",
+        "alpha": "transparent",
+        "owner": "W03"
+      },
+      {
+        "id": "fx",
+        "role": "lure, splash, line, atmosphere",
+        "alpha": "transparent-native",
+        "owner": "W04"
+      },
+      {
+        "id": "hud",
+        "role": "screen space only and inside safe area",
+        "alpha": "component",
+        "owner": "W04"
+      }
+    ],
+    "sourceCanvas": "Decide via actual maximal lure-camera path + viewport size; old 2160x1800 atlas is a QA provisional geometry only.",
+    "parallax": "World layer values must be validated together; do not independently pan quay/sea during lure follow."
+  },
+  "player": {
+    "pivots": [
+      "feet",
+      "hand",
+      "rodTip"
+    ],
+    "poses": [
+      "idle",
+      "windup",
+      "release",
+      "retrieve",
+      "hit",
+      "battle",
+      "joy",
+      "fail"
+    ],
+    "replaceable": [
+      "bodyVariant",
+      "hat",
+      "hair",
+      "upper",
+      "lower",
+      "shoes",
+      "bag",
+      "rod",
+      "reel",
+      "companion"
+    ],
+    "ownerRule": "single graphic owner for rod and line, accessory sprites follow actor pose sockets",
+    "provisionalQA": "PR #215 assets only test position and silhouette, not finished gender/outfit/approved cat art"
+  },
+  "qaSources": [
+    {
+      "id": "h02.far",
+      "path": "fishing-game/assets/qa/harbor-h02-far-qa.svg"
+    },
+    {
+      "id": "h02.sea",
+      "path": "fishing-game/assets/qa/harbor-h02-sea-qa.svg"
+    },
+    {
+      "id": "h02.quay",
+      "path": "fishing-game/assets/qa/harbor-h02-quay-qa.svg"
+    }
+  ],
+  "acceptance": {
+    "workUnit217": "source inventory SHA + historical/QA categorization, contract and crop/responsive correction checked in CI",
+    "workUnit218": "high-quality independent full-world Harbor layers approved by artist on staged browser frames",
+    "workUnit219": "separate player body/outfit/rod/companion alpha with compatible pose sockets in real game",
+    "workUnit220": "real Cast>Retrieve>Hit>Battle>Result with visual + save regression, vertical and landscape",
+    "workUnit221": "Bay/Cape/fish/town/UI consistency, release rollback and screen evidence",
+    "physicalIPhoneIssue": "https://github.com/b-w-hiroki/ainan-pwa/issues/27",
+    "artisticApprovalAutomatic": false,
+    "productionReplaced": false,
+    "saveMigrationRequired": false
+  }
+}
