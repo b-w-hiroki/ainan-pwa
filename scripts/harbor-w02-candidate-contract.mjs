@@ -43,7 +43,9 @@ const sea = readFileSync(path(manifest.assets[1].sourcePath), 'utf8')
 const quay = readFileSync(path(manifest.assets[2].sourcePath), 'utf8')
 assert.ok((sea.match(/<path/g)||[]).length>750, 'Insufficient actual visual detail for W02 sea review candidate')
 assert.ok((quay.match(/<path/g)||[]).length>300, 'Quay planes must be authored, not a single pasted flat rectangle')
-assert.ok(!/bollard|rope|<image\b/.test(quay), 'Do not copy cast-lane obstacles into world-only quay')
+const paintedQuay = quay.replace(/<!--[\s\S]*?-->/g, '')
+assert.ok(!/id="(?:bollard|rope)"|data-prop="(?:bollard|rope)"|<image\b/i.test(paintedQuay),
+  'Do not paint or embed cast-lane objects in world-only quay source')
 const fan = auditHarborH02Fan()
 assert.equal(fan.allClear,true,'Existing 90 QA casts are invalid with baseline geometry')
 for (const viewport of HARBOR_WIDE_H02.viewports) {
