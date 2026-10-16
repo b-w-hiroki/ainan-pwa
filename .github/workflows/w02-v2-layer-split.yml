@@ -1,0 +1,61 @@
+name: W02 v2 source layer splitter QA (synthetic only)
+
+on:
+  pull_request:
+    paths:
+      - "scripts/art/split-w02-v2-source.py"
+      - "fishing-game/assets/candidates/w02-harbor-v2/manifest.json"
+      - "docs/pipeline/ART_REBUILD_W02_CANDIDATE_V2.md"
+      - ".github/workflows/w02-v2-layer-split.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  split-integrity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install image processing dependency
+        run: python -m pip install "Pillow>=10,<12"
+      - name: Exercise source layer extraction with non-art test image
+        run: |
+          python scripts/art/split-w02-v2-source.py \
+            --synthetic --out artifacts/art-review/w02-harbor-v2-synthetic
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+          root=Path('artifacts/art-review/w02-harbor-v2-synthetic')
+          manifest=json.loads((root/'manifest.json').read_text())
+          assert manifest['exactSourceReassembly'] is True
+          assert manifest['sourceImageCheckedIntoRepo'] is False
+          assert manifest['artApproved'] is False
+          assert manifest['productionSwitched'] is False
+          assert manifest['fullCameraWorldCovered'] is False
+          for name in ('far','sea','quay'):
+              file=root/f'{name}.png'
+              assert file.is_file(), name
+              im=Image.open(file)
+              assert im.size==(1536,1024) and im.mode=='RGBA'
+              assert manifest['assets'][name]['opaquePixels'] > 150000
+          source=Image.open(root/'qa-SYNTHETIC-NOT-ART.png').convert('RGB')
+          image=Image.open(root/'reassembled.png').convert('RGB')
+          assert source.tobytes()==image.tobytes()
+          assert not Path('fishing-game/assets/candidates/w02-harbor-v2/world_source.png').exists(), \
+              'This source-only PR must not silently ship a high quality binary'
+          print('W02 v2 synthetic mask invariants passed. This does NOT approve source art.')
+          PY
+      - name: Upload only synthetic validation metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w02-v2-splitter-synthetic-qa
+          path: artifacts/art-review/w02-harbor-v2-synthetic/manifest.json
+          retention-days: 14
+          if-no-files-found: warn
