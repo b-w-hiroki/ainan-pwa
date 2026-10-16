@@ -33,7 +33,7 @@ export function resolveModularSocket(actor, anchor) {
     || !Number.isFinite(actor.x) || !Number.isFinite(actor.y)
     || !Number.isFinite(actor.angle) || !Number.isFinite(actor.displayWidth)
     || !Number.isFinite(actor.displayHeight) || actor.displayWidth <= 0 || actor.displayHeight <= 0) {
-    throw new TypeError('Finite actor transform and part socket required')
+    throw new TypeError('Finite actor transform and part socket required: values must be finite')
   }
   const local = rotate((anchor[0]-frame.width/2)*actor.displayWidth/frame.width,
     (anchor[1]-frame.height)*actor.displayHeight/frame.height,actor.angle)
