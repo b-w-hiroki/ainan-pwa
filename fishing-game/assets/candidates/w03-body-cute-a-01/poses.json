@@ -13,6 +13,18 @@
         -213,
         -28
       ]
+    },
+    "castWindup": {
+      "file": "cast-windup.png",
+      "source": "W03-CUTE-A-cast-windup.png",
+      "grip": [
+        50.6,
+        109.0
+      ],
+      "offset": [
+        -213,
+        -28
+      ]
     }
   }
 }
