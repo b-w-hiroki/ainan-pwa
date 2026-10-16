@@ -15,6 +15,10 @@ export const isHarborPlayableQaEnabled = (search = '') => {
 const getSearch = () => typeof window === 'undefined' ? '' : window.location.search
 const baseUrl = () => import.meta.env?.BASE_URL ?? '/'
 const textureKey = layer => 'qa_harbor_playable_' + layer.id
+// Existing procedural weather and legacy field art occupy depths below 19.
+// Bring this complete QA world in FRONT of those legacy layers, while
+// remaining BEHIND fish sprites (22), player (41), rod/line (42/43), and HUD.
+const HARBOR_PLAYABLE_DEPTHS = Object.freeze({ far: 19, sea: 20, quay: 25 })
 
 function showReviewLayer(scene) {
   if (scene._qaHarborPlayable !== true) return
@@ -65,7 +69,7 @@ export function installHarborPlayableQa(GameScene) {
       this.add.image(0, 0, textureKey(layer))
         .setOrigin(0, 0)
         .setDisplaySize(HARBOR_WIDE_H02.size.width, HARBOR_WIDE_H02.size.height)
-        .setDepth(layer.depth)
+        .setDepth(HARBOR_PLAYABLE_DEPTHS[layer.id])
         .setScrollFactor(1)
         .setData('qaOnly', true)
         .setData('artApproved', false),
