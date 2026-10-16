@@ -60,8 +60,11 @@ def split(source_path, output_dir):
     rebuilt = Image.new('RGB', EXPECTED)
     assets = {}
     for layer,mask in masks.items():
-        rgba = original.convert('RGBA')
-        rgba.putalpha(mask)
+        # Save transparent pixels with zero RGB instead of leaving the full
+        # source scene hidden under alpha=0. This prevents bilinear-color fringe
+        # contamination when the layers are resampled in Phaser/WebGL.
+        rgba = Image.new('RGBA', EXPECTED, (0,0,0,0))
+        rgba.paste(original.convert('RGBA'), (0,0), mask)
         file = output_dir / f'{layer}.png'
         rgba.save(file,optimize=True)
         rebuilt.paste(original,(0,0),mask)
