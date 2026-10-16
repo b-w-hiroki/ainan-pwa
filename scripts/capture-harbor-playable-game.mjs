@@ -18,7 +18,7 @@ try{
     const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1})
     const page=await context.newPage()
     const errors=[]
-    page.on('pageerror',err=>errors.push(err.message))
+    page.on('pageerror',err=>{ if (err.message !== 'service worker disabled in QA') errors.push(err.message) })
     await page.addInitScript(()=>{
       localStorage.setItem('ainan_sound_enabled','0')
       localStorage.setItem('ainan_inventory',JSON.stringify({rods:{basic:1,carbon:1,premium:1},baits:{worm:30,shrimp:30,special:30}}))
