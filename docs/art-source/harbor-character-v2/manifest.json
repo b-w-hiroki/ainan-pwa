@@ -1,0 +1,300 @@
+{
+  "assets": [
+    {
+      "file": "harbor-morning.png",
+      "sha256": "2b41c51f802e1612b404ef222ff401bdb421f00aba8272b8db2563f531de2df2",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGB",
+      "requiresTransparency": false,
+      "alphaExtrema": null,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "visibleBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "harbor-distant-layer.png",
+      "sha256": "caff2d2260ff7541fea72c20f96a2581ce7d07f8ceb45ff18f6d7a72511d4338",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGB",
+      "requiresTransparency": false,
+      "alphaExtrema": null,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "visibleBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "harbor-sea-layer.png",
+      "sha256": "65eb8725090361c2137b91a2dbe496741087a570d937e18d3eedc34bc296d60b",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGB",
+      "requiresTransparency": false,
+      "alphaExtrema": null,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "visibleBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "harbor-pier-layer.png",
+      "sha256": "2f7c306c20fb512b77ac60f6aff360999057f9ca6a7bf4f36d4979adf75453a7",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "transparentPixels": 1491443,
+      "partialAlphaPixels": 81421,
+      "visibleBounds": [
+        0,
+        230,
+        1522,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "harbor-props-layer.png",
+      "sha256": "c5ae1b87018c13fb7817ea757967d0d605d5166f83d361278c98aafa8b8ef1c9",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "transparentPixels": 1540035,
+      "partialAlphaPixels": 32829,
+      "visibleBounds": [
+        0,
+        119,
+        1458,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "W02-OPENSEA.png",
+      "sha256": "458afa1b63c96f305994c16bc1f3a45587333ca9e40090b50bd04e42db12ebe3",
+      "size": [
+        1536,
+        1024
+      ],
+      "requestedSize": [
+        3072,
+        2048
+      ],
+      "sizeMatches": false,
+      "mode": "RGB",
+      "requiresTransparency": false,
+      "alphaExtrema": null,
+      "transparentPixels": 0,
+      "partialAlphaPixels": 0,
+      "visibleBounds": [
+        0,
+        0,
+        1536,
+        1024
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "water-effects-sheet.png",
+      "sha256": "ae30a6bce9920e256f233acd88398282a330e0c78af9b93a563eb4063ca94024",
+      "size": [
+        1774,
+        887
+      ],
+      "requestedSize": [
+        2048,
+        1024
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        252
+      ],
+      "transparentPixels": 1060532,
+      "partialAlphaPixels": 513006,
+      "visibleBounds": [
+        0,
+        0,
+        1774,
+        887
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "W03-BODY-A-idle-v2.png",
+      "sha256": "557dbc5cefa429fd7ea423f563290dcb5cdcf92100d9abc6e6612114776c7343",
+      "size": [
+        1254,
+        1254
+      ],
+      "requestedSize": [
+        1024,
+        1024
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1370273,
+      "partialAlphaPixels": 201874,
+      "visibleBounds": [
+        0,
+        50,
+        1240,
+        1224
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "W03-BODY-A-windup-v2.png",
+      "sha256": "97869d3913d1308e06d6d023c594d292b82953a436336cbe6361e0df41e02796",
+      "size": [
+        1254,
+        1254
+      ],
+      "requestedSize": [
+        1024,
+        1024
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1354831,
+      "partialAlphaPixels": 216782,
+      "visibleBounds": [
+        0,
+        21,
+        1226,
+        1230
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "W03-BODY-B-idle-v2.png",
+      "sha256": "85b199027d2e5c1934f9434a1c827066219ace56383289bc3ad74ed4b15e5182",
+      "size": [
+        1254,
+        1254
+      ],
+      "requestedSize": [
+        1024,
+        1024
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1378114,
+      "partialAlphaPixels": 193358,
+      "visibleBounds": [
+        57,
+        83,
+        1208,
+        1224
+      ],
+      "status": "source-only-needs-normalization"
+    },
+    {
+      "file": "W03-BODY-B-windup-v2.png",
+      "sha256": "79fe49b6d88f2daa963129250163f2933fdf544aed61f9184ce1c89d5e9fdcb5",
+      "size": [
+        1254,
+        1254
+      ],
+      "requestedSize": [
+        1024,
+        1024
+      ],
+      "sizeMatches": false,
+      "mode": "RGBA",
+      "requiresTransparency": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1355736,
+      "partialAlphaPixels": 215715,
+      "visibleBounds": [
+        41,
+        23,
+        1192,
+        1190
+      ],
+      "status": "source-only-needs-normalization"
+    }
+  ]
+}
