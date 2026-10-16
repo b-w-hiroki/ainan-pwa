@@ -1,0 +1,5 @@
+Mode: built-in image_gen
+References: b-w-hiroki/ainan-pwa main: docs/art-source/harbor-character-v2/harbor-morning.png; docs/art-source/harbor-character-v2/W03-BODY-A-idle-v2.png; fishing-game/assets/characters/animation-v1/idle.png
+Derived from variant 01, created with all three main repository references.
+
+Create VARIANT 02 of this single cute game character. Preserve EXACT same 3.5-head body proportions, framing, foot positions, idle stance, rear three-quarter view facing upper-right, white tank top, navy shorts, bare feet, soft painted colors and thin warm outlines. Change ONLY short fluffy brown hairstyle and subtle facial expression: a rounded gently wavy side-part hairstyle with fewer tufts, slightly darker chestnut brown; softly cheerful small smile, attentive large brown eye and rounded cheek. Young adult portrayed in chibi game proportions. Entire figure centered, lowest sole at 90% of canvas height, same scale as input. Square transparent PNG 1254x1254 acceptable, real alpha channel. ONLY ONE full body character. No hat, bag, fishing rod, cat, shadow, ground, text, UI or scenery. Keep all background fully transparent.
