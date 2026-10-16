@@ -47,6 +47,7 @@ try{
             approved:l.getData('artApproved'),
           })),
           sourceChanged:scene._qaHarborPlayableError??null,
+          skylineViolations:(scene.bg?._fishGfx??[]).filter(f=>f.active && f.visible && f.y<484).length,
           bobberVisible:scene.bobber?.visible,
         }
       })
@@ -58,6 +59,7 @@ try{
       assert.ok(before.layers.every(l=>l.active&&l.visible&&l.scrollFactorX===1&&!l.approved&&l.decoded),
         'Actual Phaser panorama failed texture decode/draw: '+JSON.stringify(before.layers))
       assert.equal(before.sourceChanged,null)
+      assert.equal(before.skylineViolations,0,'QA cast fish silhouettes must remain below the panorama waterline')
       const start=`${root}/h02-game-${width}x${height}-before.png`
       await page.screenshot({path:start})
       assert.ok(statSync(start).size>20000,'Blank before PNG: '+start)
