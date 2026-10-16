@@ -5,6 +5,11 @@ on:
     paths:
       - "fishing-game/assets/qa/harbor-h02-*.svg"
       - "fishing-game/js/presentation/harborWideWorldH02.js"
+      - "fishing-game/js/game/installHarborPlayableQa.js"
+      - "fishing-game/js/game/installFishingRuntime.js"
+      - "fishing-game/js/scenes/components/FishingCameraController.js"
+      - "scripts/harbor-playable-qa-smoke.mjs"
+      - "scripts/capture-harbor-playable-game.mjs"
       - "fishing-game/js/presentation/harborH02CastFanAudit.js"
       - "scripts/harbor-h02-cast-fan-smoke.mjs"
       - "fishing-game/qa/harbor-h02-panorama-review.html"
@@ -35,11 +40,26 @@ jobs:
         run: npx --yes playwright@1.55.0 install --with-deps chromium
       - name: Capture opt-in world-only wireframe
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-h02-panorama.mjs
+      - name: Build actual GameScene for QA gameplay
+        run: npm run build
+      - name: Start local PWA preview for gameplay screenshots
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-harbor-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ainan-harbor-preview.log
+          exit 1
+      - name: Capture real GameScene cast and lure camera follow
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-playable-game.mjs
       - name: Upload H02 screenshots and provenance
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: harbor-h02-wide-world-layout-qa
-          path: artifacts/art-review/harbor-h02-panorama/
+          path: |
+            artifacts/art-review/harbor-h02-panorama/
+            artifacts/art-review/harbor-playable/
           retention-days: 14
           if-no-files-found: warn
