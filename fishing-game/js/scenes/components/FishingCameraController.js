@@ -86,7 +86,8 @@ export class FishingCameraController {
     if (!this._canMove()) return
     const responsive = cameraPanPrototypeEnabled()
     const desiredX = clamp(this.player.x - (responsive ? this.camera.width * 0.30 : 118), 0, worldScrollX(this))
-    const desiredY = clamp(this.player.y - (responsive ? this.camera.height * 0.78 : 650), 0, worldScrollY(this))
+    const playerVerticalOffset = this.scene?._qaHarborPlayable ? 0.92 : 0.78
+    const desiredY = clamp(this.player.y - (responsive ? this.camera.height * playerVerticalOffset : 650), 0, worldScrollY(this))
     if (immediate) {
       this.camera.setScroll(desiredX, desiredY)
       return
@@ -129,7 +130,7 @@ export class FishingCameraController {
       const distance = Math.hypot(x - this.player.x, y - this.player.y)
       const travel = clamp((distance - 480) / 260, 0, 1)
       const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, worldScrollX(this))
-      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, worldScrollY(this))
+      const playerY = clamp(this.player.y - this.camera.height * (this.scene?._qaHarborPlayable ? 0.92 : 0.78), 0, worldScrollY(this))
       const lureX = clamp(x - this.camera.width * 0.52, 0, worldScrollX(this))
       const lureY = clamp(y - this.camera.height * 0.71, 0, worldScrollY(this))
       const amount = this.scene._castMotionProfile?.camera?.flightFollowAmount ?? (isReducedMotion() ? 0.52 : 0.18)
@@ -195,7 +196,7 @@ export class FishingCameraController {
       const distance = Math.hypot(lureX - this.player.x, lureY - this.player.y)
       const travel = clamp((distance - 480) / 260, 0, 1)
       const playerX = clamp(this.player.x - this.camera.width * 0.30, 0, worldScrollX(this))
-      const playerY = clamp(this.player.y - this.camera.height * 0.78, 0, worldScrollY(this))
+      const playerY = clamp(this.player.y - this.camera.height * (this.scene?._qaHarborPlayable ? 0.92 : 0.78), 0, worldScrollY(this))
       const lureTargetX = clamp(lureX - this.camera.width * 0.52, 0, worldScrollX(this))
       const lureTargetY = clamp(lureY - this.camera.height * 0.68, 0, worldScrollY(this))
       this._moveToward(lerp(playerX, lureTargetX, travel), lerp(playerY, lureTargetY, travel), isReducedMotion() ? 0.48 : 0.08)
