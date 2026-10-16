@@ -28,6 +28,8 @@ assert.match(wrapper,/this\.cameras\.main\.setBounds\(0, 0, HARBOR_WIDE_H02\.siz
 assert.match(wrapper,/\.setScrollFactor\(1\)/)
 assert.match(wrapper,/\.setDepth\(HARBOR_PLAYABLE_DEPTHS\[layer\.id\]\)/)
 assert.match(wrapper,/far: 19, sea: 20, quay: 25/,'QA atlas must cover legacy effects and preserve actors')
+assert.match(wrapper,/syncHarborQaFishHorizon\(this\)/,'QA casting must not paint fish over the Harbor skyline')
+assert.match(wrapper,/scene\.phase !== 'cast'/,'Do not mask battle or result fish')
 assert.match(wrapper,/this\._qaHarborWorldLayers\?\.forEach\(layer => layer\?\.destroy\?\.\(\)\)/)
 assert.match(wrapper,/this\.scale\?\.off\?\.\('resize', this\._qaHarborPlayableOnResize\)/)
 assert.match(camera,/this\.scene\?\._qaHarborPlayable \? 0\.92 : 0\.78/)
