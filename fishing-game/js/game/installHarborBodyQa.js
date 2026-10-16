@@ -3,8 +3,9 @@ import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionCont
 import { isHarborPlayableQaEnabled } from './installHarborPlayableQa.js'
 
 // W03 QA only (?qaBody=<variant> together with the Harbor playable QA flags).
-// Shows independent W03 body PNGs on the EXISTING camera-pan player owner and
-// lets the reviewer cycle through every variant with the chip at the top right.
+// Shows independent W03 body PNGs on the EXISTING camera-pan player owner. There is
+// deliberately NO in-game switch control: the look is chosen by the URL here, and the
+// game-start / settings flow will call setHarborBodyVariant(scene, id) later.
 // 'a'/'b' have idle + castWindup; the cute variants only have idle so far. Every
 // other pose keeps the old animation-v1 art (drawn into same-size canvases so the
 // scale stays consistent). Rod/line owner, cast, save data, odds and rewards are
@@ -48,6 +49,9 @@ function undoVariant(scene) {
   for (const [pose, grip, tip] of undo.poses) { pose.grip = grip; pose.tip = tip }
   scene._qaBodyUndo = null
 }
+
+export const setHarborBodyVariant = (scene, id) =>
+  Boolean(scene?._qaBodyReady?.some(v => v.id === id)) && applyVariant(scene, id)
 
 function applyVariant(scene, id) {
   undoVariant(scene)
@@ -120,33 +124,12 @@ export function installHarborBodyQa(GameScene) {
     this._qaBodyReady = ready
     applyVariant(this, start)
 
-    // Screen-space chip. Like the existing HUD hit zones it stops propagation so a tap
-    // never starts a cast. Top right, below the header, clear of the bottom cast area.
-    const chip = this.add.text(this.scale.width - 12, 84, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', color: '#ffffff',
-      backgroundColor: '#14374acc', padding: { x: 9, y: 7 },
-    }).setOrigin(1, 0).setDepth(9501).setScrollFactor(0).setInteractive({ useHandCursor: true })
-    const refresh = () => chip.setText(`見た目 ${this._qaBody?.label ?? ''} ▶ (${ready.findIndex(v => v.id === this._qaBody?.id) + 1}/${ready.length})`)
-    chip.on('pointerdown', pointer => {
-      pointer?.event?.stopPropagation?.()
-      const index = ready.findIndex(v => v.id === this._qaBody?.id)
-      applyVariant(this, ready[(index + 1) % ready.length].id)
-      refresh()
-    })
-    refresh()
-    this._qaBodyChip = chip
-    this._qaBodyOnResize = () => chip.setX(this.scale.width - 12)
-    this.scale.on('resize', this._qaBodyOnResize)
     return result
   }
 
   const prevCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
     undoVariant(this)
-    this.scale?.off?.('resize', this._qaBodyOnResize)
-    this._qaBodyOnResize = null
-    this._qaBodyChip?.destroy?.()
-    this._qaBodyChip = null
     for (const key of this._qaBodyCanvases ?? []) this.textures.remove?.(key)
     this._qaBodyCanvases = null
     this._qaBodyReady = null
