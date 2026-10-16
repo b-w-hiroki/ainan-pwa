@@ -5,6 +5,15 @@ import { resolveModularSocket } from '../presentation/modularPlayerParts.js'
 // H03 QA-only. Existing equipment ownership remains in progress/save code;
 // these are independent DISPLAY objects attached to the live Phaser actor.
 // Body gender/outfit sprites and the final cat painting are NOT available yet.
+// Existing preview-gating policy must not disappear in a socket refactor.
+export function isHarborModularQaEnabled(search = '') {
+  const p = new URLSearchParams(search)
+  return p.get('qa') === '1' && p.get('qaHarborPlayable') === '1'
+    && p.get('cameraPan') === '1' && p.get('coneLoop') === '1'
+    && p.get('qaParts') === '1'
+}
+const search = () => typeof window === 'undefined' ? '' : window.location.search
+
 // One shared socket transform for all W03 asset layers and existing QA hats/bags.
 export const resolveHarborPartSocket = resolveModularSocket
 
