@@ -1,0 +1,18 @@
+{
+  "body": "cute-a-02",
+  "scale": 0.7615230460921844,
+  "source": "W03-CUTE-A-idle-02.png",
+  "poses": {
+    "idle": {
+      "file": "idle.png",
+      "grip": [
+        216.1,
+        231.0
+      ],
+      "offset": [
+        -219,
+        -36
+      ]
+    }
+  }
+}
