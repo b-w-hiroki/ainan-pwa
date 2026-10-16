@@ -30,6 +30,8 @@ try {
       components:Object.values(p.accents).map(x=>({x:x.x,y:x.y,active:x.active,depth:x.depth,
       artApproved:x.getData('artApproved'),independent:x!==s._cameraPanPlayer})),
       cat:{x:p.cat.x,y:p.cat.y,active:p.cat.active,visible:p.cat.visible,depth:p.cat.depth},
+      catFootScreenY:p.cat.y+7-s.cameras.main.scrollY,
+      actionHudTop:s._coneCastHudNodes.infoY,
       rodCount:s._cameraPanRod?.active?1:0,rodId:s._cameraPanRod?.getData('rodType')}
   })
   assert.equal(state.snapshot.bodyVariant,'existing-approved-pose')
@@ -38,6 +40,7 @@ try {
   assert.deepEqual(state.components.map(x=>x.active),[true,true])
   assert.ok(state.components.every(x=>x.independent&&!x.artApproved&&x.depth<42))
   assert.equal(state.cat.visible,true)
+  assert.ok(state.catFootScreenY<=state.actionHudTop+1,'Cat hidden behind bottom action HUD: '+JSON.stringify(state))
   assert.equal(state.rodCount,1,'No duplicated rod graphics')
   assert.equal(state.rodId,'basic','QA basic rod must use existing native rod owner')
   const cast=buildTrajectory(state.anchor.x,state.anchor.y,36,0.95,state.range)
