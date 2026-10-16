@@ -27,7 +27,13 @@ with TemporaryDirectory() as tmp:
         assert 'SHA-256 mismatch' in str(exc)
     else: raise AssertionError('Bogus art master passed immutable original identity gate')
 
-    try:\n        check.verify(source,tmp/'reject-override',expected_hash=checksum,synthetic=False)\n    except ValueError as exc:\n        assert 'canonical recorded' in str(exc)\n    else: raise AssertionError('Real-source hash override bypassed source identity')\n\n    result=check.verify(source,tmp/'valid-synthetic',expected_hash=checksum,synthetic=True)
+    try:
+        check.verify(source,tmp/'reject-override',expected_hash=checksum,synthetic=False)
+    except ValueError as exc:
+        assert 'canonical recorded' in str(exc)
+    else: raise AssertionError('Real-source hash override bypassed source identity')
+
+    result=check.verify(source,tmp/'valid-synthetic',expected_hash=checksum,synthetic=True)
     assert result['pixelExact'] and result['syntheticTest']
     assert not result['realSourceVerified']
     assert not result['artApproved'] and not result['productionSwitched']
