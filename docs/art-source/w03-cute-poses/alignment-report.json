@@ -1,0 +1,36 @@
+[
+  {
+    "file": "W03-CUTE-A-cast-windup.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "lowerBodyFromRow": 750,
+    "lowerBodyPixelIdenticalToIdle": true,
+    "idleVisibleBounds": [
+      449,
+      128,
+      882,
+      1134
+    ],
+    "sourceScale": 0.935813953488372,
+    "sourceOffsetY": 39.097674418604655
+  },
+  {
+    "file": "W03-CUTE-B-cast-windup.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "lowerBodyFromRow": 750,
+    "lowerBodyPixelIdenticalToIdle": true,
+    "idleVisibleBounds": [
+      440,
+      148,
+      880,
+      1136
+    ],
+    "sourceScale": 0.8651488616462347,
+    "sourceOffsetY": 104.74255691768826
+  }
+]
