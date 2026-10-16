@@ -1,0 +1,6 @@
+Mode: built-in image_gen
+Reference: W03-CUTE-B-idle-01.png
+Make variant 03 of this single female chibi fishing game sprite. Keep same young adult woman, same compact 3.5-head proportions, rear three-quarter upper-right facing idle stance, exact body position and bare feet. Same plain white tank top and navy shorts. Change ONLY hairstyle/expression: fluffy short light chestnut pixie-bob, gently swept fringe, a small playful cowlick, softly smiling with mouth slightly open and bright large brown eye. Rounded cheeks and soft limbs, delicate warm outlines and hand-painted pastel shading matching input. Full body centered, lowest sole at 90% canvas height, square 1254x1254 PNG true alpha. Background completely transparent with no stray translucent marks. ONE figure only. No hat, bag, fishing rod, cat, shadows, ground, text, UI, scenery or other objects.
+
+Framing correction:
+Change ONLY framing of this single female character sprite. Uniformly reduce whole figure to 90 percent of its current size. Place feet so lowest sole is precisely at 90% canvas height, leaving full 10% transparent margin below. Center figure. Preserve all anatomy, 3.5-head proportions, pose, hair, happy expression, clothes and painted style exactly. Square 1254x1254 genuine transparent PNG. All empty background alpha=0, no scattered pixels, no shadows, no props, text or other figures.
