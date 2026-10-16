@@ -54,6 +54,7 @@ try{
       assert.equal(before.phase,'cast')
       assert.deepEqual(before.world,[2160,1800])
       assert.equal(before.layers.length,3)
+      assert.deepEqual(before.layers.map(l=>l.depth),[19,20,25], 'QA art must paint above legacy screen-space scenery but below fish and actor')
       assert.ok(before.layers.every(l=>l.active&&l.visible&&l.scrollFactorX===1&&!l.approved&&l.decoded),
         'Actual Phaser panorama failed texture decode/draw: '+JSON.stringify(before.layers))
       assert.equal(before.sourceChanged,null)
