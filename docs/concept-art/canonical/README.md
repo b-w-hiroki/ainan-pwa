@@ -10,7 +10,7 @@ Use this screen-flow / layout blueprint as the implementation target for the fis
 
 ![Mobile fishing UI blueprint](./mobile-fishing-ui-blueprint.jpg)
 
-The blueprint is intentionally stronger on **screen composition and interaction hierarchy** than on final art direction. Keep the water as the dominant playfield, keep the character secondary during active fishing, and keep all important interaction inside a single portrait phone screen.
+The blueprint is intentionally stronger on **screen composition and interaction hierarchy** than on final art direction. Keep the water as the dominant playfield and the character secondary during active fishing. The 390×844 portrait remains the approved first-priority layout baseline, while true landscape layout is a separately reviewed target, not a scaled portrait screenshot.
 
 ## Core interaction
 
@@ -31,25 +31,25 @@ The fishing character is **not the main subject during active fishing**. The cha
 
 ## Mobile viewport contract
 
-The product surface is always a **single portrait smartphone screen**.
+The product surface is a **single viewport in portrait and landscape smartphone orientations**, never split-screen. Portrait 390×844 remains the canonical current production baseline; landscape 844×390 / 932×430 is **QA-only until separate visual, interaction, and production approval**.
 
 - Canonical logical frame: **390 × 844**.
-- The full game frame must fit inside the device visual viewport without horizontal or vertical cropping.
+- The active portrait **or** landscape composition must fit its own visual viewport without horizontal/vertical cropping or forced shrinking of the portrait interface.
 - iPhone safe areas / browser chrome must not hide controls or navigation.
 - HUD and touch controls are screen-space UI and never move with the world camera.
 - The fishing world may be larger than the phone screen, but only the world scrolls behind the fixed mobile frame.
 - Do not solve long casting by making the whole game frame larger or zooming the phone UI out.
-- Keep top HUD inside roughly the upper 64 px and primary fishing controls inside roughly the lower 170 px.
+- In portrait, keep the top HUD inside roughly the upper 64 px and the primary fishing controls inside roughly the lower 170 px. Landscape requires separate native layout/controls with >=44 CSS px hit areas and safe-area margins; never uniformly scale portrait UI to fit.
 - The center band remains the primary water/fish/lure playfield and should occupy the clear majority of the screen.
-- Result cards, tutorials, dialogs, and Town arrival presentation must all fit completely inside the portrait frame.
+- Result cards, tutorials, dialogs, and Town arrival must fit in the active portrait or landscape viewport, with readable type and non-overlapping controls.
 
 ## Camera
 
 - Keep the gameplay scale readable; do not zoom out just to show the full cast distance.
-- The camera follows the lure only when the cast moves beyond the current viewport.
+- At release the camera transfers attention from the rod tip toward the flying lure; it must keep following the lure even when the original viewport would have lost it, revealing additional ocean rather than stretching the initial frame.
 - During retrieve, frame the lure and nearby fish shadows rather than locking hard to the player.
 - During Battle, frame fish + line + water first; the player is supporting context.
-- Bring the camera back toward the player mainly for catch payoff.
+- At splash, settle the view around landing; through retrieve keep lure/fish readable, then transition toward the player mainly for catch payoff without a camera jump.
 - Camera movement changes the world composition only; fixed HUD must remain stable inside the mobile viewport.
 
 ## Composition
@@ -59,7 +59,7 @@ The product surface is always a **single portrait smartphone screen**.
 - After a long cast, the player may leave frame; that is acceptable.
 - Do not use a permanent split screen or character panel during ordinary fishing.
 - The diagonal line from player/rod direction to lure is a supporting visual axis, not a reason to center the character.
-- Judge every composition at phone size first. Desktop width is not additional gameplay space.
+- Judge every composition at true phone size first: portrait and native landscape have separate world/UI layouts. Desktop width is not extra gameplay space.
 
 ## Fish readability
 
@@ -108,4 +108,4 @@ Town should visibly acknowledge the fish that was just caught before presenting 
 
 ## Reference status
 
-The images in this folder are design references. The interaction and layout rules in this README are authoritative when older artwork differs from the current implementation.
+The images in this folder are historical composition references. New artwork must also meet [the full rebuild contract](../../pipeline/art-rebuild-v2-contract.json) and the latest [parent Issue #216](https://github.com/b-w-hiroki/ainan-pwa/issues/216); existing art remains as rollback until replacements are visually approved and actually integrated. Current main controls/save are authoritative and no QA-only screenshot approves release.
