@@ -45,6 +45,38 @@ def build(body, out):
     (out / 'poses.json').write_text(json.dumps(info, indent=2) + '\n')
     return info
 
+CUTE = Path('docs/art-source/w03-cute-body')
+CUTE_VARIANTS = {
+    'cute-a-01': 'W03-CUTE-A-idle-01.png', 'cute-a-02': 'W03-CUTE-A-idle-02.png', 'cute-a-03': 'W03-CUTE-A-idle-03.png',
+    'cute-b-01': 'W03-CUTE-B-idle-01.png', 'cute-b-02': 'W03-CUTE-B-idle-02.png', 'cute-b-03': 'W03-CUTE-B-idle-03.png',
+    'cute-b-01-v2': 'W03-CUTE-B-idle-01-v2.png', 'cute-b-02-v2': 'W03-CUTE-B-idle-02-v2.png', 'cute-b-03-v2': 'W03-CUTE-B-idle-03-v2.png',
+}
+
+def hand_point(a):
+    # The held fist is the right-most opaque part of the arm band at 38-62% of the body height.
+    ys, xs = np.where(a > 20); y0, y1 = ys.min(), ys.max(); h = y1 - y0
+    band = (np.arange(a.shape[0])[:, None] >= y0 + .38 * h) & (np.arange(a.shape[0])[:, None] <= y0 + .62 * h)
+    cols = np.where(((a > 20) & band).any(axis=0))[0]; xr = cols.max()
+    near = np.where((a > 20) & band & (np.arange(a.shape[1])[None, :] >= xr - 45))
+    return float(xr - 28), float(near[0].mean())
+
+def build_cute(vid, name, out):
+    out.mkdir(parents=True, exist_ok=True)
+    im = Image.open(CUTE / name).convert('RGBA'); a = np.asarray(im)[..., 3]
+    fcx, fy1, fy0 = feet_center(a); scale = TARGET_H / (fy1 - fy0)
+    w, h = round(im.width * scale), round(im.height * scale)
+    im2 = im.resize((w, h), Image.LANCZOS)
+    ox, oy = round(FEET_X - fcx * scale), round(FEET_Y - fy1 * scale)
+    frame = Image.new('RGBA', FRAME, (0, 0, 0, 0)); frame.paste(im2, (ox, oy), im2)
+    gx, gy = hand_point(a)
+    grip = [round((gx * scale + ox) / 2, 1), round((gy * scale + oy) / 2, 1)]
+    frame.save(out / 'idle.png', optimize=True)
+    info = {'body': vid, 'scale': scale, 'source': name, 'poses': {'idle': {'file': 'idle.png', 'grip': grip, 'offset': [ox, oy]}}}
+    (out / 'poses.json').write_text(json.dumps(info, indent=2) + '\n')
+    return info
+
 if __name__ == '__main__':
+    for vid, name in CUTE_VARIANTS.items():
+        print(json.dumps(build_cute(vid, name, Path(f'fishing-game/assets/candidates/w03-body-{vid}'))))
     for b in ('a', 'b'):
         print(json.dumps(build(b, Path(f'fishing-game/assets/candidates/w03-body-{b}'))))
