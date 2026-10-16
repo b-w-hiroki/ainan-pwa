@@ -1,0 +1,28 @@
+{
+  "body": "b",
+  "scale": 0.7238095238095238,
+  "poses": {
+    "idle": {
+      "file": "idle.png",
+      "grip": [
+        200.0,
+        171.9
+      ],
+      "offset": [
+        -190,
+        5
+      ]
+    },
+    "castWindup": {
+      "file": "cast-windup.png",
+      "grip": [
+        62.7,
+        76.2
+      ],
+      "offset": [
+        -193,
+        4
+      ]
+    }
+  }
+}

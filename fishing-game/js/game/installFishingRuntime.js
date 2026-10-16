@@ -45,6 +45,7 @@ import { installCastCameraPanPrototype } from './installCastCameraPanPrototype.j
 import { installConeCastRetrievePrototype } from './installConeCastRetrievePrototype.js'
 import { installHarborPlayableQa } from './installHarborPlayableQa.js'
 import { installHarborModularQa } from './installHarborModularQa.js'
+import { installHarborBodyQa } from './installHarborBodyQa.js'
 
 function installGameplay(GameScene) {
   installFishingVisualTuning()
@@ -111,6 +112,8 @@ function installFinalGuards(GameScene) {
   installHarborPlayableQa(GameScene)
   // Optional accessory/companion QA overlays on the existing player/rod owner.
   installHarborModularQa(GameScene)
+  // W03 independent body PNGs (idle + castWindup only) on the same player owner.
+  installHarborBodyQa(GameScene)
 }
 
 export function installFishingRuntime(GameScene) {
