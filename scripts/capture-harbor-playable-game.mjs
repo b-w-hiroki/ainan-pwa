@@ -111,6 +111,68 @@ try{
       console.log('Harbor GameScene camera followed REAL cast',width,height,JSON.stringify({before:before.camera,after:after.camera,angle:aim.angle}))
     }finally{await context.close()}
   }
+  // Real pointer drag on the actual Phaser canvas (not a synthetic
+  // scene._onUp invocation). Check the same QA world on a phone viewport.
+  const touchContext=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1})
+  const touch=await touchContext.newPage()
+  const touchErrors=[]
+  touch.on('pageerror',error=>{ if(error.message!=='service worker disabled in QA') touchErrors.push(error.message) })
+  await touch.addInitScript(()=>{
+    localStorage.setItem('ainan_sound_enabled','0')
+    localStorage.setItem('ainan_inventory',JSON.stringify({rods:{basic:1,carbon:1,premium:1},baits:{worm:30,shrimp:30,special:30}}))
+    localStorage.setItem('ainan_equipment',JSON.stringify({rodType:'carbon',baitType:'shrimp'}))
+  })
+  try {
+    await touch.goto(url,{waitUntil:'domcontentloaded'})
+    await touch.waitForFunction(()=>{
+      const scene=window.__game?.scene?.getScene?.('GameScene')
+      return scene?.sys?.isActive?.() && scene._qaHarborPlayable && scene._cameraPanRodGrip
+    },null,{timeout:18000})
+    const grip=await touch.evaluate(()=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      const cam=scene.cameras.main
+      return {x:cam.x+(scene._cameraPanRodGrip.x-cam.scrollX)*cam.zoom,
+        y:cam.y+(scene._cameraPanRodGrip.y-cam.scrollY)*cam.zoom,
+        initialCamera:{x:cam.scrollX,y:cam.scrollY}}
+    })
+    const dest={x:grip.x-25,y:grip.y+73}
+    assert.ok(grip.x>40 && grip.x<350 && grip.y>60 && dest.y<840 && dest.x>5,
+      'Playable character grip unreachable for a swipe: '+JSON.stringify({grip,dest}))
+    await touch.mouse.move(grip.x,grip.y)
+    await touch.mouse.down()
+    await touch.mouse.move(dest.x,dest.y,{steps:14})
+    await touch.waitForFunction(()=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      return scene._coneCastState?.inputMode==='pull' && scene._coneCastState?.pullArmedAt != null
+        && scene._coneCastPreview?.valid === true
+    },null,{timeout:5000})
+    await touch.waitForTimeout(670)
+    await touch.mouse.up()
+    await touch.waitForFunction(()=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      return scene?._pullCastTimeline?.lureReleasedAt != null || scene?.phase==='retrieve'
+    },null,{timeout:12000})
+    await touch.waitForFunction(({x,y})=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      const cam=scene.cameras.main
+      return scene._qaHarborPlayable && Math.hypot(cam.scrollX-x,cam.scrollY-y)>35
+    },grip.initialCamera,{timeout:12000})
+    const swipeResult=await touch.evaluate(()=>{
+      const scene=window.__game.scene.getScene('GameScene')
+      return {world:[scene.fishingCamera.world.width,scene.fishingCamera.world.height],
+        inputMode:scene._coneCastState?.inputMode,phase:scene.phase,
+        pose:scene._cameraPanPose,rodType:scene._cameraPanRod?.getData('rodType')??null,
+        scroll:{x:scene.cameras.main.scrollX,y:scene.cameras.main.scrollY}}
+    })
+    assert.deepEqual(swipeResult.world,[2160,1800])
+    assert.deepEqual(touchErrors,[])
+    const file=`${root}/h02-game-390x844-touch.png`
+    await touch.screenshot({path:file})
+    assert.ok(statSync(file).size>20000)
+    runs.push({viewport:'390x844',input:'real-pointer-swipe',grip,dest,after:swipeResult,visualApproval:false})
+    console.log('Actual mouse/touch-equivalent drag triggered Harbor fishing camera',JSON.stringify(swipeResult))
+  }finally{await touchContext.close()}
+
   // The ordinary release path must not acquire an unapproved wide background.
   const page=await browser.newPage({viewport:{width:390,height:844}})
   await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene',{waitUntil:'domcontentloaded'})
