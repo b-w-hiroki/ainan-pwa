@@ -1,0 +1,52 @@
+name: W02 Harbor authored art review (QA-only)
+on:
+  pull_request:
+    paths:
+      - "fishing-game/assets/candidates/w02-harbor-v1/**"
+      - "fishing-game/js/game/installHarborPlayableQa.js"
+      - "scripts/harbor-w02-candidate-contract.mjs"
+      - "scripts/capture-harbor-w02-art.mjs"
+      - ".github/workflows/harbor-w02-candidate-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  w02-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check W02 candidate layer/source isolation and source SHA-256
+        run: |
+          mkdir -p artifacts/art-review/w02-harbor-v1
+          node scripts/harbor-w02-candidate-contract.mjs > artifacts/art-review/w02-harbor-v1/source-evidence.json
+      - name: Build app without promoting W02 to production
+        run: npm run build
+      - name: Install Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Launch production-style preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-w02-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ainan-w02-preview.log
+          exit 1
+      - name: Capture actual diagonal cast/sea camera with three viewport sizes
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-w02-art.mjs
+      - name: Upload source and visual QA evidence for human art review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: w02-harbor-master-v1-review
+          path: artifacts/art-review/w02-harbor-v1/
+          retention-days: 14
+          if-no-files-found: warn
