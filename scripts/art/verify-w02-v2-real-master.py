@@ -22,7 +22,9 @@ spec.loader.exec_module(splitter)
 
 def verify(source: Path, out: Path, *, expected_hash: str = ORIGINAL_SHA256,
            synthetic: bool = False):
-    if not synthetic and expected_hash != ORIGINAL_SHA256:\n        raise ValueError('Only the canonical recorded W02-v2 SHA-256 is allowed for real art')\n    if not source.is_file():
+    if not synthetic and expected_hash != ORIGINAL_SHA256:
+        raise ValueError('Only the canonical recorded W02-v2 SHA-256 is allowed for real art')
+    if not source.is_file():
         raise FileNotFoundError('Missing W02-v2 source original PNG: '+str(source))
     digest=sha256(source.read_bytes()).hexdigest()
     if digest != expected_hash:
