@@ -1,0 +1,39 @@
+name: W02 v2 Original Source Identity Gate (No Art Approval)
+on:
+  pull_request:
+    paths:
+      - "scripts/art/verify-w02-v2-real-master.py"
+      - "scripts/art/test-w02-v2-real-master.py"
+      - "fishing-game/assets/candidates/w02-harbor-v2/manifest.json"
+      - ".github/workflows/w02-real-master-identity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Pillow for source asset integrity (not image quality)
+        run: python -m pip install 'Pillow>=11,<13'
+      - name: Deny substituted/absent originals and prove synthetic split isolation
+        run: python scripts/art/test-w02-v2-real-master.py
+      - name: Confirm real original not incorrectly included or approved
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          m=json.loads(Path('fishing-game/assets/candidates/w02-harbor-v2/manifest.json').read_text())
+          assert m['source']['inGitHub'] == False
+          assert m['output']['inGitHub'] == False
+          assert m['production'] == False
+          assert m['artApproved'] == False
+          assert not Path('fishing-game/assets/candidates/w02-harbor-v2/world_source.png').exists()
+          print('Real source still excluded from Git checkout; QA is synthetic only, NOT artwork approval')
+          PY
