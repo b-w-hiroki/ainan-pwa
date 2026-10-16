@@ -21,6 +21,13 @@ QUAY_EDGE = [(0, 725), (55, 711), (105, 706), (164, 720),
 QUAY_RAIL_AND_TOOLS = [
     [(0, 516), (31, 514), (40, 640), (75, 718), (0, 751)],
     [(30, 572), (168, 572), (187, 750), (53, 742)],
+    # The bollard top/neck and its mooring rope are a near-field dock prop.
+    # Previous v2 alpha mistakenly assigned 4891 of these pixels to SEA,
+    # making the bollard float if sea and dock layers animate independently.
+    # Source-master pixel coordinates; do not copy, inpaint, or redraw the prop.
+    [(290, 738), (294, 712), (311, 698), (323, 690), (357, 689),
+     (376, 698), (389, 714), (391, 733), (377, 752), (385, 762),
+     (408, 773), (402, 787), (362, 798), (316, 793), (293, 776)],
 ]
 
 def checksum(path):
