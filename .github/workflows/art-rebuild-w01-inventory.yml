@@ -1,0 +1,41 @@
+name: W01 art rebuild inventory and hash evidence
+
+on:
+  pull_request:
+    paths:
+      - "scripts/art/build-rebuild-inventory.mjs"
+      - "scripts/asset-rebuild-w01-smoke.mjs"
+      - "docs/pipeline/art-rebuild-v2-contract.json"
+      - "docs/pipeline/ART_REBUILD_W01_README.md"
+      - "docs/concept-art/canonical/README.md"
+      - ".github/workflows/art-rebuild-w01-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Regenerate existing source-derived assets first
+        run: |
+          node scripts/art/extract-harbor-approved-master.mjs
+          node scripts/art/build-species-jump-pilot.mjs
+      - name: Check the real source tree, sha256 and status gates
+        run: npm run qa:asset-rebuild
+      - name: Upload reproducible manifest evidence (no automatic art approval)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ainan-w01-asset-inventory
+          path: artifacts/art-rebuild/w01-inventory.json
+          if-no-files-found: warn
+          retention-days: 14
