@@ -15,12 +15,25 @@ export const isHarborPlayableQaEnabled = (search = '') => {
 const getSearch = () => typeof window === 'undefined' ? '' : window.location.search
 const baseUrl = () => import.meta.env?.BASE_URL ?? '/'
 const textureKey = layer => 'qa_harbor_playable_' + layer.id
-const isW02Candidate = () => isHarborPlayableQaEnabled(getSearch())
-  && new URLSearchParams(getSearch()).get('qaArtCandidate') === 'w02-harbor-v1'
-const displayTextureKey = layer => isW02Candidate() ? 'qa_art_w02_v1_' + layer.id : textureKey(layer)
-const displayTexturePath = layer => isW02Candidate()
-  ? 'fishing-game/assets/candidates/w02-harbor-v1/' + layer.id + '.svg'
-  : 'fishing-game/assets/qa/' + layer.file
+const candidateParam = () => isHarborPlayableQaEnabled(getSearch())
+  ? new URLSearchParams(getSearch()).get('qaArtCandidate') : null
+const isW02Candidate = () => candidateParam() === 'w02-harbor-v1'
+// v3: three PNG layers split from ONE 1536x1024 master (candidates/w02-harbor-v3).
+// Drawn at a uniform scale (never stretched per axis); the world is cropped to
+// the art rather than padded, so no copied or invented sea is ever shown.
+export const W02_V3 = Object.freeze({
+  id: 'w02-harbor-v3', scale: 2160 / 1536, offsetX: -200, offsetY: -205, art: Object.freeze({ width: 1536, height: 1024 }),
+  seaStartY: Math.round(162 * (2160 / 1536) - 205),
+})
+const isW02V3 = () => candidateParam() === W02_V3.id
+const candidateId = () => isW02V3() ? W02_V3.id : isW02Candidate() ? 'w02-harbor-v1' : null
+const displayTextureKey = layer => isW02V3() ? 'qa_art_w02_v3_' + layer.id
+  : isW02Candidate() ? 'qa_art_w02_v1_' + layer.id : textureKey(layer)
+const displayTexturePath = layer => isW02V3()
+  ? 'fishing-game/assets/candidates/w02-harbor-v3/' + layer.id + '.png'
+  : isW02Candidate()
+    ? 'fishing-game/assets/candidates/w02-harbor-v1/' + layer.id + '.svg'
+    : 'fishing-game/assets/qa/' + layer.file
 // Existing procedural weather and legacy field art occupy depths below 19.
 // Bring this complete QA world in FRONT of those legacy layers, while
 // remaining BEHIND fish sprites (22), player (41), rod/line (42/43), and HUD.
@@ -31,7 +44,7 @@ const HARBOR_PLAYABLE_DEPTHS = Object.freeze({ far: 19, sea: 20, quay: 25 })
 // 900x1400 field, including ABOVE this new horizon. Keep their positions and
 // gameplay AI unchanged; only clip visible decorative fish while casting.
 // Battle and Result retain their existing scene-owned fish presentation.
-export function syncHarborQaFishHorizon(scene, seaStartY = 476) {
+export function syncHarborQaFishHorizon(scene, seaStartY = scene?._qaHarborSeaStartY ?? 476) {
   if (!scene?._qaHarborPlayable || scene.phase !== 'cast') return
   for (const fish of scene.bg?._fishGfx ?? []) {
     if (!fish?.active) continue
@@ -40,6 +53,18 @@ export function syncHarborQaFishHorizon(scene, seaStartY = 476) {
     }
     const baseline = fish.getData?.('qaOriginalVisible') !== false
     fish.setVisible?.(baseline && Number.isFinite(fish.y) && fish.y >= seaStartY + 8)
+  }
+}
+
+// v3 art is cropped, not padded: world = art at a uniform scale. Layers are
+// re-placed and the camera world/bounds shrunk to the painted area.
+function applyW02V3Layout(scene) {
+  const worldW = Math.round(W02_V3.art.width * W02_V3.scale + W02_V3.offsetX)
+  const worldH = Math.round(W02_V3.art.height * W02_V3.scale + W02_V3.offsetY)
+  scene.fishingCamera.world = { ...scene.fishingCamera.world, width: worldW, height: worldH }
+  scene.cameras.main.setBounds(0, 0, worldW, worldH)
+  for (const layer of scene._qaHarborWorldLayers) {
+    layer.setPosition(W02_V3.offsetX, W02_V3.offsetY).setScale(W02_V3.scale)
   }
 }
 
@@ -80,7 +105,8 @@ export function installHarborPlayableQa(GameScene) {
     }
 
     this._qaHarborPlayable = true
-    this._qaHarborArtCandidate = isW02Candidate() ? 'w02-harbor-v1' : null
+    this._qaHarborArtCandidate = candidateId()
+    this._qaHarborSeaStartY = isW02V3() ? W02_V3.seaStartY : 476
     // Existing fishing gameplay still owns player, bobber, cast/landing and
     // every timer. Only extend the WORLD CAMERA view bounds for this QA mode.
     this.fishingCamera.world = {
@@ -98,6 +124,7 @@ export function installHarborPlayableQa(GameScene) {
         .setData('qaOnly', true)
         .setData('artApproved', false),
     )
+    if (isW02V3()) applyW02V3Layout(this)
     showReviewLayer(this)
     this.fishingCamera.focusPlayer(true)
 
