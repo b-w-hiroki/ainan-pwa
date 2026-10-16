@@ -43,6 +43,7 @@ import { installFishingFeelPass } from './installFishingFeelPass.js'
 import { installFishingDiagnostics } from './diagnostics.js'
 import { installCastCameraPanPrototype } from './installCastCameraPanPrototype.js'
 import { installConeCastRetrievePrototype } from './installConeCastRetrievePrototype.js'
+import { installHarborPlayableQa } from './installHarborPlayableQa.js'
 
 function installGameplay(GameScene) {
   installFishingVisualTuning()
@@ -105,6 +106,8 @@ function installFinalGuards(GameScene) {
   installConeCastRetrievePrototype(GameScene)
   // Diagnostics observe the fully wrapped runtime and never change gameplay.
   installFishingDiagnostics(GameScene)
+  // QA-only panorama is installed after the canonical cast/line owners.
+  installHarborPlayableQa(GameScene)
 }
 
 export function installFishingRuntime(GameScene) {
