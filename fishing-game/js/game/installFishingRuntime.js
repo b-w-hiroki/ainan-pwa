@@ -44,6 +44,7 @@ import { installFishingDiagnostics } from './diagnostics.js'
 import { installCastCameraPanPrototype } from './installCastCameraPanPrototype.js'
 import { installConeCastRetrievePrototype } from './installConeCastRetrievePrototype.js'
 import { installHarborPlayableQa } from './installHarborPlayableQa.js'
+import { installHarborModularQa } from './installHarborModularQa.js'
 
 function installGameplay(GameScene) {
   installFishingVisualTuning()
@@ -108,6 +109,8 @@ function installFinalGuards(GameScene) {
   installFishingDiagnostics(GameScene)
   // QA-only panorama is installed after the canonical cast/line owners.
   installHarborPlayableQa(GameScene)
+  // Optional accessory/companion QA overlays on the existing player/rod owner.
+  installHarborModularQa(GameScene)
 }
 
 export function installFishingRuntime(GameScene) {
