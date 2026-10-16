@@ -20,6 +20,23 @@ const textureKey = layer => 'qa_harbor_playable_' + layer.id
 // remaining BEHIND fish sprites (22), player (41), rod/line (42/43), and HUD.
 const HARBOR_PLAYABLE_DEPTHS = Object.freeze({ far: 19, sea: 20, quay: 25 })
 
+// World-only QA scenery has a real painted horizon at y=476. The legacy
+// blueprint spawns decorative silhouettes anywhere in the formerly all-water
+// 900x1400 field, including ABOVE this new horizon. Keep their positions and
+// gameplay AI unchanged; only clip visible decorative fish while casting.
+// Battle and Result retain their existing scene-owned fish presentation.
+export function syncHarborQaFishHorizon(scene, seaStartY = 476) {
+  if (!scene?._qaHarborPlayable || scene.phase !== 'cast') return
+  for (const fish of scene.bg?._fishGfx ?? []) {
+    if (!fish?.active) continue
+    if (fish.getData?.('qaOriginalVisible') === undefined) {
+      fish.setData?.('qaOriginalVisible', fish.visible)
+    }
+    const baseline = fish.getData?.('qaOriginalVisible') !== false
+    fish.setVisible?.(baseline && Number.isFinite(fish.y) && fish.y >= seaStartY + 8)
+  }
+}
+
 function showReviewLayer(scene) {
   if (scene._qaHarborPlayable !== true) return
   // Older cinematic QA install owns a mirrored 900px image as a fallback.
@@ -100,6 +117,7 @@ export function installHarborPlayableQa(GameScene) {
     const result = previousUpdate?.apply(this, args)
     if (!this._qaHarborPlayable) return result
     showReviewLayer(this)
+    syncHarborQaFishHorizon(this)
     this._qaHarborCameraState = Object.freeze({
       phase: this.phase,
       x: this.cameras.main.scrollX,
