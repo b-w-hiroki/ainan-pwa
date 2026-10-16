@@ -15,6 +15,12 @@ export const isHarborPlayableQaEnabled = (search = '') => {
 const getSearch = () => typeof window === 'undefined' ? '' : window.location.search
 const baseUrl = () => import.meta.env?.BASE_URL ?? '/'
 const textureKey = layer => 'qa_harbor_playable_' + layer.id
+const isW02Candidate = () => isHarborPlayableQaEnabled(getSearch())
+  && new URLSearchParams(getSearch()).get('qaArtCandidate') === 'w02-harbor-v1'
+const displayTextureKey = layer => isW02Candidate() ? 'qa_art_w02_v1_' + layer.id : textureKey(layer)
+const displayTexturePath = layer => isW02Candidate()
+  ? 'fishing-game/assets/candidates/w02-harbor-v1/' + layer.id + '.svg'
+  : 'fishing-game/assets/qa/' + layer.file
 // Existing procedural weather and legacy field art occupy depths below 19.
 // Bring this complete QA world in FRONT of those legacy layers, while
 // remaining BEHIND fish sprites (22), player (41), rod/line (42/43), and HUD.
@@ -55,9 +61,9 @@ export function installHarborPlayableQa(GameScene) {
     previousPreload?.apply(this, args)
     if (!isHarborPlayableQaEnabled(getSearch())) return
     for (const layer of HARBOR_WIDE_H02.layers) {
-      const key = textureKey(layer)
+      const key = displayTextureKey(layer)
       if (!this.textures.exists(key)) this.load.image(
-        key, baseUrl() + 'fishing-game/assets/qa/' + layer.file,
+        key, baseUrl() + displayTexturePath(layer),
       )
     }
   }
@@ -67,13 +73,14 @@ export function installHarborPlayableQa(GameScene) {
     const result = previousCreate.apply(this, args)
     if (!isHarborPlayableQaEnabled(getSearch()) || this.env?.point !== 'pointA') return result
     if (!this.fishingCamera || !this._cameraPanPlayer?.active) return result
-    const missing = HARBOR_WIDE_H02.layers.filter(layer => !this.textures.exists(textureKey(layer)))
+    const missing = HARBOR_WIDE_H02.layers.filter(layer => !this.textures.exists(displayTextureKey(layer)))
     if (missing.length) {
       this._qaHarborPlayableError = 'Missing real Phaser textures: ' + missing.map(layer => layer.id).join(', ')
       return result
     }
 
     this._qaHarborPlayable = true
+    this._qaHarborArtCandidate = isW02Candidate() ? 'w02-harbor-v1' : null
     // Existing fishing gameplay still owns player, bobber, cast/landing and
     // every timer. Only extend the WORLD CAMERA view bounds for this QA mode.
     this.fishingCamera.world = {
@@ -83,7 +90,7 @@ export function installHarborPlayableQa(GameScene) {
     }
     this.cameras.main.setBounds(0, 0, HARBOR_WIDE_H02.size.width, HARBOR_WIDE_H02.size.height)
     this._qaHarborWorldLayers = HARBOR_WIDE_H02.layers.map(layer =>
-      this.add.image(0, 0, textureKey(layer))
+      this.add.image(0, 0, displayTextureKey(layer))
         .setOrigin(0, 0)
         .setDisplaySize(HARBOR_WIDE_H02.size.width, HARBOR_WIDE_H02.size.height)
         .setDepth(HARBOR_PLAYABLE_DEPTHS[layer.id])
@@ -137,6 +144,7 @@ export function installHarborPlayableQa(GameScene) {
     this._qaHarborWorldLayers?.forEach(layer => layer?.destroy?.())
     this._qaHarborWorldLayers = null
     this._qaHarborCameraState = null
+    this._qaHarborArtCandidate = null
     this._qaHarborPlayable = false
     return previousCleanup?.apply(this, args)
   }
