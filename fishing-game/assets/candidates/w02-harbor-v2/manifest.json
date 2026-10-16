@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "candidateId": "w02-harbor-v2-split-source",
+  "workUnit": "W02",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "status": "review-source-only",
+  "artApproved": false,
+  "production": false,
+  "source": {
+    "name": "world_source.png",
+    "sha256": "0b12f339a946deb17370528b82f9623a450966db13e4727bcd50f9b1ddd7d274",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "origin": "New standalone image-generated harbor illustration with no actor or UI",
+    "inGitHub": false,
+    "availability": "conversation output ZIP, not currently in repository; do not claim deployed"
+  },
+  "output": {
+    "layers": [
+      "far.png",
+      "sea.png",
+      "quay.png"
+    ],
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "sourceSplitScript": "scripts/art/split-w02-v2-source.py",
+    "reassembledPixelExact": true,
+    "inGitHub": false
+  },
+  "geometry": {
+    "worldRequired": [
+      2160,
+      1800
+    ],
+    "sourceIsFullWorld": false,
+    "hasOceanContinuation": false,
+    "playerBakedIn": false,
+    "uiBakedIn": false,
+    "transparentLayerTypes": [
+      "far",
+      "sea",
+      "quay"
+    ]
+  },
+  "review": {
+    "artRating": "pending visual review; not accepted",
+    "cannotUseAsFullGameWorld": true,
+    "knownRisks": [
+      "source viewport not large enough for all lure-follow camera positions",
+      "boat/pier railing silhouette masks need paintover",
+      "foreground props could interfere with some rod paths despite being bottom-left",
+      "source light and perspective needs W03 character integration review"
+    ]
+  },
+  "provenance": {
+    "version": "v2 candidate",
+    "renderProcess": "new authored illustration, source image split by manually described masks",
+    "sameRowClone": false,
+    "inpainting": false,
+    "mirrorTiling": false
+  },
+  "rollback": "keep approved-mock and previous QA mock; no manifest replacement in this PR"
+}
