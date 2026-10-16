@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "workUnit": "W02.1/W02.2",
+  "candidateId": "w02-harbor-v1",
+  "status": "review",
+  "artApproval": false,
+  "production": false,
+  "worldSizePx": {
+    "width": 2160,
+    "height": 1800
+  },
+  "coordinateSystem": "Phaser world 0,0 at upper left, initial cast player feet near 320,1150",
+  "sourceVersion": "hand-authored 2026-10-16 candidate alpha independent vector source",
+  "references": [
+    "docs/pipeline/art-rebuild-v2-contract.json",
+    "docs/pipeline/ART_DIRECTION_BIBLE.md",
+    "docs/concept-art/canonical/README.md"
+  ],
+  "assets": [
+    {
+      "assetId": "w02.harbor.far",
+      "family": "world",
+      "layer": "far",
+      "sourcePath": "fishing-game/assets/candidates/w02-harbor-v1/far.svg",
+      "outputPath": "fishing-game/assets/candidates/w02-harbor-v1/far.svg",
+      "sha256": null,
+      "alphaMode": "opaque",
+      "canvasPx": [
+        2160,
+        1800
+      ],
+      "worldRect": [
+        0,
+        0,
+        2160,
+        1800
+      ],
+      "pivot": [
+        0,
+        0
+      ],
+      "sockets": [],
+      "zDepth": 19,
+      "phases": [
+        "cast",
+        "retrieve",
+        "battle"
+      ],
+      "sourceVersion": "v1",
+      "artApproval": false,
+      "browserQa": null,
+      "gameOwner": "installHarborPlayableQa (opt-in QA)",
+      "rollbackAssetRef": "qa_harbor_playable_far"
+    },
+    {
+      "assetId": "w02.harbor.sea",
+      "family": "world",
+      "layer": "sea",
+      "sourcePath": "fishing-game/assets/candidates/w02-harbor-v1/sea.svg",
+      "outputPath": "fishing-game/assets/candidates/w02-harbor-v1/sea.svg",
+      "sha256": null,
+      "alphaMode": "partial-alpha",
+      "canvasPx": [
+        2160,
+        1800
+      ],
+      "worldRect": [
+        0,
+        0,
+        2160,
+        1800
+      ],
+      "pivot": [
+        0,
+        0
+      ],
+      "sockets": [],
+      "zDepth": 20,
+      "phases": [
+        "cast",
+        "retrieve",
+        "battle"
+      ],
+      "sourceVersion": "v1",
+      "artApproval": false,
+      "browserQa": null,
+      "gameOwner": "installHarborPlayableQa (opt-in QA)",
+      "rollbackAssetRef": "qa_harbor_playable_sea"
+    },
+    {
+      "assetId": "w02.harbor.quay",
+      "family": "world",
+      "layer": "quay",
+      "sourcePath": "fishing-game/assets/candidates/w02-harbor-v1/quay.svg",
+      "outputPath": "fishing-game/assets/candidates/w02-harbor-v1/quay.svg",
+      "sha256": null,
+      "alphaMode": "partial-alpha",
+      "canvasPx": [
+        2160,
+        1800
+      ],
+      "worldRect": [
+        0,
+        0,
+        2160,
+        1800
+      ],
+      "pivot": [
+        0,
+        0
+      ],
+      "sockets": [],
+      "zDepth": 25,
+      "phases": [
+        "cast",
+        "retrieve"
+      ],
+      "sourceVersion": "v1",
+      "artApproval": false,
+      "browserQa": null,
+      "gameOwner": "installHarborPlayableQa (opt-in QA)",
+      "rollbackAssetRef": "qa_harbor_playable_quay"
+    }
+  ],
+  "technique": "Three independent native 2.5D SVG source files, irregular manually-authored horizon, 750 seeded wave paths, 160 highlights, multi-face quay with perspective details. Not a hidden-background inpainting.",
+  "knownIssues": [
+    "Art quality requires direct comparison against approved live screenshot at 390x844",
+    "Far scenery and ocean share hypothetical horizon near Y=477; parallax and perspective still need art review",
+    "Quay should not block the full cast/retrieve fan including rod differences; earlier QA 90 samples are not exhaustive",
+    "Phaser real screenshot and performance on phone still pending",
+    "No actor or UI images included; body/clothing independent W03"
+  ],
+  "humanArtReview": "pending"
+}
