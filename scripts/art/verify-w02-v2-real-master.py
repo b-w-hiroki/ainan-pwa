@@ -44,8 +44,18 @@ def verify(source: Path, out: Path, *, expected_hash: str = ORIGINAL_SHA256,
         with Image.open(path) as raw:
             candidate=raw.convert('RGBA')
         if candidate.size!=EXPECTED_DIMS:raise AssertionError('Wrong dimensions '+layer)
+        # Invisible RGB must be cleared, otherwise texture interpolation draws
+        # concealed houses/pier colour along the sea-alpha seam.
+        zeroAlphaMask = ImageChops.invert(candidate.getchannel('A'))
+        if any(ImageChops.multiply(channel,zeroAlphaMask).getbbox() is not None
+               for channel in candidate.convert('RGB').split()):
+            raise AssertionError('Hidden RGB must be zero outside alpha '+layer)
         extrema=candidate.getchannel('A').getextrema()
         if extrema[1] != 255: raise AssertionError('Empty layer '+layer)
+        # Check a known bollard-head pixel from the recorded W02-v2 artwork.
+        # It belongs to the foreground quay, never to animated sea or sky.
+        if candidate.getchannel('A').getpixel((348, 712)) != (255 if layer == 'quay' else 0):
+            raise AssertionError('Mooring bollard leaked out of QUAY into '+layer)
         fullyOpaquePixels+=candidate.getchannel('A').histogram()[255]
         merged.alpha_composite(candidate)
     if fullyOpaquePixels != EXPECTED_DIMS[0]*EXPECTED_DIMS[1]:
