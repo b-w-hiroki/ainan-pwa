@@ -5,7 +5,7 @@ import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { ROD_META, getEquipment, getInventory, getScore } from '../game/progress.js'
-import { ACCESSORY_META, MATERIAL_META, equipAccessory, getAccessoryState, getMaterials, getRodLevels, getRodUpgradeCost, purchaseAccessory, upgradeRodLevel } from '../game/midgameProgression.js'
+import { ACCESSORY_META, MATERIAL_META, equipAccessory, unequipAccessory, getAccessoryState, getMaterials, getRodLevels, getRodUpgradeCost, purchaseAccessory, upgradeRodLevel } from '../game/midgameProgression.js'
 import { markWorkshopSeen } from '../game/retentionProgress.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -88,9 +88,11 @@ export default class WorkshopScene extends Phaser.Scene {
       this.add.text(x + 38, y + 38, meta.mark, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '18px', fontWeight: '900', color: UI_COLORS.oceanDeep }).setOrigin(0.5).setDepth(5)
       this.add.text(x + 72, y + 25, meta.name, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
       this.add.text(x + 72, y + 49, equipped ? '装備中' : owned ? '所持済み' : meta.scoreCost + 'pt', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.inkSoft }).setDepth(5)
-      this.add.text(x + 14, y + 78, meta.desc, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: w - 28 } }).setDepth(5)
-      const action = this.add.text(x + w / 2, y + h - 20, equipped ? '装備中' : owned ? '装備する' : '作成して装備', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: equipped ? UI_COLORS.muted : UI_COLORS.ink, backgroundColor: equipped ? '#edf2f4' : '#ffd95a', padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(6)
-      if (!equipped) action.setInteractive({ useHandCursor: true }).on('pointerdown', () => this._accessoryAction(id, owned))
+      this.add.text(x + 14, y + 78, meta.desc, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: w - 28, useAdvancedWrap: true } }).setDepth(5).setData('accessoryDescription', id)
+      const action = this.add.text(x + w / 2, y + h - 20, equipped ? '外す' : owned ? '装備する' : '作成して装備', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.ink, backgroundColor: equipped ? '#dff5ff' : '#ffd95a', padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(6)
+      this.add.rectangle(x+w/2,y+h-20,132,44,0xffffff,0.001).setDepth(7)
+        .setData('accessoryId',id).setInteractive({useHandCursor:true})
+        .on('pointerdown',()=>this._accessoryAction(id,owned,equipped))
     })
   }
 
@@ -101,8 +103,8 @@ export default class WorkshopScene extends Phaser.Scene {
     this.time.delayedCall(350, () => this.scene.restart())
   }
 
-  _accessoryAction(id, owned) {
-    const r = owned ? equipAccessory(id) : purchaseAccessory(id)
+  _accessoryAction(id, owned, equipped = false) {
+    const r = equipped ? unequipAccessory(id) : owned ? equipAccessory(id) : purchaseAccessory(id)
     if (!r.ok) return this._toast(r.reason === 'score' ? 'ポイント不足' : r.reason === 'materials' ? '素材不足' : '作成できません')
     this.scene.restart()
   }

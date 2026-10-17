@@ -2,8 +2,18 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { getCharacterAppearance, setCharacterAppearance, characterAppearanceCard, getActiveCharacterAppearance, isCharacterAppearancePreview } from '../fishing-game/js/game/characterAppearance.js'
 import { CharacterMotionController, CHARACTER_MOTION_POSES, characterMotionAssets } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
+import { cuteEquipmentPlacement } from '../fishing-game/js/presentation/cast/cuteEquipment.js'
+import { equipAccessory, unequipAccessory, getAccessoryState } from '../fishing-game/js/game/midgameProgression.js'
 const values = new Map()
 globalThis.localStorage = { getItem: key => values.get(key), setItem: (key,value) => values.set(key,value) }
+values.set('ainan_accessories',JSON.stringify({owned:{cap:true,bag:true},equipped:{hat:'cap',bag:'bag'}}))
+assert.equal(unequipAccessory('cap').ok,true)
+assert.deepEqual(getAccessoryState().equipped,{hat:null,bag:'bag'})
+assert.equal(getAccessoryState().owned.cap,true,'removing must retain ownership')
+assert.equal(unequipAccessory('cap').ok,false)
+assert.equal(unequipAccessory('unknown').ok,false)
+assert.equal(equipAccessory('cap').ok,true)
+assert.deepEqual(getAccessoryState().equipped,{hat:'cap',bag:'bag'})
 assert.equal(getCharacterAppearance(), 'classic')
 const original = JSON.stringify(CHARACTER_MOTION_POSES)
 assert.equal(setCharacterAppearance('invalid'), false)
@@ -26,6 +36,12 @@ for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  assert.deepEqual(actor.hair.size,[140*896/640,183.75])
  assert.equal(actor.hair.key,`character_cute_b_${name}_hair`)
  assert.deepEqual(actor.poses[name].grip ?? actor.poses[name].fish,metadata.poses[name].grip ?? metadata.poses[name].fish)
+ actor._setAccessoryVisuals({hat:'cap',bag:'bag'})
+ for(const id of ['cap','bag']) {
+  const placement=cuteEquipmentPlacement('cute-b-01',name,id,metadata)
+  assert.ok(placement.width>0 && placement.point.every(Number.isFinite))
+  assert.deepEqual(actor.accessoryAccents[id].position,Object.values(actor._point(placement.point)))
+ }
 }
 actor._applyLayout('battle')
 assert.deepEqual(actor.hair.size,[110*896/640,144.375])
@@ -53,8 +69,28 @@ for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  assert.equal(boy.poseFront.key,`character_cute_a_${name}`)
  assert.deepEqual(boy.poseFront.size,[140,183.75])
  assert.deepEqual(boy.poses[name].grip ?? boy.poses[name].fish,boyMetadata.poses[name].grip ?? boyMetadata.poses[name].fish)
+ boy._setAccessoryVisuals({hat:'cap',bag:'bag'})
+ for(const id of ['cap','bag']) {
+  const placement=cuteEquipmentPlacement('cute-a-01',name,id,boyMetadata)
+  assert.ok(placement.width>0 && placement.point.every(Number.isFinite))
+  assert.deepEqual(boy.accessoryAccents[id].position,Object.values(boy._point(placement.point)))
+ }
 }
 boy.destroy()
+scene.textures.exists=key=>key!=='character_cute_cap'
+const missingCap=new CharacterMotionController(scene).mount(display())
+assert.equal(missingCap.cute,true,'an unavailable accessory must not replace the whole body')
+assert.equal(missingCap.accessoryAccents.cap,null)
+assert.ok(missingCap.accessoryAccents.bag)
+missingCap._setAccessoryVisuals({hat:'cap',bag:'bag'})
+assert.equal(missingCap._applyPose('castRelease'),true)
+missingCap.destroy()
+for(const id of ['cap','bag']) {
+ const png=readFileSync(new URL('../fishing-game/assets/candidates/w03-cute-equipment/'+id+'.png',import.meta.url))
+ assert.equal(png.readUInt32BE(16),1254)
+ assert.equal(png.readUInt32BE(20),1254)
+ assert.equal(png[25],6)
+}
 scene.textures.exists=key=>key!=='character_cute_a_sadMid'
 assert.equal(new CharacterMotionController(scene).mount(display()).cute,false)
 characterAppearanceCard({scene:{restart(){}}})[2]()
