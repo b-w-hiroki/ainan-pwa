@@ -76,50 +76,72 @@ export default class TitleScene extends Phaser.Scene {
       this._drawBird(bg, W * 0.74, H * 0.34, 0.7)
     }
 
-    // ─── ロゴ ──────────────────────────────────────
-    const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(5)
+    // ─── タイトルロゴ ────────────────────────────────
+    const location = this.add.graphics().setDepth(4)
+    location.fillStyle(0x123a54, 0.72)
+    location.lineStyle(1.5, 0xffe6a0, 0.9)
+    location.fillRoundedRect(W / 2 - 81, H * 0.105 - 14, 162, 28, 14)
+    location.strokeRoundedRect(W / 2 - 81, H * 0.105 - 14, 162, 28, 14)
+    this.add.text(W / 2, H * 0.105, 'EHIME  ·  愛南の海', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '900',
+      color: '#fff5d9', letterSpacing: 1.1,
+    }).setOrigin(0.5).setDepth(5)
 
+    const logoGroup = this.add.container(W / 2, H * 0.19).setDepth(5)
     const logo = this.add.text(0, 0, 'AINAN', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '62px', fontWeight: '900',
-      color: '#ffffff',
-      shadow: SHADOW.strong,
+      fontSize: '68px', fontWeight: '900',
+      color: '#fff9e9',
+      stroke: '#173248', strokeThickness: 6,
+      shadow: { ...SHADOW.strong, color: 'rgba(9,38,57,0.62)', offsetY: 5, blur: 2 },
+      letterSpacing: 2,
     }).setOrigin(0.5)
-
     logoGroup.add([logo])
 
     this.tweens.add({
-      targets: logoGroup, y: H * 0.19 - 6,
-      duration: 2200, yoyo: true, repeat: -1, ease: 'Sine.inOut',
+      targets: logoGroup, y: H * 0.19 - 5,
+      duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
-    // サブタイトル（ロゴの下）
     const subBg = this.add.graphics().setDepth(4)
-    subBg.fillStyle(0x123a54, 0.26)
-    subBg.fillRoundedRect(W / 2 - 92, H * 0.27 - 14, 184, 28, 14)
-    this.add.text(W / 2, H * 0.27, '— 釣り × 町おこし —', {
+    subBg.fillStyle(0x123a54, 0.78)
+    subBg.lineStyle(1.5, 0xffd95a, 0.92)
+    subBg.fillRoundedRect(W / 2 - 112, H * 0.27 - 16, 224, 32, 16)
+    subBg.strokeRoundedRect(W / 2 - 112, H * 0.27 - 16, 224, 32, 16)
+    this.add.text(W / 2, H * 0.27, '釣りと町づくりの海辺の暮らし', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '17px', fontWeight: '800',
+      fontSize: '14px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
 
-    // ─── キャッチコピー ─────────────────────────────
+    // ─── 世界観と遊びの紹介 ──────────────────────────
+    const copyY = H * 0.615
     const copyBg = this.add.graphics().setDepth(4)
-    copyBg.fillStyle(0x123a54, 0.34)
-    copyBg.fillRoundedRect(W / 2 - 142, H * 0.62 - 18, 284, 36, 18)
-    this.add.text(W / 2, H * 0.62, '小さな港町で、大きな一匹を狙おう', {
+    copyBg.fillStyle(0x123a54, 0.76)
+    copyBg.lineStyle(1.5, 0xffffff, 0.56)
+    copyBg.fillRoundedRect(W / 2 - 156, copyY - 37, 312, 74, 20)
+    copyBg.strokeRoundedRect(W / 2 - 156, copyY - 37, 312, 74, 20)
+    this.add.text(W / 2, copyY - 12, '釣って、育てて、港町を元気に。', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '16px', fontWeight: '700',
-      color: '#ffffff',
+      fontSize: '16px', fontWeight: '900',
+      color: '#fff5d9',
+      shadow: SHADOW.medium,
+    }).setOrigin(0.5).setDepth(5)
+    this.add.text(W / 2, copyY + 15, '愛南の海から、物語をはじめよう', {
+      fontFamily: FONT, resolution: TEXT_RES,
+      fontSize: '12px', fontWeight: '800',
+      color: '#e5f7ff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
 
     // ─── スタートボタン ──────────────────────────────
     new Button(this, {
       x: W / 2, y: H * 0.735,
-      w: 270, h: 68,
-      label: 'タップでスタート',
+      w: 282, h: 70,
+      label: 'ゲームをはじめる',
+      subLabel: '釣って、育てて、町を元気に',
       icon:  ICONS.PLAY,
       variant: 'primary',
       fontSize: 22,
