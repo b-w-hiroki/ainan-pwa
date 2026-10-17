@@ -524,6 +524,10 @@ export function installCastCameraPanPrototype(GameScene) {
   if (GameScene.prototype.__ainanCastCameraPanPrototypeInstalled) return
   GameScene.prototype.__ainanCastCameraPanPrototypeInstalled = true
 
+  GameScene.prototype._setCameraPanPose = function (pose) {
+    if (enabled()) setWorldPlayerPhase(this, { pose, durationMs: 0 }, true)
+  }
+
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)

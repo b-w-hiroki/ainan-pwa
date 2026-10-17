@@ -1,3 +1,4 @@
+import { isReducedMotion } from './feedback.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
 import { isHarborPlayableQaEnabled } from './installHarborPlayableQa.js'
@@ -136,9 +137,17 @@ export function installHarborBodyQa(GameScene) {
     return result
   }
 
+  const prevFinish = GameScene.prototype._finishBattle
+  GameScene.prototype._finishBattle = function (outcome, ...args) {
+    const result = prevFinish.call(this, outcome, ...args)
+    if (result !== false && this._qaBody) this._qaBodyOutcome = outcome
+    return result
+  }
+
   const prevUpdate = GameScene.prototype.update
   GameScene.prototype.update = function (...args) {
     const result = prevUpdate?.apply(this, args)
+    syncHarborBodyAction(this)
     syncHarborBodyHair(this)
     return result
   }
@@ -152,6 +161,8 @@ export function installHarborBodyQa(GameScene) {
     this._qaBodyCanvases = null
     this._qaBodyReady = null
     this._qaBody = null
+    this._qaBodyPhase = null
+    this._qaBodyOutcome = null
     return prevCleanup?.apply(this, args)
   }
 }
@@ -166,7 +177,7 @@ export function syncHarborBodyHair(scene) {
   scene._qaBodyHair ??= []
   ;[scene._cameraPanPlayer, scene._cameraPanPlayerBlend].forEach((actor, i) => {
     const key = actor?.texture?.key + '_hair'
-    if (!actor?.active || !actor.visible || !scene.textures.exists(key)) {
+    if (!actor?.active || !actor.visible || (scene._cameraPanHidePlayerUntil ?? 0) > (scene.time?.now ?? 0) || !scene.textures.exists(key)) {
       scene._qaBodyHair[i]?.setVisible(false)
       return
     }
@@ -177,4 +188,23 @@ export function syncHarborBodyHair(scene) {
       .setScrollFactor(actor.scrollFactorX, actor.scrollFactorY)
       .setDepth(actor.depth + 0.1).setAlpha(actor.alpha).setVisible(true)
   })
+}
+
+export function syncHarborBodyAction(scene) {
+  if (scene._qaBody?.id !== 'cute-b-01') return
+  if (scene._qaBodyPhase !== scene.phase) {
+    scene._qaBodyPhase = scene.phase
+    scene._qaBodyPhaseAt = scene.time.now
+  }
+  const elapsed = scene.time.now - scene._qaBodyPhaseAt
+  let pose = null
+  if (scene.phase === 'battle') {
+    pose = !isReducedMotion() && scene.battleState?.isRaging
+      ? ['fightLeft', 'fightMid', 'fightRight', 'fightMid'][Math.floor(elapsed / 320) % 4] : 'fightMid'
+  } else if (scene.phase === 'result') {
+    const frames = scene._qaBodyOutcome === 'caught' ? ['joyLift','joyMid','joyHold'] : ['sadDrop','sadMid','sadSlump']
+    pose = frames[isReducedMotion() ? 2 : Math.min(2, Math.floor(elapsed / 360))]
+  } else if (scene.phase === 'hit') pose = 'fightMid'
+  // Casting remains under the existing timeline, with no competing pose owner.
+  if (pose && scene._cameraPanPose !== pose) scene._setCameraPanPose?.(pose)
 }
