@@ -1,0 +1,53 @@
+name: Character appearance visual gate
+
+on:
+  pull_request:
+    paths:
+      - 'fishing-game/js/presentation/cast/**'
+      - 'fishing-game/js/game/characterAppearance.js'
+      - 'fishing-game/js/scenes/GameScene.js'
+      - 'fishing-game/js/game/installFishingResultPresentation.js'
+      - 'fishing-game/js/game/installFishingVisualUpgrade.js'
+      - 'fishing-game/js/game/installFishingPresentationGuard.js'
+      - 'scripts/capture-character-appearance.mjs'
+      - '.github/workflows/character-appearance-visual-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  character-appearance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build full QA and game assets
+        run: npm run build
+      - name: Install Chromium
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Start preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ainan-preview.log
+          exit 1
+      - name: Verify actual character textures and capture all 13 poses
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-character-appearance.mjs
+      - name: Preserve real PNGs and layout evidence on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: character-appearance-review
+          path: artifacts/character-appearance
+          if-no-files-found: warn
+          retention-days: 14

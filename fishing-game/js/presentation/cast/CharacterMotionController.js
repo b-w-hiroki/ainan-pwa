@@ -1,4 +1,4 @@
-import { getActiveCharacterAppearance } from '../../game/characterAppearance.js'
+import { getActiveCharacterAppearance, isCharacterAppearancePreview, CHARACTER_PREVIEW_BACKGROUND } from '../../game/characterAppearance.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { isReducedMotion } from '../../game/feedback.js'
 import {
@@ -43,6 +43,8 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
   sadSlump: { asset: 'fishingMotionSadSlump', grip: [225, 315], tip: [292, 402] },
 })
 
+const CUTE_CAST_LAYOUT = Object.freeze({ x: 62, y: 612, displayWidth: 160, displayHeight: 210 })
+
 export const CHARACTER_MOTION_TIMING = Object.freeze({
   charge: Object.freeze([{ pose: 'castMid', ms: 120 }, { pose: 'castWindup', ms: 170 }]),
   release: Object.freeze([{ pose: 'castMid', ms: 80 }, { pose: 'castRelease', ms: 210 }, { pose: 'castRelease', ms: 190 }, { pose: 'idle', ms: 180 }]),
@@ -60,6 +62,9 @@ const cuteKey = name => `character_cute_b_${name}`
 const cuteFile = name => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase())
 const cuteDir = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-body-cute-b-01/`
 export function preloadCharacterAppearance(scene) {
+  if (isCharacterAppearancePreview() && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+    scene.load.image(CHARACTER_PREVIEW_BACKGROUND.key, CHARACTER_PREVIEW_BACKGROUND.path)
+  }
   if (getActiveCharacterAppearance() !== 'cute-b-01') return
   if (!scene.cache.json.exists('character_cute_b_poses')) scene.load.json('character_cute_b_poses', cuteDir() + 'poses.json')
 }
@@ -115,6 +120,7 @@ export class CharacterMotionController {
         tip: [socket.grip[0] + pose.tip[0] - pose.grip[0], socket.grip[1] + pose.tip[1] - pose.grip[1]] } : {}),
         ...(socket.fish ? { fish: socket.fish } : {}) }]
     }))
+    if (this.cute) this.layout = CUTE_CAST_LAYOUT
     const qaX = readCharacterQaOffset(typeof window !== 'undefined' ? window.location.search : '')
     this.root = scene.add.container(qaX, 0).setDepth(75)
     this.root.setData('qaCharacterX', qaX)
@@ -158,7 +164,7 @@ export class CharacterMotionController {
   }
 
   _applyLayout(phase) {
-    const next = CHARACTER_MOTION_LAYOUTS[phase] ?? CHARACTER_MOTION_LAYOUTS.cast
+    const next = this.cute && ['cast', 'retrieve'].includes(phase) ? CUTE_CAST_LAYOUT : CHARACTER_MOTION_LAYOUTS[phase] ?? CHARACTER_MOTION_LAYOUTS.cast
     if (this.layoutPhase === phase && this.layout === next) return
     this.layout = next
     this.layoutPhase = phase
@@ -307,7 +313,7 @@ export class CharacterMotionController {
     // visible texture atomically so transparent pixels never enter an
     // intermediate-alpha compositor path.
     this.scene.tweens.killTweensOf(this.poseFront)
-    this.poseFront.setTexture(asset.key).setVisible(true).setAlpha(1)
+    this.poseFront.setTexture(asset.key).setDisplaySize(this.layout.displayWidth, this.layout.displayHeight).setVisible(true).setAlpha(1)
     this.currentPose = name
     this._syncHair()
     this._applyAccessories(pose)

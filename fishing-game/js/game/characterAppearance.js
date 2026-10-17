@@ -28,3 +28,8 @@ export function isCharacterAppearancePreview(search = globalThis.window?.locatio
 export function getActiveCharacterAppearance() {
   return isCharacterAppearancePreview() ? getCharacterAppearance() : 'classic'
 }
+
+export const CHARACTER_PREVIEW_BACKGROUND = Object.freeze({
+  key: 'character_preview_harbor_morning',
+  path: new URL('../../../docs/art-source/harbor-character-v2/harbor-morning.png', import.meta.url).href,
+})
