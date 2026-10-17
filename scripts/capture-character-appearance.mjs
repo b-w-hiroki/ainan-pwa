@@ -14,7 +14,7 @@ try {
  const page=await browser.newPage({viewport:{width:390,height:844}})
  const errors=[]
  page.on('pageerror',e=>{if(e.message!=='service worker disabled in QA')errors.push(e.message)})
- await page.addInitScript(id=>{localStorage.setItem('ainan_character_appearance',id);localStorage.setItem('ainan_sound_enabled','0')},appearance)
+ await page.addInitScript(id=>{localStorage.setItem('ainan_character_appearance',id);localStorage.setItem('ainan_sound_enabled','0');localStorage.setItem('ainan_accessories',JSON.stringify({owned:{cap:true,bag:true},equipped:{hat:'cap',bag:'bag'}}))},appearance)
  await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene')
  await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion?.cute)
  await page.evaluate(()=>window.__game.scene.getScene('GameScene').scene.pause())
@@ -25,9 +25,17 @@ try {
    const s=window.__game.scene.getScene('GameScene')
    const c=s._castPresentationHost.nodes.characterMotion
    c._cancel();c._applyPose(name)
-   return {pose:c.currentPose,body:[c.poseFront.displayWidth,c.poseFront.displayHeight],hair:c.hair ? [c.hair.displayWidth,c.hair.displayHeight] : null,bodyKey:c.poseFront.texture.key,hairKey:c.hair?.texture.key ?? null,background:s.textures.exists('character_preview_harbor_morning'),grip:c.root.getData('rodGripLocal')}
+   const equipment=[]
+   for(const equipped of [{},{hat:'cap'},{bag:'bag'},{hat:'cap',bag:'bag'}]) {
+    c._setAccessoryVisuals(equipped)
+    equipment.push({hat:c.accessoryAccents.cap.visible,bag:c.accessoryAccents.bag.visible})
+   }
+   return {equipment,capKey:c.accessoryAccents.cap.texture.key,bagKey:c.accessoryAccents.bag.texture.key,pose:c.currentPose,body:[c.poseFront.displayWidth,c.poseFront.displayHeight],hair:c.hair ? [c.hair.displayWidth,c.hair.displayHeight] : null,bodyKey:c.poseFront.texture.key,hairKey:c.hair?.texture.key ?? null,background:s.textures.exists('character_preview_harbor_morning'),grip:c.root.getData('rodGripLocal')}
   },pose)
   assert.equal(state.pose,pose)
+  assert.deepEqual(state.equipment,[{hat:false,bag:false},{hat:true,bag:false},{hat:false,bag:true},{hat:true,bag:true}])
+  assert.equal(state.capKey,'character_cute_cap')
+  assert.equal(state.bagKey,'character_cute_bag')
   assert.deepEqual(state.body,[140,183.75])
   assert.deepEqual(state.hair,appearance==='cute-b-01'?[196,183.75]:null)
   assert.equal(state.bodyKey,`character_cute_${appearance==='cute-a-01'?'a':'b'}_${pose}`)

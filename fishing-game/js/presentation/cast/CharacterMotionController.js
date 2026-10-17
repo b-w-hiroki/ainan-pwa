@@ -1,3 +1,4 @@
+import { CUTE_EQUIPMENT, cuteEquipmentAssets, cuteEquipmentPlacement } from './cuteEquipment.js'
 import { getActiveCharacterAppearance, isCharacterAppearancePreview, CHARACTER_PREVIEW_BACKGROUND } from '../../game/characterAppearance.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { isReducedMotion } from '../../game/feedback.js'
@@ -77,6 +78,7 @@ export function preloadCharacterAppearance(scene) {
 export function characterMotionAssets() {
   return [...new Set([
     ...requiredAssets(),
+    ...(isCute() ? cuteEquipmentAssets() : []),
     ...(isCute() ? Object.keys(CHARACTER_MOTION_POSES).flatMap(name => [
       { key: cuteKey(name), path: cuteDir() + cuteFile(name) + '.png', status: 'ready' },
       ...(getActiveCharacterAppearance() === 'cute-b-01' ? [{ key: cuteKey(name) + '_hair', path: cuteDir() + 'hair-' + cuteFile(name) + '.png', status: 'ready' }] : []),
@@ -127,7 +129,7 @@ export class CharacterMotionController {
         tip: [socket.grip[0] + pose.tip[0] - pose.grip[0], socket.grip[1] + pose.tip[1] - pose.grip[1]] } : {}),
         ...(socket.fish ? { fish: socket.fish } : {}) }]
     }))
-    if (this.cute) this.layout = CUTE_CAST_LAYOUT
+    if (this.cute) { this.layout = CUTE_CAST_LAYOUT; this.cuteMetadata = metadata }
     const qaX = readCharacterQaOffset(typeof window !== 'undefined' ? window.location.search : '')
     this.root = scene.add.container(qaX, 0).setDepth(75)
     this.root.setData('qaCharacterX', qaX)
@@ -137,18 +139,22 @@ export class CharacterMotionController {
     // Keep the rod as native geometry. Some browsers composited the transparent
     // rod texture as an opaque black rectangle during alpha animation.
     this.rod = scene.add.graphics()
-    this.accessoryAccents.cap = createAccessoryAccent(scene, 'cap')
-    this.accessoryAccents.bag = createAccessoryAccent(scene, 'bag')
+    for (const id of ['cap','bag']) {
+      this.accessoryAccents[id] = this.cute
+        ? (scene.textures.exists(CUTE_EQUIPMENT[id].key) ? scene.add.image(0,0,CUTE_EQUIPMENT[id].key).setVisible(false) : null)
+        : createAccessoryAccent(scene,id)
+    }
     this.line = scene.add.graphics()
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
       .setVisible(false).setAngle(-4)
     this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
-    this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
+    this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish].filter(Boolean))
     if (this.cute && this.appearance === 'cute-b-01') {
       this.hair = scene.add.image(this.layout.x, this.layout.y, cuteKey('idle', this.appearance) + '_hair').setOrigin(0.5, 1)
       this.root.add(this.hair)
       this._syncHair()
     }
+    if (this.cute && this.accessoryAccents.cap) this.root.bringToTop(this.accessoryAccents.cap)
     parent.add(this.root)
     this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
     this._applyPose('idle', true)
@@ -288,9 +294,19 @@ export class CharacterMotionController {
 
   _applyAccessories(_pose) {
     for (const [id, accent] of Object.entries(this.accessoryAccents)) {
+      if (!accent) continue
       const visual = ACCESSORY_VISUALS[id]
       const equipped = this.accessoryIds[visual.slot] === id
-      const anchor = this.cute ? null : visual.anchors[this.currentPose]
+      if (this.cute) {
+        const placement = cuteEquipmentPlacement(this.appearance,this.currentPose,id,this.cuteMetadata)
+        if (!equipped || !placement) { accent.setVisible(false); continue }
+        const point = this._point(placement.point)
+        const width = placement.width*this.layout.displayWidth/FRAME.width
+        accent.setOrigin(...placement.origin).setDisplaySize(width,width)
+          .setPosition(point.x,point.y).setAngle(placement.angle).setVisible(true)
+        continue
+      }
+      const anchor = visual.anchors[this.currentPose]
       if (!equipped || !anchor) { accent.setVisible(false); continue }
       const point = this._point(anchor)
       const sourceScale = this.layout.displayWidth / FRAME.width
