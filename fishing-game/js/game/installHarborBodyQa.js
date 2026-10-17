@@ -16,10 +16,10 @@ const FRAME = Object.freeze({ width: 640, height: 840 })
 const dirOf = id => `fishing-game/assets/candidates/w03-body-${id}`
 
 export const HARBOR_BODY_VARIANTS = Object.freeze([
-  { id: 'cute-a-01', label: 'かわいいA-1', poses: ['idle'] },
+  { id: 'cute-a-01', label: 'かわいいA-1', poses: ['idle', 'castWindup'] },
   { id: 'cute-a-02', label: 'かわいいA-2', poses: ['idle'] },
   { id: 'cute-a-03', label: 'かわいいA-3', poses: ['idle'] },
-  { id: 'cute-b-01', label: 'かわいいB-1', poses: ['idle'] },
+  { id: 'cute-b-01', label: 'かわいいB-1', poses: ['idle', 'castWindup'] },
   { id: 'cute-b-02', label: 'かわいいB-2', poses: ['idle'] },
   { id: 'cute-b-03', label: 'かわいいB-3', poses: ['idle'] },
   { id: 'cute-b-01-v2', label: 'かわいいB-1 v2', poses: ['idle'] },
@@ -28,6 +28,8 @@ export const HARBOR_BODY_VARIANTS = Object.freeze([
   { id: 'a', label: '写実A', poses: ['idle', 'castWindup'] },
   { id: 'b', label: '写実B', poses: ['idle', 'castWindup'] },
 ])
+// Chosen defaults (男の子 / 女の子). The start/settings flow will use these.
+export const HARBOR_BODY_DEFAULTS = Object.freeze({ male: 'cute-a-01', female: 'cute-b-01' })
 const FILES = Object.freeze({ idle: 'idle.png', castWindup: 'cast-windup.png' })
 const textureKey = (id, pose) => `qa_body_${id}_${pose}`
 
