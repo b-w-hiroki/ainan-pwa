@@ -43,7 +43,7 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
   sadSlump: { asset: 'fishingMotionSadSlump', grip: [225, 315], tip: [292, 402] },
 })
 
-const CUTE_CAST_LAYOUT = Object.freeze({ x: 62, y: 612, displayWidth: 160, displayHeight: 210 })
+const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displayHeight: 183.75 })
 
 export const CHARACTER_MOTION_TIMING = Object.freeze({
   charge: Object.freeze([{ pose: 'castMid', ms: 120 }, { pose: 'castWindup', ms: 170 }]),

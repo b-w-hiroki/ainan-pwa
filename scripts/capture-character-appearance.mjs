@@ -26,8 +26,8 @@ try {
    return {pose:c.currentPose,body:[c.poseFront.displayWidth,c.poseFront.displayHeight],hair:[c.hair.displayWidth,c.hair.displayHeight],bodyKey:c.poseFront.texture.key,hairKey:c.hair.texture.key,background:s.textures.exists('character_preview_harbor_morning'),grip:c.root.getData('rodGripLocal')}
   },pose)
   assert.equal(state.pose,pose)
-  assert.deepEqual(state.body,[160,210])
-  assert.deepEqual(state.hair,[224,210])
+  assert.deepEqual(state.body,[140,183.75])
+  assert.deepEqual(state.hair,[196,183.75])
   assert.equal(state.hairKey,state.bodyKey+'_hair')
   assert.equal(state.background,true)
   await page.screenshot({path:join(root,pose+'.png')})

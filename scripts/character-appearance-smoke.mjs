@@ -22,8 +22,8 @@ const actor=new CharacterMotionController(scene).mount(display())
 assert.equal(actor.cute,true)
 for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  assert.equal(actor._applyPose(name),true)
- assert.deepEqual(actor.poseFront.size,[160,210],'texture switch must restore dimensions for 640px source')
- assert.deepEqual(actor.hair.size,[160*896/640,210])
+ assert.deepEqual(actor.poseFront.size,[140,183.75],'texture switch must restore dimensions for 640px source')
+ assert.deepEqual(actor.hair.size,[140*896/640,183.75])
  assert.equal(actor.hair.key,`character_cute_b_${name}_hair`)
  assert.deepEqual(actor.poses[name].grip ?? actor.poses[name].fish,metadata.poses[name].grip ?? metadata.poses[name].fish)
 }
