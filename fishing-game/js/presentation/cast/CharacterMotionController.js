@@ -44,6 +44,11 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
 })
 
 const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displayHeight: 183.75 })
+const CUTE_LAYOUTS = Object.freeze({
+  cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT,
+  battle: Object.freeze({ x: 125, y: 600, displayWidth: 170, displayHeight: 223.125 }),
+  result: Object.freeze({ x: 116, y: 540, displayWidth: 160, displayHeight: 210 }),
+})
 
 export const CHARACTER_MOTION_TIMING = Object.freeze({
   charge: Object.freeze([{ pose: 'castMid', ms: 120 }, { pose: 'castWindup', ms: 170 }]),
@@ -164,7 +169,7 @@ export class CharacterMotionController {
   }
 
   _applyLayout(phase) {
-    const next = this.cute && ['cast', 'retrieve'].includes(phase) ? CUTE_CAST_LAYOUT : CHARACTER_MOTION_LAYOUTS[phase] ?? CHARACTER_MOTION_LAYOUTS.cast
+    const next = (this.cute ? CUTE_LAYOUTS[phase] : CHARACTER_MOTION_LAYOUTS[phase]) ?? CHARACTER_MOTION_LAYOUTS.cast
     if (this.layoutPhase === phase && this.layout === next) return
     this.layout = next
     this.layoutPhase = phase
