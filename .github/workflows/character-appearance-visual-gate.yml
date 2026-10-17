@@ -5,6 +5,8 @@ on:
     paths:
       - 'fishing-game/js/presentation/cast/**'
       - 'fishing-game/js/game/characterAppearance.js'
+      - 'fishing-game/js/game/midgameProgression.js'
+      - 'fishing-game/js/scenes/WorkshopScene.js'
       - 'fishing-game/js/scenes/GameScene.js'
       - 'fishing-game/js/game/installFishingResultPresentation.js'
       - 'fishing-game/js/game/installFishingVisualUpgrade.js'

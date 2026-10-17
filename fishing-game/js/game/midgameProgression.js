@@ -164,6 +164,15 @@ export function equipAccessory(id) {
   return { ok: true, equipped: true }
 }
 
+export function unequipAccessory(id) {
+  const meta = ACCESSORY_META[id]
+  const state = getAccessoryState()
+  if (!meta || !state.owned[id] || state.equipped[meta.slot] !== id) return { ok: false, reason: 'equipped' }
+  state.equipped[meta.slot] = null
+  saveAccessoryState(state)
+  return { ok: true, equipped: false }
+}
+
 export function getProgressionBonuses(rodId = 'basic', mealOverride = null) {
   const level = getRodLevels()[rodId] ?? 1
   const accessories = getAccessoryState()

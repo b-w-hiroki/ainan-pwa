@@ -3,8 +3,17 @@ import { readFileSync } from 'node:fs'
 import { getCharacterAppearance, setCharacterAppearance, characterAppearanceCard, getActiveCharacterAppearance, isCharacterAppearancePreview } from '../fishing-game/js/game/characterAppearance.js'
 import { CharacterMotionController, CHARACTER_MOTION_POSES, characterMotionAssets } from '../fishing-game/js/presentation/cast/CharacterMotionController.js'
 import { cuteEquipmentPlacement } from '../fishing-game/js/presentation/cast/cuteEquipment.js'
+import { equipAccessory, unequipAccessory, getAccessoryState } from '../fishing-game/js/game/midgameProgression.js'
 const values = new Map()
 globalThis.localStorage = { getItem: key => values.get(key), setItem: (key,value) => values.set(key,value) }
+values.set('ainan_accessories',JSON.stringify({owned:{cap:true,bag:true},equipped:{hat:'cap',bag:'bag'}}))
+assert.equal(unequipAccessory('cap').ok,true)
+assert.deepEqual(getAccessoryState().equipped,{hat:null,bag:'bag'})
+assert.equal(getAccessoryState().owned.cap,true,'removing must retain ownership')
+assert.equal(unequipAccessory('cap').ok,false)
+assert.equal(unequipAccessory('unknown').ok,false)
+assert.equal(equipAccessory('cap').ok,true)
+assert.deepEqual(getAccessoryState().equipped,{hat:'cap',bag:'bag'})
 assert.equal(getCharacterAppearance(), 'classic')
 const original = JSON.stringify(CHARACTER_MOTION_POSES)
 assert.equal(setCharacterAppearance('invalid'), false)
@@ -68,6 +77,20 @@ for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  }
 }
 boy.destroy()
+scene.textures.exists=key=>key!=='character_cute_cap'
+const missingCap=new CharacterMotionController(scene).mount(display())
+assert.equal(missingCap.cute,true,'an unavailable accessory must not replace the whole body')
+assert.equal(missingCap.accessoryAccents.cap,null)
+assert.ok(missingCap.accessoryAccents.bag)
+missingCap._setAccessoryVisuals({hat:'cap',bag:'bag'})
+assert.equal(missingCap._applyPose('castRelease'),true)
+missingCap.destroy()
+for(const id of ['cap','bag']) {
+ const png=readFileSync(new URL('../fishing-game/assets/candidates/w03-cute-equipment/'+id+'.png',import.meta.url))
+ assert.equal(png.readUInt32BE(16),1254)
+ assert.equal(png.readUInt32BE(20),1254)
+ assert.equal(png[25],6)
+}
 scene.textures.exists=key=>key!=='character_cute_a_sadMid'
 assert.equal(new CharacterMotionController(scene).mount(display()).cute,false)
 characterAppearanceCard({scene:{restart(){}}})[2]()
