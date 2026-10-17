@@ -36,7 +36,9 @@ jobs:
   mobile-e2e:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Full captures plus artifact upload reached 15m on run 39031399419.
+    # Keep every assertion and allow cleanup to finish on slower runners.
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
