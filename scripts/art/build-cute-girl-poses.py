@@ -27,9 +27,10 @@ def build():
  info=json.loads((OUT/'poses.json').read_text())
  scale=info['scale']; offset=info['poses']['idle']['offset']
  hair=Image.open(ROOT/'docs/art-source/w03-cute-hair/W03-CUTE-B-ponytail-hair.png').convert('RGBA')
- def frame(im):
+ def frame(im, hair=False):
   im=im.resize((round(im.width*scale),round(im.height*scale)),Image.Resampling.LANCZOS)
-  canvas=Image.new('RGBA',(640,840)); canvas.paste(im,tuple(offset)); return canvas
+  pad=128 if hair else 0
+  canvas=Image.new('RGBA',(640+pad*2,840)); canvas.paste(im,(offset[0]+pad,offset[1])); return canvas
  for name,(hand,head) in POSES.items():
   key=name.split('-')[0]+''.join(s.title() for s in name.split('-')[1:])
   source=ROOT/'docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png' if name=='idle' else SOURCES/f'W03-CUTE-B-{name}.png'
@@ -38,7 +39,7 @@ def build():
   if name not in ('idle','cast-windup'): frame(body).save(OUT/f'{name}.png')
   dx,dy,angle=head
   layer=hair.rotate(-math.degrees(angle),resample=Image.Resampling.BICUBIC,center=(600,300),translate=(dx,dy))
-  frame(layer).save(OUT/f'hair-{name}.png')
+  frame(layer,hair=True).save(OUT/f'hair-{name}.png')
   entry=info['poses'].setdefault(key,{'file':f'{name}.png','source':source.name,'offset':offset})
   socket=[round((hand[i]*scale+offset[i])/2,1) for i in range(2)]
   if name not in ('idle','cast-windup'): entry['fish' if name.startswith('joy-') else 'grip']=socket

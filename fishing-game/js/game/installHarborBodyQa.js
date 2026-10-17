@@ -182,8 +182,8 @@ export function syncHarborBodyHair(scene) {
       return
     }
     const hair = scene._qaBodyHair[i] ??= scene.add.image(actor.x, actor.y, key)
-    hair.setTexture(key).setOrigin(actor.originX, actor.originY)
-      .setPosition(actor.x, actor.y).setDisplaySize(actor.displayWidth, actor.displayHeight)
+    hair.setTexture(key).setOrigin((actor.originX * 640 + 128) / 896, actor.originY)
+      .setPosition(actor.x, actor.y).setDisplaySize(actor.displayWidth * 896 / 640, actor.displayHeight)
       .setRotation(actor.rotation).setFlipX(actor.flipX).setFlipY(actor.flipY)
       .setScrollFactor(actor.scrollFactorX, actor.scrollFactorY)
       .setDepth(actor.depth + 0.1).setAlpha(actor.alpha).setVisible(true)
