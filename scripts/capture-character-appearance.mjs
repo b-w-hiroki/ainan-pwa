@@ -62,8 +62,8 @@ try {
      const points=[[left,bottom],[right,bottom]].map(([x,y])=>matrix.transformPoint(x-image.displayOriginX,y-image.displayOriginY))
      const rect=s.game.canvas.getBoundingClientRect()
      const sx=rect.width/s.scale.width,sy=rect.height/s.scale.height
-     const bottom=c.poseFront.getWorldTransformMatrix().transformPoint(0,0).y
-     return {phase:s.phase,pose:c.currentPose,left:rect.left+Math.min(...points.map(p=>p.x))*sx,right:rect.left+Math.max(...points.map(p=>p.x))*sx,bodyBottom:rect.top+bottom*sy,designBottom:c.layout.y,hairKey:image.texture.key}
+     const bodyY=c.poseFront.getWorldTransformMatrix().transformPoint(0,0).y
+     return {phase:s.phase,pose:c.currentPose,left:rect.left+Math.min(...points.map(p=>p.x))*sx,right:rect.left+Math.max(...points.map(p=>p.x))*sx,bodyBottom:rect.top+bodyY*sy,designBottom:c.layout.y,hairKey:image.texture.key}
     },name)
     assert.equal(state.phase,outcome==='battle'?'battle':'result')
     assert.ok(state.left>=4,JSON.stringify(state))
@@ -79,3 +79,4 @@ try {
  writeFileSync(join(root,'evidence.json'),JSON.stringify(evidence,null,2))
  console.log('PASS actual Phaser dimensions and matching hair for 13 poses')
 } finally {await browser.close()}
+
