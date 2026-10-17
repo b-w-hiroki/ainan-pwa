@@ -65,7 +65,7 @@ export default class HomeScene extends Phaser.Scene {
     })
   }
 
-  create() {
+  create(data = {}) {
     const { width: W, height: H } = this.scale
     this._unlocks = getTownUnlockState()
     this._nextUnlock = getNextTownUnlock()
@@ -84,6 +84,8 @@ export default class HomeScene extends Phaser.Scene {
     this._buildMainCTA(W, H)
     buildFooterNav(this, W, H, 'home', { useArt: true })
     this._maybeShowDailyBonus(W, H)
+
+    if (data.fromTitle) this.cameras.main.fadeIn(260, 7, 34, 54)
   }
 
   _buildBackground(W, H) {

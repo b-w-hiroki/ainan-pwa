@@ -4,6 +4,7 @@ import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
 import { loadUiArt } from '../ui/UiArt.js'
+import { isReducedMotion } from '../game/feedback.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
@@ -148,7 +149,7 @@ export default class TitleScene extends Phaser.Scene {
       depth: 10,
       keyboard: true,
       pulse: true,
-      onClick: () => this.scene.start('HomeScene'),
+      onClick: () => this._startHome(),
     })
 
     new Button(this, {
@@ -178,6 +179,20 @@ export default class TitleScene extends Phaser.Scene {
       fontSize: '8px', fontWeight: '800',
       color: '#173248',
     }).setOrigin(1, 1).setDepth(6).setAlpha(0.58)
+  }
+
+  _startHome() {
+    if (this._leavingTitle) return
+    this._leavingTitle = true
+
+    const enterHome = () => this.scene.start('HomeScene', { fromTitle: true })
+    if (isReducedMotion()) {
+      enterHome()
+      return
+    }
+
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, enterHome)
+    this.cameras.main.fadeOut(260, 7, 34, 54)
   }
 
   _drawCloud(g, cx, cy, sc) {
