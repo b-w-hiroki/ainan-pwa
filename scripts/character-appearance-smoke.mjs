@@ -36,6 +36,28 @@ assert.equal(new CharacterMotionController(scene).mount(display()).cute,false,'m
 let restarted=false
 characterAppearanceCard({scene:{restart(){restarted=true}}})[2]()
 assert.equal(restarted,true)
+assert.equal(getCharacterAppearance(),'cute-a-01')
+scene.textures.exists=()=>true
+const boyMetadata=JSON.parse(readFileSync(new URL('../fishing-game/assets/candidates/w03-body-cute-a-01/poses.json',import.meta.url)))
+scene.cache.json.get=()=>boyMetadata
+assert.equal(characterMotionAssets().filter(a=>a.key.startsWith('character_cute_a_')).length,13)
+const boy=new CharacterMotionController(scene).mount(display())
+assert.equal(boy.cute,true)
+assert.equal(boy.hair,null)
+for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
+ const frame=readFileSync(new URL('../fishing-game/assets/candidates/w03-body-cute-a-01/'+boyMetadata.poses[name].file,import.meta.url))
+ assert.equal(frame.readUInt32BE(16),640)
+ assert.equal(frame.readUInt32BE(20),840)
+ assert.equal(frame[25],6,'male frame must retain RGBA')
+ assert.equal(boy._applyPose(name),true)
+ assert.equal(boy.poseFront.key,`character_cute_a_${name}`)
+ assert.deepEqual(boy.poseFront.size,[140,183.75])
+ assert.deepEqual(boy.poses[name].grip ?? boy.poses[name].fish,boyMetadata.poses[name].grip ?? boyMetadata.poses[name].fish)
+}
+boy.destroy()
+scene.textures.exists=key=>key!=='character_cute_a_sadMid'
+assert.equal(new CharacterMotionController(scene).mount(display()).cute,false)
+characterAppearanceCard({scene:{restart(){}}})[2]()
 assert.equal(getCharacterAppearance(),'classic')
 globalThis.localStorage={getItem(){throw Error('blocked')},setItem(){throw Error('full')}}
 assert.equal(getCharacterAppearance(),'classic')

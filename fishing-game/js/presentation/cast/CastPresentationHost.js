@@ -142,7 +142,7 @@ export class CastPresentationHost {
 
     const useApprovedComposite = castCompositePrototypeEnabled()
     const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
-    const useCuteHarbor = getActiveCharacterAppearance() === 'cute-b-01' && (scene.env?.point ?? 'pointA') === 'pointA' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)
+    const useCuteHarbor = ['cute-a-01', 'cute-b-01'].includes(getActiveCharacterAppearance()) && (scene.env?.point ?? 'pointA') === 'pointA' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)
     const useLayeredScene = layerOptions.enabled || useCuteHarbor
     let layeredScene = null
     let approvedSplit = null

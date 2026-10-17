@@ -11,7 +11,9 @@
       ],
       "offset": [
         -213,
-        -28
+        -28,
+        733,
+        918
       ]
     },
     "castWindup": {
@@ -24,6 +26,160 @@
       "offset": [
         -213,
         -28
+      ]
+    },
+    "castMid": {
+      "file": "cast-mid.png",
+      "source": "W03-CUTE-A-cast-mid.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        213.1,
+        103.0
+      ]
+    },
+    "castRelease": {
+      "file": "cast-release.png",
+      "source": "W03-CUTE-A-cast-release.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        262.2,
+        117.3
+      ]
+    },
+    "fightLeft": {
+      "file": "fight-left.png",
+      "source": "W03-CUTE-A-fight-left.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        173.5,
+        137.7
+      ]
+    },
+    "fightMid": {
+      "file": "fight-mid.png",
+      "source": "W03-CUTE-A-fight-mid.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        213.5,
+        139.6
+      ]
+    },
+    "fightRight": {
+      "file": "fight-right.png",
+      "source": "W03-CUTE-A-fight-right.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        196.5,
+        139.6
+      ]
+    },
+    "joyLift": {
+      "file": "joy-lift.png",
+      "source": "W03-CUTE-A-joy-lift.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "fish": [
+        247.5,
+        134.3
+      ]
+    },
+    "joyMid": {
+      "file": "joy-mid.png",
+      "source": "W03-CUTE-A-joy-mid.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "fish": [
+        250.9,
+        156.6
+      ]
+    },
+    "joyHold": {
+      "file": "joy-hold.png",
+      "source": "W03-CUTE-A-joy-hold.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "fish": [
+        245.6,
+        162.2
+      ]
+    },
+    "sadDrop": {
+      "file": "sad-drop.png",
+      "source": "W03-CUTE-A-sad-drop.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        200.3,
+        241.5
+      ]
+    },
+    "sadMid": {
+      "file": "sad-mid.png",
+      "source": "W03-CUTE-A-sad-mid-v2.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        209.7,
+        239.2
+      ]
+    },
+    "sadSlump": {
+      "file": "sad-slump.png",
+      "source": "W03-CUTE-A-sad-slump.png",
+      "offset": [
+        -213,
+        -28,
+        733,
+        918
+      ],
+      "grip": [
+        187.1,
+        248.3
       ]
     }
   }

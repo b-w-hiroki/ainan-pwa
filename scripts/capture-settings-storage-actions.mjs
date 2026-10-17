@@ -91,6 +91,11 @@ try {
     await page.waitForFunction(()=>window.__game?.scene?.getScene('SettingsScene')?.sys?.isActive?.())
     assert.equal(await page.evaluate(()=>localStorage.getItem('ainan_character_appearance')),'cute-b-01')
     await page.mouse.click(284,610)
+    await page.waitForFunction(()=>localStorage.getItem('ainan_character_appearance')==='cute-a-01')
+    await page.reload({waitUntil:'domcontentloaded'})
+    await page.waitForFunction(()=>window.__game?.scene?.getScene('SettingsScene')?.sys?.isActive?.())
+    assert.equal(await page.evaluate(()=>localStorage.getItem('ainan_character_appearance')),'cute-a-01')
+    await page.mouse.click(284,610)
     await page.waitForFunction(()=>localStorage.getItem('ainan_character_appearance')==='classic')
     console.log('Settings verified: 9 touch targets, backup failure once, clipboard fallback, appearance tap and persistence')
   } finally {

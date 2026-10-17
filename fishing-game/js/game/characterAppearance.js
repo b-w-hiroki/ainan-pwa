@@ -1,18 +1,18 @@
 // Device preference, like sound/motion settings; never changes the game save.
 const KEY = 'ainan_character_appearance'
 export function getCharacterAppearance() {
-  try { return globalThis.localStorage?.getItem(KEY) === 'cute-b-01' ? 'cute-b-01' : 'classic' }
+  try { const id = globalThis.localStorage?.getItem(KEY); return ['cute-a-01', 'cute-b-01'].includes(id) ? id : 'classic' }
   catch { return 'classic' }
 }
 export function setCharacterAppearance(id) {
-  if (!['classic', 'cute-b-01'].includes(id)) return false
+  if (!['classic', 'cute-b-01', 'cute-a-01'].includes(id)) return false
   try { if (!globalThis.localStorage) return false; globalThis.localStorage.setItem(KEY, id); return true }
   catch { return false }
 }
 export function characterAppearanceCard(scene) {
   const selected = getCharacterAppearance()
-  return ['釣り人の見た目', selected === 'classic' ? 'いつもの釣り人' : 'ポニーテール（港）', () => {
-    if (!setCharacterAppearance(selected === 'classic' ? 'cute-b-01' : 'classic')) {
+  return ['釣り人の見た目', {classic: 'いつもの釣り人', 'cute-b-01': 'ポニーテール（港）', 'cute-a-01': '男の子（港）'}[selected], () => {
+    if (!setCharacterAppearance({classic: 'cute-b-01', 'cute-b-01': 'cute-a-01', 'cute-a-01': 'classic'}[selected])) {
       scene._toast('見た目を保存できませんでした'); return
     }
     scene.scene.restart()

@@ -1,0 +1,3 @@
+Mode: built-in image_gen
+Edit target: W03-CUTE-A-sad-mid.png
+Edit the provided transparent game sprite only. Repair the visible horizontal compositing seam across the lower white tank top and right forearm at approximately y=660 of the 1254x1254 source. Restore continuous natural fabric shading and smooth arm outline there. Preserve the exact boy identity, hair, face, sad-mid pose, white tank top, navy shorts, bare feet, every other contour and placement; do not redesign. Full canvas 1254x1254, feet at same position, transparent PNG with alpha=0 outside character. Single character only, no rod, fish, ground, shadow, props, text, UI or scene. Clean subtle outlines without colored edge artifacts.
