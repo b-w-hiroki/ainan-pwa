@@ -15,7 +15,7 @@ assert.equal(harborBodyQaStart('?qaBody=cute-b-01'),null)
 const originals=Object.values(CHARACTER_MOTION_POSES).map(p=>[p,ASSETS.characters[p.asset].key,p.grip,p.tip,p.fish])
 function image(key='idle') {
  const o={active:true,visible:true,x:30,y:100,originX:.5,originY:1,displayWidth:240,displayHeight:312,rotation:.2,flipX:false,flipY:false,scrollFactorX:1,scrollFactorY:1,depth:41,alpha:.7,texture:{key},scaleX:1,scaleY:1}
- const methods={setPosition:['x','y'],setOrigin:['originX','originY'],setDisplaySize:['displayHeight'],setRotation:['rotation'],setFlipX:['flipX'],setFlipY:['flipY'],setScrollFactor:['scrollFactorX','scrollFactorY'],setDepth:['depth'],setAlpha:['alpha'],setVisible:['visible']}
+ const methods={setPosition:['x','y'],setOrigin:['originX','originY'],setDisplaySize:['displayWidth','displayHeight'],setRotation:['rotation'],setFlipX:['flipX'],setFlipY:['flipY'],setScrollFactor:['scrollFactorX','scrollFactorY'],setDepth:['depth'],setAlpha:['alpha'],setVisible:['visible']}
  for(const [m,fields] of Object.entries(methods)) o[m]=(...args)=>{fields.forEach((f,i)=>o[f]=args[i]);return o}
  o.setTexture=key=>{o.texture={key};return o};o.destroy=()=>o.active=false
  return o
@@ -54,3 +54,4 @@ action.phase='cast';action._cameraPanPose='castWindup';syncHarborBodyAction(acti
 scene._qaBody={id:'cute-b-01'};scene._cameraPanPlayer.setVisible(true);scene.time={now:0};scene._cameraPanHidePlayerUntil=900
 syncHarborBodyHair(scene);assert.ok((scene._qaBodyHair??[]).every(h=>!h.visible))
 console.log('PASS battle/result actions, reduced motion, cast ownership and hidden battle intro')
+
