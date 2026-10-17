@@ -13,7 +13,7 @@ try {
  const errors=[]
  page.on('pageerror',e=>{if(e.message!=='service worker disabled in QA')errors.push(e.message)})
  await page.addInitScript(()=>{localStorage.setItem('ainan_character_appearance','cute-b-01');localStorage.setItem('ainan_sound_enabled','0')})
- await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&castLayers=1')
+ await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene')
  await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion?.cute)
  await page.evaluate(()=>window.__game.scene.getScene('GameScene').scene.pause())
  const poses=['idle','castWindup','castMid','castRelease','fightLeft','fightMid','fightRight','joyLift','joyMid','joyHold','sadDrop','sadMid','sadSlump']
@@ -38,7 +38,7 @@ try {
  for (const [width,height] of [[390,844],[844,390]]) {
   await page.setViewportSize({width,height})
   for (const outcome of ['battle','caught','escaped']) {
-   await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&castLayers=1&qaAction=battle')
+   await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle')
    await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?.phase==='battle')
    if(outcome!=='battle') await page.evaluate(value=>window.__game.scene.getScene('GameScene')._finishBattle(value),outcome)
    await page.waitForTimeout(1300)
@@ -75,6 +75,21 @@ try {
    }
   }
  }
+ // Verify saved choice on a normal URL, without QA scene or rendering flags.
+ await page.setViewportSize({width:390,height:844})
+ await page.goto('http://127.0.0.1:4173/fishing-game/')
+ await page.waitForFunction(()=>window.__game?.scene?.getScenes(true).length>0)
+ await page.evaluate(()=>{
+  const game=window.__game
+  for(const scene of game.scene.getScenes(true)) game.scene.stop(scene.scene.key)
+  game.scene.start('SettingsScene')
+ })
+ await page.waitForFunction(()=>window.__game.scene.isActive('SettingsScene'))
+ await page.screenshot({path:join(root,'normal-settings.png')})
+ await page.evaluate(()=>window.__game.scene.getScene('SettingsScene').scene.start('GameScene',{point:'pointA'}))
+ await page.waitForFunction(()=>window.__game.scene.getScene('GameScene')._castPresentationHost?.nodes?.characterMotion?.cute===true)
+ assert.equal(await page.evaluate(()=>location.search),'')
+ await page.screenshot({path:join(root,'normal-harbor.png')})
  assert.deepEqual(errors,[])
  writeFileSync(join(root,'evidence.json'),JSON.stringify(evidence,null,2))
  console.log('PASS actual Phaser dimensions and matching hair for 13 poses')

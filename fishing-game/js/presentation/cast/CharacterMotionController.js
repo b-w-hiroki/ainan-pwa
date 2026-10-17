@@ -67,7 +67,7 @@ const cuteKey = name => `character_cute_b_${name}`
 const cuteFile = name => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase())
 const cuteDir = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-body-cute-b-01/`
 export function preloadCharacterAppearance(scene) {
-  if (isCharacterAppearancePreview() && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+  if ((isCharacterAppearancePreview() || getActiveCharacterAppearance() === 'cute-b-01') && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
     scene.load.image(CHARACTER_PREVIEW_BACKGROUND.key, CHARACTER_PREVIEW_BACKGROUND.path)
   }
   if (getActiveCharacterAppearance() !== 'cute-b-01') return
@@ -117,7 +117,7 @@ export class CharacterMotionController {
     this.ready = requiredAssets().every(asset => asset?.key && scene.textures.exists(asset.key))
     if (!this.ready) return this
     const metadata = scene.cache?.json?.get('character_cute_b_poses')
-    this.cute = getActiveCharacterAppearance() === 'cute-b-01' && Object.keys(CHARACTER_MOTION_POSES).every(name =>
+    this.cute = (scene.env?.point ?? 'pointA') === 'pointA' && getActiveCharacterAppearance() === 'cute-b-01' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key) && Object.keys(CHARACTER_MOTION_POSES).every(name =>
       metadata?.poses?.[name] && scene.textures.exists(cuteKey(name)) && scene.textures.exists(cuteKey(name) + '_hair'))
     if (this.cute) this.poses = Object.fromEntries(Object.entries(CHARACTER_MOTION_POSES).map(([name, pose]) => {
       const socket = metadata.poses[name]

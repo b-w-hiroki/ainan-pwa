@@ -1,4 +1,4 @@
-import { characterAppearanceCard, isCharacterAppearancePreview } from '../game/characterAppearance.js'
+import { characterAppearanceCard } from '../game/characterAppearance.js'
 import Phaser from 'phaser'
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
@@ -22,11 +22,10 @@ export default class SettingsScene extends Phaser.Scene {
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
     this.add.rectangle(W / 2, H / 2, W, H, 0xf7fcff, 0.92).setDepth(1)
     this._header(W)
-    const preview = isCharacterAppearancePreview()
-    const cards = [...buildSettingsCards(this), ...(preview ? [characterAppearanceCard(this)] : [])]
+    const cards = [...buildSettingsCards(this), characterAppearanceCard(this)]
     cards.forEach((item, i) => this._card(W, 96 + i * 61, item[0], item[1], item[2]))
-    this.add.text(30, preview ? 653 : 592, 'SAVE VERSION  ' + SAVE_VERSION, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
-    this.add.text(30, preview ? 673 : 612, '書き出しデータには端末内のゲーム進行だけが含まれます。', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: W - 60 } }).setDepth(5)
+    this.add.text(30, 653, 'SAVE VERSION  ' + SAVE_VERSION, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.inkSoft }).setDepth(5)
+    this.add.text(30, 673, '書き出しデータには端末内のゲーム進行だけが含まれます。', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: W - 60 } }).setDepth(5)
     buildFooterNav(this, W, H, 'menu')
   }
   _header(W) {

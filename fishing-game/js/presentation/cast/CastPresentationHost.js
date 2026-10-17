@@ -1,3 +1,4 @@
+import { getActiveCharacterAppearance, CHARACTER_PREVIEW_BACKGROUND } from '../../game/characterAppearance.js'
 import { isNativeLandscapeQaResize } from '../landscape/nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FISHING_MOCK_LAYOUT as L } from '../layouts/fishingMockLayout.js'
@@ -141,7 +142,8 @@ export class CastPresentationHost {
 
     const useApprovedComposite = castCompositePrototypeEnabled()
     const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
-    const useLayeredScene = layerOptions.enabled
+    const useCuteHarbor = getActiveCharacterAppearance() === 'cute-b-01' && (scene.env?.point ?? 'pointA') === 'pointA' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)
+    const useLayeredScene = layerOptions.enabled || useCuteHarbor
     let layeredScene = null
     let approvedSplit = null
     if (useLayeredScene) {
@@ -267,6 +269,12 @@ export class CastPresentationHost {
 
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    if (useCuteHarbor) {
+      // Zoom toward the near quay. At y=600 the solid bank extends beyond
+      // x=150, keeping both feet on land while the fish remains over water.
+      battleBackground.setTexture(CHARACTER_PREVIEW_BACKGROUND.key)
+        .setOrigin(0).setPosition(0, -200).setScale(1).setCrop(0, 200, 390, 824)
+    }
     const battleSplash = scene.add.graphics()
     battleSplash.lineStyle(6, 0xeafcff, 0.90)
     battleSplash.strokeEllipse(214, 360, 340, 112)
