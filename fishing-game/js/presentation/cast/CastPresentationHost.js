@@ -270,10 +270,10 @@ export class CastPresentationHost {
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
     if (useCuteHarbor) {
-      // Zoom toward the near quay. At y=600 the solid bank extends beyond
-      // x=150, keeping both feet on land while the fish remains over water.
+      // Zoom toward the near quay. Keep the mooring post below the control dock and both feet on
+      // the flat quay, while the fish remains over water.
       battleBackground.setTexture(CHARACTER_PREVIEW_BACKGROUND.key)
-        .setOrigin(0).setPosition(0, -200).setScale(1).setCrop(0, 200, 390, 824)
+        .setOrigin(0).setPosition(0, -150).setScale(1).setCrop(0, 150, 390, 874)
     }
     const battleSplash = scene.add.graphics()
     battleSplash.lineStyle(6, 0xeafcff, 0.90)
