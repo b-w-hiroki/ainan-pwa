@@ -6,7 +6,7 @@ import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 import { haptic } from './feedback.js'
 import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
-import { characterMotionAssets } from '../presentation/cast/CharacterMotionController.js'
+import { characterMotionAssets, preloadCharacterAppearance } from '../presentation/cast/CharacterMotionController.js'
 
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
@@ -861,6 +861,7 @@ export function installFishingPresentationGuard(GameScene) {
   const originalPreload = GameScene.prototype.preload
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
+    preloadCharacterAppearance(this)
     const playerAssets = [ASSETS.characters?.fishingCastHero, ASSETS.characters?.fishingCastRodless, ASSETS.characters?.fishingRetrieveHero, ASSETS.characters?.fishingHero, ASSETS.characters?.playerDefaultUi, ASSETS.characters?.playerDefault, ...characterMotionAssets()].filter(Boolean)
     const approvedUiAssets = [
       ASSETS.ui?.fishingLayerSky,

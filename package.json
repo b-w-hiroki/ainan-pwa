@@ -17,7 +17,7 @@
     "qa:player-fishing": "node scripts/player-fishing-polish-smoke.mjs",
     "qa:cast-layering": "node scripts/cast-layering-smoke.mjs",
     "qa:landscape-layout": "node scripts/landscape-layout-contract-smoke.mjs",
-    "qa:character-motion": "node scripts/character-motion-integration-smoke.mjs",
+    "qa:character-motion": "node scripts/character-motion-integration-smoke.mjs && node scripts/character-appearance-smoke.mjs",
     "qa:equipment-visual": "node scripts/equipment-visual-smoke.mjs",
     "qa:fishing-journey": "node scripts/fishing-journey-smoke.mjs",
     "qa:town-catch": "node scripts/town-catch-reactions-smoke.mjs",

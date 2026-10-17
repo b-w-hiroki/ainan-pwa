@@ -816,6 +816,12 @@ export class CastPresentationHost {
       const caught = result.outcome === 'caught'
       const retry = getRetryJourneyCopy(this.scene.env?.point)
       this._syncFishImage(this.nodes.resultFish, result.fishId, 'result')
+      if (this.nodes.characterMotion?.cute) {
+        // Leave the left side for the complete celebration pose, above the card.
+        const hero = this.nodes.resultFish
+        const ratio = 230 / hero.displayWidth
+        hero.setDisplaySize(230, hero.displayHeight * ratio).setX(250)
+      }
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught && !this.nodes.resultOutcomeFx)
       this.nodes.resultOutcomeFx?.setVisible(true)

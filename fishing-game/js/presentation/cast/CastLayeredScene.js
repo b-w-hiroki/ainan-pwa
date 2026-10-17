@@ -1,3 +1,4 @@
+import { isCharacterAppearancePreview, CHARACTER_PREVIEW_BACKGROUND } from '../../game/characterAppearance.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { CAST_LAYER_CONFIG, readCastLayerDevOptions } from './castLayerConfig.js'
 
@@ -122,11 +123,21 @@ export function createLayeredCastScene(scene) {
   Object.entries(config.layers).forEach(([name, layerConfig]) => { nodes[name] = addLayer(scene, root, name, layerConfig) })
   root.sort('depth')
 
-  if (!addFullCanvasAsset(scene, nodes.sky, ASSETS.ui.fishingLayerSky)) drawSky(scene, nodes.sky)
-  if (!addFullCanvasAsset(scene, nodes.clouds, ASSETS.ui.fishingLayerClouds)) drawClouds(scene, nodes.clouds)
-  if (!addFullCanvasAsset(scene, nodes.sea, ASSETS.ui.fishingLayerSea)) drawSea(scene, nodes.sea, config.dockTop)
-  if (!addFullCanvasAsset(scene, nodes.distantHarbor, ASSETS.ui.fishingLayerDistantHarbor)) drawDistantHarbor(scene, nodes.distantHarbor)
-  if (!addFullCanvasAsset(scene, nodes.platform, ASSETS.ui.fishingLayerPlatform)) drawPlatform(scene, nodes.platform)
+  if (isCharacterAppearancePreview() && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+    // The source contains no person or rod. Preserve its aspect ratio and
+    // anchor the portrait crop on the left quay, keeping the cast over water.
+    const source = scene.textures.get(CHARACTER_PREVIEW_BACKGROUND.key).getSourceImage()
+    const height = source.naturalHeight || source.height
+    const width = height * config.design.width / config.design.height
+    nodes.sky.add(scene.add.image(0, 0, CHARACTER_PREVIEW_BACKGROUND.key)
+      .setOrigin(0).setCrop(0, 0, width, height).setScale(config.design.height / height))
+  } else {
+    if (!addFullCanvasAsset(scene, nodes.sky, ASSETS.ui.fishingLayerSky)) drawSky(scene, nodes.sky)
+    if (!addFullCanvasAsset(scene, nodes.clouds, ASSETS.ui.fishingLayerClouds)) drawClouds(scene, nodes.clouds)
+    if (!addFullCanvasAsset(scene, nodes.sea, ASSETS.ui.fishingLayerSea)) drawSea(scene, nodes.sea, config.dockTop)
+    if (!addFullCanvasAsset(scene, nodes.distantHarbor, ASSETS.ui.fishingLayerDistantHarbor)) drawDistantHarbor(scene, nodes.distantHarbor)
+    if (!addFullCanvasAsset(scene, nodes.platform, ASSETS.ui.fishingLayerPlatform)) drawPlatform(scene, nodes.platform)
+  }
   const characterAsset = ASSETS.characters.fishingCastRodless
   if (characterAsset?.key && scene.textures.exists(characterAsset.key)) {
     nodes.character.add(scene.add.image(config.player.modularX, config.player.modularY, characterAsset.key)
