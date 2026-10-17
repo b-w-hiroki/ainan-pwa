@@ -5,14 +5,16 @@ import { pathToFileURL } from 'node:url'
 const executable=process.env.PATH.split(':').map(dir=>join(dir,'playwright')).find(existsSync)
 assert.ok(executable)
 const {chromium}=await import(pathToFileURL(join(dirname(realpathSync(executable)),'index.mjs')).href)
-const root='artifacts/character-appearance'
+const appearance=process.env.CHARACTER_APPEARANCE ?? 'cute-b-01'
+assert.ok(['cute-a-01','cute-b-01'].includes(appearance))
+const root='artifacts/character-appearance/'+appearance
 mkdirSync(root,{recursive:true})
 const browser=await chromium.launch({headless:true})
 try {
  const page=await browser.newPage({viewport:{width:390,height:844}})
  const errors=[]
  page.on('pageerror',e=>{if(e.message!=='service worker disabled in QA')errors.push(e.message)})
- await page.addInitScript(()=>{localStorage.setItem('ainan_character_appearance','cute-b-01');localStorage.setItem('ainan_sound_enabled','0')})
+ await page.addInitScript(id=>{localStorage.setItem('ainan_character_appearance',id);localStorage.setItem('ainan_sound_enabled','0')},appearance)
  await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene')
  await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion?.cute)
  await page.evaluate(()=>window.__game.scene.getScene('GameScene').scene.pause())
@@ -23,12 +25,13 @@ try {
    const s=window.__game.scene.getScene('GameScene')
    const c=s._castPresentationHost.nodes.characterMotion
    c._cancel();c._applyPose(name)
-   return {pose:c.currentPose,body:[c.poseFront.displayWidth,c.poseFront.displayHeight],hair:[c.hair.displayWidth,c.hair.displayHeight],bodyKey:c.poseFront.texture.key,hairKey:c.hair.texture.key,background:s.textures.exists('character_preview_harbor_morning'),grip:c.root.getData('rodGripLocal')}
+   return {pose:c.currentPose,body:[c.poseFront.displayWidth,c.poseFront.displayHeight],hair:c.hair ? [c.hair.displayWidth,c.hair.displayHeight] : null,bodyKey:c.poseFront.texture.key,hairKey:c.hair?.texture.key ?? null,background:s.textures.exists('character_preview_harbor_morning'),grip:c.root.getData('rodGripLocal')}
   },pose)
   assert.equal(state.pose,pose)
   assert.deepEqual(state.body,[140,183.75])
-  assert.deepEqual(state.hair,[196,183.75])
-  assert.equal(state.hairKey,state.bodyKey+'_hair')
+  assert.deepEqual(state.hair,appearance==='cute-b-01'?[196,183.75]:null)
+  assert.equal(state.bodyKey,`character_cute_${appearance==='cute-a-01'?'a':'b'}_${pose}`)
+  assert.equal(state.hairKey,appearance==='cute-b-01'?state.bodyKey+'_hair':null)
   assert.equal(state.background,true)
   await page.screenshot({path:join(root,pose+'.png')})
   evidence.push(state)
@@ -52,7 +55,7 @@ try {
      c._cancel();c._applyPose(pose)
      if(s.phase==='result') c.fish.setVisible(false)
      // Inspect source alpha, not the oversized transparent canvas bounds.
-     const image=c.hair,source=image.texture.getSourceImage(),canvas=document.createElement('canvas')
+     const image=c.hair ?? c.poseFront,source=image.texture.getSourceImage(),canvas=document.createElement('canvas')
      canvas.width=source.width;canvas.height=source.height
      const ctx=canvas.getContext('2d');ctx.drawImage(source,0,0)
      const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data

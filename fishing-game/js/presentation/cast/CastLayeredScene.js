@@ -123,7 +123,7 @@ export function createLayeredCastScene(scene) {
   Object.entries(config.layers).forEach(([name, layerConfig]) => { nodes[name] = addLayer(scene, root, name, layerConfig) })
   root.sort('depth')
 
-  if ((isCharacterAppearancePreview() || getActiveCharacterAppearance() === 'cute-b-01') && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+  if ((isCharacterAppearancePreview() || ['cute-a-01', 'cute-b-01'].includes(getActiveCharacterAppearance())) && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
     // The source contains no person or rod. Preserve its aspect ratio and
     // anchor the portrait crop on the left quay, keeping the cast over water.
     const source = scene.textures.get(CHARACTER_PREVIEW_BACKGROUND.key).getSourceImage()

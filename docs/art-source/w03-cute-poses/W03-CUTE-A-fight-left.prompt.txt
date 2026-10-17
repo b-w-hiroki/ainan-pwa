@@ -1,0 +1,7 @@
+Mode: Built-in image generation, followed by authorized Pillow/NumPy alignment.
+Reference identity: b-w-hiroki/ainan-pwa main docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png
+Reference pose: fishing-game/assets/characters/animation-v1/fight-left.png
+
+Edit image 1 into ONE fight-left fishing battle sprite. Preserve image 1 exact identity, short brown hairstyle, face, white tank top, navy shorts, bare feet, cute 3.5-head proportions and soft painterly thin outline style. Image 2 is ONLY upper-body pose reference: bracing while fighting a fish, torso leans to SCREEN LEFT and slightly backward, shoulders twisted, elbows bent, both hands held together near front/right shoulder gripping an invisible rod, tension through shoulders. Match its left-leaning body action, not casting or arms extended. Keep rear three-quarter upper-right viewing direction and a little side face. Maintain image 1 standing legs and exact feet position; adapt the seated reference upper-body action to standing, do NOT copy its seated legs, hat, ponytail, bag, orange clothes. ONE full body character centered, same scale as image 1, soles at 90% height. 1254x1254 PNG with genuine alpha transparent background. No rod, line, fish, ground, shadows, hat, bag, cat, text, UI or scenery. Hands curled to hold a rod but absolutely no object in hands. All empty background alpha=0.
+
+Postprocessing: scripts/align_cute_windup.py --pose fight-left. Preserve idle lower body from row 750; align torso and feet. Output 1254x1254 RGBA PNG.

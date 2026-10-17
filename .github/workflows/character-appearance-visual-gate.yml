@@ -9,6 +9,7 @@ on:
       - 'fishing-game/js/game/installFishingResultPresentation.js'
       - 'fishing-game/js/game/installFishingVisualUpgrade.js'
       - 'fishing-game/js/game/installFishingPresentationGuard.js'
+      - 'fishing-game/assets/candidates/w03-body-cute-*/**'
       - 'scripts/capture-character-appearance.mjs'
       - 'scripts/capture-settings-storage-actions.mjs'
       - '.github/workflows/character-appearance-visual-gate.yml'
@@ -46,6 +47,10 @@ jobs:
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-settings-storage-actions.mjs
       - name: Verify actual character textures and capture all 13 poses
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-character-appearance.mjs
+      - name: Verify boy poses and phase layouts
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-character-appearance.mjs
+        env:
+          CHARACTER_APPEARANCE: cute-a-01
       - name: Preserve real PNGs and layout evidence on failure
         if: always()
         uses: actions/upload-artifact@v4
