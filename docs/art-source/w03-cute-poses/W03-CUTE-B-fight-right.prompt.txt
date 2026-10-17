@@ -1,0 +1,7 @@
+Mode: Built-in image generation; authorized Pillow/NumPy alignment.
+Identity: b-w-hiroki/ainan-pwa main docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png
+Pose: fishing-game/assets/characters/animation-v1/fight-right.png (main SHA 4d0e88145fdfca1a0f4eb19cf55d73bbd734de7f)
+
+Use case: identity-preserve. Edit image 1 into ONE fight-right game sprite. Image 1 is exact character identity, clothing, proportions and painting style; image 2 ONLY upper-body battle pose reference. Preserve face, short brown hair, white tank top, navy shorts and bare feet from image 1. Follow image 2 shoulders twist and bent arms, hands together raised ahead of chest toward upper right gripping an invisible rod, torso actively bracing and tilting toward screen RIGHT relative to hips. Keep rear three-quarter view with a little side face visible, facing upper right. Maintain standing lower body and exact foot positions from image 1; adapt seated reference upper-body action to standing. Do not copy reference hat, ponytail, orange outfit, gloves, bag or sitting legs. Preserve head size and body scale, centered full body, feet 10% above bottom. 1254x1254 transparent PNG genuine alpha. ONE character only. No rod, reel, line, fish, ground, shadow, hat, bag, cat, text, UI, scenery. Clean fully transparent empty background without colored speckles. Same soft painting and thin contours as image 1.
+
+Postprocessing: scripts/align_cute_windup.py --pose fight-right. Preserve idle lower body from row 750, align upper body. Output 1254x1254 RGBA PNG.

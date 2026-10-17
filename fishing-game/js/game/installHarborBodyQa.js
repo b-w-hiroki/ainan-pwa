@@ -1,3 +1,4 @@
+import { isReducedMotion } from './feedback.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
 import { isHarborPlayableQaEnabled } from './installHarborPlayableQa.js'
@@ -6,7 +7,8 @@ import { isHarborPlayableQaEnabled } from './installHarborPlayableQa.js'
 // Shows independent W03 body PNGs on the EXISTING camera-pan player owner. There is
 // deliberately NO in-game switch control: the look is chosen by the URL here, and the
 // game-start / settings flow will call setHarborBodyVariant(scene, id) later.
-// 'a'/'b' have idle + castWindup; the cute variants only have idle so far. Every
+// cute-b-01 has all 13 poses plus separate hair. Other variants keep their
+// existing pose availability. Every
 // other pose keeps the old animation-v1 art (drawn into same-size canvases so the
 // scale stays consistent). Rod/line owner, cast, save data, odds and rewards are
 // untouched, and every mutation is undone in _cleanup. Never enable on a normal URL.
@@ -19,7 +21,7 @@ export const HARBOR_BODY_VARIANTS = Object.freeze([
   { id: 'cute-a-01', label: 'かわいいA-1', poses: ['idle', 'castWindup'] },
   { id: 'cute-a-02', label: 'かわいいA-2', poses: ['idle'] },
   { id: 'cute-a-03', label: 'かわいいA-3', poses: ['idle'] },
-  { id: 'cute-b-01', label: 'かわいいB-1', poses: ['idle', 'castWindup'] },
+  { id: 'cute-b-01', label: 'かわいいB-1', poses: Object.keys(CHARACTER_MOTION_POSES), hair: true },
   { id: 'cute-b-02', label: 'かわいいB-2', poses: ['idle'] },
   { id: 'cute-b-03', label: 'かわいいB-3', poses: ['idle'] },
   { id: 'cute-b-01-v2', label: 'かわいいB-1 v2', poses: ['idle'] },
@@ -30,7 +32,7 @@ export const HARBOR_BODY_VARIANTS = Object.freeze([
 ])
 // Chosen defaults (男の子 / 女の子). The start/settings flow will use these.
 export const HARBOR_BODY_DEFAULTS = Object.freeze({ male: 'cute-a-01', female: 'cute-b-01' })
-const FILES = Object.freeze({ idle: 'idle.png', castWindup: 'cast-windup.png' })
+const poseFile = pose => pose.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase()) + '.png'
 const textureKey = (id, pose) => `qa_body_${id}_${pose}`
 
 export const harborBodyQaStart = (s = search()) => {
@@ -48,7 +50,7 @@ function undoVariant(scene) {
   const undo = scene._qaBodyUndo
   if (!undo) return
   for (const [asset, key] of undo.keys) asset.key = key
-  for (const [pose, grip, tip] of undo.poses) { pose.grip = grip; pose.tip = tip }
+  for (const [pose, grip, tip, fish] of undo.poses) { pose.grip = grip; pose.tip = tip; pose.fish = fish }
   scene._qaBodyUndo = null
 }
 
@@ -67,11 +69,14 @@ function applyVariant(scene, id) {
     if (!asset?.key) continue
     undo.keys.push([asset, asset.key])
     if (variant.poses.includes(name)) {
-      const grip = info.poses[name].grip
-      undo.poses.push([pose, pose.grip, pose.tip])
-      const old = { grip: pose.grip, tip: pose.tip }
-      pose.grip = grip
-      pose.tip = [grip[0] + old.tip[0] - old.grip[0], grip[1] + old.tip[1] - old.grip[1]]
+      const sockets = info.poses[name]
+      undo.poses.push([pose, pose.grip, pose.tip, pose.fish])
+      if (sockets.grip && pose.grip && pose.tip) {
+        const old = { grip: pose.grip, tip: pose.tip }
+        pose.grip = sockets.grip
+        pose.tip = [pose.grip[0] + old.tip[0] - old.grip[0], pose.grip[1] + old.tip[1] - old.grip[1]]
+      }
+      if (sockets.fish) pose.fish = sockets.fish
       asset.key = textureKey(id, name)
     } else {
       const copyKey = `qa_body_legacy_${name}`
@@ -107,7 +112,10 @@ export function installHarborBodyQa(GameScene) {
     for (const variant of HARBOR_BODY_VARIANTS) {
       for (const pose of variant.poses) {
         const key = textureKey(variant.id, pose)
-        if (!this.textures.exists(key)) this.load.image(key, `${baseUrl()}${dirOf(variant.id)}/${FILES[pose]}`)
+        if (!this.textures.exists(key)) this.load.image(key, `${baseUrl()}${dirOf(variant.id)}/${poseFile(pose)}`)
+        if (variant.hair && !this.textures.exists(key + '_hair')) {
+          this.load.image(key + '_hair', `${baseUrl()}${dirOf(variant.id)}/hair-${poseFile(pose)}`)
+        }
       }
       const jsonKey = `qa_body_${variant.id}_poses`
       if (!this.cache.json.exists(jsonKey)) this.load.json(jsonKey, `${baseUrl()}${dirOf(variant.id)}/poses.json`)
@@ -129,13 +137,74 @@ export function installHarborBodyQa(GameScene) {
     return result
   }
 
+  const prevFinish = GameScene.prototype._finishBattle
+  GameScene.prototype._finishBattle = function (outcome, ...args) {
+    const result = prevFinish.call(this, outcome, ...args)
+    if (result !== false && this._qaBody) this._qaBodyOutcome = outcome
+    return result
+  }
+
+  const prevUpdate = GameScene.prototype.update
+  GameScene.prototype.update = function (...args) {
+    const result = prevUpdate?.apply(this, args)
+    syncHarborBodyAction(this)
+    syncHarborBodyHair(this)
+    return result
+  }
+
   const prevCleanup = GameScene.prototype._cleanup
   GameScene.prototype._cleanup = function (...args) {
+    for (const hair of this._qaBodyHair ?? []) hair?.destroy()
+    this._qaBodyHair = null
     undoVariant(this)
     for (const key of this._qaBodyCanvases ?? []) this.textures.remove?.(key)
     this._qaBodyCanvases = null
     this._qaBodyReady = null
     this._qaBody = null
+    this._qaBodyPhase = null
+    this._qaBodyOutcome = null
     return prevCleanup?.apply(this, args)
   }
+}
+
+// Match BOTH crossfade images; a single hair image would pop during a pose blend.
+export function syncHarborBodyHair(scene) {
+  const variant = HARBOR_BODY_VARIANTS.find(v => v.id === scene._qaBody?.id)
+  if (!variant?.hair) {
+    for (const hair of scene._qaBodyHair ?? []) hair?.setVisible(false)
+    return
+  }
+  scene._qaBodyHair ??= []
+  ;[scene._cameraPanPlayer, scene._cameraPanPlayerBlend].forEach((actor, i) => {
+    const key = actor?.texture?.key + '_hair'
+    if (!actor?.active || !actor.visible || (scene._cameraPanHidePlayerUntil ?? 0) > (scene.time?.now ?? 0) || !scene.textures.exists(key)) {
+      scene._qaBodyHair[i]?.setVisible(false)
+      return
+    }
+    const hair = scene._qaBodyHair[i] ??= scene.add.image(actor.x, actor.y, key)
+    hair.setTexture(key).setOrigin((actor.originX * 640 + 128) / 896, actor.originY)
+      .setPosition(actor.x, actor.y).setDisplaySize(actor.displayWidth * 896 / 640, actor.displayHeight)
+      .setRotation(actor.rotation).setFlipX(actor.flipX).setFlipY(actor.flipY)
+      .setScrollFactor(actor.scrollFactorX, actor.scrollFactorY)
+      .setDepth(actor.depth + 0.1).setAlpha(actor.alpha).setVisible(true)
+  })
+}
+
+export function syncHarborBodyAction(scene) {
+  if (scene._qaBody?.id !== 'cute-b-01') return
+  if (scene._qaBodyPhase !== scene.phase) {
+    scene._qaBodyPhase = scene.phase
+    scene._qaBodyPhaseAt = scene.time.now
+  }
+  const elapsed = scene.time.now - scene._qaBodyPhaseAt
+  let pose = null
+  if (scene.phase === 'battle') {
+    pose = !isReducedMotion() && scene.battleState?.isRaging
+      ? ['fightLeft', 'fightMid', 'fightRight', 'fightMid'][Math.floor(elapsed / 320) % 4] : 'fightMid'
+  } else if (scene.phase === 'result') {
+    const frames = scene._qaBodyOutcome === 'caught' ? ['joyLift','joyMid','joyHold'] : ['sadDrop','sadMid','sadSlump']
+    pose = frames[isReducedMotion() ? 2 : Math.min(2, Math.floor(elapsed / 360))]
+  } else if (scene.phase === 'hit') pose = 'fightMid'
+  // Casting remains under the existing timeline, with no competing pose owner.
+  if (pose && scene._cameraPanPose !== pose) scene._setCameraPanPose?.(pose)
 }

@@ -1,0 +1,7 @@
+Mode: Built-in image generation; authorized Pillow/NumPy alignment.
+Identity reference: b-w-hiroki/ainan-pwa main docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png
+Pose reference: fishing-game/assets/characters/animation-v1/sad-drop.png (main SHA aefe55a0938f1f7124f07d1ac3d76052bfc31705)
+
+Use case: identity-preserve. Edit image 1 into ONE sad-drop game character sprite. Image 1 is exact identity, short brown hairstyle, face, white tank top, navy shorts, bare feet, proportions and soft painterly thin-outline style. Image 2 ONLY references upper-body pose: disappointed after losing a fish, head bowed slightly down toward upper right, shoulders drooped, arms lowered close to body, elbows relaxed and slightly bent, hands held low in front of waist with fingers loosely curled around an invisible rod. Quiet subdued expression; no smile, no tears or symbols. Keep rear three-quarter upper-right view and small side face visible. Preserve standing lower body and exact feet locations from image 1; adapt seated reference upper-body action to standing. No seated legs, hat, ponytail, gloves, orange clothes or bag. Same character and head scale as image 1, full body centered, soles at 90% height. 1254x1254 PNG genuine transparent alpha. One character only. No rod, reel, line, fish, ground, shadow, hat, bag, cat, text, UI, scenery or sadness marks. All empty background alpha zero, clean edges.
+
+Postprocessing: scripts/align_cute_windup.py --pose sad-drop. Preserve idle lower body from row 750; align upper torso and feet. Output 1254x1254 RGBA PNG.

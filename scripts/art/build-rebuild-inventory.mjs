@@ -4,7 +4,7 @@
 import { ASSETS } from '../../fishing-game/js/config/assetManifest.js'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, mkdirSync, writeFileSync, statSync } from 'node:fs'
-import { resolve, relative, dirname, isAbsolute } from 'node:path'
+import { resolve, relative, dirname, isAbsolute, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -19,7 +19,7 @@ function canonicalPath(raw) {
   if (typeof raw !== 'string' || /^(https?:)?\/\//.test(raw)) throw new Error('External/non-file source: ' + raw)
   const local = raw.replace(/^\/+/, '')
   const abs = resolve(root,local)
-  if (!abs.startsWith(root + '/') || isAbsolute(local)) throw new Error('Unsafe asset path: ' + raw)
+  if (!abs.startsWith(root + sep) || isAbsolute(local)) throw new Error('Unsafe asset path: ' + raw)
   return { local, abs }
 }
 

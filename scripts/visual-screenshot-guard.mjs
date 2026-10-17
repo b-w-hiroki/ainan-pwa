@@ -26,12 +26,15 @@ const metadata = new Map()
 for (const file of files) {
   const info = inspectPng(file)
   metadata.set(file, info)
-  assert.equal(info.width, 390, file + ': width must be 390')
-  assert.equal(info.height, 844, file + ': height must be 844')
+  const [width, height] = file === '91-cute-girl-landscape.png' ? [844, 390] : [390, 844]
+  assert.equal(info.width, width, file + ': incorrect viewport width')
+  assert.equal(info.height, height, file + ': incorrect viewport height')
   assert.ok(info.bytes > 5000, file + ': suspiciously small/blank PNG (' + info.bytes + ' bytes)')
 }
 
 const keyFrames = [
+  '90-cute-girl-portrait.png',
+  '91-cute-girl-landscape.png',
   '03-battle.png',
   '15-field-harbor.png',
   '16-field-bay.png',

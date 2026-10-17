@@ -1,0 +1,7 @@
+Mode: Built-in image generation; authorized Pillow/NumPy alignment.
+Identity reference: b-w-hiroki/ainan-pwa main docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png
+Pose reference: fishing-game/assets/characters/animation-v1/joy-hold.png (main SHA 41d6a37438dd04e377b081cee2694a166f1e1488)
+
+Use case: identity-preserve. Edit image 1 into ONE joy-hold game character sprite. Image 1 is exact identity: same short brown hair, face, white tank top, navy shorts, bare feet, body/head proportions, soft painted thin-outline style. Image 2 ONLY provides upper-body pose. Match its delighted closed-eye broad open-mouth smile, slight head turn back over shoulder, arms opened forward toward upper right at chest height, elbows bent, separated cupped hands facing inward/upward with gently curled fingers as if holding a large horizontal fish between hands. Draw hands ONLY, NO fish or object. Maintain image 1 rear three-quarter upper-right view, standing legs, exact feet positions and body scale. Do not copy reference seated legs, orange clothes, hat, ponytail, gloves or bag. One full body character centered. 1254x1254 PNG true alpha transparent background; soles at 90% canvas height. No rod, reel, line, fish, ground, shadows, hat, bag, cat, text, UI or scenery. Keep every empty background pixel transparent and edges clean.
+
+Postprocessing: scripts/align_cute_windup.py --pose joy-hold. Preserve idle lower body from row 750; align upper torso and feet. Output 1254x1254 RGBA PNG.
