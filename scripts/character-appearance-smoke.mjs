@@ -28,7 +28,7 @@ for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  assert.deepEqual(actor.poses[name].grip ?? actor.poses[name].fish,metadata.poses[name].grip ?? metadata.poses[name].fish)
 }
 actor._applyLayout('battle')
-assert.deepEqual(actor.hair.size,[170*896/640,223.125])
+assert.deepEqual(actor.hair.size,[110*896/640,144.375])
 assert.equal(JSON.stringify(CHARACTER_MOTION_POSES),original,'global sockets must remain unchanged')
 actor.destroy()
 scene.textures.exists=key=>!key.endsWith('_hair')

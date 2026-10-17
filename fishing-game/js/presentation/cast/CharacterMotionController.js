@@ -46,7 +46,7 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
 const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displayHeight: 183.75 })
 const CUTE_LAYOUTS = Object.freeze({
   cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT,
-  battle: Object.freeze({ x: 125, y: 600, displayWidth: 170, displayHeight: 223.125 }),
+  battle: Object.freeze({ x: 78, y: 600, displayWidth: 110, displayHeight: 144.375 }),
   result: Object.freeze({ x: 82, y: 430, displayWidth: 120, displayHeight: 157.5 }),
 })
 
