@@ -33,6 +33,8 @@ for (const file of files) {
 }
 
 const keyFrames = [
+  '92-character-appearance.png',
+  '93-character-settings.png',
   '90-cute-girl-portrait.png',
   '91-cute-girl-landscape.png',
   '03-battle.png',

@@ -1,3 +1,4 @@
+import { getActiveCharacterAppearance } from '../../game/characterAppearance.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { isReducedMotion } from '../../game/feedback.js'
 import {
@@ -55,9 +56,20 @@ const requiredAssets = () => [
   ASSETS.characters.fishingMotionHeldRod,
 ]
 
+const cuteKey = name => `character_cute_b_${name}`
+const cuteFile = name => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase())
+const cuteDir = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-body-cute-b-01/`
+export function preloadCharacterAppearance(scene) {
+  if (getActiveCharacterAppearance() !== 'cute-b-01') return
+  if (!scene.cache.json.exists('character_cute_b_poses')) scene.load.json('character_cute_b_poses', cuteDir() + 'poses.json')
+}
 export function characterMotionAssets() {
   return [...new Set([
     ...requiredAssets(),
+    ...(getActiveCharacterAppearance() === 'cute-b-01' ? Object.keys(CHARACTER_MOTION_POSES).flatMap(name => [
+      { key: cuteKey(name), path: cuteDir() + cuteFile(name) + '.png', status: 'ready' },
+      { key: cuteKey(name) + '_hair', path: cuteDir() + 'hair-' + cuteFile(name) + '.png', status: 'ready' },
+    ]) : []),
     ...Object.values(ROD_VISUALS).map(visual => ASSETS.characters[visual.asset]),
   ])].filter(Boolean)
 }
@@ -84,6 +96,9 @@ export class CharacterMotionController {
     this.layout = CHARACTER_MOTION_LAYOUTS.cast
     this.layoutPhase = 'cast'
     this.ready = false
+    this.poses = CHARACTER_MOTION_POSES
+    this.cute = false
+    this.hair = null
   }
 
   mount(parent) {
@@ -91,6 +106,15 @@ export class CharacterMotionController {
     const scene = this.scene
     this.ready = requiredAssets().every(asset => asset?.key && scene.textures.exists(asset.key))
     if (!this.ready) return this
+    const metadata = scene.cache?.json?.get('character_cute_b_poses')
+    this.cute = getActiveCharacterAppearance() === 'cute-b-01' && Object.keys(CHARACTER_MOTION_POSES).every(name =>
+      metadata?.poses?.[name] && scene.textures.exists(cuteKey(name)) && scene.textures.exists(cuteKey(name) + '_hair'))
+    if (this.cute) this.poses = Object.fromEntries(Object.entries(CHARACTER_MOTION_POSES).map(([name, pose]) => {
+      const socket = metadata.poses[name]
+      return [name, { ...pose, ...(socket.grip ? { grip: socket.grip,
+        tip: [socket.grip[0] + pose.tip[0] - pose.grip[0], socket.grip[1] + pose.tip[1] - pose.grip[1]] } : {}),
+        ...(socket.fish ? { fish: socket.fish } : {}) }]
+    }))
     const qaX = readCharacterQaOffset(typeof window !== 'undefined' ? window.location.search : '')
     this.root = scene.add.container(qaX, 0).setDepth(75)
     this.root.setData('qaCharacterX', qaX)
@@ -107,10 +131,22 @@ export class CharacterMotionController {
       .setVisible(false).setAngle(-4)
     this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
     this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish])
+    if (this.cute) {
+      this.hair = scene.add.image(this.layout.x, this.layout.y, cuteKey('idle') + '_hair').setOrigin(0.5, 1)
+      this.root.add(this.hair)
+      this._syncHair()
+    }
     parent.add(this.root)
     this._setRodVisual(DEFAULT_ROD_VISUAL_ID, true)
     this._applyPose('idle', true)
     return this
+  }
+
+  _syncHair() {
+    if (!this.hair) return
+    this.hair.setTexture(cuteKey(this.currentPose) + '_hair')
+      .setPosition(this.layout.x, this.layout.y)
+      .setDisplaySize(this.layout.displayWidth * 896 / 640, this.layout.displayHeight)
   }
 
   _point([x, y]) {
@@ -126,8 +162,9 @@ export class CharacterMotionController {
     if (this.layoutPhase === phase && this.layout === next) return
     this.layout = next
     this.layoutPhase = phase
+    this._syncHair()
     ;[this.poseFront, this.poseBack].forEach(image => image?.setPosition(next.x, next.y).setDisplaySize(next.displayWidth, next.displayHeight))
-    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    const pose = this.poses[this.currentPose]
     if (pose) { this._applyRod(pose); this._applyAccessories(pose); this._applyFish(pose) }
   }
 
@@ -223,7 +260,7 @@ export class CharacterMotionController {
     this.root.setData('rodType', resolvedType)
     this.root.setData('rodTexture', `native:${resolvedType}`)
     this.root.setData('rodTextureFallback', this.rodTextureFallback)
-    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    const pose = this.poses[this.currentPose]
     if (pose) this._applyRod(pose)
   }
 
@@ -232,7 +269,7 @@ export class CharacterMotionController {
     if (this.accessoryIds.hat === next.hat && this.accessoryIds.bag === next.bag) return
     this.accessoryIds = next
     this.root.setData('accessories', { ...next })
-    const pose = CHARACTER_MOTION_POSES[this.currentPose]
+    const pose = this.poses[this.currentPose]
     if (pose) this._applyAccessories(pose)
   }
 
@@ -240,7 +277,7 @@ export class CharacterMotionController {
     for (const [id, accent] of Object.entries(this.accessoryAccents)) {
       const visual = ACCESSORY_VISUALS[id]
       const equipped = this.accessoryIds[visual.slot] === id
-      const anchor = visual.anchors[this.currentPose]
+      const anchor = this.cute ? null : visual.anchors[this.currentPose]
       if (!equipped || !anchor) { accent.setVisible(false); continue }
       const point = this._point(anchor)
       const sourceScale = this.layout.displayWidth / FRAME.width
@@ -263,8 +300,8 @@ export class CharacterMotionController {
   }
 
   _applyPose(name, immediate = false) {
-    const pose = CHARACTER_MOTION_POSES[name]
-    const asset = ASSETS.characters[pose.asset]
+    const pose = this.poses[name]
+    const asset = this.cute ? { key: cuteKey(name) } : ASSETS.characters[pose?.asset]
     if (!pose || !asset || !this.scene.textures.exists(asset.key)) return false
     // Pose timing still supplies the authored in-betweens. Switch the one
     // visible texture atomically so transparent pixels never enter an
@@ -272,6 +309,7 @@ export class CharacterMotionController {
     this.scene.tweens.killTweensOf(this.poseFront)
     this.poseFront.setTexture(asset.key).setVisible(true).setAlpha(1)
     this.currentPose = name
+    this._syncHair()
     this._applyAccessories(pose)
     this._applyRod(pose)
     this._applyFish(pose)

@@ -202,6 +202,9 @@ jobs:
       - name: Capture cute girl with independent ponytail
         run: |
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaBody=cute-b-01" artifacts/e2e/90-cute-girl-portrait.png
+          node -e 'require("fs").writeFileSync("/tmp/appearance-storage.json",JSON.stringify({cookies:[],origins:[{origin:"http://127.0.0.1:4173",localStorage:[{name:"ainan_character_appearance",value:"cute-b-01"}]}]}))'
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --load-storage=/tmp/appearance-storage.json --viewport-size="390,844" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&castLayers=1" artifacts/e2e/92-character-appearance.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --load-storage=/tmp/appearance-storage.json --viewport-size="390,844" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=SettingsScene&castLayers=1" artifacts/e2e/93-character-settings.png
           npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="844,390" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaBody=cute-b-01" artifacts/e2e/91-cute-girl-landscape.png
 
       - name: Validate E2E screenshots
