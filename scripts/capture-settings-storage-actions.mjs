@@ -43,7 +43,7 @@ try {
         && obj.input?.enabled && obj.width === 96 && obj.height === 52)
         .map(obj => ({ x: obj.x, y: obj.y, width: obj.width, height: obj.height }))
     })
-    assert.equal(regions.length, 8, 'All eight Settings actions require independent 96x52 targets')
+    assert.equal(regions.length, 9, 'All nine Settings actions require independent 96x52 targets')
     assert.ok(regions.every(region => region.width >= 44 && region.height >= 44),
       'Settings action touch target below 44 CSS px')
 
@@ -82,7 +82,17 @@ try {
     assert.equal(await page.evaluate(() => window.__ainanSettingsToastHistory.length),
       copyToastBefore, 'Clipboard fallback must not report copied success')
 
-    console.log('Settings verified: 8 touch targets, backup failure once, copy fallback without false success')
+    // The ninth control is the saved appearance choice. A real tap must
+    // change it once and preserve it across a fresh page load.
+    assert.equal(await page.evaluate(()=>localStorage.getItem('ainan_character_appearance')),null)
+    await page.mouse.click(284,610)
+    await page.waitForFunction(()=>localStorage.getItem('ainan_character_appearance')==='cute-b-01')
+    await page.reload({waitUntil:'domcontentloaded'})
+    await page.waitForFunction(()=>window.__game?.scene?.getScene('SettingsScene')?.sys?.isActive?.())
+    assert.equal(await page.evaluate(()=>localStorage.getItem('ainan_character_appearance')),'cute-b-01')
+    await page.mouse.click(284,610)
+    await page.waitForFunction(()=>localStorage.getItem('ainan_character_appearance')==='classic')
+    console.log('Settings verified: 9 touch targets, backup failure once, clipboard fallback, appearance tap and persistence')
   } finally {
     await page.close()
   }

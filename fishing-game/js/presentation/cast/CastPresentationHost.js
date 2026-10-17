@@ -1,3 +1,4 @@
+import { getActiveCharacterAppearance, CHARACTER_PREVIEW_BACKGROUND } from '../../game/characterAppearance.js'
 import { isNativeLandscapeQaResize } from '../landscape/nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FISHING_MOCK_LAYOUT as L } from '../layouts/fishingMockLayout.js'
@@ -141,7 +142,8 @@ export class CastPresentationHost {
 
     const useApprovedComposite = castCompositePrototypeEnabled()
     const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
-    const useLayeredScene = layerOptions.enabled
+    const useCuteHarbor = getActiveCharacterAppearance() === 'cute-b-01' && (scene.env?.point ?? 'pointA') === 'pointA' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)
+    const useLayeredScene = layerOptions.enabled || useCuteHarbor
     let layeredScene = null
     let approvedSplit = null
     if (useLayeredScene) {
@@ -267,6 +269,12 @@ export class CastPresentationHost {
 
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    if (useCuteHarbor) {
+      // Zoom toward the near quay. Keep the mooring post below the control dock and both feet on
+      // the flat quay, while the fish remains over water.
+      battleBackground.setTexture(CHARACTER_PREVIEW_BACKGROUND.key)
+        .setOrigin(0).setPosition(0, -150).setScale(1).setCrop(0, 150, 390, 874)
+    }
     const battleSplash = scene.add.graphics()
     battleSplash.lineStyle(6, 0xeafcff, 0.90)
     battleSplash.strokeEllipse(214, 360, 340, 112)
@@ -275,6 +283,8 @@ export class CastPresentationHost {
     const battleLine = scene.add.graphics()
     battleLine.lineStyle(2, 0xffffff, 0.92)
     battleLine.lineBetween(0, 480, 164, 348)
+    // The selected actor already draws its own line from the rod tip.
+    battleLine.setVisible(!useCuteHarbor)
     // Independent environment part, reused from the existing world asset manifest.
     // Place over the approved composite, but beneath the real battle fish and HUD.
     const battleLocationOverlay = scene.add.image(

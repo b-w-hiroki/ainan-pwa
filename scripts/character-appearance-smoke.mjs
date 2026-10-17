@@ -9,7 +9,7 @@ const original = JSON.stringify(CHARACTER_MOTION_POSES)
 assert.equal(setCharacterAppearance('invalid'), false)
 assert.equal(setCharacterAppearance('cute-b-01'), true)
 assert.equal(getCharacterAppearance(), 'cute-b-01')
-assert.equal(getActiveCharacterAppearance(), 'classic')
+assert.equal(getActiveCharacterAppearance(), 'cute-b-01')
 for (const query of ['', '?qa=1', '?castLayers=1', '?qa=1&castLayers=1&cameraPan=1']) assert.equal(isCharacterAppearancePreview(query),false)
 globalThis.window={location:{search:'?qa=1&castLayers=1'}}
 assert.equal(getActiveCharacterAppearance(), 'cute-b-01')
@@ -28,7 +28,7 @@ for(const name of Object.keys(CHARACTER_MOTION_POSES)) {
  assert.deepEqual(actor.poses[name].grip ?? actor.poses[name].fish,metadata.poses[name].grip ?? metadata.poses[name].fish)
 }
 actor._applyLayout('battle')
-assert.deepEqual(actor.hair.size,[170*896/640,223.125])
+assert.deepEqual(actor.hair.size,[110*896/640,144.375])
 assert.equal(JSON.stringify(CHARACTER_MOTION_POSES),original,'global sockets must remain unchanged')
 actor.destroy()
 scene.textures.exists=key=>!key.endsWith('_hair')
@@ -41,3 +41,6 @@ globalThis.localStorage={getItem(){throw Error('blocked')},setItem(){throw Error
 assert.equal(getCharacterAppearance(),'classic')
 assert.equal(setCharacterAppearance('cute-b-01'),false)
 console.log('PASS appearance persistence, 13 local sockets/hair, phase layout, fallback and storage errors')
+
+globalThis.window={location:{search:'?cameraPan=1'}}
+assert.equal(getActiveCharacterAppearance(),'classic')

@@ -11,7 +11,7 @@ export function setCharacterAppearance(id) {
 }
 export function characterAppearanceCard(scene) {
   const selected = getCharacterAppearance()
-  return ['釣り人の見た目', selected === 'classic' ? 'いつもの釣り人' : 'ポニーテール', () => {
+  return ['釣り人の見た目', selected === 'classic' ? 'いつもの釣り人' : 'ポニーテール（港）', () => {
     if (!setCharacterAppearance(selected === 'classic' ? 'cute-b-01' : 'classic')) {
       scene._toast('見た目を保存できませんでした'); return
     }
@@ -19,14 +19,16 @@ export function characterAppearanceCard(scene) {
   }]
 }
 
-// Normal approved composite contains a painted character. Until its clean
-// background is approved, use this preference only in the separated QA host.
+// Preview flags remain available for art inspection. Normal play uses the
+// explicitly saved choice; camera-pan prototypes retain their own actor owner.
 export function isCharacterAppearancePreview(search = globalThis.window?.location?.search ?? '') {
   const params = new URLSearchParams(search)
   return params.get('qa') === '1' && params.get('castLayers') === '1' && params.get('cameraPan') !== '1'
 }
 export function getActiveCharacterAppearance() {
-  return isCharacterAppearancePreview() ? getCharacterAppearance() : 'classic'
+  const params = new URLSearchParams(globalThis.window?.location?.search ?? '')
+  if (params.get('cameraPan') === '1' || params.get('castPresentation') === 'legacy') return 'classic'
+  return getCharacterAppearance()
 }
 
 export const CHARACTER_PREVIEW_BACKGROUND = Object.freeze({

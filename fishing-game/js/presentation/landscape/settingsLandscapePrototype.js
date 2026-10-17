@@ -1,4 +1,4 @@
-import { characterAppearanceCard, isCharacterAppearancePreview } from '../../game/characterAppearance.js'
+import { characterAppearanceCard } from '../../game/characterAppearance.js'
 import { isNativeLandscapeQaEnabled } from './nativeLandscapeQaFlags.js'
 import { ASSETS } from '../../config/assetManifest.js'
 import { FONT } from '../../config/fontStyles.js'
@@ -32,7 +32,7 @@ function renderSettings(scene,layout){
     fontFamily:FONT,fontSize:'14px',color:'#e5faff',
   }).setDepth(3)
   const [appearanceTitle, appearanceValue, changeAppearance] = characterAppearanceCard(scene)
-  if (isCharacterAppearancePreview()) scene.add.text(W / 2, 42, appearanceTitle + '：' + appearanceValue + ' ›', {
+  scene.add.text(W / 2, 42, appearanceTitle + '：' + appearanceValue + ' ›', {
     fontFamily:FONT,fontSize:'14px',color:'#ffffff',backgroundColor:'#173248',padding:{x:12,y:16},
   }).setOrigin(0.5).setDepth(12).setInteractive({useHandCursor:true}).on('pointerdown',changeAppearance)
   const cards=buildSettingsCards(scene)
