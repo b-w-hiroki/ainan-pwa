@@ -12,7 +12,8 @@
       "offset": [
         -223,
         -45
-      ]
+      ],
+      "hair": "hair-idle.png"
     },
     "castWindup": {
       "file": "cast-windup.png",
@@ -24,7 +25,152 @@
       "offset": [
         -223,
         -45
-      ]
+      ],
+      "hair": "hair-cast-windup.png"
+    },
+    "castMid": {
+      "file": "cast-mid.png",
+      "source": "W03-CUTE-B-cast-mid.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        204.7,
+        122.7
+      ],
+      "hair": "hair-cast-mid.png"
+    },
+    "castRelease": {
+      "file": "cast-release.png",
+      "source": "W03-CUTE-B-cast-release.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        255.8,
+        104.7
+      ],
+      "hair": "hair-cast-release.png"
+    },
+    "fightLeft": {
+      "file": "fight-left.png",
+      "source": "W03-CUTE-B-fight-left.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        189.3,
+        136.6
+      ],
+      "hair": "hair-fight-left.png"
+    },
+    "fightMid": {
+      "file": "fight-mid.png",
+      "source": "W03-CUTE-B-fight-mid.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        196.6,
+        152.3
+      ],
+      "hair": "hair-fight-mid.png"
+    },
+    "fightRight": {
+      "file": "fight-right.png",
+      "source": "W03-CUTE-B-fight-right.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        210.5,
+        150.0
+      ],
+      "hair": "hair-fight-right.png"
+    },
+    "joyLift": {
+      "file": "joy-lift.png",
+      "source": "W03-CUTE-B-joy-lift.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "fish": [
+        217.4,
+        137.0
+      ],
+      "hair": "hair-joy-lift.png"
+    },
+    "joyMid": {
+      "file": "joy-mid.png",
+      "source": "W03-CUTE-B-joy-mid.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "fish": [
+        215.9,
+        146.2
+      ],
+      "hair": "hair-joy-mid.png"
+    },
+    "joyHold": {
+      "file": "joy-hold.png",
+      "source": "W03-CUTE-B-joy-hold.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "fish": [
+        237.8,
+        160.0
+      ],
+      "hair": "hair-joy-hold.png"
+    },
+    "sadDrop": {
+      "file": "sad-drop.png",
+      "source": "W03-CUTE-B-sad-drop.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        182.4,
+        231.5
+      ],
+      "hair": "hair-sad-drop.png"
+    },
+    "sadMid": {
+      "file": "sad-mid.png",
+      "source": "W03-CUTE-B-sad-mid.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        217.4,
+        221.1
+      ],
+      "hair": "hair-sad-mid.png"
+    },
+    "sadSlump": {
+      "file": "sad-slump.png",
+      "source": "W03-CUTE-B-sad-slump.png",
+      "offset": [
+        -223,
+        -45
+      ],
+      "grip": [
+        194.3,
+        237.6
+      ],
+      "hair": "hair-sad-slump.png"
     }
-  }
+  },
+  "hairSource": "W03-CUTE-B-ponytail-hair.png"
 }

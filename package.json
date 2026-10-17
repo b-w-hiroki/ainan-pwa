@@ -44,7 +44,7 @@
     "qa:harbor-modular": "node scripts/harbor-modular-qa-smoke.mjs",
     "qa:asset-rebuild": "node scripts/asset-rebuild-w01-smoke.mjs",
     "qa:art-w02": "node scripts/harbor-w02-candidate-contract.mjs",
-    "qa:part-rig": "node scripts/harbor-w03-part-rig-smoke.mjs"
+    "qa:part-rig": "node scripts/harbor-w03-part-rig-smoke.mjs && node scripts/cute-girl-poses-smoke.mjs"
   },
   "dependencies": {
     "phaser": "^3.80.1",

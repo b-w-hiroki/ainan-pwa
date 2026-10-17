@@ -199,6 +199,11 @@ jobs:
       - name: Review Harbor Bay Cape Cast and Retrieve art preview
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-cast-retrieve-location-preview.mjs
 
+      - name: Capture cute girl with independent ponytail
+        run: |
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="390,844" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaBody=cute-b-01" artifacts/e2e/90-cute-girl-portrait.png
+          npx --yes playwright@1.55.0 screenshot --browser=chromium --viewport-size="844,390" --wait-for-timeout=5000 "http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaBody=cute-b-01" artifacts/e2e/91-cute-girl-landscape.png
+
       - name: Validate E2E screenshots
         run: node scripts/visual-screenshot-guard.mjs artifacts/e2e
 
