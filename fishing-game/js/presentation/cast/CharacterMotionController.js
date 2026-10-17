@@ -47,7 +47,7 @@ const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displ
 const CUTE_LAYOUTS = Object.freeze({
   cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT,
   battle: Object.freeze({ x: 125, y: 600, displayWidth: 170, displayHeight: 223.125 }),
-  result: Object.freeze({ x: 116, y: 540, displayWidth: 160, displayHeight: 210 }),
+  result: Object.freeze({ x: 82, y: 430, displayWidth: 120, displayHeight: 157.5 }),
 })
 
 export const CHARACTER_MOTION_TIMING = Object.freeze({

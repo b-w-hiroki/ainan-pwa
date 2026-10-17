@@ -50,6 +50,7 @@ try {
     const state=await page.evaluate(pose=>{
      const s=window.__game.scene.getScene('GameScene'),c=s._castPresentationHost.nodes.characterMotion
      c._cancel();c._applyPose(pose)
+     if(s.phase==='result') c.fish.setVisible(false)
      // Inspect source alpha, not the oversized transparent canvas bounds.
      const image=c.hair,source=image.texture.getSourceImage(),canvas=document.createElement('canvas')
      canvas.width=source.width;canvas.height=source.height
@@ -59,12 +60,16 @@ try {
      for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>32){left=Math.min(left,x);right=Math.max(right,x);bottom=Math.max(bottom,y)}
      const matrix=image.getWorldTransformMatrix()
      const points=[[left,bottom],[right,bottom]].map(([x,y])=>matrix.transformPoint(x-image.displayOriginX,y-image.displayOriginY))
-     return {phase:s.phase,pose:c.currentPose,left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),bodyBottom:c.poseFront.getBounds().bottom,hairKey:image.texture.key}
+     const rect=s.game.canvas.getBoundingClientRect()
+     const sx=rect.width/s.scale.width,sy=rect.height/s.scale.height
+     const bottom=c.poseFront.getWorldTransformMatrix().transformPoint(0,0).y
+     return {phase:s.phase,pose:c.currentPose,left:rect.left+Math.min(...points.map(p=>p.x))*sx,right:rect.left+Math.max(...points.map(p=>p.x))*sx,bodyBottom:rect.top+bottom*sy,designBottom:c.layout.y,hairKey:image.texture.key}
     },name)
     assert.equal(state.phase,outcome==='battle'?'battle':'result')
     assert.ok(state.left>=4,JSON.stringify(state))
     assert.ok(state.right<=width-4,JSON.stringify(state))
     assert.ok(state.bodyBottom<height,JSON.stringify(state))
+    assert.ok(state.designBottom<(outcome==='battle'?630:440),'body must stay above controls/result card')
     await page.screenshot({path:join(root,`${outcome}-${name}-${width}x${height}.png`)})
     evidence.push({...state,width,height})
    }
