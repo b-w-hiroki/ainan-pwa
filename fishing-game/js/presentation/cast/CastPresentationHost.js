@@ -283,6 +283,8 @@ export class CastPresentationHost {
     const battleLine = scene.add.graphics()
     battleLine.lineStyle(2, 0xffffff, 0.92)
     battleLine.lineBetween(0, 480, 164, 348)
+    // The selected actor already draws its own line from the rod tip.
+    battleLine.setVisible(!useCuteHarbor)
     // Independent environment part, reused from the existing world asset manifest.
     // Place over the approved composite, but beneath the real battle fish and HUD.
     const battleLocationOverlay = scene.add.image(
