@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { buildTrajectory, clampLanding } from '../fishing-game/js/game/cast.js'
 import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 import { updateFishInterest, FISH_INTEREST_STATE } from '../fishing-game/js/game/fishInterest.js'
-import { createBattleState, applySwipe, battleOutcome } from '../fishing-game/js/game/battle.js'
+import { createBattleState, applySwipe, battleOutcome, tryExitRage } from '../fishing-game/js/game/battle.js'
 import { ROD_STATS } from '../fishing-game/js/game/params.js'
 import { installVerticalSliceHookInput } from '../fishing-game/js/game/installVerticalSliceHookInput.js'
 import { ACCESSORY_META, BOSS_META, MEAL_META } from '../fishing-game/js/game/midgameProgression.js'
@@ -152,6 +152,20 @@ assert.equal(battleOutcome(calmBattle), 'caught', 'calm repeated reel input shou
 const recklessBattle = createBattleState(byId.aji, { pullPower: 1.2 })
 for (let i = 0; i < 6 && !battleOutcome(recklessBattle); i++) applySwipe(recklessBattle, true)
 assert.equal(battleOutcome(recklessBattle), 'escaped', 'reeling repeatedly while raging should allow the fish to escape')
+
+// Each species should have a readable recovery window, with one enhanced swipe.
+const openingDurations = FISH_LIST.map(fish => fish.rageOpeningMs)
+assert.ok(openingDurations.every(ms => Number.isFinite(ms) && ms >= 700 && ms <= 1700), 'every fish should have a bounded recovery window')
+assert.ok(new Set(openingDurations).size >= 6, 'recovery windows should make species meaningfully distinct')
+for (const fish of FISH_LIST) {
+  const battle = createBattleState(fish, { pullPower: 1 })
+  battle.isRaging = true
+  battle.rageEndAt = 1000
+  assert.equal(tryExitRage(battle, fish, 1000), true, `${fish.id} rage should end at its deadline`)
+  assert.equal(battle.rageOpeningUntil, 1000 + fish.rageOpeningMs, `${fish.id} should receive its configured recovery window`)
+  assert.equal(applySwipe(battle, false, 1001), 8, `${fish.id} should reward the first swipe during recovery`)
+  assert.equal(applySwipe(battle, false, 1002), 5, `${fish.id} should not repeat the recovery bonus`)
+}
 
 // 6) Integration guards: gameplay + canonical mobile composition stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')
