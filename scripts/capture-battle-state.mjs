@@ -93,12 +93,12 @@ try {
     await page.evaluate(()=>{
       const scene=window.__game?.scene?.getScene('GameScene')
       if(scene?.phase!=='battle' || !scene?.battleState) return null
-      // Screenshot latency varies on CI. Re-arm a deterministic full window
-      // after the visual capture so the real gesture assertion does not race
-      // the intentionally short, species-specific timeout.
+      // Screenshot capture runs alongside many other QA images on CI. Keep a
+      // deterministic five-second floor so the real gesture assertion does
+      // not race the intentionally short, species-specific gameplay window.
       scene.battleState.isRaging=false
       scene.battleState.nextRageAt=Number.POSITIVE_INFINITY
-      scene.battleState.rageOpeningUntil=scene.time.now + (scene.fish?.rageOpeningMs ?? 1200)
+      scene.battleState.rageOpeningUntil=scene.time.now + Math.max(5000, scene.fish?.rageOpeningMs ?? 1200)
       scene.battleState.rageOpeningUsed=false
       scene.battleState.lastOpeningSwipeAt=0
       scene._battleNextReelInputAt=0
