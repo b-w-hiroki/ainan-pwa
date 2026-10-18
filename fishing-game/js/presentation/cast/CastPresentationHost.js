@@ -314,6 +314,7 @@ export class CastPresentationHost {
     const battleTensionStatus = scene.textures.exists(ASSETS.gameplayFx.tensionSafe.key)
       ? scene.add.image(373, 39, ASSETS.gameplayFx.tensionSafe.key).setDisplaySize(31, 31)
       : null
+    const battleOpeningMeter = scene.add.graphics().setVisible(false)
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
@@ -322,7 +323,7 @@ export class CastPresentationHost {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setVisible(false)
-    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage])
+    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage])
 
     const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -414,7 +415,7 @@ export class CastPresentationHost {
       scene._playerShadow?.removeFromDisplayList?.()
     }
     const battleForeground = scene.add.container(0, 0).setVisible(false)
-    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleReel, battleRage]
+    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage]
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     // The approved Battle base is a full-screen composite. Drawing a separate
@@ -596,6 +597,7 @@ export class CastPresentationHost {
       battleFishName,
       battleTensionFill,
       battleTensionStatus,
+      battleOpeningMeter,
       battleReel,
       battleRage,
       resultGlow,
@@ -819,6 +821,18 @@ export class CastPresentationHost {
         this.nodes.battleTensionStatus.setTexture(statusAsset.key)
       }
       this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
+      const openingMeter = this.nodes.battleOpeningMeter
+      openingMeter.clear().setVisible(battle.rageOpeningAvailable)
+      if (battle.rageOpeningAvailable) {
+        const meterX = 60, meterY = 615, meterW = 270, meterH = 7
+        const fillW = Math.max(3, meterW * battle.rageOpening01)
+        openingMeter.fillStyle(0x062c44, 0.86)
+          .fillRoundedRect(meterX, meterY, meterW, meterH, 3.5)
+        openingMeter.fillStyle(0x71d6a2, 1)
+          .fillRoundedRect(meterX, meterY, fillW, meterH, 3.5)
+        openingMeter.lineStyle(1, 0xeafff3, 0.72)
+          .strokeRoundedRect(meterX, meterY, meterW, meterH, 3.5)
+      }
       const rageMode = battle.isRaging ? 'rage'
         : battle.openingSwipeHit ? 'opening-hit'
           : battle.rageOpeningAvailable ? 'opening'

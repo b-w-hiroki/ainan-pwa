@@ -9,6 +9,7 @@ import { installVerticalSliceHookInput } from '../fishing-game/js/game/installVe
 import { ACCESSORY_META, BOSS_META, MEAL_META } from '../fishing-game/js/game/midgameProgression.js'
 import { SAVE_VERSION } from '../fishing-game/js/game/saveSystem.js'
 import { getWorldConditions } from '../fishing-game/js/game/worldConditions.js'
+import { readCastViewModel } from '../fishing-game/js/presentation/cast/CastViewModel.js'
 
 const WORLD = {
   player: { x: 138, y: 1160 },
@@ -166,6 +167,23 @@ for (const fish of FISH_LIST) {
   assert.equal(applySwipe(battle, false, 1001), 8, `${fish.id} should reward the first swipe during recovery`)
   assert.equal(applySwipe(battle, false, 1002), 5, `${fish.id} should not repeat the recovery bonus`)
 }
+const openingViewScene = {
+  phase: 'battle',
+  fish: byId.aji,
+  rod: { id: 'basic', name: 'テスト竿' },
+  env: { point: 'pointA' },
+  catches: [],
+  time: { now: 1000 },
+  battleState: {
+    isRaging: false, escape: 20, reel: 48, nextRageAt: Infinity,
+    rageOpeningUntil: 1750, rageOpeningUsed: false,
+  },
+}
+const openingView = readCastViewModel(openingViewScene).battle
+assert.equal(openingView.rageOpeningAvailable, true, 'the live Battle HUD model should expose the active recovery window')
+assert.equal(openingView.rageOpening01, 0.5, 'the countdown should begin at half when half the species window remains')
+openingViewScene.time.now = 1750
+assert.equal(readCastViewModel(openingViewScene).battle.rageOpeningAvailable, false, 'the cue and countdown should clear at the species-specific deadline')
 
 // 6) Integration guards: gameplay + canonical mobile composition stay wired.
 const mainSource = readFileSync(new URL('../fishing-game/js/main.js', import.meta.url), 'utf8')

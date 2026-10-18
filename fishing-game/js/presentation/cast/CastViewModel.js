@@ -17,6 +17,7 @@ export function readCastViewModel(scene) {
   const now = scene.time?.now ?? 0
   const rageRemainingMs = (battleState?.nextRageAt ?? Infinity) - now
   const openingRemainingMs = (battleState?.rageOpeningUntil ?? 0) - now
+  const openingDurationMs = fish?.rageOpeningMs ?? 1200
   const rageTelegraph = Boolean(battleState && !battleState.isRaging
     && rageRemainingMs > 0 && rageRemainingMs <= 760)
   const rageOpeningAvailable = Boolean(battleState && !battleState.isRaging
@@ -49,6 +50,9 @@ export function readCastViewModel(scene) {
       isRaging: Boolean(battleState?.isRaging),
       rageTelegraph,
       rageOpeningAvailable,
+      rageOpening01: rageOpeningAvailable
+        ? Math.max(0, Math.min(1, openingRemainingMs / openingDurationMs))
+        : 0,
       openingSwipeHit,
     }),
     result: Object.freeze({
