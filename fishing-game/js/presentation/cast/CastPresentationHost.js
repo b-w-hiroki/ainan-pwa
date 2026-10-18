@@ -829,7 +829,7 @@ export class CastPresentationHost {
           this.nodes.battleRage.setText('引きが強まる… 次は待とう')
             .setStyle({ color: '#173248', backgroundColor: 'rgba(255,217,90,0.96)' })
         } else if (rageMode === 'opening') {
-          this.nodes.battleRage.setText('魚が疲れた！ 今が巻きどき')
+          this.nodes.battleRage.setText(`${battle.fishName}が疲れた！ 今が巻きどき`)
             .setStyle({ color: '#073754', backgroundColor: 'rgba(113,214,162,0.96)' })
         } else if (rageMode === 'opening-hit') {
           this.nodes.battleRage.setText('好機をつかんだ！ +8%')

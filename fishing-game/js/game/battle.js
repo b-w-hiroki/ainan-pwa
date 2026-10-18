@@ -95,7 +95,7 @@ export function tryExitRage(state, fish, nowMs) {
   if (nowMs < state.rageEndAt) return false
   state.isRaging = false
   state.nextRageAt = nowMs + randRange(fish.rageInterval[0], fish.rageInterval[1])
-  state.rageOpeningUntil = nowMs + RAGE_OPENING_MS
+  state.rageOpeningUntil = nowMs + (fish.rageOpeningMs ?? RAGE_OPENING_MS)
   state.rageOpeningUsed = false
   return true
 }
