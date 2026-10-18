@@ -124,7 +124,7 @@ export class Button {
       .on('pointerdown', pointer => { if (isDisabled || isPressed) return; pressedPointer = pointer.id; isPressed = true; draw('pressed'); if (!isReducedMotion()) container.setScale(0.985) })
       .on('pointerup', pointer => { if (!isPressed || pressedPointer !== pointer.id) return; cancelPress(); draw('hover'); activate() })
       .on('pointerover', () => draw('hover'))
-      .on('pointerout', cancelPress)
+      .on('pointerout', () => { cancelPress(); draw(); container.setScale(1) })
     bindPointer()
     scene.input.on('gameout', cancelPress)
     scene.scale.on('resize', cancelPress)
