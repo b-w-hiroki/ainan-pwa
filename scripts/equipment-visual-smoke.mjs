@@ -13,12 +13,34 @@ class MemoryStorage {
 globalThis.localStorage = new MemoryStorage()
 const visuals = await import('../fishing-game/js/presentation/equipmentVisuals.js')
 const { CHARACTER_MOTION_POSES } = await import('../fishing-game/js/presentation/cast/CharacterMotionController.js')
-const { ACCESSORY_META } = await import('../fishing-game/js/game/midgameProgression.js')
+const { ACCESSORY_META, MATERIAL_META, getMaterials, getRodUpgradeCost, grantCatchLoot, saveRodLevels } = await import('../fishing-game/js/game/midgameProgression.js')
+const { FISH_META } = await import('../fishing-game/js/game/progress.js')
 
 assert.deepEqual(Object.keys(visuals.ROD_VISUALS), ['basic', 'carbon', 'premium'])
 assert.deepEqual(Object.keys(ACCESSORY_META), ['cap', 'bag'], 'only the existing cap and bag accessory items may be visualized')
 assert.equal(ACCESSORY_META.cap.slot, 'hat')
 assert.equal(ACCESSORY_META.bag.slot, 'bag')
+assert.match(MATERIAL_META.scale.desc, /釣果で入手.*竿強化/)
+assert.match(MATERIAL_META.shell.desc, /タックルバッグ作成/)
+assert.match(MATERIAL_META.ticket.desc, /レア以上の釣果で入手.*タックルバッグ作成/)
+assert.match(MATERIAL_META.crystal.desc, /伝説の釣果で入手.*上級竿Lv4の強化/)
+assert.ok(ACCESSORY_META.cap.materials.scale > 0, 'scale guidance must map to a real accessory recipe')
+assert.ok(ACCESSORY_META.bag.materials.shell > 0 && ACCESSORY_META.bag.materials.ticket > 0, 'shell/ticket guidance must map to the real bag recipe')
+saveRodLevels({ basic: 1, carbon: 1, premium: 3 })
+assert.ok(getRodUpgradeCost('premium').materials.crystal > 0, 'crystal guidance must map to premium rod level 4')
+
+localStorage.setItem('ainan_materials', JSON.stringify({ scale: 0, shell: 0, ticket: 0, crystal: 0 }))
+for (const [rarity, expected] of [
+  ['common', { scale: 1 }],
+  ['uncommon', { scale: 1, shell: 1 }],
+  ['rare', { scale: 2, shell: 1, ticket: 1 }],
+  ['legendary', { scale: 2, shell: 2, ticket: 2, crystal: 1 }],
+]) {
+  const fish = Object.values(FISH_META).find(item => item.rarity === rarity)
+  assert.ok(fish, `fixture needs a ${rarity} fish`)
+  assert.deepEqual(grantCatchLoot({ ...fish, id: `smoke-${rarity}` }, { sizeCm: 20 }).grants, expected)
+}
+assert.deepEqual(getMaterials(), { scale: 6, shell: 4, ticket: 3, crystal: 1 }, 'material hints must match the existing catch rewards')
 
 const poseNames = Object.keys(CHARACTER_MOTION_POSES)
 assert.equal(poseNames.length, 13)
@@ -63,3 +85,4 @@ console.log('Equipment visual smoke QA passed')
 console.log('  real schema: rods, baits, hat/cap, bag only')
 console.log('  3 rods x 13 poses + cap/bag anchors: declared')
 console.log('  unowned/invalid visual fallbacks are read-only and safe')
+console.log('  material inventory hints match catch rewards, accessory recipes, and rod upgrades')

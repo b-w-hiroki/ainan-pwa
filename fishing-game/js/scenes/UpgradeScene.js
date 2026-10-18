@@ -7,7 +7,7 @@ import { drawCardSurface } from '../ui/UiPrimitives.js'
 import { addArtCard, addArtDialog, addArtPanel, loadUiArt } from '../ui/UiArt.js'
 import { BAIT_FISH_EFFECT } from '../game/fish.js'
 import { getBaitShopUnlock } from '../game/townUnlocks.js'
-import { ACCESSORY_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
+import { ACCESSORY_META, MATERIAL_META, getAccessoryState, getMaterials } from '../game/midgameProgression.js'
 import { ACCESSORY_VISUALS, ROD_VISUALS, createAccessoryAccent, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 import {
   BAIT_META,
@@ -51,10 +51,10 @@ const BAIT_ART = {
 }
 
 const MATERIAL_ITEMS = [
-  { id: 'scale', name: 'きらめく鱗', desc: '強化素材。今後の育成に使用予定', mark: '鱗', qty: 12, rank: { label: 'R', color: 0x5ebcff, glow: 0xe7f7ff } },
-  { id: 'shell', name: '貝殻パーツ', desc: '港町のショップ素材', mark: '貝', qty: 8, rank: { label: 'N', color: 0x8bcf52, glow: 0xecf8df } },
-  { id: 'ticket', name: '交換チケット', desc: 'ショップで使える補助券', mark: '券', qty: 3, rank: { label: 'SR', color: 0xffc447, glow: 0xfff2cc } },
-  { id: 'crystal', name: '青い宝石', desc: 'イベント報酬素材', mark: '晶', qty: 1, rank: { label: 'SR', color: 0x6c7cff, glow: 0xe8e9ff } },
+  { id: 'scale', rank: { label: 'R', color: 0x5ebcff, glow: 0xe7f7ff } },
+  { id: 'shell', rank: { label: 'N', color: 0x8bcf52, glow: 0xecf8df } },
+  { id: 'ticket', rank: { label: 'SR', color: 0xffc447, glow: 0xfff2cc } },
+  { id: 'crystal', rank: { label: 'SR', color: 0x6c7cff, glow: 0xe8e9ff } },
 ]
 
 export default class UpgradeScene extends Phaser.Scene {
@@ -313,7 +313,7 @@ export default class UpgradeScene extends Phaser.Scene {
     if (this._tab === 'rod') return Object.entries(ROD_META).map(([id, item]) => ({ id, item, type: 'rod', art: ROD_ART[id], rank: ROD_RANK[id] }))
     if (this._tab === 'bait') return Object.entries(BAIT_META).map(([id, item]) => ({ id, item, type: 'bait', art: BAIT_ART[id], rank: BAIT_RANK[id] }))
     const materials = getMaterials()
-    return MATERIAL_ITEMS.map(item => ({ id: item.id, item, type: 'material', mark: item.mark, rank: item.rank, fixedQty: materials[item.id] ?? 0 }))
+    return MATERIAL_ITEMS.map(item => ({ id: item.id, item: MATERIAL_META[item.id], type: 'material', mark: MATERIAL_META[item.id].mark, rank: item.rank, fixedQty: materials[item.id] ?? 0 }))
   }
 
   _inventoryGrid(x, y, w, viewH) {
