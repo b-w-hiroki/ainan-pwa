@@ -323,7 +323,15 @@ export class CastPresentationHost {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setVisible(false)
-    battleField.add([battleBackground, battleSplash, battleLine, battleFish, battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage])
+    const battleInstructionBacking = scene.add.graphics()
+    battleInstructionBacking.fillStyle(0x052b43, 1)
+      .fillRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
+    battleInstructionBacking.lineStyle(1, 0x8edfff, 0.25)
+      .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
+    const battleInstruction = scene.add.text(DESIGN_WIDTH / 2, 648, 'タップ / 下へスワイプで巻く', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5)
+    battleField.add([battleBackground, battleSplash, battleLine, battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction, battleFish])
 
     const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -415,7 +423,7 @@ export class CastPresentationHost {
       scene._playerShadow?.removeFromDisplayList?.()
     }
     const battleForeground = scene.add.container(0, 0).setVisible(false)
-    const battleUi = [battleBase, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage]
+    const battleUi = [battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction]
     battleField.remove(battleUi)
     battleForeground.add(battleUi)
     // The approved Battle base is a full-screen composite. Drawing a separate
@@ -600,6 +608,8 @@ export class CastPresentationHost {
       battleOpeningMeter,
       battleReel,
       battleRage,
+      battleInstruction,
+      battleInstructionBacking,
       resultGlow,
       resultOutcomeFx,
       resultFish,
@@ -855,6 +865,26 @@ export class CastPresentationHost {
       }
       this.nodes.battleRage.setVisible(rageMode !== 'calm')
         .setAlpha(battle.rageTelegraph ? 0.72 + (Math.sin(this.scene.time.now * 0.018) + 1) * 0.14 : 1)
+      const instructionMode = battle.isRaging ? 'rage'
+        : battle.openingSwipeHit ? 'opening-hit'
+          : battle.rageOpeningAvailable ? 'opening'
+            : battle.rageTelegraph ? 'telegraph' : 'reel'
+      const instruction = {
+        reel: ['タップ / 下へスワイプで巻く', 0x052b43, 0x8edfff],
+        telegraph: ['そろそろ暴れる！次は待つ', 0x483a17, 0xffd95a],
+        rage: ['暴れてる！巻かずに待つ', 0x542b26, 0xff9a70],
+        opening: ['巻きどき！タップ / 下へスワイプ', 0x0b624f, 0x8dffd1],
+        'opening-hit': ['成功！落ち着いて巻き続けよう', 0x0b624f, 0x8dffd1],
+      }[instructionMode]
+      if (this._battleInstructionMode !== instructionMode) {
+        this._battleInstructionMode = instructionMode
+        this.nodes.battleInstruction.setText(instruction[0])
+        this.nodes.battleInstructionBacking.clear()
+          .fillStyle(instruction[1], 1)
+          .fillRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
+          .lineStyle(1, instruction[2], 0.48)
+          .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
+      }
     }
     if (resultVisible) {
       const result = view.result

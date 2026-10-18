@@ -266,7 +266,7 @@ export class BattleUI {
     const text = scene.add.text(
       landscape ? W * 0.43 : W / 2,
       landscape ? controlsTop + controlsHeight / 2 : controlsTop + 158,
-      'タイミングよく下へスワイプ', {
+      'タップ / 下へスワイプで巻く', {
       fontFamily: FONT,
       resolution: TEXT_RES,
       fontSize: '13px',
