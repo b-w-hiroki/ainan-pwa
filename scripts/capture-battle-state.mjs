@@ -14,6 +14,9 @@ const destination='artifacts/e2e/03-battle.png'
 const openingDestination='artifacts/e2e/04-battle-opening.png'
 const openingHitDestination='artifacts/e2e/05-battle-opening-hit.png'
 mkdirSync('artifacts/e2e',{recursive:true})
+async function waitForRenderedFrames(page) {
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))
+}
 const browser=await chromium.launch({headless:true})
 try {
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1})
@@ -68,6 +71,7 @@ try {
     assert.ok(opening,'Could not enter deterministic recovery-window QA state')
     assert.match(opening.cue,/今が巻きどき/,'Recovery cue missing in the visible Battle HUD')
     assert.equal(opening.meterVisible,true,'Recovery countdown should be visible beside the reel instruction')
+    await waitForRenderedFrames(page)
     await page.screenshot({path:openingDestination,animations:'disabled'})
     assert.ok(statSync(openingDestination).size>15000,'Battle recovery screenshot did not render')
 
@@ -100,6 +104,7 @@ try {
     assert.equal(openingHit.cue,'好機をつかんだ！ +8%','Successful opening swipe should give immediate feedback')
     assert.equal(openingHit.meterVisible,false,'Countdown should clear when its single timed swipe is used')
     assert.equal(Math.round(openingHit.reel-opening.reel),8,'The first swipe should apply its configured one-time reel bonus')
+    await waitForRenderedFrames(page)
     await page.screenshot({path:openingHitDestination,animations:'disabled'})
     assert.ok(statSync(openingHitDestination).size>15000,'Battle timed-swipe screenshot did not render')
     console.log('Verified Battle recovery cue and first timed swipe',JSON.stringify({opening,openingHit}))
