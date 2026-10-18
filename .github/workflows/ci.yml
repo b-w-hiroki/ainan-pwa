@@ -81,6 +81,9 @@ jobs:
       - name: Verify portrait player-anchored fan and real drag
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-player-origin-fan.mjs
 
+      - name: Verify core artwork survives ordinary PWA offline reload
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-pwa-offline-art.mjs
+
       - name: Verify native 844x390 cone cast, world pointer and landing
         run: QA_VIEWPORT=844x390 QA_ROD=carbon QA_EDGE=center npm exec --yes --package=playwright@1.55.0 -- node scripts/cone-world-geometry-browser-qa.mjs
 

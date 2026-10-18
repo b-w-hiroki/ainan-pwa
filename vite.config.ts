@@ -75,6 +75,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        // The guide, town map and harbor master are 2.1–2.6 MB. Workbox's
+        // default 2 MiB limit silently leaves these core images offline-missing.
+        // Keep a bounded budget rather than permitting arbitrarily large art.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
