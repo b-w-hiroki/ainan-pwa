@@ -182,6 +182,10 @@ const openingViewScene = {
 const openingView = readCastViewModel(openingViewScene).battle
 assert.equal(openingView.rageOpeningAvailable, true, 'the live Battle HUD model should expose the active recovery window')
 assert.equal(openingView.rageOpening01, 0.5, 'the countdown should begin at half when half the species window remains')
+openingViewScene.battleState.lastOpeningSwipeAt = 200
+assert.equal(readCastViewModel(openingViewScene).battle.openingSwipeHit, true, 'successful swipe feedback should stay readable during the 1.4 second toast window')
+openingViewScene.time.now = 1601
+assert.equal(readCastViewModel(openingViewScene).battle.openingSwipeHit, false, 'successful swipe feedback should clear after 1.4 seconds')
 openingViewScene.time.now = 1750
 assert.equal(readCastViewModel(openingViewScene).battle.rageOpeningAvailable, false, 'the cue and countdown should clear at the species-specific deadline')
 

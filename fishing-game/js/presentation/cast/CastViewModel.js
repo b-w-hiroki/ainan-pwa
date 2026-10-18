@@ -24,7 +24,7 @@ export function readCastViewModel(scene) {
     && openingRemainingMs > 0 && !battleState.rageOpeningUsed)
   const openingSwipeAgeMs = now - (battleState?.lastOpeningSwipeAt ?? 0)
   const openingSwipeHit = Boolean(battleState?.lastOpeningSwipeAt
-    && openingSwipeAgeMs >= 0 && openingSwipeAgeMs <= 760)
+    && openingSwipeAgeMs >= 0 && openingSwipeAgeMs <= 1400)
 
   return Object.freeze({
     phase: scene.phase,

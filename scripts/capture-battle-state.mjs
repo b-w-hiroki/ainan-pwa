@@ -13,6 +13,7 @@ const {chromium}=await import(pathToFileURL(join(executableDirectory,'..','playw
 const destination='artifacts/e2e/03-battle.png'
 const openingDestination='artifacts/e2e/04-battle-opening.png'
 const openingHitDestination='artifacts/e2e/05-battle-opening-hit.png'
+const baseUrl=process.env.BATTLE_QA_BASE_URL ?? 'http://127.0.0.1:4173'
 mkdirSync('artifacts/e2e',{recursive:true})
 async function waitForRenderedFrames(page) {
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))
@@ -21,7 +22,7 @@ const browser=await chromium.launch({headless:true})
 try {
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1})
   try {
-    await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle',
+    await page.goto(`${baseUrl}/fishing-game/?qa=1&scene=GameScene&qaAction=battle`,
       {waitUntil:'domcontentloaded'})
     await page.waitForFunction(()=>{
       const scene=window.__game?.scene?.getScene('GameScene')
@@ -54,7 +55,9 @@ try {
         isRaging:false,
         rageEndAt:0,
         nextRageAt:Number.POSITIVE_INFINITY,
-        rageOpeningUntil:scene.time.now + (scene.fish?.rageOpeningMs ?? 1200) * 0.55,
+        // Keep this QA-only visual state alive through slow WebGL screenshot
+        // readbacks. Real gameplay keeps each species' shorter configured window.
+        rageOpeningUntil:scene.time.now + Math.max(5000, (scene.fish?.rageOpeningMs ?? 1200) * 0.55),
         rageOpeningUsed:false,
         lastOpeningSwipeAt:0,
       })
@@ -72,6 +75,14 @@ try {
     assert.match(opening.cue,/今が巻きどき/,'Recovery cue missing in the visible Battle HUD')
     assert.equal(opening.meterVisible,true,'Recovery countdown should be visible beside the reel instruction')
     await waitForRenderedFrames(page)
+    const renderedOpening=await page.evaluate(()=>{
+      const scene=window.__game?.scene?.getScene('GameScene')
+      const host=scene?._castPresentationHost
+      return {cue:host?.nodes?.battleRage?.text,visible:host?.nodes?.battleRage?.visible,meterVisible:host?.nodes?.battleOpeningMeter?.visible}
+    })
+    assert.match(renderedOpening.cue,/今が巻きどき/,'Recovery cue should remain available through the screenshot readback')
+    assert.equal(renderedOpening.visible,true,'Recovery cue should stay visible through the screenshot readback')
+    assert.equal(renderedOpening.meterVisible,true,'Recovery countdown should stay visible through the screenshot readback')
     await page.screenshot({path:openingDestination,animations:'disabled'})
     assert.ok(statSync(openingDestination).size>15000,'Battle recovery screenshot did not render')
 
