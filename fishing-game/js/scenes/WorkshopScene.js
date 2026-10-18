@@ -7,6 +7,7 @@ import { buildFooterNav } from '../ui/FooterNav.js'
 import { ROD_META, getEquipment, getInventory, getScore } from '../game/progress.js'
 import { ACCESSORY_META, MATERIAL_META, equipAccessory, unequipAccessory, getAccessoryState, getMaterials, getRodLevels, getRodUpgradeCost, purchaseAccessory, upgradeRodLevel } from '../game/midgameProgression.js'
 import { markWorkshopSeen } from '../game/retentionProgress.js'
+import { getWorkshopCostState } from '../presentation/workshopCosts.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const ROD_ART = { basic: ASSETS.equipment.rodBasicPartV1, carbon: ASSETS.equipment.rodCarbonPartV1, premium: ASSETS.equipment.rodPremiumPartV1 }
@@ -22,6 +23,7 @@ export default class WorkshopScene extends Phaser.Scene {
   }
 
   create() {
+    this._upgradePending = false
     markWorkshopSeen()
     const W = this.scale.width, H = this.scale.height
     addCoverImage(this, ASSETS.backgrounds.townGrowing.key, W, H, 0)
@@ -57,8 +59,9 @@ export default class WorkshopScene extends Phaser.Scene {
 
   _rods(W) {
     this.add.text(24, 180, '竿を強化', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
+    this.add.text(W - 24, 180, '素材：所持 / 必要', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft }).setOrigin(1, 0).setDepth(5)
     const inv = getInventory(), eq = getEquipment(), levels = getRodLevels()
-    ;['basic','carbon','premium'].forEach((id, i) => this._rodCard(22 + i * 121, 211, 108, 178, id, levels[id] ?? 1, (inv.rods?.[id] ?? 0) > 0, eq.rodType === id))
+    ;['basic','carbon','premium'].forEach((id, i) => this._rodCard(22 + i * 121, 211, 108, 222, id, levels[id] ?? 1, (inv.rods?.[id] ?? 0) > 0, eq.rodType === id))
   }
 
   _rodCard(x, y, w, h, id, level, owned, equipped) {
@@ -70,16 +73,27 @@ export default class WorkshopScene extends Phaser.Scene {
     this.add.text(x + w / 2, y + 80, meta.name, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.ink }).setOrigin(0.5).setDepth(5)
     this.add.text(x + w / 2, y + 102, 'Lv.' + level + '/5', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.oceanDeep }).setOrigin(0.5).setDepth(5)
     this.add.text(x + w / 2, y + 124, level >= 5 ? 'MAX' : '引き +' + Math.round((level - 1) * 4.5) + '%', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft }).setOrigin(0.5).setDepth(5)
+    const recipe = cost ? getWorkshopCostState(cost, getScore(), getMaterials()) : null
+    if (owned && recipe) this._recipe(x + w / 2, y + 140, recipe, `rod:${id}`)
+    const ready = owned && recipe?.affordable
     const label = !owned ? '未所持' : !cost ? '最大強化' : cost.score + 'ptで強化'
-    const btn = this.add.text(x + w / 2, y + 151, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: owned && cost ? '#9a6500' : UI_COLORS.muted, backgroundColor: owned && cost ? '#fff0b8' : '#edf2f4', padding: { x: 7, y: 6 } }).setOrigin(0.5).setDepth(6)
-    if (owned && cost) btn.setInteractive({ useHandCursor: true }).on('pointerdown', () => this._upgradeRod(id))
+    this.add.text(x + w / 2, y + h - 24, label, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: ready ? '#9a6500' : UI_COLORS.muted, backgroundColor: ready ? '#fff0b8' : '#edf2f4', padding: { x: 7, y: 10 } }).setOrigin(0.5).setDepth(6)
+    if (owned && cost) this.add.rectangle(x + w / 2, y + h - 24, w - 8, 44, 0xffffff, 0.001).setDepth(7)
+      .setData('rodUpgradeId', id).setInteractive({ useHandCursor: true }).on('pointerdown', () => this._upgradeRod(id))
+  }
+
+  _recipe(x, y, recipe, id) {
+    recipe.rows.forEach((row, i) => this.add.text(x, y + i * 14, row.label, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800',
+      color: row.missing ? UI_COLORS.coral : UI_COLORS.oceanDeep,
+    }).setOrigin(0.5).setDepth(5).setData('workshopRecipe', id).setData('materialId', row.id))
   }
 
   _accessories(W) {
-    this.add.text(24, 408, 'アクセサリ', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
+    this.add.text(24, 456, 'アクセサリ', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '16px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
     const state = getAccessoryState()
     Object.entries(ACCESSORY_META).forEach(([id, meta], i) => {
-      const x = 22 + i * 177, y = 439, w = 166, h = 142
+      const x = 22 + i * 177, y = 483, w = 166, h = 202
       const owned = !!state.owned[id], equipped = state.equipped[meta.slot] === id
       const g = this.add.graphics().setDepth(4)
       g.fillStyle(0xffffff, 0.98); g.lineStyle(equipped ? 2.4 : 1.5, equipped ? 0xffd95a : 0x9bcfe5, 0.88)
@@ -89,31 +103,40 @@ export default class WorkshopScene extends Phaser.Scene {
       this.add.text(x + 72, y + 25, meta.name, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink }).setDepth(5)
       this.add.text(x + 72, y + 49, equipped ? '装備中' : owned ? '所持済み' : meta.scoreCost + 'pt', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: equipped ? UI_COLORS.warning : UI_COLORS.inkSoft }).setDepth(5)
       this.add.text(x + 14, y + 78, meta.desc, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '800', color: UI_COLORS.inkSoft, wordWrap: { width: w - 28, useAdvancedWrap: true } }).setDepth(5).setData('accessoryDescription', id)
-      const action = this.add.text(x + w / 2, y + h - 20, equipped ? '外す' : owned ? '装備する' : '作成して装備', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.ink, backgroundColor: equipped ? '#dff5ff' : '#ffd95a', padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(6)
-      this.add.rectangle(x+w/2,y+h-20,132,44,0xffffff,0.001).setDepth(7)
+      const recipe = getWorkshopCostState({ score: meta.scoreCost, materials: meta.materials }, getScore(), getMaterials())
+      if (!owned) this._recipe(x + w / 2, y + 120, recipe, `accessory:${id}`)
+      const action = this.add.text(x + w / 2, y + h - 24, equipped ? '外す' : owned ? '装備する' : '作成して装備', { fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: UI_COLORS.ink, backgroundColor: equipped ? '#dff5ff' : owned || recipe.affordable ? '#ffd95a' : '#edf2f4', padding: { x: 10, y: 10 } }).setOrigin(0.5).setDepth(6)
+      this.add.rectangle(x+w/2,y+h-24,132,44,0xffffff,0.001).setDepth(7)
         .setData('accessoryId',id).setInteractive({useHandCursor:true})
         .on('pointerdown',()=>this._accessoryAction(id,owned,equipped))
     })
   }
 
   _upgradeRod(id) {
+    if (this._upgradePending) return
     const r = upgradeRodLevel(id)
-    if (!r.ok) return this._toast(r.reason === 'score' ? 'ポイント不足' : r.reason === 'materials' ? '素材不足' : '最大レベルです')
+    if (!r.ok) return this._toast(r.cost ? getWorkshopCostState(r.cost, getScore(), getMaterials()).shortage : '最大レベルです')
+    this._upgradePending = true
     this._toast('Lv.' + r.level + ' に強化！')
     this.time.delayedCall(350, () => this.scene.restart())
   }
 
   _accessoryAction(id, owned, equipped = false) {
     const r = equipped ? unequipAccessory(id) : owned ? equipAccessory(id) : purchaseAccessory(id)
-    if (!r.ok) return this._toast(r.reason === 'score' ? 'ポイント不足' : r.reason === 'materials' ? '素材不足' : '作成できません')
+    if (!r.ok) {
+      const meta = ACCESSORY_META[id]
+      return this._toast(['score', 'materials'].includes(r.reason)
+        ? getWorkshopCostState({ score: meta.scoreCost, materials: meta.materials }, getScore(), getMaterials()).shortage
+        : '作成できません')
+    }
     this.scene.restart()
   }
 
   _toast(message) {
     const W = this.scale.width, H = this.scale.height
     const bg = this.add.graphics().setDepth(120)
-    bg.fillStyle(0x173248, 0.94); bg.fillRoundedRect(W / 2 - 105, H - 144, 210, 38, 14)
-    const txt = this.add.text(W / 2, H - 125, message, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: '#ffffff' }).setOrigin(0.5).setDepth(121)
-    this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=12', delay: 550, duration: 450, onComplete: () => { bg.destroy(); txt.destroy() } })
+    bg.fillStyle(0x173248, 0.94); bg.fillRoundedRect(24, H - 144, W - 48, 44, 14)
+    const txt = this.add.text(W / 2, H - 122, message, { fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '900', color: '#ffffff', wordWrap: { width: W - 72 }, align: 'center' }).setOrigin(0.5).setDepth(121).setData('workshopNotice', true)
+    this.tweens.add({ targets: [bg, txt], alpha: 0, y: '-=12', delay: 1400, duration: 350, onComplete: () => { bg.destroy(); txt.destroy() } })
   }
 }
