@@ -180,6 +180,9 @@ jobs:
       - name: Verify held retrieve cancels on input interruption
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-retrieve-release.mjs
 
+      - name: Verify deliberate Home button taps after input interruption
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-home-deliberate-tap.mjs
+
       - name: Verify Settings backup failures, clipboard fallback and 44px touch targets
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-settings-storage-actions.mjs
 

@@ -62,6 +62,7 @@ export class Button {
     const iconText = icon && !glyph ? scene.add.text(-w / 2 + 39, 0, icon, { fontSize: '23px', resolution: TEXT_RES }).setOrigin(0.5) : null
     let isDisabled = Boolean(disabled)
     let isPressed = false
+    let pressedPointer = null
     let locked = false
 
     const draw = (mode = 'idle') => {
@@ -111,12 +112,35 @@ export class Button {
       onClick?.()
       scene.time.delayedCall(BUTTON_SPEC.lockMs, () => { locked = false })
     }
+    const cancelPress = () => {
+      if (!isPressed) return
+      isPressed = false
+      pressedPointer = null
+      draw()
+      container.setScale(1)
+    }
+    const cancelHiddenPress = () => { if (document.hidden) cancelPress() }
     const bindPointer = () => hit.setInteractive({ useHandCursor: !isDisabled })
-      .on('pointerdown', () => { if (isDisabled) return; isPressed = true; draw('pressed'); if (!isReducedMotion()) container.setScale(0.985) })
-      .on('pointerup', () => { if (!isPressed) return; isPressed = false; draw('hover'); container.setScale(1); activate() })
+      .on('pointerdown', pointer => { if (isDisabled || isPressed) return; pressedPointer = pointer.id; isPressed = true; draw('pressed'); if (!isReducedMotion()) container.setScale(0.985) })
+      .on('pointerup', pointer => { if (!isPressed || pressedPointer !== pointer.id) return; cancelPress(); draw('hover'); activate() })
       .on('pointerover', () => draw('hover'))
-      .on('pointerout', () => { isPressed = false; draw(); container.setScale(1) })
+      .on('pointerout', () => { cancelPress(); draw(); container.setScale(1) })
     bindPointer()
+    scene.input.on('gameout', cancelPress)
+    scene.scale.on('resize', cancelPress)
+    scene.game.canvas.addEventListener('pointercancel', cancelPress)
+    window.addEventListener('blur', cancelPress)
+    document.addEventListener('visibilitychange', cancelHiddenPress)
+    const cleanupPress = () => {
+      scene.input.off('gameout', cancelPress)
+      scene.scale.off('resize', cancelPress)
+      scene.game.canvas.removeEventListener('pointercancel', cancelPress)
+      window.removeEventListener('blur', cancelPress)
+      document.removeEventListener('visibilitychange', cancelHiddenPress)
+      scene.events.off('shutdown', cleanupPress)
+    }
+    container.once('destroy', cleanupPress)
+    scene.events.once('shutdown', cleanupPress)
 
     const keyActivate = event => {
       if (!keyboard || isDisabled || event.repeat || scene._footerKeyboardFocus) return
@@ -142,6 +166,7 @@ export class Button {
     this.container = container
     this.hit = hit
     this.setDisabled = value => {
+      cancelPress()
       isDisabled = Boolean(value)
       container.setData('state', isDisabled ? 'disabled' : 'idle')
       hit.disableInteractive(); hit.removeAllListeners(); bindPointer(); draw()
