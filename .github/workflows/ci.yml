@@ -177,6 +177,9 @@ jobs:
       - name: Verify workshop recipes and deliberate upgrade purchases
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-workshop-recipes.mjs
 
+      - name: Verify held retrieve cancels on input interruption
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-retrieve-release.mjs
+
       - name: Verify Settings backup failures, clipboard fallback and 44px touch targets
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-settings-storage-actions.mjs
 
