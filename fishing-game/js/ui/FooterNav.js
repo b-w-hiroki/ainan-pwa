@@ -67,19 +67,35 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
     focusIndex = (index + tabs.length) % tabs.length
     tabs.forEach((tab, tabIndex) => tab.render(tabIndex === focusIndex ? 'focus' : 'idle'))
   }
-  const activateFocus = () => { if (scene._footerKeyboardFocus) tabs[focusIndex]?.activate() }
+  const activateFocus = event => { if (!event?.repeat && scene._footerKeyboardFocus) tabs[focusIndex]?.activate() }
   const clearFocus = () => {
     scene._footerKeyboardFocus = false
     tabs.forEach(tab => tab.render('idle'))
   }
   const onLeft = () => setFocus(focusIndex - 1)
   const onRight = () => setFocus(focusIndex + 1)
+  const cancelActions = () => {
+    tabs.forEach(tab => tab.cancel())
+    clearFocus()
+  }
+  const cancelHiddenActions = () => { if (document.hidden) cancelActions() }
+  scene.input.on('gameout', cancelActions)
+  scene.scale.on('resize', cancelActions)
+  scene.game.canvas.addEventListener('pointercancel', cancelActions)
+  window.addEventListener('blur', cancelActions)
+  document.addEventListener('visibilitychange', cancelHiddenActions)
   scene.input.keyboard?.on('keydown-LEFT', onLeft)
   scene.input.keyboard?.on('keydown-RIGHT', onRight)
   scene.input.keyboard?.on('keydown-ENTER', activateFocus)
   scene.input.keyboard?.on('keydown-SPACE', activateFocus)
   scene.input.keyboard?.on('keydown-ESC', clearFocus)
   scene.events.once('shutdown', () => {
+    scene.input.off('gameout', cancelActions)
+    scene.scale.off('resize', cancelActions)
+    scene.game.canvas.removeEventListener('pointercancel', cancelActions)
+    window.removeEventListener('blur', cancelActions)
+    document.removeEventListener('visibilitychange', cancelHiddenActions)
+    tabs.forEach(tab => tab.cancel(false))
     scene.input.keyboard?.off('keydown-LEFT', onLeft)
     scene.input.keyboard?.off('keydown-RIGHT', onRight)
     scene.input.keyboard?.off('keydown-ENTER', activateFocus)
@@ -113,6 +129,8 @@ function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
   const hit = scene.add.rectangle(x, centerY, width, FOOTER_NAV_SPEC.hitHeight, 0x000000, 0).setDepth(94)
   if (!disabled) hit.setInteractive({ useHandCursor: !active })
   let locked = false
+  let pressedPointer = null
+  let navigationTimer = null
 
   const render = (mode = 'idle') => {
     const pressed = mode === 'pressed'
@@ -153,14 +171,33 @@ function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
     if (disabled || active || locked) return
     locked = true
     playSfx('select')
-    scene.time.delayedCall(180, () => { if (scene.sys?.isActive?.()) scene.scene.start(tab.scene) })
+    navigationTimer = scene.time.delayedCall(180, () => {
+      navigationTimer = null
+      if (scene.sys?.isActive?.()) scene.scene.start(tab.scene)
+    })
   }
-  hit.on('pointerdown', () => { render('pressed'); if (!isReducedMotion()) label.setScale(0.98) })
-    .on('pointerup', () => { render('focus'); label.setScale(1); activate() })
+  const cancelPress = () => { pressedPointer = null; render('idle'); label.setScale(1) }
+  const cancel = (redraw = true) => {
+    navigationTimer?.remove(false)
+    navigationTimer = null
+    locked = false
+    pressedPointer = null
+    if (redraw) cancelPress()
+  }
+  hit.on('pointerdown', pointer => {
+    if (disabled || active || locked || pressedPointer !== null) return
+    pressedPointer = pointer.id
+    render('pressed'); if (!isReducedMotion()) label.setScale(0.98)
+  })
+    .on('pointerup', pointer => {
+      if (pressedPointer !== pointer.id) return
+      pressedPointer = null
+      render('focus'); label.setScale(1); activate()
+    })
     .on('pointerover', () => render('focus'))
-    .on('pointerout', () => { render('idle'); label.setScale(1) })
+    .on('pointerout', cancelPress)
   render(disabled ? 'disabled' : 'idle')
-  return { key: tab.key, active, disabled, hit, render, activate }
+  return { key: tab.key, active, disabled, hit, render, activate, cancel }
 }
 
 function getTownReaction() {

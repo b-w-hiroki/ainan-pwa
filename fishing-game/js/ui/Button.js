@@ -64,6 +64,8 @@ export class Button {
     let isPressed = false
     let pressedPointer = null
     let locked = false
+    let keyTimer = null
+    let destroyed = false
 
     const draw = (mode = 'idle') => {
       const pressed = mode === 'pressed' && !isDisabled
@@ -112,12 +114,16 @@ export class Button {
       onClick?.()
       scene.time.delayedCall(BUTTON_SPEC.lockMs, () => { locked = false })
     }
-    const cancelPress = () => {
-      if (!isPressed) return
+    const cancelPress = (redraw = true) => {
+      if (!isPressed && !keyTimer) return
+      keyTimer?.remove(false)
+      keyTimer = null
       isPressed = false
       pressedPointer = null
-      draw()
-      container.setScale(1)
+      if (redraw) {
+        draw()
+        container.setScale(1)
+      }
     }
     const cancelHiddenPress = () => { if (document.hidden) cancelPress() }
     const bindPointer = () => hit.setInteractive({ useHandCursor: !isDisabled })
@@ -132,30 +138,35 @@ export class Button {
     window.addEventListener('blur', cancelPress)
     document.addEventListener('visibilitychange', cancelHiddenPress)
     const cleanupPress = () => {
+      if (destroyed) return
+      cancelPress(false)
+      destroyed = true
       scene.input.off('gameout', cancelPress)
       scene.scale.off('resize', cancelPress)
       scene.game.canvas.removeEventListener('pointercancel', cancelPress)
       window.removeEventListener('blur', cancelPress)
       document.removeEventListener('visibilitychange', cancelHiddenPress)
+      scene.input.keyboard?.off('keydown-ENTER', keyActivate)
+      scene.input.keyboard?.off('keydown-SPACE', keyActivate)
       scene.events.off('shutdown', cleanupPress)
     }
     container.once('destroy', cleanupPress)
     scene.events.once('shutdown', cleanupPress)
 
     const keyActivate = event => {
-      if (!keyboard || isDisabled || event.repeat || scene._footerKeyboardFocus) return
+      if (!keyboard || destroyed || isDisabled || locked || keyTimer || event.repeat || scene._footerKeyboardFocus) return
       event.preventDefault?.()
       draw('pressed')
       if (!isReducedMotion()) container.setScale(0.985)
-      scene.time.delayedCall(70, () => { draw('focus'); container.setScale(1); activate() })
+      keyTimer = scene.time.delayedCall(70, () => {
+        keyTimer = null
+        if (destroyed || !scene.sys.isActive()) return
+        draw('focus'); container.setScale(1); activate()
+      })
     }
     if (keyboard) {
       scene.input.keyboard?.on('keydown-ENTER', keyActivate)
       scene.input.keyboard?.on('keydown-SPACE', keyActivate)
-      scene.events.once('shutdown', () => {
-        scene.input.keyboard?.off('keydown-ENTER', keyActivate)
-        scene.input.keyboard?.off('keydown-SPACE', keyActivate)
-      })
     }
 
     container.add([shadow, ...(artSurface ? [artSurface] : []), surface, glyphGfx, ...(artIcon ? [artIcon] : []), title, ...(sub ? [sub] : []), ...(trail ? [trail] : []), ...(iconText ? [iconText] : []), hit])
