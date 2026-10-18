@@ -35,6 +35,30 @@ function clearBattleContinuity(scene) {
   scene._battleIntroLabel = null
 }
 
+function isInsideBattleReelDial(scene, pointer) {
+  const layout = scene._reelCtaLayout
+  if (!layout || !pointer) return false
+  const radius = layout.dialSize * 0.46
+  return Math.abs(pointer.x - layout.dialX) <= radius
+    && Math.abs(pointer.y - layout.dialY) <= radius
+}
+
+function applyBattleReelInput(scene) {
+  if (scene.phase !== 'battle' || !scene.battleState) return false
+  if (scene.time.now < (scene._battleNextReelInputAt ?? 0)) return false
+
+  scene._battleNextReelInputAt = scene.time.now + REEL_INPUT_COOLDOWN_MS
+  const reelGain = applySwipe(scene.battleState, scene.battleState.isRaging, scene.time.now)
+  if (reelGain > 5 && scene._targetFishGfx?.active) {
+    battleSplash(scene, scene._targetFishGfx.x, scene._targetFishGfx.y, true)
+  }
+  scene._syncBattleUI()
+
+  const outcome = battleOutcome(scene.battleState)
+  if (outcome) scene._finishBattle(outcome)
+  return true
+}
+
 /**
  * Keeps Battle visually attached to Retrieve instead of becoming a separate
  * minigame screen. The same fish silhouette, water, rod line and character stay
@@ -75,7 +99,7 @@ export function installVerticalSliceBattleContinuity(GameScene) {
     this.ebarNum?.setVisible(false)
     this.reelValText?.setVisible(false)
 
-    setTextInContainer(this.reelCTA, text => text.includes('スワイプ'), '↓ スワイプで巻く')
+    setTextInContainer(this.reelCTA, text => text.includes('スワイプ'), 'タップ / 下へスワイプで巻く')
     this.rageTag?.setText('魚が暴れてる！ 今は待つ')
 
     ;[this.escapeBar, this.battlePanel, this.reelCTA].forEach(obj => {
@@ -123,6 +147,29 @@ export function installVerticalSliceBattleContinuity(GameScene) {
     return result
   }
 
+  // A tap on the prominent reel dial is one deliberate reel action. Keep the
+  // same timing rule and cooldown as a down-swipe so the dial is not decorative.
+  const originalOnDown = GameScene.prototype._onDown
+  GameScene.prototype._onDown = function (pointer) {
+    const result = originalOnDown.call(this, pointer)
+    this._battleTapStart = this.phase === 'battle' && isInsideBattleReelDial(this, pointer)
+      ? { x: pointer.x, y: pointer.y }
+      : null
+    return result
+  }
+
+  const originalOnUp = GameScene.prototype._onUp
+  GameScene.prototype._onUp = function (pointer) {
+    const start = this._battleTapStart
+    this._battleTapStart = null
+    if (this.phase === 'battle' && start && isInsideBattleReelDial(this, pointer)
+      && Math.hypot(pointer.x - start.x, pointer.y - start.y) <= 24) {
+      applyBattleReelInput(this)
+      return
+    }
+    return originalOnUp.call(this, pointer)
+  }
+
   // One physical swipe should feel like one reel decision. The legacy input
   // fired every 28px of the same drag, allowing a single long gesture to add
   // many reel steps before the player ever saw a rage state.
@@ -135,16 +182,8 @@ export function installVerticalSliceBattleContinuity(GameScene) {
     if (dy <= REEL_GESTURE_PX) return
     if (this.time.now < (this._battleNextReelInputAt ?? 0)) return
 
-    this._battleNextReelInputAt = this.time.now + REEL_INPUT_COOLDOWN_MS
     this._swipeBaseY = pointer.y
-    const reelGain = applySwipe(this.battleState, this.battleState.isRaging, this.time.now)
-    if (reelGain > 5 && this._targetFishGfx?.active) {
-      battleSplash(this, this._targetFishGfx.x, this._targetFishGfx.y, true)
-    }
-    this._syncBattleUI()
-
-    const out = battleOutcome(this.battleState)
-    if (out) this._finishBattle(out)
+    applyBattleReelInput(this)
   }
 
   const originalUpdate = GameScene.prototype.update
