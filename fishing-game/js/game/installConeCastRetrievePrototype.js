@@ -4,6 +4,8 @@ import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { isReducedMotion } from './feedback.js'
 import { PULL_CAST_TUNING, classifyPullRelease, pullChargeRatio, slingshotAimFromPull } from './pullCastTuning.js'
 
+const TEXT_RES = Math.min(2, Math.max(1, globalThis.devicePixelRatio ?? 1))
+
 // Prototype tuning: ±52° fan, 10–43m requested distance. The actual landing
 // remains clamped by the current rod range and authored water bounds.
 export const CONE_CAST_TUNING = Object.freeze({ halfAngleDeg: 52, minDistancePx: 180, maxDistancePx: 780 })
@@ -213,16 +215,16 @@ function buildOverlay(scene) {
   const infoChrome = scene.add.graphics()
   infoChrome.fillStyle(0x062c44, 0.82).lineStyle(2, 0xffffff, 0.86)
     .fillRoundedRect(infoX, infoY, infoW, infoH, 14).strokeRoundedRect(infoX, infoY, infoW, infoH, 14)
-  const label = scene.add.text(infoX + 14, infoY + (compact ? 15 : 19), '起点から斜め下へ引く', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
-  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 16, '成功', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0.5)
-  const feedback = scene.add.text(buttonX, castY - radius - 24, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
-  const mode = scene.add.text(infoX + 14, infoY + infoH - (compact ? 15 : 20), '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#bfeeff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const label = scene.add.text(infoX + 14, infoY + (compact ? 15 : 19), '起点から斜め下へ引く', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
+  const gaugeLabel = scene.add.text(gaugeX + gaugeW / 2, gaugeY - 16, '成功', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 4 }).setOrigin(0.5)
+  const feedback = scene.add.text(buttonX, castY - radius - 24, '', { resolution: TEXT_RES, fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '12px' : '14px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5)
+  const mode = scene.add.text(infoX + 14, infoY + infoH - (compact ? 15 : 20), '', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '12px' : '13px', fontStyle: 'bold', color: '#bfeeff', align: 'left', wordWrap: { width: infoW - 28 } }).setOrigin(0, 0.5)
   const hitChrome = scene.add.graphics().setVisible(false)
-  const hitKicker = scene.add.text(W / 2, compact ? 92 : 116, 'HIT!', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '17px' : '20px', fontStyle: 'bold', color: '#ffd95a' }).setOrigin(0.5).setVisible(false)
-  const hitTitle = scene.add.text(W / 2, compact ? 116 : 143, '', { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5).setVisible(false)
+  const hitKicker = scene.add.text(W / 2, compact ? 92 : 116, 'HIT!', { resolution: TEXT_RES, fontFamily: 'Nunito, sans-serif', fontSize: compact ? '17px' : '20px', fontStyle: 'bold', color: '#ffd95a' }).setOrigin(0.5).setVisible(false)
+  const hitTitle = scene.add.text(W / 2, compact ? 116 : 143, '', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#ffffff', align: 'center' }).setOrigin(0.5).setVisible(false)
   const qaEnabled = new URLSearchParams(window.location.search).get('pullQa') === '1'
   const qaPointer = scene.add.graphics().setVisible(false)
-  const qaTimeline = scene.add.text(12, 86, '', { fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
+  const qaTimeline = scene.add.text(12, 86, '', { resolution: TEXT_RES, fontFamily: 'Consolas, monospace', fontSize: compact ? '10px' : '11px', color: '#ffffff', backgroundColor: '#062c44', padding: { x: 8, y: 6 }, lineSpacing: 2 }).setScrollFactor(0).setVisible(qaEnabled)
   root.add([castChrome, reelChrome, reelMotion, charge, infoChrome, label, gaugeLabel, feedback, mode, hitChrome, hitKicker, hitTitle, qaPointer, qaTimeline])
   scene._coneCastHud = root
   scene._coneCastHudNodes = { buttonX, castY, reelY, radius, pullEndY, gaugeX, gaugeY, gaugeW, gaugeH, infoX, infoY, infoW, infoH, infoChrome, label, gaugeLabel, feedback, mode, charge, castChrome, reelChrome, reelMotion, hitChrome, hitKicker, hitTitle, qaEnabled, qaPointer, qaTimeline }

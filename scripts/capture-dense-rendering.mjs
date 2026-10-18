@@ -92,6 +92,10 @@ try {
      evidence.push({rotation:[width,height],...await inspect(page,dpr)})
      await page.screenshot({path:`${out}/rotate-${width}x${height}.png`})
     }
+    assert.deepEqual(await page.evaluate(()=>{
+     const s=window.__game.scene.getScene('GameScene')
+     return [s._cameraPanHudNodes.location.style.resolution,s._coneCastHudNodes.label.style.resolution]
+    }),[2,2],'HUD text textures must match the dense framebuffer')
     // Same-size surface must not drift after resize/restore or report GL errors.
     assert.equal(await page.evaluate(()=>window.__game.renderer.gl.getError()),0)
    }
