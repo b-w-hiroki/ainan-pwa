@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { MOBILE_FRAME } from './config/mobileFrame.js'
+import { installDenseRendering } from './presentation/denseRendering.js'
 import TitleScene from './scenes/TitleScene.js'
 import HomeScene from './scenes/HomeScene.js'
 import MapScene from './scenes/MapScene.js'
@@ -74,8 +75,8 @@ const config = {
     pixelArt: false,
     antialias: true,
     roundPixels: true,
-    resolution: Math.min(window.devicePixelRatio ?? 1, 2),
   },
+  callbacks: { postBoot: installDenseRendering },
   scale: {
     mode: cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
