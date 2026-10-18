@@ -1,0 +1,21 @@
+[
+  {
+    "dpr": 1,
+    "backingWidth": 390,
+    "backingHeight": 844,
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "antialias": true,
+    "roundPixels": true
+  },
+  {
+    "dpr": 2,
+    "backingWidth": 390,
+    "backingHeight": 844,
+    "cssWidth": 390,
+    "cssHeight": 844,
+    "antialias": true,
+    "roundPixels": true
+  }
+]
+

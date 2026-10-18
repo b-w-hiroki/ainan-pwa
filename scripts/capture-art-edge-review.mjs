@@ -16,6 +16,11 @@ try {
  await page.setContent(`<style>body{margin:0;background:#dce9ef;font:16px sans-serif}main{display:flex;gap:12px;padding:12px}.panel{width:380px;height:850px;overflow:hidden;position:relative;background:white}.dark{background:#073754;color:white}h3{margin:12px}img{position:absolute;max-width:none;width:1254px;left:-425px;top:-90px}.small img{width:300px;left:30px;top:80px}.small{background:#91e5f0}</style><main><section class=panel><h3>Source, actual alpha on white, 1:1</h3><img src="${base}/docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png"></section><section class="panel dark"><h3>Source, actual alpha on sea blue, 1:1</h3><img src="${base}/docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png"></section><section class="panel small"><h3>Source at 300px</h3><img src="${base}/docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png"></section></main>`)
  await page.evaluate(()=>Promise.all([...document.images].map(im=>im.decode())))
  await page.screenshot({path:`${out}/alpha-backgrounds.png`})
+ await page.evaluate(async base=>{
+  for(const im of document.images) im.src=`${base}/docs/art-source/w03-edge-clean-v1/W03-CUTE-B-idle-01.png`
+  await Promise.all([...document.images].map(im=>im.decode()))
+ },base)
+ await page.screenshot({path:`${out}/alpha-backgrounds-clean.png`})
  const evidence=[]
  for(const dpr of [1,2]) {
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:dpr})
