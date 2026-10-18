@@ -1,0 +1,43 @@
+{
+  "candidateId": "w02-opensea-v4",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "status": "review-source-only",
+  "artApproved": false,
+  "productionSwitched": false,
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-19",
+  "file": "W02-OPENSEA-v4.png",
+  "prompt": "W02-OPENSEA-v4.prompt.txt",
+  "sha256": "e6f5b2a0a1946cb3476cdb4d79c09a01be9fda24a3d588fd35a7d300811134cd",
+  "requestedDimensions": [
+    3072,
+    2048
+  ],
+  "actualDimensions": [
+    1536,
+    1024
+  ],
+  "nativeSizeRequirementMet": false,
+  "colorType": "RGB",
+  "opaque": true,
+  "reference": {
+    "path": "../harbor-character-v2/harbor-morning.png",
+    "sha256": "2b41c51f802e1612b404ef222ff401bdb421f00aba8272b8db2563f531de2df2",
+    "role": "style, morning light, water palette and horizon height; not a pixel-exact boundary"
+  },
+  "review": {
+    "inspected": true,
+    "findings": [
+      "One unobstructed open-sea asset, no foreground pier/boats/actors/UI/lettering.",
+      "Horizon near the reference height and similar cyan/deeper-blue water; tiny distant islands and soft clouds.",
+      "Lower-left underwater seabed detail remains; it is not an above-water obstacle.",
+      "Requested native resolution was not honored by the tool; no enlargement performed."
+    ],
+    "remaining": [
+      "Native detail/size requirement or explicit revised size decision.",
+      "Exact boundary, wave scale and horizon continuity with the harbor at game camera positions.",
+      "FAR/SEA layer separation and world extent/clear-corridor integration.",
+      "Independent artistic acceptance before production use."
+    ]
+  }
+}
