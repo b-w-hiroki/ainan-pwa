@@ -819,7 +819,19 @@ export class CastPresentationHost {
         this.nodes.battleTensionStatus.setTexture(statusAsset.key)
       }
       this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
-      this.nodes.battleRage.setText('暴れている… 待つ').setVisible(battle.isRaging)
+      const rageMode = battle.isRaging ? 'rage' : battle.rageTelegraph ? 'telegraph' : 'calm'
+      if (this._battleRageMode !== rageMode) {
+        this._battleRageMode = rageMode
+        if (rageMode === 'telegraph') {
+          this.nodes.battleRage.setText('引きが強まる… 次は待とう')
+            .setStyle({ color: '#173248', backgroundColor: 'rgba(255,217,90,0.96)' })
+        } else if (rageMode === 'rage') {
+          this.nodes.battleRage.setText('暴れている… 待つ')
+            .setStyle({ color: '#fff3a5', backgroundColor: 'rgba(94,32,26,0.86)' })
+        }
+      }
+      this.nodes.battleRage.setVisible(rageMode !== 'calm')
+        .setAlpha(battle.rageTelegraph ? 0.72 + (Math.sin(this.scene.time.now * 0.018) + 1) * 0.14 : 1)
     }
     if (resultVisible) {
       const result = view.result

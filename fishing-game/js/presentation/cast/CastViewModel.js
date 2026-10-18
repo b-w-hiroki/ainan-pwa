@@ -13,6 +13,10 @@ export function readCastViewModel(scene) {
   const outcome = scene._castPresentationOutcome ?? null
   const caught = outcome === 'caught' && lastCatch?.fishId === fish?.id
   const visualLoadout = getVisualLoadout(scene.rod?.id ?? scene.env?.player?.rodType)
+  const battleState = scene.battleState
+  const rageRemainingMs = (battleState?.nextRageAt ?? Infinity) - (scene.time?.now ?? 0)
+  const rageTelegraph = Boolean(battleState && !battleState.isRaging
+    && rageRemainingMs > 0 && rageRemainingMs <= 760)
 
   return Object.freeze({
     phase: scene.phase,
@@ -33,9 +37,10 @@ export function readCastViewModel(scene) {
     battle: Object.freeze({
       fishId: fish?.id ?? 'tai',
       fishName: fish?.name ?? 'FISH',
-      tension01: Math.max(0, Math.min(1, (scene.battleState?.escape ?? 0) / 100)),
-      reel01: Math.max(0, Math.min(1, (scene.battleState?.reel ?? 0) / 100)),
-      isRaging: Boolean(scene.battleState?.isRaging),
+      tension01: Math.max(0, Math.min(1, (battleState?.escape ?? 0) / 100)),
+      reel01: Math.max(0, Math.min(1, (battleState?.reel ?? 0) / 100)),
+      isRaging: Boolean(battleState?.isRaging),
+      rageTelegraph,
     }),
     result: Object.freeze({
       outcome,
