@@ -1,0 +1,53 @@
+name: Harbor services touch gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - fishing-game/js/scenes/HarborServicesScene.js
+      - fishing-game/js/ui/Button.js
+      - fishing-game/js/ui/FooterNav.js
+      - fishing-game/js/game/midgameProgression.js
+      - scripts/capture-harbor-services-touch.mjs
+      - .github/workflows/harbor-services-touch.yml
+  push:
+    branches: [main]
+    paths:
+      - fishing-game/js/scenes/HarborServicesScene.js
+      - fishing-game/js/ui/Button.js
+      - fishing-game/js/ui/FooterNav.js
+      - fishing-game/js/game/midgameProgression.js
+      - scripts/capture-harbor-services-touch.mjs
+      - .github/workflows/harbor-services-touch.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  harbor-services-touch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Start built preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > /tmp/harbor-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/harbor-preview.log
+          exit 1
+      - name: Verify real taps, 44 CSS px, all species, cancellation and transactions
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-harbor-services-touch.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: harbor-services-touch
+          path: artifacts/harbor-services-touch
+          retention-days: 14
