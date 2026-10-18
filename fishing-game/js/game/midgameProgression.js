@@ -6,10 +6,10 @@ const readJson = (key, fallback) => {
 const writeJson = (key, value) => localStorage.setItem(key, JSON.stringify(value))
 
 export const MATERIAL_META = {
-  scale: { name: 'きらめく鱗', mark: '鱗' },
-  shell: { name: '貝殻パーツ', mark: '貝' },
-  ticket: { name: '交換チケット', mark: '券' },
-  crystal: { name: '青い宝石', mark: '晶' },
+  scale: { name: 'きらめく鱗', mark: '鱗', desc: '釣果で入手。竿強化・潮風キャップ作成に使う' },
+  shell: { name: '貝殻パーツ', mark: '貝', desc: '釣果で入手。竿強化・タックルバッグ作成に使う' },
+  ticket: { name: '交換チケット', mark: '券', desc: 'レア以上の釣果で入手。タックルバッグ作成に使う' },
+  crystal: { name: '青い宝石', mark: '晶', desc: '伝説の釣果で入手。上級竿Lv4の強化に使う' },
 }
 
 export const ACCESSORY_META = {
