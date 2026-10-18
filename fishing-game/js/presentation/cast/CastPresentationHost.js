@@ -115,6 +115,14 @@ export class CastPresentationHost {
     this._resultInputLocked = false
     this._jumpRageStartedAt = null
     this._jumpRageFishId = null
+    this._cancelHeldRetrieve = () => {
+      if (!this._slowPointerHeld) return
+      this._slowPointerHeld = false
+      this.adapter.endSlowRetrieve()
+    }
+    this._cancelHiddenRetrieve = () => {
+      if (document.hidden) this._cancelHeldRetrieve()
+    }
   }
 
   mount() {
@@ -637,6 +645,12 @@ export class CastPresentationHost {
     scene.scale.on('resize', this.layout, this)
     scene.input.on('pointerdown', this._onHostPointerDown, this)
     scene.input.on('pointerup', this._onHostPointerUp, this)
+    scene.input.on('pointerupoutside', this._cancelHeldRetrieve)
+    scene.input.on('gameout', this._cancelHeldRetrieve)
+    scene.scale.on('resize', this._cancelHeldRetrieve)
+    scene.game.canvas.addEventListener('pointercancel', this._cancelHeldRetrieve)
+    window.addEventListener('blur', this._cancelHeldRetrieve)
+    document.addEventListener('visibilitychange', this._cancelHiddenRetrieve)
     scene.input.keyboard?.on('keydown-ENTER', this._onResultKeyboard, this)
     return this
   }
@@ -695,9 +709,7 @@ export class CastPresentationHost {
       this._activateResultAction(action)
       return
     }
-    if (!this._slowPointerHeld) return
-    this._slowPointerHeld = false
-    this.adapter.endSlowRetrieve()
+    this._cancelHeldRetrieve()
   }
 
   _activateResultAction(action) {
@@ -745,6 +757,7 @@ export class CastPresentationHost {
 
   sync() {
     if (!this.root?.active) return
+    if (this.scene.phase !== 'retrieve') this._cancelHeldRetrieve()
     const view = readCastViewModel(this.scene)
     this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
@@ -973,11 +986,17 @@ export class CastPresentationHost {
   }
 
   destroy() {
+    this._cancelHeldRetrieve()
     this.scene.scale?.off?.('resize', this.layout, this)
+    this.scene.scale?.off?.('resize', this._cancelHeldRetrieve)
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
+    this.scene.input?.off?.('pointerupoutside', this._cancelHeldRetrieve)
+    this.scene.input?.off?.('gameout', this._cancelHeldRetrieve)
+    this.scene.game.canvas.removeEventListener('pointercancel', this._cancelHeldRetrieve)
+    window.removeEventListener('blur', this._cancelHeldRetrieve)
+    document.removeEventListener('visibilitychange', this._cancelHiddenRetrieve)
     this.scene.input.keyboard?.off('keydown-ENTER', this._onResultKeyboard, this)
-    this._slowPointerHeld = false
     this.nodes?.characterMotion?.destroy?.()
     this.root?.destroy?.(true)
     this.root = null
