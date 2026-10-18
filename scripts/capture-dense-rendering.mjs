@@ -39,7 +39,33 @@ try {
     const state=await inspect(page,dpr)
     assert.deepEqual([state.width,state.height],[390,844])
     assert.deepEqual(state.css,[390,844])
-    await page.screenshot({path:`${out}/${phase}-dpr${dpr}.png`})
+    let capture=await page.screenshot({path:`${out}/${phase}-dpr${dpr}.png`})
+    if(dpr===2&&phase==='battle') {
+     // Windows Chromium previously drew the SVG fish as an opaque black
+     // rectangle while reporting only a WebGL warning, not a page error.
+     const countBlack=bytes=>page.evaluate(async encoded=>{
+      const image=new Image()
+      image.src=`data:image/png;base64,${encoded}`
+      await image.decode()
+      const canvas=document.createElement('canvas')
+      canvas.width=image.width;canvas.height=image.height
+      const context=canvas.getContext('2d')
+      context.drawImage(image,0,0)
+      const pixels=context.getImageData(80,400,670,500).data
+      let black=0
+      for(let i=0;i<pixels.length;i+=4) if(Math.max(pixels[i],pixels[i+1],pixels[i+2])<15) black++
+      return black
+     },bytes.toString('base64'))
+     let blackPixels=await countBlack(capture)
+     if(blackPixels>=5000) {
+      await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))))
+      capture=await page.screenshot({path:`${out}/${phase}-dpr${dpr}.png`})
+      blackPixels=await countBlack(capture)
+     }
+     assert.ok(blackPixels<5000,`Battle fish area has ${blackPixels} near-black pixels`)
+     assert.equal(await page.evaluate(()=>window.__game.renderer.gl.getError()),0,'SVG texture upload must not leave a WebGL error')
+     evidence.push({battleFishVisible:true,blackPixels})
+    }
     evidence.push({phase,dpr,...state})
    }
    if(dpr===2) {

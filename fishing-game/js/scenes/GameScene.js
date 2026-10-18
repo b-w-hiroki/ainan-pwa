@@ -1,5 +1,6 @@
 ﻿import Phaser from 'phaser'
 import { FONT } from '../config/fontStyles.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { CS } from '../config/palette.js'
 import { DEFAULT_ROD, DEFAULT_BAIT, ROD_STATS, BAIT_STATS } from '../game/params.js'
 import { TackleUI } from './components/TackleUI.js'
@@ -96,7 +97,7 @@ export default class GameScene extends Phaser.Scene {
     }
     wanted.forEach(asset => {
       if (asset.status === 'ready' && !this.textures.exists(asset.key)) {
-        this.load.image(asset.key, asset.path)
+        loadGameTexture(this, asset)
       }
     })
   }
