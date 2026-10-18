@@ -5,6 +5,8 @@ const SWIPE_PENALTY             = 20    // 暴れ中スワイプの逃走ゲー�
 const ESCAPE_DECAY              = 0.5   // おとなしい時の逃走ゲージ自然減衰（2.5pt/秒、追い詰められ感を緩和）
 const RAGE_DURATION_MIN         = 2000  // 暴れ最小時間 ms（デフォルト）
 const RAGE_DURATION_MAX         = 4000  // 暴れ最大時間 ms（デフォルト）
+const RAGE_OPENING_MS           = 1200  // 暴れ終わりに狙える短い巻きどき
+const RAGE_OPENING_REEL_BONUS   = 3     // 最初の一振りだけ通常5%に加算
 // ───────────────────────────────────────────────────────────────
 
 function randRange(a, b) {
@@ -25,6 +27,9 @@ export function createBattleState(fish, rod) {
     rageEndAt: 0,
     /** @type {number} */
     nextRageAt: 0,
+    rageOpeningUntil: 0,
+    rageOpeningUsed: true,
+    lastOpeningSwipeAt: 0,
   }
 }
 
@@ -74,6 +79,8 @@ export function tryEnterRage(state, fish, nowMs) {
   if (nowMs < state.nextRageAt) return false
   state.isRaging = true
   state.rageEndAt = nowMs + getRageDuration(fish)
+  state.rageOpeningUntil = 0
+  state.rageOpeningUsed = true
   return true
 }
 
@@ -88,6 +95,8 @@ export function tryExitRage(state, fish, nowMs) {
   if (nowMs < state.rageEndAt) return false
   state.isRaging = false
   state.nextRageAt = nowMs + randRange(fish.rageInterval[0], fish.rageInterval[1])
+  state.rageOpeningUntil = nowMs + RAGE_OPENING_MS
+  state.rageOpeningUsed = false
   return true
 }
 
@@ -95,12 +104,22 @@ export function tryExitRage(state, fish, nowMs) {
  * @param {ReturnType<typeof createBattleState>} state
  * @param {boolean} isRaging
  */
-export function applySwipe(state, isRaging) {
+export function applySwipe(state, isRaging, nowMs = Number.NaN) {
   if (isRaging) {
     state.escape = Math.min(100, state.escape + SWIPE_PENALTY)
+    return 0
   } else {
-    state.reel = Math.min(100, state.reel + SWIPE_REEL_AMOUNT)
+    const openingAvailable = Number.isFinite(nowMs)
+      && nowMs < (state.rageOpeningUntil ?? 0)
+      && !state.rageOpeningUsed
+    const reelGain = SWIPE_REEL_AMOUNT + (openingAvailable ? RAGE_OPENING_REEL_BONUS : 0)
+    state.reel = Math.min(100, state.reel + reelGain)
     state.escape = Math.max(0, state.escape - 1.5)
+    if (openingAvailable) {
+      state.rageOpeningUsed = true
+      state.lastOpeningSwipeAt = nowMs
+    }
+    return reelGain
   }
 }
 

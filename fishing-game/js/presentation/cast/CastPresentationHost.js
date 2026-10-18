@@ -819,12 +819,21 @@ export class CastPresentationHost {
         this.nodes.battleTensionStatus.setTexture(statusAsset.key)
       }
       this.nodes.battleReel.setText(`巻き進捗 ${Math.round(battle.reel01 * 100)}%`)
-      const rageMode = battle.isRaging ? 'rage' : battle.rageTelegraph ? 'telegraph' : 'calm'
+      const rageMode = battle.isRaging ? 'rage'
+        : battle.openingSwipeHit ? 'opening-hit'
+          : battle.rageOpeningAvailable ? 'opening'
+            : battle.rageTelegraph ? 'telegraph' : 'calm'
       if (this._battleRageMode !== rageMode) {
         this._battleRageMode = rageMode
         if (rageMode === 'telegraph') {
           this.nodes.battleRage.setText('引きが強まる… 次は待とう')
             .setStyle({ color: '#173248', backgroundColor: 'rgba(255,217,90,0.96)' })
+        } else if (rageMode === 'opening') {
+          this.nodes.battleRage.setText('魚が疲れた！ 今が巻きどき')
+            .setStyle({ color: '#073754', backgroundColor: 'rgba(113,214,162,0.96)' })
+        } else if (rageMode === 'opening-hit') {
+          this.nodes.battleRage.setText('好機をつかんだ！ +8%')
+            .setStyle({ color: '#073754', backgroundColor: 'rgba(113,214,162,0.96)' })
         } else if (rageMode === 'rage') {
           this.nodes.battleRage.setText('暴れている… 待つ')
             .setStyle({ color: '#fff3a5', backgroundColor: 'rgba(94,32,26,0.86)' })
