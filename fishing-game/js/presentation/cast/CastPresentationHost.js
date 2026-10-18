@@ -459,9 +459,14 @@ export class CastPresentationHost {
     const hudBase = scene.add.graphics()
     hudBase.fillStyle(0xffffff, 0.96)
     hudBase.fillRoundedRect(10, 14, DESIGN_WIDTH - 20, 52, 15)
-    const hudSkin = scene.add.image(10, 14, ASSETS.ui.fishingApprovedTopHud.key)
-      .setOrigin(0, 0)
-      .setDisplaySize(DESIGN_WIDTH - 20, 52)
+    // The old 370x52 skin bakes thin edge pixels into the bitmap. Draw the
+    // same frame in world coordinates so the active renderer density can
+    // rasterize its outline cleanly without changing the HUD hit geometry.
+    const hudSkin = scene.add.graphics()
+    hudSkin.lineStyle(1.5, 0x246997, 0.9)
+    hudSkin.strokeRoundedRect(10.75, 14.75, DESIGN_WIDTH - 21.5, 50.5, 14)
+    hudSkin.lineStyle(1, 0xffffff, 0.82)
+    hudSkin.strokeRoundedRect(12.25, 16.25, DESIGN_WIDTH - 24.5, 47.5, 12)
     const back = scene.add.text(31, 40, '‹', {
       fontFamily: 'Nunito, sans-serif', fontSize: '38px', fontStyle: 'bold', color: '#173e61',
     }).setOrigin(0.5)
@@ -503,7 +508,9 @@ export class CastPresentationHost {
     const instructionBase = scene.add.graphics()
     instructionBase.fillStyle(0x092b43, 0.86)
     instructionBase.fillRoundedRect(-76, -13, 152, 26, 13)
-    const instructionSkin = scene.add.image(0, 0, ASSETS.ui.fishingApprovedInstruction.key).setDisplaySize(152, 26)
+    const instructionSkin = scene.add.graphics()
+    instructionSkin.lineStyle(1.5, 0x8edfff, 0.72)
+    instructionSkin.strokeRoundedRect(-75.4, -12.4, 150.8, 24.8, 12.4)
     const instructionText = scene.add.text(0, 0, '狙う場所を決める', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
