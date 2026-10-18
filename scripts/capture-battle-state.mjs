@@ -103,10 +103,20 @@ try {
       scene.battleState.lastOpeningSwipeAt=0
       scene._battleNextReelInputAt=0
     })
-    const canvas=await page.locator('canvas').first().boundingBox()
-    assert.ok(canvas,'Game canvas is missing for the real swipe test')
-    const swipeX=canvas.x+canvas.width*0.5
-    const swipeY=canvas.y+canvas.height*0.43
+    const swipeTarget=await page.evaluate(()=>{
+      const scene=window.__game?.scene?.getScene('GameScene')
+      const canvas=document.querySelector('canvas')
+      if(!scene?._reelCtaLayout || !canvas) return null
+      const bounds=canvas.getBoundingClientRect()
+      return {
+        x:bounds.left+scene._reelCtaLayout.dialX/scene.scale.width*bounds.width,
+        y:bounds.top+scene._reelCtaLayout.dialY/scene.scale.height*bounds.height,
+      }
+    })
+    assert.ok(swipeTarget,'Game reel dial is missing for the real swipe test')
+    const swipeX=swipeTarget.x
+    const swipeY=swipeTarget.y
+    await page.waitForTimeout(80)
     await page.mouse.move(swipeX,swipeY)
     await page.mouse.down()
     await page.mouse.move(swipeX,swipeY+52,{steps:4})
