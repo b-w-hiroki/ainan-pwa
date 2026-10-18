@@ -39,9 +39,17 @@ try {
     const state=await page.evaluate(()=>window.__game.scene.getScene('TownScene')._qaCatchArrivalSnapshot)
     assert.equal(state.fishTexture,`fish_${fish}_icon`)
     assert.equal(state.speciesReaction,true)
-    assert.deepEqual(errors,[])
+    // Built preview injects Workbox registration; index.html deliberately
+    // rejects it in QA. Keep every other page error fatal, and independently
+    // verify that this documented rejection leaves no worker in control.
+    assert.deepEqual(errors.filter(error=>error!=='service worker disabled in QA'),[])
+    const worker=await page.evaluate(async()=>({
+     controlled:Boolean(navigator.serviceWorker?.controller),
+     registrations:(await navigator.serviceWorker?.getRegistrations?.()??[]).length,
+    }))
+    assert.deepEqual(worker,{controlled:false,registrations:0})
     await page.screenshot({path:`${output}/${delay}-${fish}.png`})
-    evidence.push({delay,delayMs:delay==='none'?0:1200,fish,state})
+    evidence.push({delay,delayMs:delay==='none'?0:1200,fish,state,errors,worker})
    } finally {await page.close()}
   }
  }
