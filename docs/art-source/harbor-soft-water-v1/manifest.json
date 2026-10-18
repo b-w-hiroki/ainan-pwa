@@ -1,0 +1,47 @@
+{
+  "candidateId": "harbor-soft-water-v1",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "status": "review-source-only",
+  "artApproved": false,
+  "productionSwitched": false,
+  "generator": "built-in image_gen edit",
+  "file": "harbor-morning-soft-water.png",
+  "prompt": "harbor-morning-soft-water.prompt.txt",
+  "sha256": "abea2504186e4655dd74db57227d69ee1b1e3e9ceac41aed5df9f272124ad161",
+  "bytes": 2333561,
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "colorMode": "RGB",
+  "opaque": true,
+  "source": "../harbor-character-v2/harbor-morning.png",
+  "sourceSha256": "2b41c51f802e1612b404ef222ff401bdb421f00aba8272b8db2563f531de2df2",
+  "editTargetDimensionsPreserved": true,
+  "measurement": {
+    "type": "water luminance four-neighbour Laplacian RMS",
+    "roi": {
+      "x": 450,
+      "y": 220,
+      "width": 1000,
+      "height": 380
+    },
+    "before": 21.34778018210594,
+    "after": 19.73402725754998,
+    "reductionPercent": 7.56,
+    "note": "Different ROI from open sea; do not compare their absolute scores as quality rankings."
+  },
+  "review": {
+    "inspected": true,
+    "notes": [
+      "Calmer water, retained town, sky, quay and bollard composition; not pixel-identical.",
+      "Actual Cast screenshot comparison at DPR1/2 via development-only capture script.",
+      "Exactly one currently visible background texture replaced in the review; game object bounds unchanged."
+    ],
+    "remaining": [
+      "Artistic acceptance and footprint/shoreline comparison.",
+      "No normal runtime reference or production cache entry added.",
+      "Product-level resolution, layered-world and Retrieve art remain separate unfinished gates."
+    ]
+  }
+}

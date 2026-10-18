@@ -1,0 +1,52 @@
+{
+  "candidateId": "w02-opensea-v5-soft-water",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "status": "review-source-only",
+  "artApproved": false,
+  "productionSwitched": false,
+  "generator": "built-in image_gen edit",
+  "file": "W02-OPENSEA-v5.png",
+  "prompt": "W02-OPENSEA-v5.prompt.txt",
+  "sha256": "6e99805c803e7c74a8802e57131701390f8c716c36122e25ac01da5c90540b8c",
+  "bytes": 2180370,
+  "dimensions": [
+    1536,
+    1024
+  ],
+  "colorMode": "RGB",
+  "opaque": true,
+  "source": "../w02-opensea-v4/W02-OPENSEA-v4.png",
+  "sourceSha256": "e6f5b2a0a1946cb3476cdb4d79c09a01be9fda24a3d588fd35a7d300811134cd",
+  "editTargetDimensionsPreserved": true,
+  "productRequiredDimensions": [
+    3072,
+    2048
+  ],
+  "productNativeSizeRequirementMet": false,
+  "measurement": {
+    "type": "water luminance four-neighbour Laplacian RMS",
+    "roi": {
+      "x": 0,
+      "y": 180,
+      "width": 1536,
+      "height": 780
+    },
+    "before": 26.480637966473946,
+    "after": 17.910989570144316,
+    "reductionPercent": 32.36,
+    "note": "Diagnostic of fine luminance variation, not a perceptual-quality pass criterion."
+  },
+  "review": {
+    "inspected": true,
+    "notes": [
+      "Water has fewer crunchy isolated highlights and larger coherent strokes.",
+      "Horizon, cloud composition and open casting corridor retained visually; no pixel-exact identity claim.",
+      "No actor, text, UI, boat or above-water obstacle introduced."
+    ],
+    "remaining": [
+      "Independent artistic acceptance.",
+      "Requested full-product native resolution.",
+      "Harbor boundary, FAR/SEA split and world integration."
+    ]
+  }
+}
