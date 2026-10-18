@@ -137,7 +137,10 @@ export function installVerticalSliceBattleContinuity(GameScene) {
 
     this._battleNextReelInputAt = this.time.now + REEL_INPUT_COOLDOWN_MS
     this._swipeBaseY = pointer.y
-    applySwipe(this.battleState, this.battleState.isRaging)
+    const reelGain = applySwipe(this.battleState, this.battleState.isRaging, this.time.now)
+    if (reelGain > 5 && this._targetFishGfx?.active) {
+      battleSplash(this, this._targetFishGfx.x, this._targetFishGfx.y, true)
+    }
     this._syncBattleUI()
 
     const out = battleOutcome(this.battleState)

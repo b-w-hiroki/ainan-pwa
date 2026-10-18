@@ -966,7 +966,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.phase === 'battle') {
       const dy = pointer.y - this._swipeBaseY
       if (dy > 28) {
-        applySwipe(this.battleState, this.battleState.isRaging)
+        applySwipe(this.battleState, this.battleState.isRaging, this.time.now)
         this._swipeBaseY = pointer.y
         this._syncBattleUI()
         const out = battleOutcome(this.battleState)

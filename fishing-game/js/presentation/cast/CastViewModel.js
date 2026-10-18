@@ -14,9 +14,16 @@ export function readCastViewModel(scene) {
   const caught = outcome === 'caught' && lastCatch?.fishId === fish?.id
   const visualLoadout = getVisualLoadout(scene.rod?.id ?? scene.env?.player?.rodType)
   const battleState = scene.battleState
-  const rageRemainingMs = (battleState?.nextRageAt ?? Infinity) - (scene.time?.now ?? 0)
+  const now = scene.time?.now ?? 0
+  const rageRemainingMs = (battleState?.nextRageAt ?? Infinity) - now
+  const openingRemainingMs = (battleState?.rageOpeningUntil ?? 0) - now
   const rageTelegraph = Boolean(battleState && !battleState.isRaging
     && rageRemainingMs > 0 && rageRemainingMs <= 760)
+  const rageOpeningAvailable = Boolean(battleState && !battleState.isRaging
+    && openingRemainingMs > 0 && !battleState.rageOpeningUsed)
+  const openingSwipeAgeMs = now - (battleState?.lastOpeningSwipeAt ?? 0)
+  const openingSwipeHit = Boolean(battleState?.lastOpeningSwipeAt
+    && openingSwipeAgeMs >= 0 && openingSwipeAgeMs <= 760)
 
   return Object.freeze({
     phase: scene.phase,
@@ -41,6 +48,8 @@ export function readCastViewModel(scene) {
       reel01: Math.max(0, Math.min(1, (battleState?.reel ?? 0) / 100)),
       isRaging: Boolean(battleState?.isRaging),
       rageTelegraph,
+      rageOpeningAvailable,
+      openingSwipeHit,
     }),
     result: Object.freeze({
       outcome,
