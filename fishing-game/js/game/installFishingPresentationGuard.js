@@ -1,6 +1,7 @@
 import { BackgroundManager } from '../scenes/components/BackgroundManager.js'
 import { RetrieveUI } from '../scenes/components/RetrieveUI.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
@@ -882,7 +883,7 @@ export function installFishingPresentationGuard(GameScene) {
     ].filter(Boolean)
     ;[...playerAssets, ...approvedUiAssets].forEach(asset => {
       if (asset.status === 'ready' && asset.key && !this.textures.exists(asset.key)) {
-        this.load.image(asset.key, asset.path)
+        loadGameTexture(this, asset)
       }
     })
   }
