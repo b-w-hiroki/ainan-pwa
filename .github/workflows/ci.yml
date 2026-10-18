@@ -204,6 +204,9 @@ jobs:
       - name: Verify approved art pixel parity and negative control
         run: node scripts/approved-master-pixel-parity.mjs artifacts/e2e
 
+      - name: Verify QA arrival survives slow Title and Town loading
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-qa-route-loading-race.mjs
+
       - name: Capture species-specific Town arrival screens
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-town-catch-reactions.mjs
 
@@ -239,4 +242,5 @@ jobs:
             artifacts/e2e
             artifacts/orientation
             artifacts/location-preview
+            artifacts/qa-route-loading
           retention-days: 14

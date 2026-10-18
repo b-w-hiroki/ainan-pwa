@@ -25,7 +25,7 @@ import { installTownCatchArrival } from './game/installTownCatchArrival.js'
 import { installTownSensoryFeedback } from './game/installMidgameProgression.js'
 import { installFishingRuntime } from './game/installFishingRuntime.js'
 import { backupSave, ensureSaveVersion } from './game/saveSystem.js'
-import { prepareQaState, routeQaScene } from './game/qaBootstrap.js'
+import { prepareQaState } from './game/qaBootstrap.js'
 import { installSceneVisualPowerPass } from './game/installSceneVisualPowerPass.js'
 import { installNativeLandscapeHomePrototype } from './presentation/landscape/homeLandscapePrototype.js'
 import { installNativeLandscapeMapPrototype } from './presentation/landscape/mapLandscapePrototype.js'
@@ -107,7 +107,6 @@ function startGame() {
     lastUpdateCheck = time
     applyPendingPwaUpdate()
   })
-  routeQaScene(game)
   document.addEventListener('visibilitychange', () => { if (document.hidden) backupSave() })
 }
 
