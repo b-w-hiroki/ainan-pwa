@@ -102,6 +102,23 @@ try {
    assert.deepEqual(errors,[])
   } finally {await context.close()}
  }
+ // Normal startup must also work without any QA flags or prepared saves.
+ const normal=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2})
+ const normalErrors=[]
+ normal.on('pageerror',e=>normalErrors.push(e.message))
+ try {
+  await normal.goto(`${base}/fishing-game/`)
+  await normal.waitForFunction(()=>window.__game?.scene.isActive('TitleScene'))
+  const state=await inspect(normal,2)
+  assert.deepEqual([state.width,state.height],[390,844])
+  assert.equal(await normal.evaluate(()=>location.search),'')
+  await normal.screenshot({path:`${out}/normal-title.png`})
+  await normal.mouse.click(195,844*0.735)
+  await normal.waitForFunction(()=>window.__game.scene.isActive('HomeScene'))
+  await normal.screenshot({path:`${out}/normal-home.png`})
+  assert.deepEqual(normalErrors,[])
+  evidence.push({normalStartup:true,homeReachedByRealTap:true,...state})
+ } finally {await normal.close()}
  writeFileSync(`${out}/evidence.json`,JSON.stringify(evidence,null,2)+'\n')
  console.log('Dense rendering: DPR1/1.25/2/3; phases, scenes, real tap, rotation, offscreen and context restore passed')
 } finally {await browser.close()}
