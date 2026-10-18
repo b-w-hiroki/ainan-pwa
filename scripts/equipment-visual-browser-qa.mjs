@@ -65,10 +65,10 @@ await page.screenshot({ path: path.join(output, '01-premium-before-accessories.p
 
 // Existing Workshop accessory actions, operated through their real buttons.
 await startScene('WorkshopScene')
-await click(105, 561)
+await click(105, 661)
 await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_accessories') ?? '{}').equipped?.hat === 'cap')
 await page.waitForTimeout(220)
-await click(282, 561)
+await click(282, 661)
 await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_accessories') ?? '{}').equipped?.bag === 'bag')
 await page.waitForTimeout(350)
 await page.screenshot({ path: path.join(output, '02-workshop-equipped.png') })

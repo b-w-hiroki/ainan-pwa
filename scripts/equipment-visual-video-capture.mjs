@@ -45,10 +45,10 @@ await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_equipmen
 await page.waitForTimeout(900)
 
 await route('WorkshopScene')
-await click(105, 561)
+await click(105, 661)
 await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_accessories') ?? '{}').equipped?.hat === 'cap')
 await page.waitForTimeout(450)
-await click(282, 561)
+await click(282, 661)
 await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_accessories') ?? '{}').equipped?.bag === 'bag')
 await page.waitForTimeout(1000)
 

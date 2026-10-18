@@ -15,6 +15,15 @@ const visuals = await import('../fishing-game/js/presentation/equipmentVisuals.j
 const { CHARACTER_MOTION_POSES } = await import('../fishing-game/js/presentation/cast/CharacterMotionController.js')
 const { ACCESSORY_META, MATERIAL_META, getMaterials, getRodUpgradeCost, grantCatchLoot, saveRodLevels } = await import('../fishing-game/js/game/midgameProgression.js')
 const { FISH_META } = await import('../fishing-game/js/game/progress.js')
+const { getWorkshopCostState } = await import('../fishing-game/js/presentation/workshopCosts.js')
+
+const bagRecipe = { score: ACCESSORY_META.bag.scoreCost, materials: ACCESSORY_META.bag.materials }
+const missingRecipe = getWorkshopCostState(bagRecipe, 600, { shell: 4, ticket: 0 })
+assert.equal(missingRecipe.affordable, false)
+assert.deepEqual(missingRecipe.rows.map(row => row.label), ['貝 4/6', '券 0/2'])
+assert.equal(missingRecipe.shortage, 'あと 100pt・貝2・券2')
+assert.equal(getWorkshopCostState(bagRecipe, 700, { shell: 6, ticket: 2 }).affordable, true)
+assert.equal(getWorkshopCostState(bagRecipe, 700, { shell: 6, ticket: 2 }).shortage, '')
 
 assert.deepEqual(Object.keys(visuals.ROD_VISUALS), ['basic', 'carbon', 'premium'])
 assert.deepEqual(Object.keys(ACCESSORY_META), ['cap', 'bag'], 'only the existing cap and bag accessory items may be visualized')
