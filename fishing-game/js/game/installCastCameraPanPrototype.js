@@ -7,6 +7,8 @@ import { PULL_CAST_TUNING } from './pullCastTuning.js'
 import { CHARACTER_MOTION_POSES } from '../presentation/cast/CharacterMotionController.js'
 import { DEFAULT_ROD_VISUAL_ID, ROD_VISUALS, getVisualLoadout } from '../presentation/equipmentVisuals.js'
 
+const TEXT_RES = Math.min(2, Math.max(1, globalThis.devicePixelRatio ?? 1))
+
 const enabled = () => typeof window !== 'undefined' && (
   ['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan') ?? '') ||
   new URLSearchParams(window.location.search).get('coneLoop') === '1' ||
@@ -134,13 +136,13 @@ function buildHud(scene) {
   g.fillStyle(0xfffdf7, 0.97).lineStyle(3, 0x173248, 0.94)
     .fillRoundedRect(pad, pad, panelW, headerH, 18).strokeRoundedRect(pad, pad, panelW, headerH, 18)
   g.lineStyle(1, 0x9bcfe5, 0.75).strokeRoundedRect(pad + 3, pad + 3, panelW - 6, headerH - 6, 15)
-  const back = scene.add.text(pad + 26, pad + headerH / 2, '‹', { fontFamily: 'Nunito, sans-serif', fontSize: compact ? '34px' : '40px', fontStyle: 'bold', color: '#173248' }).setOrigin(0.5)
-  const location = scene.add.text(pad + 62, pad + headerH / 2 - (compact ? 9 : 11), '汐風港', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(0, 0.5)
+  const back = scene.add.text(pad + 26, pad + headerH / 2, '‹', { resolution: TEXT_RES, fontFamily: 'Nunito, sans-serif', fontSize: compact ? '34px' : '40px', fontStyle: 'bold', color: '#173248' }).setOrigin(0.5)
+  const location = scene.add.text(pad + 62, pad + headerH / 2 - (compact ? 9 : 11), '汐風港', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '15px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(0, 0.5)
   const loadout = getVisualLoadout(scene.env?.player?.rodType)
   const baitNames = { worm: 'ミミズ', shrimp: 'エビ', special: '特製エサ' }
-  const equipment = scene.add.text(pad + 62, pad + headerH / 2 + (compact ? 10 : 13), `${loadout.rod.name}  •  ${baitNames[loadout.baitId] ?? loadout.baitId}`, { fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '11px' : '13px', fontStyle: 'bold', color: '#4d7085' }).setOrigin(0, 0.5)
-  const distance = scene.add.text(pad + panelW - 20, pad + headerH / 2, '', { fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(1, 0.5)
-  const status = scene.add.text(W / 2, H - (compact ? 28 : 42), '', { fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5).setScrollFactor(0)
+  const equipment = scene.add.text(pad + 62, pad + headerH / 2 + (compact ? 10 : 13), `${loadout.rod.name}  •  ${baitNames[loadout.baitId] ?? loadout.baitId}`, { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif', fontSize: compact ? '11px' : '13px', fontStyle: 'bold', color: '#4d7085' }).setOrigin(0, 0.5)
+  const distance = scene.add.text(pad + panelW - 20, pad + headerH / 2, '', { resolution: TEXT_RES, fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '17px', fontStyle: 'bold', color: '#173248' }).setOrigin(1, 0.5)
+  const status = scene.add.text(W / 2, H - (compact ? 28 : 42), '', { resolution: TEXT_RES, fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '14px' : '16px', fontStyle: 'bold', color: '#ffffff', stroke: '#062c44', strokeThickness: 5, align: 'center' }).setOrigin(0.5).setScrollFactor(0)
   root.add([g, back, location, equipment, distance, status])
   scene._cameraPanHud = root
   scene._cameraPanHudNodes = { location, equipment, distance, status }

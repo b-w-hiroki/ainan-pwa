@@ -38,7 +38,9 @@ jobs:
     runs-on: ubuntu-latest
     # Full captures plus artifact upload reached 15m on run 39031399419.
     # Keep every assertion and allow cleanup to finish on slower runners.
-    timeout-minutes: 20
+    # Density coverage adds four phases, eight scenes, context restoration and
+    # five 2x-density drags to the existing ~17m run. Retain every assertion.
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,6 +85,12 @@ jobs:
 
       - name: Verify portrait player-anchored fan and real drag
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-player-origin-fan.mjs
+
+      - name: Verify dense rendering, masks, real tap, context restore and rotation
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-dense-rendering.mjs
+
+      - name: Verify 2x density real cast drag in five viewports
+        run: QA_DPR=2 npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-player-origin-fan.mjs
 
       - name: Verify core artwork survives ordinary PWA offline reload
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-pwa-offline-art.mjs
@@ -243,4 +251,5 @@ jobs:
             artifacts/orientation
             artifacts/location-preview
             artifacts/qa-route-loading
+            artifacts/dense-rendering
           retention-days: 14

@@ -1,19 +1,21 @@
 import assert from 'node:assert/strict'
-import { existsSync, mkdirSync, realpathSync, statSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { existsSync, mkdirSync, statSync } from 'node:fs'
+import { delimiter, dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-const executable = process.env.PATH.split(':').map(folder => join(folder, 'playwright')).find(existsSync)
+const executable = process.env.PATH.split(delimiter).map(folder => join(folder, 'playwright')).find(existsSync)
+  ?? process.env.PATH.split(delimiter).map(folder => join(folder, 'playwright.cmd')).find(existsSync)
 assert.ok(executable, 'CI Playwright executable unavailable')
-const { chromium } = await import(pathToFileURL(join(dirname(realpathSync(executable)), 'index.mjs')).href)
-const folder = 'artifacts/orientation'
+const { chromium } = await import(pathToFileURL(join(dirname(executable),'..','playwright','index.mjs')).href)
+const dpr = Number(process.env.QA_DPR ?? 1)
+const folder = dpr === 1 ? 'artifacts/orientation' : `artifacts/dense-rendering/input-dpr${dpr}`
 mkdirSync(folder, { recursive: true })
-const baseUrl = 'http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&cameraPan=1&coneLoop=1&castMotion=charged'
+const baseUrl = (process.env.QA_URL ?? 'http://127.0.0.1:4173') + '/fishing-game/?qa=1&scene=GameScene&cameraPan=1&coneLoop=1&castMotion=charged'
 const browser = await chromium.launch({ headless: true })
 try {
   // Cover small and large portraits as well as native narrow/wide landscape.
   for (const [width, height] of [[320, 568], [390, 844], [430, 932], [844, 390], [932, 430]]) {
-    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
+    const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: dpr })
     const page = await context.newPage()
     const errors = []
     page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })

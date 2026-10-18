@@ -8,6 +8,8 @@ import { haptic } from './feedback.js'
 import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
 import { characterMotionAssets, preloadCharacterAppearance } from '../presentation/cast/CharacterMotionController.js'
 
+const TEXT_RES = Math.min(2, Math.max(1, globalThis.devicePixelRatio ?? 1))
+
 const FIELD = ASSETS.fishingField
 const FISH_ICON_BY_ID = {
   aji: ASSETS.fish.ajiIcon.key,
@@ -75,7 +77,7 @@ function buildFishReadCue(scene) {
   const bg = scene.add.graphics()
   const text = scene.add.text(0, 0, '', {
     fontFamily: 'M PLUS Rounded 1c, Nunito, sans-serif',
-    resolution: 1,
+    resolution: TEXT_RES,
     fontSize: '10px',
     fontStyle: 'bold',
     color: '#ffffff',
@@ -304,26 +306,26 @@ function buildMockTopChrome(scene) {
   const logo = scene.textures.exists(ASSETS.ui.fishingLogo.key)
     ? scene.add.image(16, 12, ASSETS.ui.fishingLogo.key).setOrigin(0, 0).setDisplaySize(118, 49)
     : scene.add.text(18, 18, 'AINAN\nFISHING', {
-        fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: 1,
+        fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
         fontSize: '17px', fontStyle: 'bold', color: '#ffffff',
         stroke: '#0a5f9e', strokeThickness: 3, lineSpacing: -5,
       }).setOrigin(0, 0)
 
   const menuBg = scene.add.circle(W - 29, 31, 20, 0x073754, 0.82).setStrokeStyle(2, 0xffffff, 0.78)
   const menu = scene.add.text(W - 29, 31, '☰', {
-    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontFamily: 'Nunito, sans-serif', resolution: TEXT_RES,
     fontSize: '20px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5)
 
   const locBg = scene.add.image(83, 88, ASSETS.ui.fishingLocationPanel.key).setDisplaySize(144, 38)
   const loc = scene.add.text(31, 88, '● あいなん港', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0, 0.5)
 
   const weatherBg = scene.add.image(W - 61, 87, ASSETS.ui.fishingWeatherPanel.key).setDisplaySize(116, 51)
   const weather = scene.add.text(W - 20, 87, '晴れ\n10:24', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
     align: 'right', stroke: '#07517d', strokeThickness: 2,
   }).setOrigin(1, 0.5)
@@ -331,7 +333,7 @@ function buildMockTopChrome(scene) {
   const plate = scene.add.container(W / 2, 414)
   const plateBg = scene.add.image(0, 0, ASSETS.ui.fishingInstructionPanel.key).setDisplaySize(238, 63)
   const plateText = scene.add.text(0, 0, 'タップでキャスト！', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '14px', fontStyle: 'bold', color: '#ffffff', align: 'center',
   }).setOrigin(0.5)
   plate.add([plateBg, plateText])
@@ -362,7 +364,7 @@ function buildProposalTopChrome(scene) {
     .setDisplaySize(W - 20, 52)
 
   const back = scene.add.text(31, 40, '‹', {
-    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontFamily: 'Nunito, sans-serif', resolution: TEXT_RES,
     fontSize: '38px', fontStyle: 'bold', color: '#173e61',
   }).setOrigin(0.5).setInteractive({ useHandCursor: true })
     .on('pointerdown', pointer => {
@@ -370,23 +372,23 @@ function buildProposalTopChrome(scene) {
       scene.scene.start('MapScene')
     })
   const pin = scene.add.text(68, 40, '●', {
-    fontFamily: 'sans-serif', resolution: 1,
+    fontFamily: 'sans-serif', resolution: TEXT_RES,
     fontSize: '13px', color: '#176499',
   }).setOrigin(0.5)
   const loc = scene.add.text(82, 40, '汐風港', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '14px', fontStyle: 'bold', color: '#173e61',
   }).setOrigin(0, 0.5)
   const rod = scene.add.text(200, 40, '◜', {
-    fontFamily: 'Nunito, sans-serif', resolution: 1,
+    fontFamily: 'Nunito, sans-serif', resolution: TEXT_RES,
     fontSize: '25px', fontStyle: 'bold', color: '#173e61',
   }).setOrigin(0.5).setRotation(-0.55)
   const distance = scene.add.text(221, 40, '28m', {
-    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'Nunito, M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '14px', fontStyle: 'bold', color: '#173e61',
   }).setOrigin(0, 0.5)
   const tackle = scene.add.text(338, 40, '▣', {
-    fontFamily: 'sans-serif', resolution: 1,
+    fontFamily: 'sans-serif', resolution: TEXT_RES,
     fontSize: '24px', fontStyle: 'bold', color: '#173e61',
   }).setOrigin(0.5)
 
@@ -399,7 +401,7 @@ function buildProposalTopChrome(scene) {
   const plateSkin = scene.add.image(0, 0, ASSETS.ui.fishingApprovedInstruction.key)
     .setDisplaySize(152, 26)
   const plateText = scene.add.text(0, 0, '狙う場所を決める', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '11px', fontStyle: 'bold', color: '#ffffff', align: 'center',
   }).setOrigin(0.5)
   plate.add([plateBg, plateSkin, plateText])
@@ -470,7 +472,7 @@ function buildFinalControlChrome(scene) {
   castBg.lineStyle(1.5, 0xc9f4ff, 0.22)
   castBg.lineBetween(0, top, W, top)
   const powerLabel = scene.add.text(24, top + 23, 'パワー', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0, 0.5)
   const track = scene.add.graphics()
@@ -513,11 +515,11 @@ function buildFinalControlChrome(scene) {
   retrieveModeBg.strokeRoundedRect(18, top + 8, W - 36, 30, 15)
   retrieveModeBg.lineBetween(W * 0.56, top + 11, W * 0.56, top + 35)
   const retrieveHint = scene.add.text(W * 0.30, top + 23, '魚影の向きと動きを見る', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '10px', fontStyle: 'bold', color: '#dff5ff',
   }).setOrigin(0.5)
   const retrieveState = scene.add.text(W * 0.76, top + 23, '追ってる', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '10px', fontStyle: 'bold', color: '#7fddff',
   }).setOrigin(0.5)
 
@@ -595,11 +597,11 @@ function buildProposalCastOverlay(scene) {
   bg.lineBetween(0, top, W, top)
 
   const instruction = scene.add.text(W / 2, top + 22, '長押し → 離して投げる', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0.5)
   const label = scene.add.text(22, top + 55, 'パワー', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '10px', fontStyle: 'bold', color: '#ffffff',
   }).setOrigin(0, 0.5)
   const track = scene.add.graphics()
@@ -635,7 +637,7 @@ function buildProposalCastOverlay(scene) {
   castIcon.fillStyle(0x102b43, 1)
   castIcon.fillCircle(22, 10, 2.5)
   const castLabel = scene.add.text(W / 2, buttonY + 25, '投げる', {
-    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: 1,
+    fontFamily: 'M PLUS Rounded 1c, sans-serif', resolution: TEXT_RES,
     fontSize: '20px', fontStyle: 'bold', color: '#102335',
   }).setOrigin(0.5)
   const castHit = scene.add.circle(W / 2, buttonY, 62, 0x000000, 0)
