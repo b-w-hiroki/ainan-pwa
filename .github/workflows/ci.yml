@@ -78,6 +78,9 @@ jobs:
           grep -q "precache" /tmp/ainan-sw.js
           echo "PWA endpoints OK"
 
+      - name: Verify QA arrival survives slow Title and Town loading
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-qa-route-loading-race.mjs
+
       - name: Verify portrait player-anchored fan and real drag
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-player-origin-fan.mjs
 
@@ -239,4 +242,5 @@ jobs:
             artifacts/e2e
             artifacts/orientation
             artifacts/location-preview
+            artifacts/qa-route-loading
           retention-days: 14

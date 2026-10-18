@@ -1,0 +1,638 @@
+{
+  "originalCommit": "887de90039d04b3695565204b46ebe15de1c9308",
+  "originalRestore": "git show <originalCommit>:<source>",
+  "rule": "Replace saturated RGB (max > 220, range > 160) only at alpha 1..31 with nearest alpha >= 32 RGB; retain every alpha byte.",
+  "limitations": "Does not alter silhouette aliasing, water texture, UI or renderer DPR. Source derivatives are review-only.",
+  "entries": [
+    {
+      "source": "docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png",
+      "output": "docs/art-source/w03-edge-clean-v1/W03-CUTE-A-idle-01.png",
+      "sourceSha256": "9ca36320f6d2d1953e278432010f0327a3dcd4cce545ba83e0c8271bf8a4fc95",
+      "outputSha256": "d259b1fdfaf3039add21f052d47bab4c1f3f76f0fa0b3c7ce93f173247d0a827",
+      "changedPixels": 2202,
+      "maxCompositeChannelDelta": 2.011765,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "source": "docs/art-source/w03-cute-body/W03-CUTE-B-idle-01.png",
+      "output": "docs/art-source/w03-edge-clean-v1/W03-CUTE-B-idle-01.png",
+      "sourceSha256": "2e7e2ce84d45512dc385c22c5a1d6ee6ed0fe2b8a03c57ec9b57791493fc3ea9",
+      "outputSha256": "4ca82a229679c2e99b3e4dc3c268790a218b56140a4974f4f38752bb2a46ee11",
+      "changedPixels": 3800,
+      "maxCompositeChannelDelta": 2.058824,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "source": "docs/art-source/w03-cute-hair/W03-CUTE-B-ponytail-hair.png",
+      "output": "docs/art-source/w03-edge-clean-v1/W03-CUTE-B-ponytail-hair.png",
+      "sourceSha256": "9908a36c984209ab7d3c8a1457819b407421818cbed972e68d0c008f70b8266e",
+      "outputSha256": "5c8d2f3184278241b5b3452dfc57bfb5a52093abd9b8992ffe275ccf0056eacc",
+      "changedPixels": 242,
+      "maxCompositeChannelDelta": 4.968627,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        1254,
+        1254
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-mid.png",
+      "sourceSha256": "e06ff1c59f8941b7be241532cbb24f37a5b7ab833a777f0a08cb42b206d7971a",
+      "outputSha256": "fcc57201dbb145180e5fd157b72d3c32d7d626d86bb87750183fd4ebd0fa99ea",
+      "changedPixels": 924,
+      "maxCompositeChannelDelta": 2.603922,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-release.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-release.png",
+      "sourceSha256": "77fe2e187032a6b228dfb2c38e8d4dc1fbbe83d940e6ea3c58bb4844c7c42f1d",
+      "outputSha256": "038f7d37b49d7ff6a7bf673359d7518eddab8b2d080087104c4339058060c2fc",
+      "changedPixels": 997,
+      "maxCompositeChannelDelta": 2.964706,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-windup.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-windup.png",
+      "sourceSha256": "3621f7b6685db60c9cef95d138bbc53165c169b6185fbf042a1dd00b81bfab86",
+      "outputSha256": "3621f7b6685db60c9cef95d138bbc53165c169b6185fbf042a1dd00b81bfab86",
+      "changedPixels": 0,
+      "maxCompositeChannelDelta": 0.0,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-left.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-left.png",
+      "sourceSha256": "1388976c573ed894aaba0386cf42c0532ef02530ed773e707432050eb8a269ce",
+      "outputSha256": "2c88e2b6d1a973802145f415f0bbf209563cca59f694154b39bbf277f6af9afd",
+      "changedPixels": 996,
+      "maxCompositeChannelDelta": 3.576471,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-mid.png",
+      "sourceSha256": "59463c9bc2b3ad6e3843437ec746c76e018c06c1262e3f44219e8bd2f72fb07b",
+      "outputSha256": "f929ff26b32290e8903cf38fd5986cf3d0afad27656a558547d9f0b20f9fa425",
+      "changedPixels": 1014,
+      "maxCompositeChannelDelta": 2.482353,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-right.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-right.png",
+      "sourceSha256": "a21a585a0e022a3545b4bb83569e43473fb0115cf89ff5a3550c3c7c8baeb366",
+      "outputSha256": "f6511329a910aeca948778cff33eda337c35e530fecdb08eb61bbd68192ff18e",
+      "changedPixels": 955,
+      "maxCompositeChannelDelta": 3.741176,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/idle.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/idle.png",
+      "sourceSha256": "98dad1fa10f8908b12dfed23f5de56455a0e0391650e8c946be0f4b307ec0a69",
+      "outputSha256": "98dad1fa10f8908b12dfed23f5de56455a0e0391650e8c946be0f4b307ec0a69",
+      "changedPixels": 0,
+      "maxCompositeChannelDelta": 0.0,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-hold.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-hold.png",
+      "sourceSha256": "aff410585d612e77b741d79cc48c7b441da4494203d77252e3a1cde4c23cf2cb",
+      "outputSha256": "15da2939ca46ca9411ccd454688c93482774d0e6114dab250ef60855f575a74f",
+      "changedPixels": 1188,
+      "maxCompositeChannelDelta": 2.52549,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-lift.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-lift.png",
+      "sourceSha256": "a6038663aed0b1a38669ba973ce266325259d103be3a76bc4489905c40de7616",
+      "outputSha256": "587488d7d3e027fdb0b0ee56b29183c33b1c03bdea4344113b711647e5260160",
+      "changedPixels": 1535,
+      "maxCompositeChannelDelta": 2.305882,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/joy-mid.png",
+      "sourceSha256": "86d16297782b89caeefcc8b05cd864cda6a6eb3f1aaac24d32126979619d801d",
+      "outputSha256": "d887bbd92127cbfa9482481963e1d36a00b4098e4175c1935628d8bf6b618a2f",
+      "changedPixels": 1323,
+      "maxCompositeChannelDelta": 2.482353,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-drop.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-drop.png",
+      "sourceSha256": "832e1b57f83040181f583698248204ed7fa24a687cfdafcf526a737459edc1bd",
+      "outputSha256": "59d82b8023b90d13fef55b2e0eaecc6ab52cd8617b301c8cb2a28ce5b349e720",
+      "changedPixels": 859,
+      "maxCompositeChannelDelta": 2.235294,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-mid.png",
+      "sourceSha256": "a3c6a8de74c4e9900c48a994fc36abf0a8791dc9e4e52678a15b8c54bde058d7",
+      "outputSha256": "76d3a949805d3a2b17b8b1d8114d13ff04244c463f82bb003a68325879e88202",
+      "changedPixels": 1128,
+      "maxCompositeChannelDelta": 2.572549,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-slump.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/sad-slump.png",
+      "sourceSha256": "0adf5754b9fdec20adaae055a9c8af629b22429c78580d96783fa11b859a14c4",
+      "outputSha256": "aa9b30c94c8bb26a9b692054c6cf7b9ef9a06f284b0d78f9e8a0a7a7c51f94b3",
+      "changedPixels": 766,
+      "maxCompositeChannelDelta": 2.352941,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-mid.png",
+      "sourceSha256": "a22ee5180ae427a34b2aa47c14565943a9109e86e69c6ec8c0f180e49c33f19e",
+      "outputSha256": "ce8e1f4485004cc6f24a99f91ecb07d935f63ec675c59d031cef896c18cecf44",
+      "changedPixels": 1573,
+      "maxCompositeChannelDelta": 2.376471,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-release.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-release.png",
+      "sourceSha256": "e4d9d23a21e843e171909624c1b44c5f5035fcef6ace34c08d8ef65e0dec75bf",
+      "outputSha256": "acfab0c7bee7bf787e99f2a7d4224ea7dff4bf7c2f1e272ef4eae97142531ed3",
+      "changedPixels": 1714,
+      "maxCompositeChannelDelta": 1.976471,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-windup.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-windup.png",
+      "sourceSha256": "68490a2ee9b27e1ab5291da7e1b53ac2a8c11391d8a798e33d5ee21a4ed65dae",
+      "outputSha256": "68490a2ee9b27e1ab5291da7e1b53ac2a8c11391d8a798e33d5ee21a4ed65dae",
+      "changedPixels": 0,
+      "maxCompositeChannelDelta": 0.0,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-left.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-left.png",
+      "sourceSha256": "46dcff3aaf8250234397439914f3fc0602598ec83ec4ec5a2f6ef337ced1624f",
+      "outputSha256": "3bbb341ddeba0c2c65ee06ab8847eb604b27a0b204fbcfe6a9c7f83841e8bca6",
+      "changedPixels": 1577,
+      "maxCompositeChannelDelta": 2.572549,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-mid.png",
+      "sourceSha256": "ecf1a874f47f99b5df8dcdab21ae7cd906d4d3bb66f60c5c729a0a4ce59af511",
+      "outputSha256": "f718ea194ca493f856db852a06aff494923330159f4c3a440e879b2c86a48bef",
+      "changedPixels": 1558,
+      "maxCompositeChannelDelta": 1.976471,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-right.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/fight-right.png",
+      "sourceSha256": "a1565bb395a63a6a82757b92b5087c05245df12080f39bb7cca8ce722228a3d9",
+      "outputSha256": "ad9f55da9d9d3bbc6d788130b241bc2a59b9dbe34b6d7452db8f34d1383895a5",
+      "changedPixels": 1462,
+      "maxCompositeChannelDelta": 2.329412,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-mid.png",
+      "sourceSha256": "c1f4981447d678f0d1a02e69d14abf50e61e72250adcd7c47a1e02d0541c2631",
+      "outputSha256": "c8b16bf170711f7370c774b6c1881d0e19afc8d9202759c964ba34ea1722a4af",
+      "changedPixels": 80,
+      "maxCompositeChannelDelta": 3.168627,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-release.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-release.png",
+      "sourceSha256": "fc50d94ca20e80001e0b81b0306e25056774ab15988c9bf1cd91389fb9cad4c2",
+      "outputSha256": "7cbffc8292af1b5ffc37fa51b627aa4462f80487abd687ea1e64405c3374295e",
+      "changedPixels": 84,
+      "maxCompositeChannelDelta": 2.588235,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-windup.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-cast-windup.png",
+      "sourceSha256": "fc50d94ca20e80001e0b81b0306e25056774ab15988c9bf1cd91389fb9cad4c2",
+      "outputSha256": "7cbffc8292af1b5ffc37fa51b627aa4462f80487abd687ea1e64405c3374295e",
+      "changedPixels": 84,
+      "maxCompositeChannelDelta": 2.588235,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-left.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-left.png",
+      "sourceSha256": "fce2120dddead40327e69110884f8e4b48afcb934964719ed76741903e74ae20",
+      "outputSha256": "9204f4a1e1fde3f06e535183808b2211ea5b6b624cec9a47500ae02412f1327b",
+      "changedPixels": 70,
+      "maxCompositeChannelDelta": 2.823529,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-mid.png",
+      "sourceSha256": "9abb262fa683ca5162c57ae95754ef15af76a8713c09de4db3b9d11bed700dd0",
+      "outputSha256": "a48274480e573d2438f8c79acccc9cca3e0981c332a6130bd6d5020e17c6a19a",
+      "changedPixels": 98,
+      "maxCompositeChannelDelta": 5.87451,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-right.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-fight-right.png",
+      "sourceSha256": "9abb262fa683ca5162c57ae95754ef15af76a8713c09de4db3b9d11bed700dd0",
+      "outputSha256": "a48274480e573d2438f8c79acccc9cca3e0981c332a6130bd6d5020e17c6a19a",
+      "changedPixels": 98,
+      "maxCompositeChannelDelta": 5.87451,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-idle.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-idle.png",
+      "sourceSha256": "fc50d94ca20e80001e0b81b0306e25056774ab15988c9bf1cd91389fb9cad4c2",
+      "outputSha256": "7cbffc8292af1b5ffc37fa51b627aa4462f80487abd687ea1e64405c3374295e",
+      "changedPixels": 84,
+      "maxCompositeChannelDelta": 2.588235,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-hold.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-hold.png",
+      "sourceSha256": "30d171b726836e1066eaa89495023be6504f11616d2a0aa8074362a94a91f13a",
+      "outputSha256": "837692ba92191135134f2f713b7494986a33e01b3aa66138aee2756dd250f5a7",
+      "changedPixels": 80,
+      "maxCompositeChannelDelta": 2.4,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-lift.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-lift.png",
+      "sourceSha256": "db32f60c38868e20ed4afd7d593c1848caedecd8a326500b64f4e99adf9bfad7",
+      "outputSha256": "3b816a1c2361970ebb9108ff26e23db2dda00380a67641b689c2cc4e2b5ce164",
+      "changedPixels": 78,
+      "maxCompositeChannelDelta": 2.623529,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-joy-mid.png",
+      "sourceSha256": "558441a4fc9c923d3d6d786afb2d1020cd4208c55d163c0f57a5915e23f114c6",
+      "outputSha256": "106d4e5b1924d0b6743ea5b15ef4977bb997b21da177fb93af048b2405e9a80e",
+      "changedPixels": 88,
+      "maxCompositeChannelDelta": 4.447059,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-drop.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-drop.png",
+      "sourceSha256": "4282c75c67176af1f908486d6a265dcb2b733d0e229cbb941be4db2b7f9cc06b",
+      "outputSha256": "b0141b3855cf61699eb8f2ac85f84e81d2a2f98361a91b06049b0f634aa655b8",
+      "changedPixels": 46,
+      "maxCompositeChannelDelta": 3.372549,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-mid.png",
+      "sourceSha256": "636924ce195c2227fa1029641ddacf2124da20464c994617c63ed62a470ffa72",
+      "outputSha256": "5b72967ba8bd2b4e33b8357f96328ff609ecf44f1d3489af0e450b08326c5d2d",
+      "changedPixels": 62,
+      "maxCompositeChannelDelta": 8.509804,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-slump.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/hair-sad-slump.png",
+      "sourceSha256": "52b7675168c5846bf9dd2c86ef60ef760825df1ef6a1c6842863d1c9c0de4faa",
+      "outputSha256": "b3d22d72be8e9fb7892336fe050e9a56b701ddd71b8a2645a286247ec52736e2",
+      "changedPixels": 56,
+      "maxCompositeChannelDelta": 4.329412,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        896,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/idle.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/idle.png",
+      "sourceSha256": "54c6fe475c9cc2a73a4fb4e6c911d5f409733257317ebc897db95e7d5003ffe6",
+      "outputSha256": "54c6fe475c9cc2a73a4fb4e6c911d5f409733257317ebc897db95e7d5003ffe6",
+      "changedPixels": 0,
+      "maxCompositeChannelDelta": 0.0,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-hold.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-hold.png",
+      "sourceSha256": "57fd6819f2c8862ddf27299a949722292c72a9e025aa64c1c66f84c97f9a95d6",
+      "outputSha256": "ea00ae8516117a8e2b68f486a0d9e8463389e08d2b1c41f1eb9f70ba1854cd4f",
+      "changedPixels": 1629,
+      "maxCompositeChannelDelta": 4.094118,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-lift.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-lift.png",
+      "sourceSha256": "021fcfbc22b01b8497631f8510d3ef29262651084de35ca8560d78939190aea8",
+      "outputSha256": "b650411d977675ab52409f9aa930b79266184336d29d61984922c59e224f5280",
+      "changedPixels": 1711,
+      "maxCompositeChannelDelta": 2.082353,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/joy-mid.png",
+      "sourceSha256": "842ce17a6aafb891f4cb2a6dc723a61aa01eafb2e7d77d1d2a4bbd162e1bebc7",
+      "outputSha256": "7699405e793d1a2921db80dfafd8294861bbedb3f38349e1fc0867ab304d8dad",
+      "changedPixels": 1795,
+      "maxCompositeChannelDelta": 2.996078,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-drop.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-drop.png",
+      "sourceSha256": "433f7d7857f06a318bdd1c0b21c9cff3f36345d79d79d9e402639f650847d646",
+      "outputSha256": "5d62d1619bb4efe6af96c38e0e345ca4bd2cb96cf5acbc9754e6ddffe8868061",
+      "changedPixels": 1441,
+      "maxCompositeChannelDelta": 2.760784,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-mid.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-mid.png",
+      "sourceSha256": "14dfffc5fb175d75c4775fbb654b4e2d13d21f907268fc69ecb9042c3cf493ad",
+      "outputSha256": "973fb18d7cc85daa1f85c2ec1833cbcd424f2b81e77f59712b152de98f4a01ce",
+      "changedPixels": 1776,
+      "maxCompositeChannelDelta": 2.321569,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    },
+    {
+      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-slump.png",
+      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/sad-slump.png",
+      "sourceSha256": "319e19b1a7206736520cceb86aa13040351944ad834572dfae6b0ba0b1a06c75",
+      "outputSha256": "a990c3763981e2646c101f1d4f943c90a10ffff8b50ff1e0a17a1dfb21ab18e7",
+      "changedPixels": 1180,
+      "maxCompositeChannelDelta": 2.388235,
+      "alphaUnchanged": true,
+      "unaffectedPixelsUnchanged": true,
+      "idempotent": true,
+      "size": [
+        640,
+        840
+      ]
+    }
+  ]
+}

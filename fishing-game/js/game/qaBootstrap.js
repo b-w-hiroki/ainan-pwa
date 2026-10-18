@@ -38,35 +38,30 @@ export function prepareQaState() {
   localStorage.setItem('ainan_boss_trophies', JSON.stringify({}))
 }
 
-export function routeQaScene(game) {
-  if (!enabled()) return
-  const params = new URLSearchParams(window.location.search)
+// TitleScene owns the transition after preload. A second timed start loses
+// arrival data when the target scene is already loading.
+export function getQaSceneRoute(search) {
+  const params = new URLSearchParams(search)
   const scene = params.get('scene')
-  if (!scene) return
-  window.setTimeout(() => {
-    try {
-      const data = {}
-      if (scene === 'GameScene') {
-        const point = params.get('qaLocation')
-        if (['pointA', 'pointB', 'pointC'].includes(point)) data.point = point
-      }
-      if (scene === 'TownScene') {
-        const fishId = params.get('qaCatchArrival')
-        const names = {
-          aji: 'アジ', tai: 'マダイ', bass: 'ブラックバス',
-          buri: 'ブリ', kue: 'クエ', saba: 'サバ',
-          isaki: 'イサキ', hirame: 'ヒラメ', kanpachi: 'カンパチ',
-        }
-        if (Object.hasOwn(names, fishId)) {
-          data.catchArrival = {
-            fishId, name: names[fishId], rarity: fishId === 'kue' ? 'legendary' : 'common',
-            sizeCm: 42.5, score: 350, emoji: '🐟',
-          }
-        }
-      }
-      game.scene.start(scene, data)
-    } catch (error) {
-      console.error('QA scene route failed', scene, error)
+  if (params.get('qa') !== '1' || !scene || scene === 'TitleScene') return null
+  const data = {}
+  if (scene === 'GameScene') {
+    const point = params.get('qaLocation')
+    if (['pointA', 'pointB', 'pointC'].includes(point)) data.point = point
+  }
+  if (scene === 'TownScene') {
+    const fishId = params.get('qaCatchArrival')
+    const names = {
+      aji: 'アジ', tai: 'マダイ', bass: 'ブラックバス',
+      buri: 'ブリ', kue: 'クエ', saba: 'サバ',
+      isaki: 'イサキ', hirame: 'ヒラメ', kanpachi: 'カンパチ',
     }
-  }, 500)
+    if (Object.hasOwn(names, fishId)) {
+      data.catchArrival = {
+        fishId, name: names[fishId], rarity: fishId === 'kue' ? 'legendary' : 'common',
+        sizeCm: 42.5, score: 350, emoji: '🐟',
+      }
+    }
+  }
+  return { scene, data }
 }

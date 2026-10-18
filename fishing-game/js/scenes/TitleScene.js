@@ -3,6 +3,7 @@ import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { Button } from '../ui/Button.js'
+import { getQaSceneRoute } from '../game/qaBootstrap.js'
 import { loadUiArt } from '../ui/UiArt.js'
 import { isReducedMotion } from '../game/feedback.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
@@ -25,10 +26,9 @@ export default class TitleScene extends Phaser.Scene {
     const { width: W, height: H } = this.scale
 
     // Deterministic CI screenshot routing. Normal play is unaffected.
-    const qaParams = new URLSearchParams(window.location.search)
-    const qaScene = qaParams.get('qa') === '1' ? qaParams.get('scene') : null
-    if (qaScene && qaScene !== 'TitleScene') {
-      this.scene.start(qaScene)
+    const qaRoute = getQaSceneRoute(window.location.search)
+    if (qaRoute) {
+      this.scene.start(qaRoute.scene, qaRoute.data)
       return
     }
 
