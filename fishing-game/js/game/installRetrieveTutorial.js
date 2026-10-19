@@ -73,7 +73,7 @@ export function installRetrieveTutorial(GameScene) {
   const originalSetRetrieveIdle = GameScene.prototype._setRetrieveIdle
   GameScene.prototype._setRetrieveIdle = function (...args) {
     const result = originalSetRetrieveIdle.apply(this, args)
-    if (!this._retrieveTutorialDone && this._retrieveTutorialStep === 3) {
+    if (!this._retrieveReturning && !this._retrieveTutorialDone && this._retrieveTutorialStep === 3) {
       this.retrieveCoach?.pulse('その調子。魚の気配を見ながら次の動きを決めよう')
     }
     return result
