@@ -3,6 +3,7 @@ import { BobberManager } from '../scenes/components/BobberManager.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { castLaunched, twitchStarted } from './retrieveInputAcceptance.js'
 
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
 const FIELD = ASSETS.fishingField
@@ -349,8 +350,9 @@ export function installBlueprintFishingField(GameScene) {
 
   const originalFireCast = GameScene.prototype._fireCast
   GameScene.prototype._fireCast = function (...args) {
-    showCastInstruction(this, false)
+    const wasVisible = Boolean(this.bobber?.visible)
     const result = originalFireCast.apply(this, args)
+    if (castLaunched(this, wasVisible)) showCastInstruction(this, false)
     setPlayer(this, true, PLAYER_SCALE.cast)
     return result
   }
@@ -377,8 +379,9 @@ export function installBlueprintFishingField(GameScene) {
 
   const originalTwitchRetrieve = GameScene.prototype._twitchRetrieve
   GameScene.prototype._twitchRetrieve = function (...args) {
+    const beforeUntil = this.retrieveState?.twitchUntil ?? 0
     const result = originalTwitchRetrieve.apply(this, args)
-    if (this.phase === 'retrieve' && this.bobberMgr?._usingAssetLure && !this._assetLureMotionActive) {
+    if (twitchStarted(this, beforeUntil) && this.bobberMgr?._usingAssetLure && !this._assetLureMotionActive) {
       this._assetLureMotionActive = true
       this.tweens.add({ targets: this.bobber, angle: 12, duration: 110, yoyo: true, ease: 'Sine.easeOut', onComplete: () => { this.bobber?.setAngle(0); this._assetLureMotionActive = false } })
       this.bobberMgr.showSplash(this.bobber.x, this.bobber.y)

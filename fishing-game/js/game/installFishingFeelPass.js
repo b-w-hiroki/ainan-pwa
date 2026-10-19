@@ -1,4 +1,5 @@
 import { haptic, playSfx } from './feedback.js'
+import { castLaunched, slowRetrieveStarted, twitchStarted } from './retrieveInputAcceptance.js'
 
 function burst(scene, x, y, { color = 0xbcecff, radius = 34, depth = 240, strong = false } = {}) {
   const ring = scene.add.ellipse(x, y, radius * 2, radius, 0xffffff, 0)
@@ -60,10 +61,14 @@ export function installFishingFeelPass(GameScene) {
 
   const originalFire = GameScene.prototype._fireCast
   GameScene.prototype._fireCast = function (...args) {
-    haptic(12)
-    playSfx('select')
-    this.cameras?.main?.shake?.(85, 0.0016)
-    return originalFire.apply(this, args)
+    const wasVisible = Boolean(this.bobber?.visible)
+    const result = originalFire.apply(this, args)
+    if (castLaunched(this, wasVisible)) {
+      haptic(12)
+      playSfx('select')
+      this.cameras?.main?.shake?.(85, 0.0016)
+    }
+    return result
   }
 
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
@@ -79,8 +84,10 @@ export function installFishingFeelPass(GameScene) {
   const originalTwitch = GameScene.prototype._twitchRetrieve
   if (originalTwitch) {
     GameScene.prototype._twitchRetrieve = function (...args) {
+      const beforeUntil = this.retrieveState?.twitchUntil ?? 0
       const before = this.bobber ? { x: this.bobber.x, y: this.bobber.y } : null
       const result = originalTwitch.apply(this, args)
+      if (!twitchStarted(this, beforeUntil)) return result
       if (before) {
         const p = screenPoint(this, this.bobber, this.scale.width * 0.68, this.scale.height * 0.48)
         burst(this, p.x, p.y, { radius: 22 })
@@ -93,8 +100,10 @@ export function installFishingFeelPass(GameScene) {
   const originalSlow = GameScene.prototype._startSlowRetrieve
   if (originalSlow) {
     GameScene.prototype._startSlowRetrieve = function (...args) {
-      haptic(6)
-      return originalSlow.apply(this, args)
+      const wasHeld = Boolean(this.retrieveState?.slowHeld)
+      const result = originalSlow.apply(this, args)
+      if (slowRetrieveStarted(this, wasHeld)) haptic(6)
+      return result
     }
   }
 

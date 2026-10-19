@@ -6,6 +6,7 @@ import Phaser from 'phaser'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLayout.js'
 import { haptic } from './feedback.js'
+import { castLaunched } from './retrieveInputAcceptance.js'
 import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
 import { characterMotionAssets, preloadCharacterAppearance } from '../presentation/cast/CharacterMotionController.js'
 
@@ -985,7 +986,12 @@ export function installFishingPresentationGuard(GameScene) {
   GameScene.prototype._fireCast = function (...args) {
     if (this._castMotionInputLocked) return false
     this._castMotionInputLocked = true
+    const wasVisible = Boolean(this.bobber?.visible)
     const result = originalFireCast.apply(this, args)
+    if (!castLaunched(this, wasVisible)) {
+      this._castMotionInputLocked = false
+      return result
+    }
     this.time?.delayedCall?.(1300, () => {
       if (this.phase === 'cast') this._castMotionInputLocked = false
     })

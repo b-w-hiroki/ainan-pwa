@@ -7,7 +7,7 @@
     "predev": "node scripts/art/extract-harbor-approved-master.mjs && node scripts/art/build-species-jump-pilot.mjs",
     "dev": "vite",
     "qa:vertical-slice": "node scripts/vertical-slice-smoke.mjs && node scripts/retrieve-feedback-smoke.mjs",
-    "qa:final-polish": "node scripts/final-polish-smoke.mjs",
+    "qa:final-polish": "node scripts/final-polish-smoke.mjs && node scripts/accepted-input-feedback-smoke.mjs",
     "qa:retention": "node scripts/retention-smoke.mjs",
     "qa:art-pack": "node scripts/art-pack-smoke.mjs",
     "qa:art-pack2": "node scripts/art-pack2-smoke.mjs",

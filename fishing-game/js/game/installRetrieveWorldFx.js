@@ -1,4 +1,5 @@
 import { FISH_INTEREST_STATE } from './fishInterest.js'
+import { slowRetrieveStarted } from './retrieveInputAcceptance.js'
 
 function ripple(scene, x, y, color = 0xffffff, size = 1) {
   const ring = scene.add.ellipse(x, y, 14, 6)
@@ -112,7 +113,7 @@ export function installRetrieveWorldFx(GameScene) {
   GameScene.prototype._startSlowRetrieve = function (...args) {
     const wasSlow = Boolean(this.retrieveState?.slowHeld)
     const result = originalStartSlow.apply(this, args)
-    if (!wasSlow && this.phase === 'retrieve' && this.bobber?.visible) ripple(this, this.bobber.x, this.bobber.y, 0x9ee8ff, 0.65)
+    if (slowRetrieveStarted(this, wasSlow) && this.bobber?.visible) ripple(this, this.bobber.x, this.bobber.y, 0x9ee8ff, 0.65)
     return result
   }
 
