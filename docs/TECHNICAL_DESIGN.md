@@ -31,6 +31,8 @@ Retrieveの注目魚は `fishInterest.js` の選択結果を `CastViewModel`、�
 
 魚が掛からず手元へ巻き切った際は、`installRetrieveGameplay.js` が回収開始を通知し、`installRetrieveCompletion.js` だけが回収アニメーションとCast復帰を所有する。`_retrieveReturning` 中はRetrieveの更新と操作を停止し、魚の興味タイマーも解除する。別の遅延復帰を重ねない。
 
+HIT前のWaitで手動引き上げまたはミス後に戻る場合は、`GameScene.js` の `_waitReturnPending` が戻り処理の重複と追加入力を防ぐ。Tweenや遅延処理の完了時には現在のphaseと `_waitReturnEpoch` を再確認し、後からBattleや新しいWaitをCastで上書きしない。Cast/Waitへ入り直す際にフラグを解除し世代を進める。
+
 ## 描画・素材の契約
 
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。
