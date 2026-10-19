@@ -27,6 +27,8 @@ Cast → Retrieve → HIT → Battle → Resultが主な状態遷移。入力処
 
 Retrieveの注目魚は `fishInterest.js` の選択結果を `CastViewModel`、ガイド、従来HUDで共有する。別の魚の警戒状態で注目魚の表示を上書きしない。注目魚がなくなった時だけ魚反応ヒントを中立へ戻し、操作直後のヒントを毎tick消さない。初回ガイドの既読フラグは `retrieveTutorialProgress.js` が任意保存する。保存領域の読み書き失敗はゲーム進行を止めず、メモリ上の当該セッションの状態を使う。
 
+演出層はゲーム入力処理の前に成功演出を出さない。`retrieveInputAcceptance.js` がキャスト開始・ちょい巻き・ゆっくり巻きの状態遷移を判定し、音・振動・波紋・竿/ルアー表示は受理後だけ更新する。エサ不足や着水待ちで拒否したキャストは入力ロックを残さない。判定値、エサ消費、釣果保存は従来のゲーム層が担当する。
+
 ## 描画・素材の契約
 
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。

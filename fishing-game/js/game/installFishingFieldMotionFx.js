@@ -1,5 +1,6 @@
 import { ASSETS } from '../config/assetManifest.js'
 import { BobberManager } from '../scenes/components/BobberManager.js'
+import { slowRetrieveStarted, twitchStarted } from './retrieveInputAcceptance.js'
 
 const FIELD = ASSETS.fishingField
 const hasTexture = (scene, asset) => Boolean(asset?.key && scene.textures.exists(asset.key))
@@ -132,10 +133,11 @@ export function installFishingFieldMotionFx(GameScene) {
 
   const originalTwitch = GameScene.prototype._twitchRetrieve
   GameScene.prototype._twitchRetrieve = function (...args) {
+    const beforeUntil = this.retrieveState?.twitchUntil ?? 0
     const x = this.bobber?.x ?? 0
     const y = this.bobber?.y ?? 0
     const result = originalTwitch.apply(this, args)
-    if (this.phase === 'retrieve') {
+    if (twitchStarted(this, beforeUntil)) {
       setLurePull(this)
       spawnTrail(this, FIELD.lureTrail, x, y + 6, -18, 58, 28, 0.64)
       this.time.delayedCall(260, () => {
@@ -147,8 +149,9 @@ export function installFishingFieldMotionFx(GameScene) {
 
   const originalStartSlow = GameScene.prototype._startSlowRetrieve
   GameScene.prototype._startSlowRetrieve = function (...args) {
+    const wasHeld = Boolean(this.retrieveState?.slowHeld)
     const result = originalStartSlow.apply(this, args)
-    if (this.phase === 'retrieve') setLurePull(this)
+    if (slowRetrieveStarted(this, wasHeld)) setLurePull(this)
     return result
   }
 
