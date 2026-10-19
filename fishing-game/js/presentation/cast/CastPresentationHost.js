@@ -843,7 +843,8 @@ export class CastPresentationHost {
       this.nodes.characterMotion?.setRetrieveTarget(target)
       const focus = view.retrieve.focusFish
       const leadShadow = this.nodes.retrieveFishShadows[0]
-      this.nodes.retrieveStatusText?.setText(RETRIEVE_FISH_LABELS[focus?.state] ?? '魚影を探す')
+      this.nodes.retrieveStatusText?.setText(view.retrieve.spooked
+        ? '警戒中' : RETRIEVE_FISH_LABELS[focus?.state] ?? '魚影を探す')
       if (leadShadow && focus && focus.state !== 'noticed') {
         const fishX = Math.max(48, Math.min(350, target.x + focus.dx * 0.36))
         const fishY = Math.max(130, Math.min(DOCK_TOP - 100, target.y + focus.dy * 0.36))
@@ -853,7 +854,7 @@ export class CastPresentationHost {
         leadShadow.setPosition(
           leadShadow.x + (fishX - leadShadow.x) * blend,
           leadShadow.y + (fishY - leadShadow.y) * blend,
-        ).setAlpha(focus.state === 'biteReady' ? 0.78 : 0.62)
+        ).setAlpha(focus.spooked ? 0.35 : focus.state === 'biteReady' ? 0.78 : 0.62)
         leadShadow.setFlipX?.(focus.facing < 0)
         this._retrieveFishUpdatedAt = now
       } else if (leadShadow) {

@@ -526,7 +526,7 @@ export function installRetrieveGameplay(GameScene) {
   GameScene.prototype._stepFishPursuit = function (dt) {
     const runtimes = this.bg?._fishRuntime ?? []
     for (const runtime of runtimes) {
-      if (![FISH_INTEREST_STATE.FOLLOW, FISH_INTEREST_STATE.INSPECT, FISH_INTEREST_STATE.BITE_READY].includes(runtime.state)) {
+      if (runtime.spooked || ![FISH_INTEREST_STATE.FOLLOW, FISH_INTEREST_STATE.INSPECT, FISH_INTEREST_STATE.BITE_READY].includes(runtime.state)) {
         if (runtime.reaction?.visible) runtime.reaction.setPosition(runtime.gfx.x, runtime.gfx.y - 24)
         continue
       }
