@@ -106,7 +106,14 @@ export function installNativeLandscapeTownPrototype(TownScene) {
   TownScene.prototype.create=function(...args){
     if(isNativeLandscapeQaEnabled(typeof window === 'undefined' ? '' : window.location.search,'nativeLandscapeTown')){
       const layout=getNativeTownLayout(this.scale.width,this.scale.height)
-      if(layout)return renderTown(this,layout)
+      if(layout){
+        renderTown(this,layout)
+        // Result→Town owns the catch once. The horizontal staging view must
+        // preserve that same arrival instead of silently dropping it.
+        const catchArrival=args[0]?.catchArrival
+        if(catchArrival?.fishId)this._showCatchArrival(catchArrival)
+        return
+      }
     }
     return previous.apply(this,args)
   }
