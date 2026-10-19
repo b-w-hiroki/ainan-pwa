@@ -154,6 +154,43 @@ try {
     }
   }
 
+  // FIT keeps a 390x844 logical canvas on shorter phones. Its drawn buttons
+  // must still have a usable physical hit height after browser scaling.
+  for (const [width, height] of [[320, 568], [375, 667]]) {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+    try {
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene&qaCatchArrival=aji')
+      await page.waitForFunction(() =>
+        window.__game?.scene?.getScene('TownScene')?._qaCatchArrivalSnapshot?.fishId === 'aji')
+      await page.waitForTimeout(400)
+      const state = await page.evaluate(() => {
+        const game = window.__game
+        const town = game.scene.getScene('TownScene')
+        const rect = game.canvas.getBoundingClientRect()
+        const modal = town.children.list.find(node => node.active && node.depth === 220 && node.type === 'Container')
+        return {
+          canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          actions: modal.list.filter(node => node.type === 'Container' && node.input)
+            .map(node => ({ x: node.x, y: node.y, width: node.width, height: node.height })),
+        }
+      })
+      assert.equal(state.actions.length, 2, `${width}x${height}: missing arrival action`)
+      const scale = state.canvas.height / 844
+      for (const action of state.actions) {
+        assert.ok(action.height * scale >= 43.5, `${width}x${height}: physical hit area too short`)
+        assert.ok(state.canvas.y + (action.y + action.height / 2) * scale <= height,
+          `${width}x${height}: arrival action leaves viewport`)
+      }
+      await page.screenshot({ path: join('artifacts/e2e', `98-town-arrival-${width}x${height}.png`), animations: 'disabled' })
+      const next = state.actions.sort((a, b) => a.y - b.y)[1]
+      await page.mouse.click(state.canvas.x + next.x * scale, state.canvas.y + next.y * scale)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.())
+      console.log('Town compact arrival physical tap passed:', `${width}x${height}`)
+    } finally {
+      await page.close()
+    }
+  }
+
   // Real 390x844 browser taps: unaffordable Town growth must navigate back
   // to Map without spending; an affordable upgrade must keep buying in Town.
   for (const { score, expected, filename } of [
