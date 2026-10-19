@@ -54,6 +54,8 @@ try{
           instructionVisible:host.nodes.instruction.visible,
           locationLabel:host.nodes.location.text,
           distanceLabel:host.nodes.distance.text,
+          retrieveMeters:scene.phase==='retrieve'&&scene.bobber
+            ? Math.hypot(scene.bobber.x-scene.anchorX,scene.bobber.y-scene.anchorY)/18 : null,
         }
       },phase)
       assert.equal(state.phase,phase,filename+': wrong phase')
@@ -69,7 +71,7 @@ try{
         filename+': opaque HUD backing must only cover non-Harbor Retrieve')
       assert.equal(state.instructionVisible,phase==='cast',
         filename+': Cast-only instruction must not appear over Retrieve')
-      if(phase==='retrieve'&&point!=='pointA') assert.equal(state.distanceLabel,'18m')
+      if(phase==='retrieve'&&point!=='pointA') assert.equal(state.distanceLabel,`${state.retrieveMeters.toFixed(1)}m`)
       assert.equal(state.overlayVisible,point!=='pointA',filename+': incorrect location overlay')
       if(point!=='pointA'){
         assert.equal(state.overlayTexture,point==='pointB'?'ff_location_bay':'ff_location_cape')
@@ -101,10 +103,12 @@ try{
           &&host?.root?.visible&&host.nodes.chrome.visible
       },point,{timeout:20000})
       const result=await page.evaluate(()=>{
-        const host=window.__game.scene.getScene('GameScene')._castPresentationHost
+        const scene=window.__game.scene.getScene('GameScene')
+        const host=scene._castPresentationHost
         return {
           label:host.nodes.location.text,
           distance:host.nodes.distance.text,
+          meters:Math.hypot(scene.bobber.x-scene.anchorX,scene.bobber.y-scene.anchorY)/18,
           overlayVisible:host.nodes.retrieveLocationOverlay?.visible,
           instructionVisible:host.nodes.instruction.visible,
           hudBackingVisible:host.nodes.retrieveHudCover.visible,
@@ -112,7 +116,7 @@ try{
         }
       })
       assert.equal(result.label,labels[point],filename+': wrong production location header')
-      assert.equal(result.distance,'18m')
+      assert.equal(result.distance,`${result.meters.toFixed(1)}m`)
       assert.equal(result.overlayVisible,false,'QA-only location overlay leaked into production')
       assert.equal(result.instructionVisible,false)
       assert.equal(result.hudBackingVisible,true,'baked Harbor header needs full opacity')

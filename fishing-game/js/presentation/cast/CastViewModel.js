@@ -1,6 +1,7 @@
 import { oscillatePower } from '../../game/cast.js'
 import { getVisualLoadout } from '../equipmentVisuals.js'
 import { getFishingGroundName } from '../../game/fishingGroundNames.js'
+import { FISHING_WORLD } from '../../scenes/components/FishingCameraController.js'
 
 export function readCastViewModel(scene) {
   const isCharging = Boolean(scene.isCharging)
@@ -25,11 +26,17 @@ export function readCastViewModel(scene) {
   const openingSwipeAgeMs = now - (battleState?.lastOpeningSwipeAt ?? 0)
   const openingSwipeHit = Boolean(battleState?.lastOpeningSwipeAt
     && openingSwipeAgeMs >= 0 && openingSwipeAgeMs <= 1400)
+  // The presentation guard hides the world bobber beneath the approved art;
+  // its coordinates remain the authoritative gameplay position.
+  const retrieveDistanceMeters = scene.phase === 'retrieve' && scene.bobber
+    && [scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y].every(Number.isFinite)
+    ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
+    : null
 
   return Object.freeze({
     phase: scene.phase,
     locationLabel: getFishingGroundName(scene.env?.point),
-    distanceLabel: scene.phase === 'cast' ? '28m' : '18m',
+    distanceLabel: scene.phase === 'cast' ? '28m' : retrieveDistanceMeters === null ? '--m' : `${retrieveDistanceMeters.toFixed(1)}m`,
     tackleLabel: scene.rod?.name ?? '',
     rodType: visualLoadout.rod.id,
     rodRequestedType: visualLoadout.rod.requestedId,
@@ -39,6 +46,8 @@ export function readCastViewModel(scene) {
     retrieve: Object.freeze({
       action: scene.retrieveState?.action ?? 'idle',
       appeal01: scene.retrieveState?.appeal ?? 0,
+      distanceMeters: retrieveDistanceMeters,
+      startedAt: scene.retrieveState?.startedAt ?? null,
       lureX: scene.bobber?.x ?? scene.retrieveState?.lureX ?? 205,
       lureY: scene.bobber?.y ?? scene.retrieveState?.lureY ?? 370,
     }),

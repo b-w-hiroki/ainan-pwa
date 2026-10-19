@@ -115,6 +115,7 @@ export class CastPresentationHost {
     this._resultInputLocked = false
     this._jumpRageStartedAt = null
     this._jumpRageFishId = null
+    this._retrievePresentation = null
     this._cancelHeldRetrieve = () => {
       if (!this._slowPointerHeld) return
       this._slowPointerHeld = false
@@ -281,6 +282,7 @@ export class CastPresentationHost {
         .setOrigin(0).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setCrop(0, 580, 391, 203),
     ] : []
     const retrieveWater = scene.add.container(0, 0).setVisible(useCuteHarbor)
+    let retrieveLure = null
     if (useCuteHarbor) {
       const shadow = ASSETS.fishingField.fishShadowMediumIdle
       for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
@@ -289,13 +291,15 @@ export class CastPresentationHost {
           : scene.add.ellipse(x, y, width, width * 0.34, 0x08283a)
         retrieveWater.add(fish.setAlpha(alpha))
       }
+      retrieveLure = scene.add.container(310, 235)
       const ripple = scene.add.graphics()
-      ripple.lineStyle(2, 0xdaf8ff, 0.72).strokeEllipse(310, 235, 48, 18)
-      ripple.lineStyle(1, 0xffffff, 0.5).strokeEllipse(310, 235, 28, 10)
-      retrieveWater.add(ripple)
+      ripple.lineStyle(2, 0xdaf8ff, 0.72).strokeEllipse(0, 0, 48, 18)
+      ripple.lineStyle(1, 0xffffff, 0.5).strokeEllipse(0, 0, 28, 10)
+      retrieveLure.add(ripple)
       if (scene.textures.exists(ASSETS.fishingField.lureIdle.key)) {
-        retrieveWater.add(scene.add.image(310, 233, ASSETS.fishingField.lureIdle.key).setDisplaySize(27, 13).setAngle(-22))
+        retrieveLure.add(scene.add.image(0, -2, ASSETS.fishingField.lureIdle.key).setDisplaySize(27, 13).setAngle(-22))
       }
+      retrieveWater.add(retrieveLure)
     }
     const retrieveLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
@@ -636,6 +640,7 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      retrieveLure,
       battleField,
       resultField,
       castDock,
@@ -802,6 +807,21 @@ export class CastPresentationHost {
     this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
+    if (retrieveVisible && this.nodes.retrieveLure && view.retrieve.distanceMeters !== null) {
+      if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
+        this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
+      }
+      // Project the real world distance onto the approved portrait composition.
+      // The lure travels from open water toward the quay as the player reels.
+      const progress = Math.max(0, Math.min(1,
+        1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
+      const target = { x: 310 - 125 * progress, y: 235 + 270 * progress }
+      this.nodes.retrieveLure.setPosition(target.x, target.y)
+      this.nodes.characterMotion?.setRetrieveTarget(target)
+    } else {
+      this._retrievePresentation = null
+      this.nodes.characterMotion?.setRetrieveTarget(null)
+    }
     const battleVisible = view.phase === 'battle'
     const resultVisible = view.phase === 'result'
     const visible = castVisible || retrieveVisible || battleVisible || resultVisible

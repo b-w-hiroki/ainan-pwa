@@ -68,7 +68,30 @@ try {
  })
  await page.mouse.click(72,752)
  assert.equal(await page.evaluate(()=>window.__retrieveWaitCalls),1)
- evidence.push({retrieve,waitTapCalls:1})
+ // Reeling must move the same visible lure and its line, while the distance
+ // badge reports the gameplay bobber rather than a fixed mock value.
+ const retrieveMotion=await page.evaluate(()=>{
+  const scene=window.__game.scene.getScene('GameScene'),host=scene._castPresentationHost
+  scene.scene.pause()
+  host.sync()
+  const before={distance:host.nodes.distance.text,x:host.nodes.retrieveLure.x,y:host.nodes.retrieveLure.y}
+  scene._retrieveReadyAt=0 // Complete the landing beat before testing accepted input.
+  scene._startSlowRetrieve()
+  scene._stepRetrieve(700)
+  scene._stopSlowRetrieve()
+  host.sync()
+  const after={distance:host.nodes.distance.text,x:host.nodes.retrieveLure.x,y:host.nodes.retrieveLure.y,
+   lineTarget:host.nodes.characterMotion.root.getData('rodLineTargetWorld'),
+   gameLure:[scene.retrieveState.lureX,scene.retrieveState.lureY],
+   worldLure:[scene.bobber.x,scene.bobber.y]}
+  return {before,after}
+ })
+ assert.ok(parseFloat(retrieveMotion.after.distance)<parseFloat(retrieveMotion.before.distance))
+ assert.ok(retrieveMotion.after.x<retrieveMotion.before.x&&retrieveMotion.after.y>retrieveMotion.before.y)
+ assert.deepEqual(retrieveMotion.after.lineTarget,{x:retrieveMotion.after.x,y:retrieveMotion.after.y})
+ assert.deepEqual(retrieveMotion.after.gameLure,retrieveMotion.after.worldLure)
+ await page.screenshot({path:join(root,'retrieve-reelled.png')})
+ evidence.push({retrieve,waitTapCalls:1,retrieveMotion})
  // Exercise real phase entry, then freeze the scene to capture deterministic
  // authored frames. These are phase-layout checks, not live timing claims.
  for (const [width,height] of [[390,844],[844,390]]) {

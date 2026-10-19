@@ -429,9 +429,12 @@ export function installRetrieveGameplay(GameScene) {
   }
 
   GameScene.prototype._syncRetrieveWorldUI = function () {
-    if (!this.retrieveState || !this.bobber?.visible) return
+    if (!this.retrieveState || !this.bobber) return
     this.retrieveState.lureX = this.bobber.x
     this.retrieveState.lureY = this.bobber.y
+    // The approved presentation hides the world bobber. Gameplay still needs
+    // its live position for fish pursuit after each reel or twitch.
+    if (!this.bobber.visible) return
     const distPx = Phaser.Math.Distance.Between(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
     const meters = distPx / FISHING_WORLD.pxPerMeter
     this._distanceBadge?.setPosition(this.bobber.x, this.bobber.y - 24).setText(`飛距離 ${meters.toFixed(1)}m`)
