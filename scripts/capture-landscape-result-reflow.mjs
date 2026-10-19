@@ -182,6 +182,13 @@ try{
           &&action.y-action.h/2>=10&&action.y+action.h/2<=h-10,
           'Wide Town arrival action clipped: '+JSON.stringify(action))
         await page.screenshot({path:join(folder,'town-arrival-'+w+'x'+h+'.png'),animations:'disabled'})
+        const confirm=arrival.actions.reduce((first,action)=>action.y<first.y?action:first)
+        await page.mouse.click(confirm.x,confirm.y)
+        await page.waitForFunction(()=>{
+          const town=window.__game.scene.getScene('TownScene')
+          return town?.sys?.isActive?.() && !town.children.list.some(node=>
+            node.active&&node.depth===220&&node.type==='Container')
+        },null,{timeout:6000})
         // A new record on wide screens must not be clipped at the top.
         // Exercise the actual reward presentation, not just the Rarity badge.
         await page.goto(

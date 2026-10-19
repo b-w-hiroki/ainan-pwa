@@ -186,7 +186,7 @@ export function installTownCatchArrival(TownScene) {
     items.push(this.add.text(layout.copyX, layout.bodyY, bodyCopy, {
       fontFamily: FONT,
       resolution: TEXT_RES,
-      fontSize: '11px',
+      fontSize: layout.wide ? '13px' : '11px',
       fontWeight: '800',
       color: UI_COLORS.inkSoft,
       align: 'center',
