@@ -25,12 +25,13 @@ for (const invalid of ['__proto__', 'constructor', 'toString', null, undefined, 
   assert.equal(getTownArrivalCopy(invalid), commonArrival,
     String(invalid) + ': invalid rarity must fall back to ordinary display copy')
 }
-for (const [width, height] of [[390, 844], [844, 390], [932, 430]]) {
-  const layout = getTownCatchArrivalLayout(width, height)
+for (const [width, height, scale = 1] of [[390, 844], [390, 844, 0.67], [390, 844, 0.79], [844, 390], [932, 430]]) {
+  const layout = getTownCatchArrivalLayout(width, height, scale)
   assert.equal(layout.wide, width > height)
   assert.ok(layout.x >= 10 && layout.x + layout.w <= width - 10)
   assert.ok(layout.y >= 10 && layout.y + layout.h <= height - 10)
   assert.ok(layout.actionWidth >= 44 && layout.actionHeight >= 44)
+  assert.ok(layout.actionHeight * scale >= 43.5, `${width}x${height} @${scale}: physical tap height is too small`)
   for (const y of [layout.confirmY, layout.returnY]) {
     assert.ok(layout.copyX - layout.actionWidth / 2 >= layout.x + 12
       && layout.copyX + layout.actionWidth / 2 <= layout.x + layout.w - 12

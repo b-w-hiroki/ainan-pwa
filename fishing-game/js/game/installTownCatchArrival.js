@@ -35,12 +35,15 @@ export function getTownArrivalCopy(rarity) {
   return Object.hasOwn(ARRIVAL_COPY, rarity) ? ARRIVAL_COPY[rarity] : ARRIVAL_COPY.common
 }
 
-export function getTownCatchArrivalLayout(width, height) {
+export function getTownCatchArrivalLayout(width, height, displayScale = 1) {
   const wide = width > height && width >= 740 && height >= 370
+  const safeScale = Number.isFinite(displayScale) && displayScale > 0 ? displayScale : 1
+  const actionHeight = wide ? 48 : Math.min(72, Math.max(48, Math.ceil(44 / safeScale)))
+  const compactTouch = !wide && actionHeight > 48
   const x = wide ? (width - 650) / 2 : 24
-  const y = wide ? (height - 336) / 2 : 154
+  const y = wide ? (height - 336) / 2 : compactTouch ? (height - 550) / 2 : 154
   const w = wide ? 650 : width - 48
-  const h = wide ? 336 : 452
+  const h = wide ? 336 : compactTouch ? 550 : 452
   const artX = wide ? x + 165 : width / 2
   const copyX = wide ? x + 477 : width / 2
   return {
@@ -56,9 +59,9 @@ export function getTownCatchArrivalLayout(width, height) {
     bodyY: y + (wide ? 117 : 318),
     bodyWidth: wide ? 270 : w - 70,
     actionWidth: wide ? 248 : 226,
-    actionHeight: wide ? 48 : 48,
-    confirmY: wide ? y + 235 : y + h - 80,
-    returnY: wide ? y + 290 : y + h - 28,
+    actionHeight,
+    confirmY: wide ? y + 235 : compactTouch ? y + h - actionHeight * 1.5 - 24 : y + h - 80,
+    returnY: wide ? y + 290 : compactTouch ? y + h - actionHeight / 2 - 16 : y + h - 28,
   }
 }
 
@@ -89,7 +92,9 @@ export function installTownCatchArrival(TownScene) {
 
   TownScene.prototype._showCatchArrival = function (catchArrival) {
     const { width: W, height: H } = this.scale
-    const layout = getTownCatchArrivalLayout(W, H)
+    const rect = this.game.canvas.getBoundingClientRect()
+    const displayScale = Math.min(rect.width / W, rect.height / H)
+    const layout = getTownCatchArrivalLayout(W, H, displayScale)
     const copy = getTownArrivalCopy(catchArrival.rarity)
     const bodyCopy = getTownCatchReaction(catchArrival.fishId) ?? copy.body
     const legendary = catchArrival.rarity === 'legendary'
