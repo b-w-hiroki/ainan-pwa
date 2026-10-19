@@ -20,7 +20,7 @@ try{
     })
     try{
       await page.addInitScript(()=>localStorage.setItem('ainan_sound_enabled','0'))
-      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&cameraPan=1&coneLoop=1&qaFish=aji&qaLocation=pointA',{waitUntil:'domcontentloaded'})
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=caught&cameraPan=1&coneLoop=1&nativeLandscapeTown=1&qaFish=aji&qaLocation=pointA',{waitUntil:'domcontentloaded'})
       await page.waitForFunction(()=>{
         const s=window.__game?.scene?.getScene?.('GameScene')
         return s?.sys?.isActive?.()&&s.phase==='result'&&s.resultOverlay?.visible
@@ -159,6 +159,29 @@ try{
           await page.screenshot({path:join(folder,'town-click-failed-'+w+'x'+h+'.png'),animations:'disabled'})
           throw new Error('Town CTA click did not navigate: '+JSON.stringify({debug,errors})+'; '+error.message)
         })
+        await page.waitForFunction(()=>
+          window.__game.scene.getScene('TownScene')?._qaCatchArrivalSnapshot?.fishId==='aji',
+        null,{timeout:6000})
+        const arrival=await page.evaluate(()=>{
+          const town=window.__game.scene.getScene('TownScene')
+          const modal=town.children.list.find(node=>node.active&&node.depth===220&&node.type==='Container')
+          return {
+            ...town._qaCatchArrivalSnapshot,
+            nativeTown:!!town._qaNativeTownLayout,
+            actions:modal?.list.filter(node=>node.type==='Container'&&node.input?.enabled)
+              .map(node=>({x:node.x,y:node.y,w:node.width,h:node.height}))??[],
+          }
+        })
+        assert.equal(arrival.layout,'landscape','Result→Town arrival lost its wide layout')
+        assert.equal(arrival.nativeTown,true,'Result→Town did not keep the native Town layout')
+        assert.equal(arrival.fishTexture,'fish_aji_icon')
+        assert.equal(arrival.speciesReaction,true)
+        assert.equal(arrival.actions.length,2,'Arrival must keep both actions')
+        for(const action of arrival.actions)assert.ok(action.w>=44&&action.h>=44
+          &&action.x-action.w/2>=10&&action.x+action.w/2<=w-10
+          &&action.y-action.h/2>=10&&action.y+action.h/2<=h-10,
+          'Wide Town arrival action clipped: '+JSON.stringify(action))
+        await page.screenshot({path:join(folder,'town-arrival-'+w+'x'+h+'.png'),animations:'disabled'})
         // A new record on wide screens must not be clipped at the top.
         // Exercise the actual reward presentation, not just the Rarity badge.
         await page.goto(

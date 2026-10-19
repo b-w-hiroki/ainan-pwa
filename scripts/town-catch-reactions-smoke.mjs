@@ -16,7 +16,7 @@ for (const [index, body] of reactions.entries()) {
 assert.equal(getTownCatchReaction('unknown'), null, 'Unknown fish must use rarity fallback')
 assert.equal(getTownCatchReaction('__proto__'), null, 'Prototype fields are not valid fish IDs')
 // Arrival rarity is a display hint, not a trusted object lookup key.
-const { getTownArrivalCopy } = await import('../fishing-game/js/game/installTownCatchArrival.js')
+const { getTownArrivalCopy, getTownCatchArrivalLayout } = await import('../fishing-game/js/game/installTownCatchArrival.js')
 const commonArrival = getTownArrivalCopy('common')
 for (const rarity of ['uncommon', 'rare', 'legendary']) {
   assert.ok(getTownArrivalCopy(rarity)?.title, rarity + ': missing supported arrival copy')
@@ -24,6 +24,25 @@ for (const rarity of ['uncommon', 'rare', 'legendary']) {
 for (const invalid of ['__proto__', 'constructor', 'toString', null, undefined, 'unknown']) {
   assert.equal(getTownArrivalCopy(invalid), commonArrival,
     String(invalid) + ': invalid rarity must fall back to ordinary display copy')
+}
+for (const [width, height] of [[390, 844], [844, 390], [932, 430]]) {
+  const layout = getTownCatchArrivalLayout(width, height)
+  assert.equal(layout.wide, width > height)
+  assert.ok(layout.x >= 10 && layout.x + layout.w <= width - 10)
+  assert.ok(layout.y >= 10 && layout.y + layout.h <= height - 10)
+  assert.ok(layout.actionWidth >= 44 && layout.actionHeight >= 44)
+  for (const y of [layout.confirmY, layout.returnY]) {
+    assert.ok(layout.copyX - layout.actionWidth / 2 >= layout.x + 12
+      && layout.copyX + layout.actionWidth / 2 <= layout.x + layout.w - 12
+      && y - layout.actionHeight / 2 >= layout.y + 10
+      && y + layout.actionHeight / 2 <= layout.y + layout.h - (layout.wide ? 10 : 4),
+    `${width}x${height}: arrival action leaves card`)
+  }
+  assert.ok(layout.confirmY + layout.actionHeight / 2 + 4
+    <= layout.returnY - layout.actionHeight / 2,
+  `${width}x${height}: arrival actions overlap`)
+  if (layout.wide) assert.ok(layout.artX + 80 < layout.copyX - layout.bodyWidth / 2,
+    `${width}x${height}: fish and reaction columns overlap`)
 }
 const implementation = readFileSync('fishing-game/js/game/installTownCatchArrival.js', 'utf8')
 const townSource = readFileSync('fishing-game/js/scenes/TownScene.js','utf8')
