@@ -7,6 +7,7 @@ export function installRetrieveFeedback(GameScene) {
   const originalEnterRetrieve = GameScene.prototype._enterRetrieve
   GameScene.prototype._enterRetrieve = function (...args) {
     const result = originalEnterRetrieve.apply(this, args)
+    this._retrieveFeedbackHadFish = false
     this.retrieveUI?.syncFishSense('cruise', false)
     return result
   }
@@ -17,13 +18,14 @@ export function installRetrieveFeedback(GameScene) {
     if (this.phase !== 'retrieve') return result
 
     const runtimes = this.bg?._fishRuntime ?? []
-    const spooked = runtimes.find(runtime => runtime.spooked)
     const active = leadingInterestedFish(runtimes, this.bobber)
+    const spooked = Boolean(active?.spooked)
 
-    this.retrieveUI?.syncFishSense(active?.state ?? 'cruise', Boolean(spooked))
+    this.retrieveUI?.syncFishSense(active?.state ?? 'cruise', spooked)
 
     if (spooked) {
       this.retrieveUI?.setHint('動かしすぎたかも。少し止めて様子を見よう')
+      this._retrieveFeedbackHadFish = true
       return result
     }
 
@@ -33,7 +35,13 @@ export function installRetrieveFeedback(GameScene) {
       inspect: 'すぐ近く。巻くか止めるか見極めよう',
       biteReady: '食いそう…！　動きを変えすぎない',
     }
-    if (active && hints[active.state]) this.retrieveUI?.setHint(hints[active.state])
+    if (active && hints[active.state]) {
+      this.retrieveUI?.setHint(hints[active.state])
+      this._retrieveFeedbackHadFish = true
+    } else if (this._retrieveFeedbackHadFish) {
+      this.retrieveUI?.setHint('魚影の向きと動きを見る')
+      this._retrieveFeedbackHadFish = false
+    }
     return result
   }
 

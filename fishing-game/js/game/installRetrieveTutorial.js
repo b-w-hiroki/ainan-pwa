@@ -1,10 +1,9 @@
 import { RetrieveCoach } from '../scenes/components/RetrieveCoach.js'
-import { FISH_INTEREST_STATE } from './fishInterest.js'
+import { leadingInterestedFish } from './fishInterest.js'
+import { readRetrieveTutorialDone, writeRetrieveTutorialDone } from './retrieveTutorialProgress.js'
 
 // v2 intentionally resets the one-time coach for devices that already saw the
 // old cast-and-wait prototype. Retrieve rules changed for Vertical Slice 1.0.
-const TUTORIAL_KEY = 'ainan_retrieve_tutorial_v2'
-
 export function installRetrieveTutorial(GameScene) {
   if (GameScene.prototype.__ainanRetrieveTutorialInstalled) return
   GameScene.prototype.__ainanRetrieveTutorialInstalled = true
@@ -14,7 +13,7 @@ export function installRetrieveTutorial(GameScene) {
     const result = originalCreate.apply(this, args)
     this.retrieveCoach = new RetrieveCoach(this)
     this.retrieveCoach.build(this.scale.width, this.scale.height)
-    this._retrieveTutorialDone = localStorage.getItem(TUTORIAL_KEY) === '1'
+    this._retrieveTutorialDone = readRetrieveTutorialDone()
     this._retrieveTutorialStep = this._retrieveTutorialDone ? 99 : 1
     return result
   }
@@ -57,9 +56,7 @@ export function installRetrieveTutorial(GameScene) {
     if (this._retrieveTutorialDone || this.phase !== 'retrieve') return result
 
     const runtimes = this.bg?._fishRuntime ?? []
-    const active = runtimes
-      .filter(runtime => runtime.state !== FISH_INTEREST_STATE.CRUISE)
-      .sort((a, b) => (b.interest ?? 0) - (a.interest ?? 0))[0]
+    const active = leadingInterestedFish(runtimes, this.bobber)
 
     if (active && this._retrieveTutorialStep < 3) {
       this._retrieveTutorialStep = 3
@@ -67,7 +64,7 @@ export function installRetrieveTutorial(GameScene) {
       this.retrieveCoach?.pulse()
     }
 
-    if (runtimes.some(runtime => runtime.spooked)) {
+    if (active?.spooked) {
       this.retrieveCoach?.show(3, '動かしすぎたかも。「待つ」で一度落ち着かせよう')
     }
     return result
@@ -86,7 +83,7 @@ export function installRetrieveTutorial(GameScene) {
   GameScene.prototype._beginRetrieveBite = function (...args) {
     if (!this._retrieveTutorialDone) {
       this._retrieveTutorialDone = true
-      localStorage.setItem(TUTORIAL_KEY, '1')
+      writeRetrieveTutorialDone()
       this.retrieveCoach?.hide()
     }
     return originalBeginRetrieveBite.apply(this, args)
