@@ -2,25 +2,20 @@ import { oscillatePower } from '../../game/cast.js'
 import { getVisualLoadout } from '../equipmentVisuals.js'
 import { getFishingGroundName } from '../../game/fishingGroundNames.js'
 import { FISHING_WORLD } from '../../scenes/components/FishingCameraController.js'
-
-const FISH_REACTION_PRIORITY = Object.freeze({ noticed: 1, follow: 2, inspect: 3, biteReady: 4 })
+import { leadingInterestedFish } from '../../game/fishInterest.js'
 
 function readRetrieveFocusFish(scene) {
   if (scene.phase !== 'retrieve' || !scene.bobber) return null
-  let focus = null
-  for (const runtime of scene.bg?._fishRuntime ?? []) {
-    const state = runtime.state
-    const priority = FISH_REACTION_PRIORITY[state] ?? 0
-    const gfx = runtime.gfx
-    if (!priority || !gfx?.active || !Number.isFinite(gfx.x) || !Number.isFinite(gfx.y)) continue
-    const dx = gfx.x - scene.bobber.x
-    const dy = gfx.y - scene.bobber.y
-    const distance = Math.hypot(dx, dy)
-    if (!focus || priority > focus.priority || (priority === focus.priority && distance < focus.distance)) {
-      focus = { state, priority, distance, dx, dy, facing: gfx.scaleX < 0 ? -1 : 1 }
-    }
-  }
-  return focus ? Object.freeze({ state: focus.state, dx: focus.dx, dy: focus.dy, facing: focus.facing }) : null
+  const focus = leadingInterestedFish(scene.bg?._fishRuntime, scene.bobber)
+  const gfx = focus?.gfx
+  if (!gfx || !Number.isFinite(gfx.x) || !Number.isFinite(gfx.y)) return null
+  return Object.freeze({
+    state: focus.state,
+    spooked: Boolean(focus.spooked),
+    dx: gfx.x - scene.bobber.x,
+    dy: gfx.y - scene.bobber.y,
+    facing: gfx.scaleX < 0 ? -1 : 1,
+  })
 }
 
 export function readCastViewModel(scene) {
@@ -69,6 +64,7 @@ export function readCastViewModel(scene) {
       distanceMeters: retrieveDistanceMeters,
       startedAt: scene.retrieveState?.startedAt ?? null,
       focusFish: readRetrieveFocusFish(scene),
+      spooked: (scene.bg?._fishRuntime ?? []).some(runtime => runtime.spooked),
       lureX: scene.bobber?.x ?? scene.retrieveState?.lureX ?? 205,
       lureY: scene.bobber?.y ?? scene.retrieveState?.lureY ?? 370,
     }),

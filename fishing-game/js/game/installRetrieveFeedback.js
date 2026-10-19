@@ -1,4 +1,4 @@
-import { FISH_INTEREST_STATE } from './fishInterest.js'
+import { FISH_INTEREST_STATE, leadingInterestedFish } from './fishInterest.js'
 
 export function installRetrieveFeedback(GameScene) {
   if (GameScene.prototype.__ainanRetrieveFeedbackInstalled) return
@@ -18,9 +18,7 @@ export function installRetrieveFeedback(GameScene) {
 
     const runtimes = this.bg?._fishRuntime ?? []
     const spooked = runtimes.find(runtime => runtime.spooked)
-    const active = runtimes
-      .filter(runtime => runtime.state !== FISH_INTEREST_STATE.CRUISE)
-      .sort((a, b) => (b.interest ?? 0) - (a.interest ?? 0))[0]
+    const active = leadingInterestedFish(runtimes, this.bobber)
 
     this.retrieveUI?.syncFishSense(active?.state ?? 'cruise', Boolean(spooked))
 

@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { PlayerActionInset } from '../scenes/components/PlayerActionInset.js'
-import { FISH_INTEREST_STATE } from './fishInterest.js'
+import { FISH_INTEREST_STATE, leadingInterestedFish } from './fishInterest.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 
 const CRUISE_DURATION_SCALE = 1.65
@@ -103,7 +103,7 @@ export function installRetrievePolish(GameScene) {
     originalStepFishPursuit.call(this, dt)
     const runtimes = this.bg?._fishRuntime ?? []
     for (const runtime of runtimes) {
-      if (runtime.state !== FISH_INTEREST_STATE.NOTICED || !runtime.gfx?.active) continue
+      if (runtime.state !== FISH_INTEREST_STATE.NOTICED || !runtime.gfx?.active || runtime.spooked) continue
       const gfx = runtime.gfx
       const profile = runtime.fishDef?.retrieve ?? {}
       const dx = this.bobber.x - gfx.x
@@ -132,9 +132,7 @@ export function installRetrievePolish(GameScene) {
       this._resumeFishCruise?.(runtime)
     })
 
-    this._retrieveTargetFish = runtimes
-      .filter(runtime => runtime.state !== FISH_INTEREST_STATE.CRUISE)
-      .sort((a, b) => (b.interest ?? 0) - (a.interest ?? 0))[0] ?? null
+    this._retrieveTargetFish = leadingInterestedFish(runtimes, this.bobber)
     this._syncPlayerActionInset?.()
     return result
   }

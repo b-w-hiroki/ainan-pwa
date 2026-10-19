@@ -8,6 +8,27 @@ export const FISH_INTEREST_STATE = {
   BITE_READY: 'biteReady',
 }
 
+// Keep the native hint, player inset and approved Retrieve overlay focused on
+// the same fish when several species react to one lure.
+export function leadingInterestedFish(runtimes, bobber) {
+  let leading = null
+  let highestInterest = -Infinity
+  let nearest = Infinity
+  for (const runtime of runtimes ?? []) {
+    const gfx = runtime.gfx
+    if (runtime.state === FISH_INTEREST_STATE.CRUISE || !gfx?.active) continue
+    const interest = Number.isFinite(runtime.interest) ? runtime.interest : 0
+    const distance = bobber && [gfx.x, gfx.y, bobber.x, bobber.y].every(Number.isFinite)
+      ? Math.hypot(gfx.x - bobber.x, gfx.y - bobber.y) : Infinity
+    if (interest > highestInterest || (interest === highestInterest && distance < nearest)) {
+      leading = runtime
+      highestInterest = interest
+      nearest = distance
+    }
+  }
+  return leading
+}
+
 function distanceFactor(distance) {
   if (distance <= 60) return 1
   if (distance <= 120) return 0.72

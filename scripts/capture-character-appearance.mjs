@@ -110,7 +110,21 @@ try {
   host.sync()
   const bite={label:host.nodes.retrieveStatusText.text,
    x:host.nodes.retrieveFishShadows[0].x,y:host.nodes.retrieveFishShadows[0].y}
-  return {idle,follow,bite}
+  const secondary=runtimes.find(item=>item!==runtime&&item.gfx?.active)
+  if(!secondary)return {idle,follow,bite}
+  runtime.interest=74
+  secondary.state='inspect'
+  secondary.interest=79
+  secondary.gfx.setPosition(scene.bobber.x+50,scene.bobber.y+65)
+  host.sync()
+  const strongest={label:host.nodes.retrieveStatusText.text}
+  secondary.spooked=true
+  host.sync()
+  const warning={label:host.nodes.retrieveStatusText.text,alpha:host.nodes.retrieveFishShadows[0].alpha}
+  const before={x:secondary.gfx.x,y:secondary.gfx.y}
+  scene._stepFishPursuit(0.2)
+  const after={x:secondary.gfx.x,y:secondary.gfx.y}
+  return {idle,follow,bite,strongest,warning,before,after}
  })
  assert.ok(fishFeedback,'real fish runtime must be available for Retrieve feedback')
  assert.equal(fishFeedback.idle.label,'魚影を探す')
@@ -118,6 +132,10 @@ try {
  assert.equal(fishFeedback.bite.label,'食いそう')
  assert.notDeepEqual([fishFeedback.follow.x,fishFeedback.follow.y],[fishFeedback.idle.x,fishFeedback.idle.y])
  assert.notDeepEqual([fishFeedback.bite.x,fishFeedback.bite.y],[fishFeedback.follow.x,fishFeedback.follow.y])
+ assert.equal(fishFeedback.strongest?.label,'様子見','status must match the most interested fish, not state priority')
+ assert.equal(fishFeedback.warning?.label,'警戒中')
+ assert.equal(fishFeedback.warning?.alpha,0.35)
+ assert.deepEqual(fishFeedback.after,fishFeedback.before,'spooked fish must stop pursuing the lure')
  await page.screenshot({path:join(root,'retrieve-fish-reacting.png')})
  evidence.push({retrieve,waitTapCalls:1,retrieveMotion,fishFeedback})
  // Exercise real phase entry, then freeze the scene to capture deterministic
