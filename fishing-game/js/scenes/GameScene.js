@@ -293,6 +293,7 @@ export default class GameScene extends Phaser.Scene {
   _enterCast() {
     this._waitReturnEpoch = (this._waitReturnEpoch ?? 0) + 1
     this._waitReturnPending = false
+    this._clearNoFishMessage()
     this.resultUI?.setNativeActionsVisible(false)
     this._cleanupBattle()
     this.phase = 'cast'
@@ -329,6 +330,7 @@ export default class GameScene extends Phaser.Scene {
   _enterWait(landX, landY) {
     this._waitReturnEpoch = (this._waitReturnEpoch ?? 0) + 1
     this._waitReturnPending = false
+    this._clearNoFishMessage()
     this.phase = 'wait'
     this.waitTapActive = false
     this.tackleUI?.disable()
@@ -406,20 +408,38 @@ export default class GameScene extends Phaser.Scene {
 
   // ─── 誘引範囲内に魚がいない時のメッセージ ────────────────────
   _scheduleNoFishMessage() {
+    const waitEpoch = this._waitReturnEpoch
     const t = this.time.delayedCall(2000, () => {
-      if (this.phase !== 'wait') return
+      if (this.phase !== 'wait' || this._waitReturnPending || this._waitReturnEpoch !== waitEpoch) return
+      this._clearNoFishMessage()
       const { width: W, height: H } = this.scale
       const msg = this.add.text(W / 2, H * 0.45, '魚がいない…　タップで引き上げ', {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '15px', fontWeight: '700',
         color: '#4a7090', backgroundColor: 'rgba(255,255,255,0.85)',
         padding: { x: 12, y: 6 },
       }).setOrigin(0.5).setDepth(60).setAlpha(0)
+      this._noFishMessage = msg
       this.tweens.add({ targets: msg, alpha: 1, duration: 400 })
-      this.time.delayedCall(2000, () => {
-        this.tweens.add({ targets: msg, alpha: 0, duration: 400, onComplete: () => msg.destroy() })
+      this._noFishMessageTimer = this.time.delayedCall(2000, () => {
+        this._noFishMessageTimer = null
+        if (this._noFishMessage !== msg || this.phase !== 'wait' || this._waitReturnEpoch !== waitEpoch) return
+        this.tweens.add({ targets: msg, alpha: 0, duration: 400, onComplete: () => {
+          if (this._noFishMessage === msg) this._noFishMessage = null
+          msg.destroy()
+        } })
       })
     })
     this._biteTimers.push(t)
+  }
+
+  _clearNoFishMessage() {
+    this._noFishMessageTimer?.remove(false)
+    this._noFishMessageTimer = null
+    if (this._noFishMessage) {
+      this.tweens.killTweensOf(this._noFishMessage)
+      this._noFishMessage.destroy()
+      this._noFishMessage = null
+    }
   }
 
   // ─── ちょん×N → ぐんっ！ の動的バイトシーケンス ───────────────
@@ -602,6 +622,7 @@ export default class GameScene extends Phaser.Scene {
 
   _enterBattle() {
     this.phase = 'battle'
+    this._clearNoFishMessage()
     this.tackleUI?.disable()
     this.hitHintTween?.stop(); this.hitHintTween?.destroy(); this.hitHintTween = null
     this.hitHint.setVisible(false)
@@ -1003,6 +1024,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _killWaitTimers() {
+    this._clearNoFishMessage()
     this._wt1?.remove(false)
     this._wt2?.remove(false)
     this._biteTimers?.forEach(t => t.remove(false))
