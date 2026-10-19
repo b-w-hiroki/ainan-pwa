@@ -15,6 +15,8 @@
 
 ## 開発継続・素材再構築
 
+- [現行仕様書](docs/PRODUCT_SPEC.md) / [現行技術設計書](docs/TECHNICAL_DESIGN.md) — 変更と同じPRで維持する全体の正本
+- [文書更新ワークフロー](docs/DOCUMENTATION_WORKFLOW.md) — PRでの更新判断とCIによる記載漏れチェック
 - [AI開発再開の固定入口](docs/AI-RESUME.md) — 新チャットはここから最新main / PR / CI / Issueを確認
 - [素材全面再構築の親Issue #216](https://github.com/b-w-hiroki/ainan-pwa/issues/216) — 作業、優先順位、判断待ち、子Issueの進捗を集約
 - 旧グラフィックとセーブは新素材の画質・動作承認まで維持。本番・横画面・実機の各ゲートは個別判定

@@ -1,13 +1,15 @@
 # AINAN｜AI開発再開・GitHub運用入口
 
 **このファイルは固定URLの入口。仕様・Done/議論の全文はここへ複製しない。**
-最終編集: 2026-10-16。今の進捗やmain SHAをこの文書の内容から決めない。
+最終編集: 2026-10-19。今の進捗やmain SHAをこの文書の内容から決めない。
 
 ## リンクと正本
 | 目的 | 正本 |
 | --- | --- |
 | 現行ゲームのコード | [ainan-pwa main](https://github.com/b-w-hiroki/ainan-pwa/tree/main) |
 | リポジトリ内のAI固有制約 | [AGENTS.md](../AGENTS.md) |
+| 現行の全体仕様・設計 | [仕様書](PRODUCT_SPEC.md) / [技術設計書](TECHNICAL_DESIGN.md) |
+| 変更PRごとの文書更新 | [文書更新ワークフロー](DOCUMENTATION_WORKFLOW.md) |
 | 進行中の素材全面再構築・決定・状態 | [親Issue #216](https://github.com/b-w-hiroki/ainan-pwa/issues/216) |
 | 素材再構築の子作業 | [W01 #217](https://github.com/b-w-hiroki/ainan-pwa/issues/217) → [W02 #218](https://github.com/b-w-hiroki/ainan-pwa/issues/218) / [W03 #219](https://github.com/b-w-hiroki/ainan-pwa/issues/219) → [W04 #220](https://github.com/b-w-hiroki/ainan-pwa/issues/220) → [W05 #221](https://github.com/b-w-hiroki/ainan-pwa/issues/221) |
 | 魚種/町・釣り場の既存仕事 | [Issue #108](https://github.com/b-w-hiroki/ainan-pwa/issues/108) |
@@ -16,7 +18,7 @@
 | AI制作・引き継ぎ・共通品質ルール | [Studio Playbook](https://github.com/b-w-hiroki/studio-playbook/blob/main/README.md) / [Chat Resume](https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/CHAT-RESUME.md) / [Asset Work Units](https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/ASSET-WORK-UNITS.md) |
 
 ## 新チャットでの再開手順
-1. `AGENTS.md`・この入口・Playbook（接続できる場合）を確認
+1. `AGENTS.md`・この入口・現行仕様書/設計書・Playbook（接続できる場合）を確認
 2. **最新**mainとopen PR/CIを確認。過去のチャットや記録されたSHAより現況を優先
 3. [#216](https://github.com/b-w-hiroki/ainan-pwa/issues/216)から作業候補を決定し、子Issueの最新本文/コメント/リンク済みPRを確認する。優先はP0→P1、重複PRを作らない
 4. 子Issueに入力・依存・成果物・Done・停止条件を記録。検証に失敗したら `blocked` または `rejected` と証拠を残す
