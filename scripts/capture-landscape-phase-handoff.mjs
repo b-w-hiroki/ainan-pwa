@@ -79,6 +79,12 @@ try {
     assert.equal(retrieve.bobberVisible,true)
     assert.ok(retrieve.n>0,'actual fish runtime unavailable')
     await snapshot('02-retrieve')
+    // The landing beat briefly rejects input. Wait for that real gate to open
+    // before counting the two player decisions needed to attract a fish.
+    await page.waitForFunction(()=>{
+      const s=window.__game.scene.getScene('GameScene')
+      return s.phase==='retrieve'&&s.time.now>=(s._retrieveReadyAt??0)
+    },null,{timeout:3000})
 
     // Bounded QA-only HIT window extension: screenshot + GPU readback can
     // consume the normal 1200ms input window. This does not change any
@@ -134,11 +140,25 @@ try {
         runtimeFound:Boolean(runtime),runtimeCount:candidates.length,
         decisionCount:s.retrieveState?.decisionCount,
         fishId:s.fish?.id,hitCommitted:state.hitCommitted,
-        hitTransitioning:state.hitTransitioning}
+        hitTransitioning:state.hitTransitioning,
+        biteDeadlineMs:s._biteConfig
+          ? Math.min(30000,Math.max(12000,
+            (s._biteConfig.chonCount+1)*s._biteConfig.waitMaxMs
+            +s._biteConfig.chonCount*2*s._biteConfig.chonDurationMs
+            +s._biteConfig.goonDurationMs+3000))
+          : 12000}
     })
     assert.ok(started.started,'game bite transition did not enter Wait after real decision and hesitation: '+JSON.stringify({decisions,primed,started}))
     await page.waitForFunction(()=>window.__game.scene.getScene('GameScene').waitTapActive,
-      null,{timeout:12000})
+      null,{timeout:started.biteDeadlineMs}).catch(async error=>{
+      const state=await page.evaluate(()=>{
+        const s=window.__game.scene.getScene('GameScene')
+        return {phase:s.phase,waitTapActive:s.waitTapActive,
+          biteSequenceActive:s._biteSequenceActive,biteConfig:s._biteConfig,
+          bobberY:s.bobber?.y,baseY:s._bobberBaseY}
+      })
+      throw Error('real bite did not open HIT window: '+JSON.stringify({started,state})+'; '+error.message)
+    })
     await snapshot('03-hit-window')
     const beforeHit=await page.evaluate(()=>{
       const s=window.__game.scene.getScene('GameScene')
