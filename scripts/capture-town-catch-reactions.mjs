@@ -8,6 +8,7 @@ const executable = process.env.PATH.split(':').map(folder => join(folder, 'playw
 assert.ok(executable, 'Playwright executable missing from CI PATH')
 const { chromium } = await import(pathToFileURL(join(dirname(realpathSync(executable)), 'index.mjs')).href)
 mkdirSync('artifacts/e2e', { recursive: true })
+mkdirSync('artifacts/town-compact', { recursive: true })
 const cases = [
   ['aji', 'fish_aji_icon', '71-town-aji-arrival.png'],
   ['kanpachi', 'fish_kanpachi_icon', '72-town-kanpachi-arrival.png'],
@@ -181,7 +182,7 @@ try {
         assert.ok(state.canvas.y + (action.y + action.height / 2) * scale <= height,
           `${width}x${height}: arrival action leaves viewport`)
       }
-      await page.screenshot({ path: join('artifacts/e2e', `98-town-arrival-${width}x${height}.png`), animations: 'disabled' })
+      await page.screenshot({ path: join('artifacts/town-compact', `arrival-${width}x${height}.png`), animations: 'disabled' })
       const next = state.actions.sort((a, b) => a.y - b.y)[1]
       await page.mouse.click(state.canvas.x + next.x * scale, state.canvas.y + next.y * scale)
       await page.waitForFunction(() => window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.())

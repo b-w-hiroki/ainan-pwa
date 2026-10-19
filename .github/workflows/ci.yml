@@ -260,6 +260,7 @@ jobs:
           name: ainan-mobile-e2e
           path: |
             artifacts/e2e
+            artifacts/town-compact
             artifacts/orientation
             artifacts/location-preview
             artifacts/qa-route-loading
