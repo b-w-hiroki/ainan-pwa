@@ -91,7 +91,35 @@ try {
  assert.deepEqual(retrieveMotion.after.lineTarget,{x:retrieveMotion.after.x,y:retrieveMotion.after.y})
  assert.deepEqual(retrieveMotion.after.gameLure,retrieveMotion.after.worldLure)
  await page.screenshot({path:join(root,'retrieve-reelled.png')})
- evidence.push({retrieve,waitTapCalls:1,retrieveMotion})
+ const fishFeedback=await page.evaluate(()=>{
+  const scene=window.__game.scene.getScene('GameScene'),host=scene._castPresentationHost
+  const runtimes=scene.bg?._fishRuntime??[]
+  const runtime=runtimes.find(item=>item.gfx?.active)
+  if(!runtime)return null
+  runtimes.forEach(item=>{item.state='cruise'})
+  host.sync()
+  const idle={label:host.nodes.retrieveStatusText.text,
+   x:host.nodes.retrieveFishShadows[0].x,y:host.nodes.retrieveFishShadows[0].y}
+  runtime.state='follow'
+  runtime.gfx.setPosition(scene.bobber.x-90,scene.bobber.y+80)
+  host.sync()
+  const follow={label:host.nodes.retrieveStatusText.text,
+   x:host.nodes.retrieveFishShadows[0].x,y:host.nodes.retrieveFishShadows[0].y}
+  runtime.state='biteReady'
+  runtime.gfx.setPosition(scene.bobber.x-20,scene.bobber.y+22)
+  host.sync()
+  const bite={label:host.nodes.retrieveStatusText.text,
+   x:host.nodes.retrieveFishShadows[0].x,y:host.nodes.retrieveFishShadows[0].y}
+  return {idle,follow,bite}
+ })
+ assert.ok(fishFeedback,'real fish runtime must be available for Retrieve feedback')
+ assert.equal(fishFeedback.idle.label,'魚影を探す')
+ assert.equal(fishFeedback.follow.label,'追っている')
+ assert.equal(fishFeedback.bite.label,'食いそう')
+ assert.notDeepEqual([fishFeedback.follow.x,fishFeedback.follow.y],[fishFeedback.idle.x,fishFeedback.idle.y])
+ assert.notDeepEqual([fishFeedback.bite.x,fishFeedback.bite.y],[fishFeedback.follow.x,fishFeedback.follow.y])
+ await page.screenshot({path:join(root,'retrieve-fish-reacting.png')})
+ evidence.push({retrieve,waitTapCalls:1,retrieveMotion,fishFeedback})
  // Exercise real phase entry, then freeze the scene to capture deterministic
  // authored frames. These are phase-layout checks, not live timing claims.
  for (const [width,height] of [[390,844],[844,390]]) {

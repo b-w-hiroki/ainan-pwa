@@ -15,6 +15,9 @@ import { battleJumpFrame } from './battleJumpMotion.js'
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
+const RETRIEVE_FISH_LABELS = Object.freeze({
+  noticed: '気づいた', follow: '追っている', inspect: '様子見', biteReady: '食いそう',
+})
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
 // Reserve horizontal breathing room for the angled tail inside 390px.
 const BATTLE_FISH_BOUNDS = Object.freeze({ width: 310, height: 194 })
@@ -116,6 +119,7 @@ export class CastPresentationHost {
     this._jumpRageStartedAt = null
     this._jumpRageFishId = null
     this._retrievePresentation = null
+    this._retrieveFishUpdatedAt = null
     this._cancelHeldRetrieve = () => {
       if (!this._slowPointerHeld) return
       this._slowPointerHeld = false
@@ -283,6 +287,8 @@ export class CastPresentationHost {
     ] : []
     const retrieveWater = scene.add.container(0, 0).setVisible(useCuteHarbor)
     let retrieveLure = null
+    const retrieveFishShadows = []
+    let retrieveStatusText = null
     if (useCuteHarbor) {
       const shadow = ASSETS.fishingField.fishShadowMediumIdle
       for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
@@ -290,6 +296,7 @@ export class CastPresentationHost {
           ? scene.add.image(x, y, shadow.key).setDisplaySize(width, width * 0.5)
           : scene.add.ellipse(x, y, width, width * 0.34, 0x08283a)
         retrieveWater.add(fish.setAlpha(alpha))
+        retrieveFishShadows.push(fish)
       }
       retrieveLure = scene.add.container(310, 235)
       const ripple = scene.add.graphics()
@@ -306,6 +313,20 @@ export class CastPresentationHost {
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
     retrieveField.add([retrieveBase, retrieveWater, ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
+    if (useCuteHarbor) {
+      // The approved dock skin has "following" painted into it. Cover only
+      // that status slot, then report the actual fish-interest state.
+      const status = scene.add.container(309, DOCK_TOP + 32)
+      const backing = scene.add.graphics()
+      backing.fillStyle(0x08344e, 1).fillRoundedRect(-69, -21, 138, 42, 17)
+      backing.lineStyle(1, 0x72c8ed, 0.72).strokeRoundedRect(-68.5, -20.5, 137, 41, 16.5)
+      retrieveStatusText = scene.add.text(0, 0, '魚影を探す', {
+        fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '20px',
+        fontStyle: 'bold', color: '#e9f9ff',
+      }).setOrigin(0.5).setResolution(2)
+      status.add([backing, retrieveStatusText])
+      retrieveField.add(status)
+    }
 
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
@@ -641,6 +662,8 @@ export class CastPresentationHost {
       castField,
       retrieveField,
       retrieveLure,
+      retrieveFishShadows,
+      retrieveStatusText,
       battleField,
       resultField,
       castDock,
@@ -818,8 +841,28 @@ export class CastPresentationHost {
       const target = { x: 310 - 125 * progress, y: 235 + 270 * progress }
       this.nodes.retrieveLure.setPosition(target.x, target.y)
       this.nodes.characterMotion?.setRetrieveTarget(target)
+      const focus = view.retrieve.focusFish
+      const leadShadow = this.nodes.retrieveFishShadows[0]
+      this.nodes.retrieveStatusText?.setText(RETRIEVE_FISH_LABELS[focus?.state] ?? '魚影を探す')
+      if (leadShadow && focus && focus.state !== 'noticed') {
+        const fishX = Math.max(48, Math.min(350, target.x + focus.dx * 0.36))
+        const fishY = Math.max(130, Math.min(DOCK_TOP - 100, target.y + focus.dy * 0.36))
+        const now = this.scene.time.now
+        const elapsed = Math.max(16, Math.min(50, now - (this._retrieveFishUpdatedAt ?? now)))
+        const blend = isReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 110)
+        leadShadow.setPosition(
+          leadShadow.x + (fishX - leadShadow.x) * blend,
+          leadShadow.y + (fishY - leadShadow.y) * blend,
+        ).setAlpha(focus.state === 'biteReady' ? 0.78 : 0.62)
+        leadShadow.setFlipX?.(focus.facing < 0)
+        this._retrieveFishUpdatedAt = now
+      } else if (leadShadow) {
+        leadShadow.setPosition(236, 331).setAlpha(0.55)
+        this._retrieveFishUpdatedAt = null
+      }
     } else {
       this._retrievePresentation = null
+      this._retrieveFishUpdatedAt = null
       this.nodes.characterMotion?.setRetrieveTarget(null)
     }
     const battleVisible = view.phase === 'battle'
