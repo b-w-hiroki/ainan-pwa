@@ -304,14 +304,14 @@ export class CastPresentationHost {
     const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
     const battleHeaderBg = scene.add.graphics()
-    battleHeaderBg.fillStyle(0xffffff, 0.98)
+    battleHeaderBg.fillStyle(0xffffff, 1)
     battleHeaderBg.fillRoundedRect(18, 19, 354, 40, 16)
     const battleFishName = scene.add.text(54, 39, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0, 0.5)
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#0b2d47',
+    }).setOrigin(0, 0.5).setResolution(2)
     const battlePhase = scene.add.text(146, 39, 'BATTLE', {
       fontFamily: 'Nunito, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0, 0.5)
+    }).setOrigin(0, 0.5).setResolution(2)
     const battleTensionTrack = scene.add.graphics()
     battleTensionTrack.fillStyle(0x092b43, 1)
     battleTensionTrack.fillRoundedRect(205, 31, 154, 17, 9)
@@ -326,11 +326,11 @@ export class CastPresentationHost {
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setResolution(2)
     const battleRage = scene.add.text(DESIGN_WIDTH / 2, 104, '', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const battleInstructionBacking = scene.add.graphics()
     battleInstructionBacking.fillStyle(0x052b43, 1)
       .fillRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
@@ -338,7 +338,7 @@ export class CastPresentationHost {
       .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
     const battleInstruction = scene.add.text(DESIGN_WIDTH / 2, 648, 'タップ / 下へスワイプで巻く', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5)
+    }).setOrigin(0.5).setResolution(2)
     battleField.add([battleBackground, battleSplash, battleLine, battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction, battleFish])
 
     const resultBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
@@ -526,7 +526,12 @@ export class CastPresentationHost {
       ? scene.add.image(DESIGN_WIDTH / 2, DOCK_TOP + (DESIGN_HEIGHT - DOCK_TOP) / 2, ASSETS.ui.artOperationDockV2.key)
         .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP + 8)
       : null
-    const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 22, '長押し → 離して投げる', {
+    const dockInstructionBacking = scene.add.graphics()
+    dockInstructionBacking.fillStyle(0x073754, 0.92)
+    dockInstructionBacking.fillRoundedRect(88, DOCK_TOP + 5, 214, 31, 15)
+    dockInstructionBacking.lineStyle(1, 0x8edfff, 0.58)
+    dockInstructionBacking.strokeRoundedRect(88, DOCK_TOP + 5, 214, 31, 15)
+    const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 20.5, '長押し → 離して投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
     const powerTrack = scene.add.graphics()
@@ -560,7 +565,7 @@ export class CastPresentationHost {
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#102335',
     }).setOrigin(0.5).setResolution(2).setScale(1.6)
-    castDock.add([dockBase, ...(dockSkin ? [dockSkin] : []), dockInstruction, powerTrack, ...(powerTrackSkin ? [powerTrackSkin] : []), powerFill, buttonBase, buttonRing, castIcon, castLabel])
+    castDock.add([dockBase, ...(dockSkin ? [dockSkin] : []), dockInstructionBacking, dockInstruction, powerTrack, ...(powerTrackSkin ? [powerTrackSkin] : []), powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backConfig = CAST_LAYER_CONFIG.controls.back
     const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
@@ -840,6 +845,7 @@ export class CastPresentationHost {
       overlay.setTexture(art.key).setVisible(point !== 'pointA')
         .setAlpha(point === 'pointC' ? 0.32 : 0.28)
       this.nodes.battleFishName.setText(battle.fishName)
+        .setScale(Math.min(1, 82 / Math.max(1, this.nodes.battleFishName.width)))
       this.nodes.battleTensionFill.clear()
       drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : battle.tension01 >= 0.48 ? 'sun' : 'mint' })
       if (this.nodes.battleTensionStatus) {
