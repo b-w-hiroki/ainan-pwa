@@ -44,6 +44,31 @@ try {
   await page.screenshot({path:join(root,pose+'.png')})
   evidence.push(state)
  }
+ // Retrieve must retain the selected actor over a character-free world while
+ // keeping the existing three-button input owner. This used to fall back to a
+ // full-screen bitmap with the classic fisher painted into it.
+ await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve')
+ await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?.phase==='retrieve')
+ await page.waitForTimeout(300)
+ const retrieve=await page.evaluate(()=>{
+  const host=window.__game.scene.getScene('GameScene')._castPresentationHost
+  return {actor:host.nodes.characterMotion.root.visible,
+    background:host.nodes.retrieveField.list[0].texture.key,
+    hud:host.nodes.chrome.visible, dock:host.nodes.retrieveField.list.length}
+ })
+ assert.equal(retrieve.actor,true)
+ assert.equal(retrieve.background,'character_preview_harbor_morning')
+ assert.equal(retrieve.hud,true)
+ assert.ok(retrieve.dock>=3)
+ await page.screenshot({path:join(root,'retrieve-selected-actor.png')})
+ await page.evaluate(()=>{
+  const host=window.__game.scene.getScene('GameScene')._castPresentationHost
+  window.__retrieveWaitCalls=0
+  host.adapter.retrieveWait=()=>{window.__retrieveWaitCalls++}
+ })
+ await page.mouse.click(72,752)
+ assert.equal(await page.evaluate(()=>window.__retrieveWaitCalls),1)
+ evidence.push({retrieve,waitTapCalls:1})
  // Exercise real phase entry, then freeze the scene to capture deterministic
  // authored frames. These are phase-layout checks, not live timing claims.
  for (const [width,height] of [[390,844],[844,390]]) {
