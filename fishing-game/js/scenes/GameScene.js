@@ -291,6 +291,8 @@ export default class GameScene extends Phaser.Scene {
   // PHASES
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _enterCast() {
+    this._waitReturnEpoch = (this._waitReturnEpoch ?? 0) + 1
+    this._waitReturnPending = false
     this.resultUI?.setNativeActionsVisible(false)
     this._cleanupBattle()
     this.phase = 'cast'
@@ -325,6 +327,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _enterWait(landX, landY) {
+    this._waitReturnEpoch = (this._waitReturnEpoch ?? 0) + 1
+    this._waitReturnPending = false
     this.phase = 'wait'
     this.waitTapActive = false
     this.tackleUI?.disable()
@@ -545,6 +549,9 @@ export default class GameScene extends Phaser.Scene {
 
   // ─── 任意タップによる引き上げ ────────────────────────────────
   _reelUp() {
+    if (this._waitReturnPending) return
+    this._waitReturnPending = true
+    const returnEpoch = this._waitReturnEpoch
     this._killWaitTimers()
     this.resultUI.toast('引き上げた')
     this.tweens.add({
@@ -559,6 +566,7 @@ export default class GameScene extends Phaser.Scene {
         this.lineGfx.lineBetween(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
       },
       onComplete: () => {
+        if (this.phase !== 'wait' || !this._waitReturnPending || this._waitReturnEpoch !== returnEpoch) return
         this.bobber.setVisible(false)
         this.lineGfx.clear()
         if (this._targetFishIndex != null) {
@@ -573,6 +581,10 @@ export default class GameScene extends Phaser.Scene {
 
   // タイムアウト・空振り共通の「逃げた」処理
   _onMiss() {
+    if (this._waitReturnPending) return
+    this._waitReturnPending = true
+    const returnEpoch = this._waitReturnEpoch
+    this._killWaitTimers()
     this.resultUI.toast('タイミングを逃した…')
     // 浮きを基準位置に戻す（Bounce でぷかぷか感を出す）
     this.tweens.add({
@@ -584,7 +596,7 @@ export default class GameScene extends Phaser.Scene {
     this._targetFishIndex = null
     this._targetFishGfx   = null
     this.time.delayedCall(600, () => {
-      if (this.phase === 'wait') this._enterCast()
+      if (this.phase === 'wait' && this._waitReturnPending && this._waitReturnEpoch === returnEpoch) this._enterCast()
     })
   }
 
@@ -935,6 +947,7 @@ export default class GameScene extends Phaser.Scene {
 
     // 待機中・ちょんちょん中（ぐんっ！前）→ 引き上げ
     if (this.phase === 'wait' && !this.waitTapActive) {
+      if (this._waitReturnPending) return
       if (this._biteSequenceActive) {
         this.resultUI.toast('もうすぐ食いつく…！')
         return
