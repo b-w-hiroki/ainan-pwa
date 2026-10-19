@@ -151,6 +151,7 @@ export class CastPresentationHost {
     const useApprovedComposite = castCompositePrototypeEnabled()
     const layerOptions = readCastLayerDevOptions(typeof window === 'undefined' ? '' : window.location.search)
     const useCuteHarbor = ['cute-a-01', 'cute-b-01'].includes(getActiveCharacterAppearance()) && (scene.env?.point ?? 'pointA') === 'pointA' && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)
+    this._useCuteHarbor = useCuteHarbor
     const useLayeredScene = layerOptions.enabled || useCuteHarbor
     let layeredScene = null
     let approvedSplit = null
@@ -269,10 +270,37 @@ export class CastPresentationHost {
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    if (useCuteHarbor) {
+      // The legacy Retrieve panel has its fisher baked into the water. Keep
+      // the selected actor, rod and line independent throughout the loop.
+      retrieveBase.setTexture(CHARACTER_PREVIEW_BACKGROUND.key)
+        .setOrigin(0).setPosition(0, -150).setScale(1).setCrop(0, 150, 390, 874)
+    }
+    const retrieveSkins = useCuteHarbor ? [
+      scene.add.image(0, 0, ASSETS.ui.fishingApprovedRetrievePanel.key)
+        .setOrigin(0).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setCrop(0, 580, 391, 203),
+    ] : []
+    const retrieveWater = scene.add.container(0, 0).setVisible(useCuteHarbor)
+    if (useCuteHarbor) {
+      const shadow = ASSETS.fishingField.fishShadowMediumIdle
+      for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
+        const fish = shadow?.key && scene.textures.exists(shadow.key)
+          ? scene.add.image(x, y, shadow.key).setDisplaySize(width, width * 0.5)
+          : scene.add.ellipse(x, y, width, width * 0.34, 0x08283a)
+        retrieveWater.add(fish.setAlpha(alpha))
+      }
+      const ripple = scene.add.graphics()
+      ripple.lineStyle(2, 0xdaf8ff, 0.72).strokeEllipse(310, 235, 48, 18)
+      ripple.lineStyle(1, 0xffffff, 0.5).strokeEllipse(310, 235, 28, 10)
+      retrieveWater.add(ripple)
+      if (scene.textures.exists(ASSETS.fishingField.lureIdle.key)) {
+        retrieveWater.add(scene.add.image(310, 233, ASSETS.fishingField.lureIdle.key).setDisplaySize(27, 13).setAngle(-22))
+      }
+    }
     const retrieveLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
-    retrieveField.add(retrieveBase)
+    retrieveField.add([retrieveBase, retrieveWater, ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
 
     const battleBackground = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
@@ -794,7 +822,7 @@ export class CastPresentationHost {
     // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
     const nonHarborRetrieveHud = retrieveVisible
       && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
-    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud)
+    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || (retrieveVisible && this._useCuteHarbor))
     this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)

@@ -398,7 +398,8 @@ export class CharacterMotionController {
     this._setRodVisual(rodType)
     this._setAccessoryVisuals(accessories)
     this._applyLayout(phase)
-    this.root.setVisible(['cast', 'battle', 'result'].includes(phase) || (phase === 'retrieve' && this.currentAction === 'release'))
+    this.root.setVisible(['cast', 'battle', 'result'].includes(phase) ||
+      (phase === 'retrieve' && (this.cute || this.currentAction === 'release')))
     if (phase === 'cast') {
       if (isCharging && !this.previous.charging) this.play('charge', { hold: true })
       else if (!isCharging && this.previous.charging) this.play('release')
