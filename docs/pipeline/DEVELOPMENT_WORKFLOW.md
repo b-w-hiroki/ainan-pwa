@@ -16,8 +16,9 @@
 7. **Cleanup** — 旧見た目と入力hit areaを調査し、表示の責任を1か所へ寄せる。wrapper削除は別PRで安全に。
 8. **Verify** — npm run qa:pipeline → 関連smoke → npm run build → 390×844実ブラウザ操作QA。
 9. **Compare** — GOLDEN_SCREEN_RULES.mdでCast/Retrieve/HIT/Battle/Boss/Result/Townを比較。重なり、見切れ、読みにくさ、無効なCTA、白パネル/旧UIの復活を確認。
-10. **PR** — 差分・根拠・実測スクショ・検証コマンドを提示。CI green、目視QA後にmerge。
-11. **Review** — 必要なら1スライスずつ次の魚/場所へ横展開。次の変更の起点は常に最新main。
+10. **Docs** — [文書更新ワークフロー](../DOCUMENTATION_WORKFLOW.md)に従い、[現行仕様書](../PRODUCT_SPEC.md)・[技術設計書](../TECHNICAL_DESIGN.md)の更新要否を判定。必要な変更は同じPRに含める。
+11. **PR** — 差分・根拠・実測スクショ・検証コマンド・Docs impact/rationaleを提示。CI green、目視QA後にmerge。
+12. **Review** — 必要なら1スライスずつ次の魚/場所へ横展開。次の変更の起点は常に最新main。
 
 ## @task-brief の雛形
 
@@ -47,3 +48,5 @@
     - 正解モックとの相違、未解決の例外
     Release:
     - RC version維持、Issue #27の未完了項目を明記
+    Docs impact: product|design|both|none
+    Docs rationale: 変更と文書への影響／非影響の具体的な理由
