@@ -12,8 +12,8 @@ export function installRetrieveCompletion(GameScene) {
     this._retrieveTween?.stop()
     this._retrieveTween?.destroy()
     this._retrieveTween = null
-    this._interestTimer?.remove(false)
-    this._interestTimer = undefined
+    this._retrieveInterestTimer?.remove(false)
+    this._retrieveInterestTimer = null
     this.retrieveUI?.hide()
     this.playerActionInset?.setVisible(false)
     this.retrieveCoach?.hide()
@@ -40,11 +40,15 @@ export function installRetrieveCompletion(GameScene) {
         this.lineGfx.lineBetween(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
       },
       onComplete: () => {
+        if (this.phase !== 'retrieve') {
+          this._retrieveReturning = false
+          return
+        }
         this.bobber.setVisible(false)
         this.lineGfx.clear()
         this._distanceBadge?.setVisible(false)
         this._retrieveReturning = false
-        if (this.phase === 'retrieve') this._enterCast()
+        this._enterCast()
       },
     })
   }
@@ -55,6 +59,24 @@ export function installRetrieveCompletion(GameScene) {
     if (this.phase !== 'retrieve' || this._retrieveReturning || !this.bobber?.visible) return
     const distancePx = Phaser.Math.Distance.Between(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
     if (distancePx <= FISHING_WORLD.pxPerMeter * 0.9) this._completeRetrieveToPlayer()
+  }
+
+  const originalTwitch = GameScene.prototype._twitchRetrieve
+  GameScene.prototype._twitchRetrieve = function (...args) {
+    if (this._retrieveReturning) return
+    return originalTwitch.apply(this, args)
+  }
+
+  const originalSlow = GameScene.prototype._startSlowRetrieve
+  GameScene.prototype._startSlowRetrieve = function (...args) {
+    if (this._retrieveReturning) return
+    return originalSlow.apply(this, args)
+  }
+
+  const originalIdle = GameScene.prototype._setRetrieveIdle
+  GameScene.prototype._setRetrieveIdle = function (...args) {
+    if (this._retrieveReturning) return
+    return originalIdle.apply(this, args)
   }
 
   const originalEnterCast = GameScene.prototype._enterCast

@@ -335,7 +335,7 @@ export function installRetrieveGameplay(GameScene) {
   }
 
   GameScene.prototype._setRetrieveIdle = function () {
-    if (this.phase !== 'retrieve' || !this.retrieveState) return
+    if (this.phase !== 'retrieve' || !this.retrieveState || this._retrieveReturning) return
     this.retrieveState.slowHeld = false
     this.retrieveState.action = 'idle'
     this.retrieveUI?.setHint('止めて様子を見る。魚によっては止めが効く')
@@ -445,7 +445,7 @@ export function installRetrieveGameplay(GameScene) {
   }
 
   GameScene.prototype._stepRetrieve = function (deltaMs = 16) {
-    if (this.phase !== 'retrieve' || !this.retrieveState) return
+    if (this.phase !== 'retrieve' || !this.retrieveState || this._retrieveReturning) return
     const dt = deltaMs / 1000
 
     if (this.retrieveState.action === 'slowReel' && this.retrieveState.slowHeld && !this._retrieveTween) {
@@ -464,10 +464,7 @@ export function installRetrieveGameplay(GameScene) {
 
     const distPx = Phaser.Math.Distance.Between(this.anchorX, this.anchorY, this.bobber.x, this.bobber.y)
     if (distPx <= RETRIEVE_END_DISTANCE) {
-      this.resultUI?.toast('手元まで巻いた')
-      this.time.delayedCall(280, () => {
-        if (this.phase === 'retrieve') this._enterCast()
-      })
+      this._completeRetrieveToPlayer()
     }
   }
 

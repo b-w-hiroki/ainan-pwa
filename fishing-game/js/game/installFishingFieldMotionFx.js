@@ -165,7 +165,7 @@ export function installFishingFieldMotionFx(GameScene) {
   const originalSetIdle = GameScene.prototype._setRetrieveIdle
   GameScene.prototype._setRetrieveIdle = function (...args) {
     const result = originalSetIdle.apply(this, args)
-    if (this.phase === 'retrieve') setLureIdle(this)
+    if (this.phase === 'retrieve' && !this._retrieveReturning) setLureIdle(this)
     return result
   }
 
