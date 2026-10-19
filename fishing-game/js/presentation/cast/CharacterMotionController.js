@@ -100,6 +100,7 @@ export class CharacterMotionController {
     this.accessoryAccents = {}
     this.accessoryIds = { hat: null, bag: null }
     this.line = null
+    this.retrieveTarget = null
     this.fish = null
     this.currentPose = 'idle'
     this.currentAction = null
@@ -239,7 +240,9 @@ export class CharacterMotionController {
       ? { x: 228, y: 330 }
       : phase === 'result'
         ? { x: tip.x + 14 + this.root.x, y: tip.y + 24 + this.root.y }
-        : { x: 310, y: 235 }
+        : phase === 'retrieve' && this.retrieveTarget
+          ? this.retrieveTarget
+          : { x: 310, y: 235 }
     // Keep the lure/line target in stage coordinates as the entire character
     // and its rod shift as one container during the QA art-offset experiment.
     const target = { x: stageTarget.x - this.root.x, y: stageTarget.y - this.root.y }
@@ -267,6 +270,17 @@ export class CharacterMotionController {
     this.line.strokePath()
     this.root.setData('rodTip', { x: Math.round(tip.x), y: Math.round(tip.y) })
     this.root.setData('rodTipWorld', { x: tip.x + this.root.x, y: tip.y + this.root.y })
+  }
+
+  setRetrieveTarget(target) {
+    const previous = this.retrieveTarget
+    if (previous === null && target === null) return
+    if (previous && target && Math.hypot(previous.x - target.x, previous.y - target.y) < 0.4) return
+    this.retrieveTarget = target
+    if (this.scene.phase === 'retrieve') {
+      const pose = this.poses[this.currentPose]
+      if (pose) this._applyRod(pose)
+    }
   }
 
   _setRodVisual(rodType, force = false) {
