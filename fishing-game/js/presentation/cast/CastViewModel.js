@@ -47,6 +47,7 @@ export function readCastViewModel(scene) {
     && [scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y].every(Number.isFinite)
     ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
     : null
+  const focusFish = readRetrieveFocusFish(scene)
 
   return Object.freeze({
     phase: scene.phase,
@@ -63,8 +64,8 @@ export function readCastViewModel(scene) {
       appeal01: scene.retrieveState?.appeal ?? 0,
       distanceMeters: retrieveDistanceMeters,
       startedAt: scene.retrieveState?.startedAt ?? null,
-      focusFish: readRetrieveFocusFish(scene),
-      spooked: (scene.bg?._fishRuntime ?? []).some(runtime => runtime.spooked),
+      focusFish,
+      spooked: Boolean(focusFish?.spooked),
       lureX: scene.bobber?.x ?? scene.retrieveState?.lureX ?? 205,
       lureY: scene.bobber?.y ?? scene.retrieveState?.lureY ?? 370,
     }),

@@ -25,6 +25,8 @@ game/ (釣りルール、状態遷移、表示インストーラ)
 
 Cast → Retrieve → HIT → Battle → Resultが主な状態遷移。入力処理、魚の判定、表示エフェクトを同じ条件のまま保つ。釣りの経済値・確率・疲労を見た目の修正に紛れ込ませない。位置合わせは仮想座標390×844を基準にし、高DPRや表示領域差で入力座標がずれないようにする。横画面の試作は専用ガードの下でのみ有効。
 
+Retrieveの注目魚は `fishInterest.js` の選択結果を `CastViewModel`、ガイド、従来HUDで共有する。別の魚の警戒状態で注目魚の表示を上書きしない。注目魚がなくなった時だけ魚反応ヒントを中立へ戻し、操作直後のヒントを毎tick消さない。初回ガイドの既読フラグは `retrieveTutorialProgress.js` が任意保存する。保存領域の読み書き失敗はゲーム進行を止めず、メモリ上の当該セッションの状態を使う。
+
 ## 描画・素材の契約
 
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。
