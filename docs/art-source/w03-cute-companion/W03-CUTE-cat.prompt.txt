@@ -1,0 +1,7 @@
+Use case: stylized-concept.
+Asset type: independent W03 companion cat game sprite, genuinely transparent RGBA PNG.
+Reference image 1: docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png — cute player style and scale only.
+Reference image 2: docs/art-source/harbor-character-v2/harbor-morning.png — sunny harbor painting style only.
+Create exactly one small friendly brown-and-cream Japanese tabby cat sitting calmly. Soft hand-painted 2.5D illustration, viewed obliquely from slightly above and behind, face slightly right. Rounded form, tidy fur, warm morning highlights, fine clean outline compatible with the player. Fully visible and centered, paws near the lower 10% of a square canvas, legible at about 90px game display height.
+Cat only. No person, ground, cast shadow, pier, sea, fishing rod or line, fish, rope, collar, bag, props, UI, text, game screenshot, border, checkerboard, or white background. Outside the cat is transparent.
+Generated with built-in image_gen, transparent_background=true. W03-CUTE-cat-source.png is the unmodified output. W03-CUTE-cat.png is a boundary-only derivative: alpha 1..4 removed, saturated RGB at alpha 1..31 borrowed from the nearest solid pixel. Reproduce with python scripts/art/prepare-w03-cat.py.

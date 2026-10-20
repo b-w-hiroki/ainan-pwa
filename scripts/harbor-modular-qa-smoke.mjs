@@ -26,5 +26,8 @@ assert.match(src,/this\._cameraPanRodVisual = ROD_VISUALS\[qaRod\]/,'Rod visuals
 assert.doesNotMatch(src,/saveState|setEquipment|saveAccessoryState|localStorage|award|addCatch|Math\.random/,'QA overlays must not alter equipment persistence or odds')
 assert.match(src,/independentBodyVariantsReady: false/,'Missing approved body variants cannot be called complete')
 assert.match(src,/optionArtApproved: false/,'QA cat cannot be promoted as final painted option')
+assert.match(src,/isHarborModularQaEnabled\(search\(\)\) && params\.get\('qaCatArt'\) === '1'/,'Candidate cat loads only behind the full QA gate')
+assert.match(src,/setData\('artApproved', false\)/,'Candidate cat remains unapproved')
+assert.match(src,/catArtCandidate: parts\.catArt/,'QA snapshot identifies painted candidate separately from approval')
 assert.match(src,/p\.cat\?\.destroy\?\.\(true\)/,'Companion must be cleaned up')
 console.log('H03 accessories: independent sockets, safe QA gate, native rod ownership and no save writes PASS')
