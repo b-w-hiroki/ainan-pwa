@@ -27,6 +27,7 @@ Cast → Retrieve → HIT → Battle → Resultが主な状態遷移。入力処
 
 横画面QAのTownは `townLandscapePrototype.js` が通常Townの `create` を置き換えるため、Resultから渡された `catchArrival` を同じTownの釣果カードownerへ明示的に引き渡す。`installTownCatchArrival.js` は縦横のカード座標を一元化し、横画面の魚・反応文・2操作を同一カード内に配置する。釣果の保存・報酬確定は既存のResult側のままで、QA用Town表示は追加の書き込みをしない。
 同じレイアウト関数は縦画面でCanvasの実表示倍率を受け取り、縮小時だけ釣果カードと2操作の高さを拡張する。仮想390×844を維持しつつ、表示上のタップ領域を確保する。
+Townの施設発展ダイアログは同じ表示倍率を使ってカードと2操作の間隔を広げる。Town内のボタン描画・ヒット領域は同じ高さを使い、縮小後にタップ領域だけが見た目からずれる状態を避ける。
 
 Retrieveの注目魚は `fishInterest.js` の選択結果を `CastViewModel`、ガイド、従来HUDで共有する。別の魚の警戒状態で注目魚の表示を上書きしない。注目魚がなくなった時だけ魚反応ヒントを中立へ戻し、操作直後のヒントを毎tick消さない。初回ガイドの既読フラグは `retrieveTutorialProgress.js` が任意保存する。保存領域の読み書き失敗はゲーム進行を止めず、メモリ上の当該セッションの状態を使う。
 

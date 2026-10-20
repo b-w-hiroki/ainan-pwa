@@ -597,12 +597,15 @@ export default class TownScene extends Phaser.Scene {
 
   _showFacility(item, lv, cost) {
     const { width: W, height: H } = this.scale
+    const rect = this.game.canvas.getBoundingClientRect()
+    const displayScale = Math.min(rect.width / W, rect.height / H)
+    const compactTouch = Number.isFinite(displayScale) && displayScale > 0 && displayScale < 44 / 48
     this._modal?.destroy(true)
     const milestoneRewards = lv < 5 ? getFacilityMilestoneRewards(item.id, lv + 1) : []
     const hasMilestone = milestoneRewards.length > 0
     const items = []
     items.push(this.add.rectangle(W / 2, H / 2, W, H, 0x173248, 0.44).setInteractive().on('pointerdown', () => this._modal?.destroy(true)))
-    const x = 34, y = 166, w = W - 68, h = 406
+    const x = 34, y = compactTouch ? 150 : 166, w = W - 68, h = compactTouch ? 476 : 406
     const bg = this.add.graphics()
     bg.fillStyle(0x173248, 0.14)
     bg.fillRoundedRect(x + 3, y + 5, w, h, 24)
@@ -652,7 +655,7 @@ export default class TownScene extends Phaser.Scene {
     }
 
     const upgradeAction = getTownUpgradeAction(lv, cost, getScore())
-    if (upgradeAction) items.push(this._actionButton(W / 2, y + 326, upgradeAction.label, () => {
+    if (upgradeAction) items.push(this._actionButton(W / 2, y + (compactTouch ? 350 : 326), upgradeAction.label, () => {
       if (upgradeAction.kind === 'upgrade') this._upgrade(item.id, lv)
       else {
         // Insufficient catch points: return to an actual fishing choice,
@@ -661,7 +664,7 @@ export default class TownScene extends Phaser.Scene {
         this.scene.start('MapScene')
       }
     }))
-    items.push(this._plainButton(W / 2, y + h - 28, '閉じる', () => this._modal?.destroy(true), 126, 44))
+    items.push(this._plainButton(W / 2, y + h - (compactTouch ? 45 : 28), '閉じる', () => this._modal?.destroy(true), 126, 44))
     this._modal = this.add.container(0, 18, items).setDepth(100).setAlpha(0)
     this.tweens.add({ targets: this._modal, y: 0, alpha: 1, duration: 160, ease: 'Sine.easeOut' })
   }
@@ -913,6 +916,11 @@ export default class TownScene extends Phaser.Scene {
   }
 
   _button(x, y, label, fill, color, onTap, w = 210, h = 46) {
+    const rect = this.game.canvas.getBoundingClientRect()
+    const displayScale = Math.min(rect.width / this.scale.width, rect.height / this.scale.height)
+    if (Number.isFinite(displayScale) && displayScale > 0) {
+      h = Math.max(h, Math.min(72, Math.ceil(44 / displayScale)))
+    }
     const c = this.add.container(x, y)
     const bg = this.add.graphics()
     bg.fillStyle(0x173248, 0.12)
