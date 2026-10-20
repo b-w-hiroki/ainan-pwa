@@ -1,0 +1,330 @@
+{
+  "originalCommit": "47f451b440c364cd4bd559366409b5c142db95a5",
+  "restore": "git show <originalCommit>:<path>",
+  "rule": "Only alpha 1..7 more than five source pixels from alpha >=32 becomes zero; every RGB value and all other alpha bytes are unchanged.",
+  "sourceSheetsUntouched": true,
+  "entries": [
+    {
+      "path": "fishing-game/assets/ui-art-v1/button-disabled.png",
+      "size": [
+        688,
+        228
+      ],
+      "originalSha256": "3c1a34769f7bec2c48b5708ea1f3ec0076e5cd49907ccbb4bbee1e8b04861e53",
+      "outputSha256": "b6f3f1dd5ca0e52d6c80eaab5ff429f19d4c6f0c4e5b401f6572208ae9335097",
+      "removedPixels": 37,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/button-primary-pressed.png",
+      "size": [
+        688,
+        228
+      ],
+      "originalSha256": "1c236833f8a0ad76cdf140aaaf8406044295dfcc17f780d3090c9b46746204c4",
+      "outputSha256": "f73e0b033ca19f8a103a43036d126bb15f6b0bf782e23e3bb7e45142f76c1c58",
+      "removedPixels": 920,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/button-primary.png",
+      "size": [
+        688,
+        240
+      ],
+      "originalSha256": "51457a336ac6514dbd76d046510a221831788031a0fc4fdd26d314e7eaab1974",
+      "outputSha256": "fedfc3f081eca66f3a49bb6fa65555759418843a17697e3fc01988139fac1d01",
+      "removedPixels": 131,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/button-secondary.png",
+      "size": [
+        688,
+        240
+      ],
+      "originalSha256": "aa242ebfd4514de19fd15160e2be9b7322f8f901135301018e67f90ff2d4ce66",
+      "outputSha256": "a7c77f0c8b5ec7b424724543aba473ddfaeaa2344536667a78d6d91978cca336",
+      "removedPixels": 1857,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/footer-shell.png",
+      "size": [
+        768,
+        117
+      ],
+      "originalSha256": "2b49520d4e7a3621f56132a59d7eb6055ee0848674076f82f5234ed236d5c1b4",
+      "outputSha256": "2b49520d4e7a3621f56132a59d7eb6055ee0848674076f82f5234ed236d5c1b4",
+      "removedPixels": 0,
+      "maxCompositeChannelDeltaBound": 0,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/icon-equip.png",
+      "size": [
+        80,
+        134
+      ],
+      "originalSha256": "77f65f001e9be3a0b51fe0bfb155381ee5c2aaaf99085371752e4aa27e15d5b8",
+      "outputSha256": "fff26ead370e5bedf77f99e14bef96de0bcc6d1769930520f293c890d9eb4ff5",
+      "removedPixels": 8,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/icon-exchange.png",
+      "size": [
+        82,
+        138
+      ],
+      "originalSha256": "ce73d898785c519c4f600d2036d200a9602e7aac094c4aadbe9e6ddf836a591b",
+      "outputSha256": "ce73d898785c519c4f600d2036d200a9602e7aac094c4aadbe9e6ddf836a591b",
+      "removedPixels": 0,
+      "maxCompositeChannelDeltaBound": 0,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/icon-home.png",
+      "size": [
+        94,
+        120
+      ],
+      "originalSha256": "17bab0434301e4e869683f4752fa340bbb7218e0568a0528e2545bd7812113c1",
+      "outputSha256": "17bab0434301e4e869683f4752fa340bbb7218e0568a0528e2545bd7812113c1",
+      "removedPixels": 0,
+      "maxCompositeChannelDeltaBound": 0,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/icon-menu.png",
+      "size": [
+        80,
+        103
+      ],
+      "originalSha256": "266e661f0d52a2dbd927ed74335f86457221b3a6267396c03d256e7982f70431",
+      "outputSha256": "266e661f0d52a2dbd927ed74335f86457221b3a6267396c03d256e7982f70431",
+      "removedPixels": 0,
+      "maxCompositeChannelDeltaBound": 0,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/icon-town.png",
+      "size": [
+        104,
+        129
+      ],
+      "originalSha256": "95061b7c7d523c989aca70a81b91c1b0e727c8acbb004c1365c8226f75a55de1",
+      "outputSha256": "c7de698cc545aeb8df6933f820e7fc24544ce75c9028b406368eb3163c2e67d4",
+      "removedPixels": 4,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v1/tab-selected.png",
+      "size": [
+        96,
+        200
+      ],
+      "originalSha256": "b205a88f2fa9c81a07e9fce14119ec6b16ac2940e5f4874e481291ed2157193c",
+      "outputSha256": "b205a88f2fa9c81a07e9fce14119ec6b16ac2940e5f4874e481291ed2157193c",
+      "removedPixels": 0,
+      "maxCompositeChannelDeltaBound": 0,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/back-shell.png",
+      "size": [
+        165,
+        120
+      ],
+      "originalSha256": "0ef9e823e48f56c47a40e54b59f4c798fb48372f8dfca906f9c764fe638d5d3f",
+      "outputSha256": "03b58a747517e9e13140d46464333c7e5ba5bca0c4edcc0c968480e8ed4fbdcf",
+      "removedPixels": 122,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/card-disabled.png",
+      "size": [
+        702,
+        130
+      ],
+      "originalSha256": "5c423b1fef171876d7c147484312545f7e1aafc53941e148ae65e69f5df5c340",
+      "outputSha256": "8eea8d58fa004d5ff578fdda7601403b117a832d1379aafeff9db9e4caf6f5a1",
+      "removedPixels": 414,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/card-idle.png",
+      "size": [
+        702,
+        125
+      ],
+      "originalSha256": "eb7a0b8cec9cb50dc1c576e9a2e4d333d2f18ea7c5dd6855f8807c0450c88414",
+      "outputSha256": "1c3631fc49925e4c8034cd57cecf951da4f423f5f9b00bc40c06c910b696f8fa",
+      "removedPixels": 310,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/card-pressed.png",
+      "size": [
+        702,
+        126
+      ],
+      "originalSha256": "df66f85afc520fd02a8cc3e14750926b1823bd0c70c71219cde8f51e58ef35ab",
+      "outputSha256": "fa7434883638b0dd9c0ad9d629906f10a11a725762a41a424b848518f6933e2f",
+      "removedPixels": 531,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/card-selected.png",
+      "size": [
+        702,
+        133
+      ],
+      "originalSha256": "05aa7e329210a3ddf6e685d5e90d1a7b88b08f4e2edbc5ae6d4a6fa5f9c7a5d5",
+      "outputSha256": "8c873d98210914a050b668b5def6a2c5054fb873b136648ff008896c74287964",
+      "removedPixels": 100,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/card-shortage.png",
+      "size": [
+        702,
+        125
+      ],
+      "originalSha256": "c644b065560eea14d3061c2e65be90239a27581a870995d2f838d2e1549e455d",
+      "outputSha256": "4f34b1fd4fbe54dfd6dcc42e04f3d15f1c1cc7b9753166dec7f0e09a89b66515",
+      "removedPixels": 279,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/chip.png",
+      "size": [
+        342,
+        130
+      ],
+      "originalSha256": "552eca77b803509c33dd75204b24769d48db62d233a7d16d12bef3cac2e09124",
+      "outputSha256": "d2aa2f8f18d812ba7a5b1f0afd734bf6af6850769adf8076bfb8cc7357651d55",
+      "removedPixels": 181,
+      "maxCompositeChannelDeltaBound": 2,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/dialog.png",
+      "size": [
+        455,
+        455
+      ],
+      "originalSha256": "c2b64a5cac1331a475d4814fbd27a9672c109f87cf3d2b0cbe3e0fd10c83c0de",
+      "outputSha256": "89560c4a9575db6e88388d220551ec936401bef660e62c8e6b7612c5a09de121",
+      "removedPixels": 48,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/gauge-track.png",
+      "size": [
+        700,
+        98
+      ],
+      "originalSha256": "5caf274e803b775c6e08fd44c4e387edcc3a4519746b120d746650b3c0e5d335",
+      "outputSha256": "62497df5cd3b412869fa3702468b6f991fee4326055ab74d772e30fb64a5d585",
+      "removedPixels": 476,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/operation-dock.png",
+      "size": [
+        658,
+        245
+      ],
+      "originalSha256": "65958e9f8957c5a9bd2b1de130d91f259f77490f243a5a6b2f0a9b066f96f638",
+      "outputSha256": "674e82a3f8804d4a78d17cc0df48704091d2b567ac271b4b82945a06ac123c39",
+      "removedPixels": 4556,
+      "maxCompositeChannelDeltaBound": 4,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/panel-large.png",
+      "size": [
+        760,
+        485
+      ],
+      "originalSha256": "246d1991bfdbadf4f33ff28f4c1e352eb96b15b113d8414e664fd38c638e2183",
+      "outputSha256": "ba1983b5995c1df6f3e4ec2a07e1d1e88af4e5034cd10b10a5b48b9c5a395b13",
+      "removedPixels": 154,
+      "maxCompositeChannelDeltaBound": 1,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    },
+    {
+      "path": "fishing-game/assets/ui-art-v2/result-card.png",
+      "size": [
+        616,
+        248
+      ],
+      "originalSha256": "bf36848113c99b51e23c0efca7f9cd1ccc7bfbf4d89f2a6a5f6f82ddb78bf1d5",
+      "outputSha256": "228ee1328fef264ef5bd544f16da959cffd969e43daf841f6fbdc771fa347b0a",
+      "removedPixels": 6040,
+      "maxCompositeChannelDeltaBound": 4,
+      "rgbUnchanged": true,
+      "alpha8AndAboveUnchanged": true,
+      "idempotent": true
+    }
+  ]
+}
