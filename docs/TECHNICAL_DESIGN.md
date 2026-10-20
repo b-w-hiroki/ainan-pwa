@@ -42,6 +42,8 @@ HIT前のWaitで手動引き上げまたはミス後に戻る場合は、`GameSc
 
 ## 描画・素材の契約
 
+W03の候補素材は `fishing-game/qa/w03-art-review.html` でA/Bの同一13ポーズ、Bの独立髪、猫・帽子・バッグを透過背景と海色で比較できる。Viteの独立HTML入口としてビルドするレビュー専用画面であり、画像の重ね位置・実プレイ・美術承認を代替しない。通常GameSceneの素材選択や描画ownerは変更しない。
+
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。
 
 WindowsのChromiumではSVGをPhaserの通常画像ローダーからWebGLへ直接アップロードすると黒い矩形になる場合がある。各シーン、UIアート、釣り場表示のmanifest素材は `utils/loadGameTexture.js` を通し、SVGをCanvasへラスタライズしてからテクスチャに登録する。PNGは同じ関数から通常の画像ローダーへ渡す。マップの地点ピンと町の施設・背景を含め、読み込み経路を統一する。
