@@ -1,4 +1,5 @@
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 
 export const UI_ART_ASSETS = Object.freeze([
   ASSETS.ui.artFooterShell, ASSETS.ui.artTabSelected,
@@ -11,7 +12,7 @@ export const UI_ART_ASSETS = Object.freeze([
 
 export function loadUiArt(scene) {
   UI_ART_ASSETS.forEach(asset => {
-    if (asset?.status === 'ready' && !scene.textures.exists(asset.key)) scene.load.image(asset.key, asset.path)
+    if (asset?.status === 'ready' && !scene.textures.exists(asset.key)) loadGameTexture(scene, asset)
   })
 }
 

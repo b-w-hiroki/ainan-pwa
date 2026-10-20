@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { FISH_META, getCatches, getPlayerRank, getScore, getTownSummary } from '../game/progress.js'
@@ -15,7 +16,7 @@ export default class ProfileScene extends Phaser.Scene {
   preload() {
     const wanted = [ASSETS.backgrounds.townGrowing, ASSETS.characters.playerDefaultUi]
     wanted.forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

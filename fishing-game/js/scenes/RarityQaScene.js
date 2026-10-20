@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { RARITY_WATER_STYLE } from '../game/installRarityWaterReadability.js'
 
 const LABEL = {
@@ -21,7 +22,7 @@ export default class RarityQaScene extends Phaser.Scene {
       ASSETS.fishingField.fishShadowMediumIdle,
     ]
     assets.forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

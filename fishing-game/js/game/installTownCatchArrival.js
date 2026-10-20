@@ -1,4 +1,5 @@
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { getTownCatchReaction, TOWN_CATCH_ICONS } from './townCatchReactions.js'
 
@@ -76,7 +77,7 @@ export function installTownCatchArrival(TownScene) {
     const result = originalPreload.apply(this, args)
     for (const art of Object.values(FISH_ART)) {
       if (art?.status === 'ready' && !this.textures.exists(art.key)) {
-        this.load.image(art.key, art.path)
+        loadGameTexture(this, art)
       }
     }
     return result

@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { UI_COLORS, uiText } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { Button } from '../ui/Button.js'
 import { drawStatusMeter } from '../ui/UiPrimitives.js'
@@ -61,7 +62,7 @@ export default class HomeScene extends Phaser.Scene {
       ASSETS.ui.artButtonDisabled,
     ]
     wanted.forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

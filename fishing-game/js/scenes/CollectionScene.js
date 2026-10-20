@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { ICONS } from '../config/icons.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
@@ -41,9 +42,9 @@ export default class CollectionScene extends Phaser.Scene {
 
   preload() {
     const bg = ASSETS.backgrounds.homeBase
-    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    if (!this.textures.exists(bg.key)) loadGameTexture(this, bg)
     Object.values(FISH_ART).forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

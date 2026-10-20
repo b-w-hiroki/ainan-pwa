@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { ACHIEVEMENT_META, claimAchievement, getAchievementStates, getSelectedTitle, getUnlockedTitles, selectTitle } from '../game/retentionProgress.js'
@@ -12,7 +13,7 @@ export default class AchievementScene extends Phaser.Scene {
   constructor() { super({ key: 'AchievementScene' }) }
   preload() {
     const bg = ASSETS.backgrounds.townGrowing
-    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) loadGameTexture(this, bg)
   }
   create() {
     const W = this.scale.width, H = this.scale.height

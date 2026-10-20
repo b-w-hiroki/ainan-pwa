@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { getCatches, getPlayerRank, getRankBonuses, getScore } from '../game/progress.js'
@@ -12,7 +13,7 @@ export default class RankScene extends Phaser.Scene {
 
   preload() {
     const bg = ASSETS.backgrounds.townGrowing
-    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) loadGameTexture(this, bg)
   }
 
   create() {
