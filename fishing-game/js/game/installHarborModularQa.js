@@ -13,6 +13,8 @@ export function isHarborModularQaEnabled(search = '') {
     && p.get('qaParts') === '1'
 }
 const search = () => typeof window === 'undefined' ? '' : window.location.search
+const catArtKey = 'qa_w03_cat_v1'
+const catArtUrl = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-cat-v1/cat.png`
 
 // One shared socket transform for all W03 asset layers and existing QA hats/bags.
 export const resolveHarborPartSocket = resolveModularSocket
@@ -36,9 +38,25 @@ function makeQaCat(scene) {
   return root
 }
 
+function makeQaCatArt(scene) {
+  return scene.add.image(0, 0, catArtKey).setDepth(38).setScrollFactor(1)
+    .setOrigin(0.5, 1042 / 1254).setDisplaySize(90, 90)
+    .setData('qaOnly', true).setData('artApproved', false)
+}
+
 export function installHarborModularQa(GameScene) {
   if (GameScene.prototype.__ainanHarborModularQaInstalled) return
   GameScene.prototype.__ainanHarborModularQaInstalled = true
+
+  const prevPreload = GameScene.prototype.preload
+  GameScene.prototype.preload = function (...args) {
+    prevPreload?.apply(this, args)
+    const params = new URLSearchParams(search())
+    if (isHarborModularQaEnabled(search()) && params.get('qaCatArt') === '1'
+      && params.get('qaCat') === '1' && !this.textures.exists(catArtKey)) {
+      this.load.image(catArtKey, catArtUrl())
+    }
+  }
 
   const prevCreate = GameScene.prototype.create
   GameScene.prototype.create = function (...args) {
@@ -61,7 +79,8 @@ export function installHarborModularQa(GameScene) {
         .setData('qaOnly', true).setData('artApproved', false)
         .setVisible(show[id])
     }
-    const cat = makeQaCat(this)
+    const catArt = params.get('qaCatArt') === '1' && this.textures.exists(catArtKey)
+    const cat = catArt ? makeQaCatArt(this) : makeQaCat(this)
     cat.setVisible(show.cat)
     const qaRod = params.get('qaRod')
     if (qaRod && ROD_VISUALS[qaRod]) {
@@ -69,7 +88,7 @@ export function installHarborModularQa(GameScene) {
       this._cameraPanRodVisual = ROD_VISUALS[qaRod]
       this._cameraPanRod?.setData?.('rodType', qaRod)
     }
-    this._qaHarborModular = { accents, cat, show, rod: this._cameraPanRod?.getData('rodType') }
+    this._qaHarborModular = { accents, cat, catArt, show, rod: this._cameraPanRod?.getData('rodType') }
     return result
   }
 
@@ -98,6 +117,7 @@ export function installHarborModularQa(GameScene) {
       independentBodyVariantsReady: false,
       independentClothingArtReady: false,
       optionArtApproved: false,
+      catArtCandidate: parts.catArt,
       cap: Boolean(parts.accents.cap.visible),
       bag: Boolean(parts.accents.bag.visible),
       cat: Boolean(parts.cat.visible),

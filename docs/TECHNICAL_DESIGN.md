@@ -48,6 +48,8 @@ WindowsのChromiumではSVGをPhaserの通常画像ローダーからWebGLへ直
 
 W03のかわいい男女キャラクターの待機・振りかぶりフレームは、1254pxの透過原画を既存の倍率・足位置・手元ソケットで640×840へ配置する。RGBA画像を自身のアルファでマスク付き貼り付けすると境界アルファが二重適用されるため、単一のRGBA貼り付けを使う。生成元のほぼ透明な点のみ除き、低アルファの彩度ノイズを補正する。原画とソケットは変更しない。再生成と検査は `python scripts/art/repair-cute-frame-alpha.py` と同 `--check`、従来のRGB境界補正は `python scripts/art/clean-transparent-edge-rgb.py --check` で確認する。これらは採用可否の承認や実機評価の代替ではない。
 
+W03の猫候補は原画と境界補正版を別々に保持し、`python scripts/art/prepare-w03-cat.py --check` でRGBA・輪郭・透明余白を検証する。`qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaParts=1&qaCat=1&qaCatArt=1` のQA条件だけで独立GameObjectとして読み込み、既存の猫シルエットと比較できる。通常導線の描画・装備保存は変えず、アート承認前は候補のままとする。
+
 港の世界・カメラ・キャスト経路の詳細案は [港キャスト技術設計](design/HARBOR_CAST_TECHNICAL_DESIGN.md) を参照。そこにある未導入の構造は現行コードの保証ではない。
 
 ## 永続化と更新
