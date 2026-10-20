@@ -283,6 +283,61 @@ try {
       await page.close()
     }
   }
+
+  // A short phone scales the entire 390x844 scene. Exercise both facility
+  // outcomes through the enlarged, visibly separate actions at CSS size.
+  for (const [score, expected] of [[0, 'fish'], [1000, 'upgrade']]) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+    try {
+      await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=TownScene')
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?.sys?.isActive?.())
+      await page.evaluate(points => {
+        localStorage.setItem('ainan_score', String(points))
+        localStorage.setItem('ainan_town_facilities', JSON.stringify({ market: 0, pier: 0, guide: 0, festival: 0 }))
+        localStorage.setItem('ainan_catches', '[]')
+        window.__game.scene.getScene('TownScene').scene.restart()
+      }, score)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?._summary?.facilities?.market === 0)
+      await page.waitForTimeout(320)
+      const frame = await page.evaluate(() => {
+        const rect = window.__game.canvas.getBoundingClientRect()
+        return { x: rect.x, y: rect.y, scale: rect.height / 844 }
+      })
+      await page.mouse.click(frame.x + 100 * frame.scale, frame.y + 495 * frame.scale)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('TownScene')?._modal?.active === true)
+      await page.waitForTimeout(240)
+      const actions = await page.evaluate(() => window.__game.scene.getScene('TownScene')._modal.list
+        .filter(node => node.type === 'Container' && node.input)
+        .map(node => ({ label: node.list.find(child => typeof child.text === 'string')?.text,
+          x: node.x, y: node.y, width: node.width, height: node.height })))
+      const label = expected === 'fish' ? 'あと180pt・釣りへ' : '180ptで発展'
+      const primary = actions.find(action => action.label === label)
+      const close = actions.find(action => action.label === '閉じる')
+      assert.ok(primary && close, 'compact facility modal must expose both actions')
+      for (const action of [primary, close]) {
+        assert.ok(action.height * frame.scale >= 43.5, 'compact facility action below 44 CSS px')
+        assert.ok(frame.y + (action.y + action.height / 2) * frame.scale <= 568,
+          'compact facility action leaves viewport')
+      }
+      assert.ok(primary.y + primary.height / 2 + 8 <= close.y - close.height / 2,
+        'compact facility actions overlap')
+      await page.screenshot({ path: join('artifacts/town-compact', `facility-${expected}-320x568.png`), animations: 'disabled' })
+      await page.mouse.click(frame.x + primary.x * frame.scale, frame.y + primary.y * frame.scale)
+      if (expected === 'fish') {
+        await page.waitForFunction(() => window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.())
+      } else {
+        await page.waitForFunction(() => JSON.parse(localStorage.getItem('ainan_town_facilities') ?? '{}').market === 1)
+      }
+      const state = await page.evaluate(() => ({
+        score: Number(localStorage.getItem('ainan_score')),
+        market: JSON.parse(localStorage.getItem('ainan_town_facilities') ?? '{}').market,
+      }))
+      assert.deepEqual(state, expected === 'fish' ? { score: 0, market: 0 } : { score: 820, market: 1 })
+      console.log('Town compact facility action passed:', expected)
+    } finally {
+      await page.close()
+    }
+  }
 } finally {
   await browser.close()
 }
