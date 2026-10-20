@@ -44,6 +44,8 @@ HIT前のWaitで手動引き上げまたはミス後に戻る場合は、`GameSc
 
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。
 
+WindowsのChromiumではSVGをPhaserの通常画像ローダーからWebGLへ直接アップロードすると黒い矩形になる場合がある。釣り場マップの地点ピンや魚アイコンを含むSVGは `utils/loadGameTexture.js` でCanvasへラスタライズしてからテクスチャに登録する。PNGは同じ関数から通常の画像ローダーへ渡す。
+
 W03のかわいい男女キャラクターの待機・振りかぶりフレームは、1254pxの透過原画を既存の倍率・足位置・手元ソケットで640×840へ配置する。RGBA画像を自身のアルファでマスク付き貼り付けすると境界アルファが二重適用されるため、単一のRGBA貼り付けを使う。生成元のほぼ透明な点のみ除き、低アルファの彩度ノイズを補正する。原画とソケットは変更しない。再生成と検査は `python scripts/art/repair-cute-frame-alpha.py` と同 `--check`、従来のRGB境界補正は `python scripts/art/clean-transparent-edge-rgb.py --check` で確認する。これらは採用可否の承認や実機評価の代替ではない。
 
 港の世界・カメラ・キャスト経路の詳細案は [港キャスト技術設計](design/HARBOR_CAST_TECHNICAL_DESIGN.md) を参照。そこにある未導入の構造は現行コードの保証ではない。

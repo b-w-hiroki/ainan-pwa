@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { FONT, SHADOW, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
 import { addCoverImage } from '../utils/imageLayout.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { FISH_META, getCatches, markLicenseFlag } from '../game/progress.js'
 import { getFishingPointUnlock, getTownUnlockState } from '../game/townUnlocks.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
@@ -61,7 +62,7 @@ export default class MapScene extends Phaser.Scene {
     loadUiArt(this)
     const wanted = [ASSETS.backgrounds.mapTown, ...Object.values(POINT_PIN), ...Object.values(FISH_ART), ...Object.values(ASSETS.bosses)]
     wanted.forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 
