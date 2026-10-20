@@ -7,6 +7,7 @@ import { getQaSceneRoute } from '../game/qaBootstrap.js'
 import { loadUiArt } from '../ui/UiArt.js'
 import { isReducedMotion } from '../game/feedback.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
+import { touchHeight } from '../ui/touchLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const BUILD_ID = (import.meta.env.VITE_BUILD_SHA ?? 'local').slice(0, 8)
@@ -152,9 +153,10 @@ export default class TitleScene extends Phaser.Scene {
       onClick: () => this._startHome(),
     })
 
+    const helpHeight = touchHeight(this, 46)
     new Button(this, {
-      x: W / 2, y: H * 0.825,
-      w: 210, h: 46,
+      x: W / 2, y: H * (helpHeight > 54 ? 0.84 : 0.825),
+      w: 210, h: helpHeight,
       label: '遊び方',
       icon: ICONS.HELP,
       variant: 'ghost',
