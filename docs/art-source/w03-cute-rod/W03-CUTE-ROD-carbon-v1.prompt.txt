@@ -1,0 +1,4 @@
+Use case: precise-object-edit. Edit target/reference image 1 is the isolated transparent basic fishing rod. Create exactly one carbon-rod equipment variant on the same 1254×1254 transparent canvas. Preserve the rod's complete silhouette, lower-left grip position, upper-right tip position, bend, guide-ring locations, reel size and position, alpha cutout, margins, perspective, and hand-painted 2.5D line style as closely as possible. Change only its materials and restrained accent colors: charcoal carbon-fiber shaft, cool deep-blue wraps and subtle silver fittings, dark graphite grip and reel. Keep it friendly and painterly rather than photorealistic. No character, hands, water, shadow, line, hook, lure, fish, scenery, UI, words, numbers, or extra objects. All space outside the one rod and attached reel must remain fully transparent.
+
+Reference image: W03-CUTE-ROD-basic-v1.png
+Generator: built-in image_gen
