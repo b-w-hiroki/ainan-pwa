@@ -217,25 +217,37 @@ export class CharacterMotionController {
       x: (grip.x + tip.x) / 2 - (poseDy / poseLength) * poseLength * flex * 0.55,
       y: (grip.y + tip.y) / 2 + (poseDx / poseLength) * poseLength * flex * 0.55,
     }
-    const drawRodCurve = (width, color, alpha) => {
-      this.rod.lineStyle(width, color, alpha)
-      this.rod.beginPath()
-      this.rod.moveTo(grip.x, grip.y)
-      for (let index = 1; index <= 10; index += 1) {
-        const t = index / 10
-        const inverse = 1 - t
-        this.rod.lineTo(
-          inverse * inverse * grip.x + 2 * inverse * t * rodControl.x + t * t * tip.x,
-          inverse * inverse * grip.y + 2 * inverse * t * rodControl.y + t * t * tip.y,
-        )
+    const pointOnRod = t => {
+      const inverse = 1 - t
+      return {
+        x: inverse * inverse * grip.x + 2 * inverse * t * rodControl.x + t * t * tip.x,
+        y: inverse * inverse * grip.y + 2 * inverse * t * rodControl.y + t * t * tip.y,
       }
-      this.rod.strokePath()
     }
-    drawRodCurve(7, 0x183146, 0.96)
-    drawRodCurve(3, visual.accent, 1)
-    this.rod.fillStyle(0x183146, 1).fillCircle(grip.x, grip.y, 7)
-    this.rod.fillStyle(visual.accent, 1).fillCircle(grip.x, grip.y, 4)
-    this.rod.lineStyle(2, visual.accent, 0.95).strokeCircle(grip.x + 7, grip.y + 5, 5)
+    // Taper the blank toward the tip instead of drawing one uniform tube.
+    // Keep the geometry native: the old transparent rod bitmap produced black
+    // rectangles in some browsers during alpha animation.
+    for (let index = 0; index < 12; index += 1) {
+      const from = pointOnRod(index / 12)
+      const to = pointOnRod((index + 1) / 12)
+      const taper = 1 - index / 12
+      this.rod.lineStyle(1.6 + 5.4 * taper, 0x183146, 0.97)
+      this.rod.lineBetween(from.x, from.y, to.x, to.y)
+      this.rod.lineStyle(0.8 + 2.1 * taper, visual.accent, 0.96)
+      this.rod.lineBetween(from.x, from.y, to.x, to.y)
+    }
+    // Ferrules and guides follow the bent blank; the line still begins at
+    // the exact tip calculated above, so casting geometry is unchanged.
+    for (const t of [0.32, 0.57, 0.78, 0.94]) {
+      const guide = pointOnRod(t)
+      this.rod.fillStyle(0x15394e, 0.95).fillCircle(guide.x, guide.y, t < 0.5 ? 2.4 : 1.8)
+      this.rod.fillStyle(0xe6f6f7, 0.92).fillCircle(guide.x, guide.y, 0.8)
+    }
+    this.rod.fillStyle(0x183146, 1).fillCircle(grip.x, grip.y, 6)
+    this.rod.fillStyle(visual.accent, 1).fillCircle(grip.x, grip.y, 3.4)
+    this.rod.lineStyle(2, 0x183146, 0.95).strokeCircle(grip.x + 7, grip.y + 5, 5)
+    this.rod.lineStyle(1.4, visual.accent, 0.95).strokeCircle(grip.x + 7, grip.y + 5, 3.3)
+    this.rod.fillStyle(0xe6f6f7, 0.9).fillCircle(grip.x + 7, grip.y + 5, 1.3)
     const stageTarget = phase === 'battle'
       ? { x: 228, y: 330 }
       : phase === 'result'
