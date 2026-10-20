@@ -4,6 +4,7 @@
   "reference": "docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png",
   "artApproved": false,
   "runtimeConnected": false,
+  "qaRuntimeConnected": true,
   "rods": [
     {
       "id": "basic",
@@ -63,5 +64,5 @@
       "originalSha256": "1231b2b2097fa686f3cc83ed5b007d08b45723b4cc0bb0ab288a6ea55da834ab"
     }
   ],
-  "remaining": "Visual signoff, exact hand/tip sockets, 13-pose bend/occlusion, 3 loadout combinations and real iPhone QA required before normal gameplay use."
+  "remaining": "Visual signoff, 13-pose bend/occlusion, 3 loadout combinations and real iPhone QA required before normal gameplay use. QA socket preview is available with qa=1&qaRodArt=1 and cute appearance."
 }
