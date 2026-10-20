@@ -15,6 +15,13 @@ export function isHarborModularQaEnabled(search = '') {
 const search = () => typeof window === 'undefined' ? '' : window.location.search
 const catArtKey = 'qa_w03_cat_v1'
 const catArtUrl = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-cat-v1/cat.png`
+const accessoryArtKey = id => `qa_w03_accessory_${id}_v1`
+const accessoryArtUrl = id => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-accessories-v1/${id}.png`
+const accessoryCanvasWidth = Object.freeze({ cap: 160, bag: 150 })
+// The generated cutouts have different painted centers from the procedural
+// markers. Keep the adjustment in the shared 320x420 actor frame, so rotation
+// and each pose's authored socket still work together.
+const accessoryArtOffset = Object.freeze({ cap: [-32, -18], bag: [0, -115] })
 
 // One shared socket transform for all W03 asset layers and existing QA hats/bags.
 export const resolveHarborPartSocket = resolveModularSocket
@@ -44,6 +51,12 @@ function makeQaCatArt(scene) {
     .setData('qaOnly', true).setData('artApproved', false)
 }
 
+function makeQaAccessoryArt(scene, id) {
+  return scene.add.image(0, 0, accessoryArtKey(id)).setVisible(false)
+    .setData('qaOnly', true).setData('artApproved', false)
+    .setData('accessoryId', id).setData('artCandidate', true)
+}
+
 export function installHarborModularQa(GameScene) {
   if (GameScene.prototype.__ainanHarborModularQaInstalled) return
   GameScene.prototype.__ainanHarborModularQaInstalled = true
@@ -55,6 +68,11 @@ export function installHarborModularQa(GameScene) {
     if (isHarborModularQaEnabled(search()) && params.get('qaCatArt') === '1'
       && params.get('qaCat') === '1' && !this.textures.exists(catArtKey)) {
       this.load.image(catArtKey, catArtUrl())
+    }
+    if (isHarborModularQaEnabled(search()) && params.get('qaAccessoryArt') === '1') {
+      for (const id of ['cap', 'bag']) {
+        if (!this.textures.exists(accessoryArtKey(id))) this.load.image(accessoryArtKey(id), accessoryArtUrl(id))
+      }
     }
   }
 
@@ -70,12 +88,13 @@ export function installHarborModularQa(GameScene) {
       bag: params.get('qaBag') === '1' || loadout.accessories.bag === 'bag',
       cat: params.get('qaCat') === '1',
     }
-    const accents = {
-      cap: createAccessoryAccent(this, 'cap'),
-      bag: createAccessoryAccent(this, 'bag'),
-    }
+    const useAccessoryArt = params.get('qaAccessoryArt') === '1'
+    const accents = Object.fromEntries(['cap', 'bag'].map(id => [id,
+      useAccessoryArt && this.textures.exists(accessoryArtKey(id))
+        ? makeQaAccessoryArt(this, id) : createAccessoryAccent(this, id),
+    ]))
     for (const [id, item] of Object.entries(accents)) {
-      item.setScrollFactor(1).setDepth(id === 'cap' ? 41.7 : 40.6)
+      item.setScrollFactor(1).setDepth(id === 'cap' ? 41.7 : item.getData('artCandidate') ? 41.4 : 40.6)
         .setData('qaOnly', true).setData('artApproved', false)
         .setVisible(show[id])
     }
@@ -105,9 +124,15 @@ export function installHarborModularQa(GameScene) {
         item.setVisible(false)
         continue
       }
-      const transform = resolveHarborPartSocket(actor, anchor)
+      const offset = item.getData('artCandidate') ? accessoryArtOffset[id] : [0, 0]
+      const transform = resolveHarborPartSocket(actor,
+        [anchor[0] + offset[0], anchor[1] + offset[1], anchor[2]])
       item.setVisible(true).setPosition(transform.x, transform.y)
-        .setRotation(transform.rotation).setScale(transform.scale)
+        .setRotation(transform.rotation)
+      if (item.getData('artCandidate')) {
+        const width = accessoryCanvasWidth[id] * transform.scale
+        item.setDisplaySize(width, width)
+      } else item.setScale(transform.scale)
     }
     parts.cat.setVisible(parts.show.cat && this.phase !== 'result')
     // Keep the option behind the actor in perspective, clear of the bottom cast HUD.
@@ -120,6 +145,8 @@ export function installHarborModularQa(GameScene) {
       catArtCandidate: parts.catArt,
       cap: Boolean(parts.accents.cap.visible),
       bag: Boolean(parts.accents.bag.visible),
+      accessoryArtCandidates: Object.freeze(Object.fromEntries(
+        Object.entries(parts.accents).map(([id, item]) => [id, Boolean(item.getData('artCandidate'))]))),
       cat: Boolean(parts.cat.visible),
       catWorld: Object.freeze({ x: parts.cat.x, y: parts.cat.y }),
       rodGraphicsOwners: this._cameraPanRod?.active ? 1 : 0,
