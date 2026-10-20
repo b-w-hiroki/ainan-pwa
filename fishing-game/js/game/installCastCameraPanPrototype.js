@@ -1,5 +1,6 @@
 import { isNativeLandscapeQaResize } from '../presentation/landscape/nativeLandscapeQaFlags.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { isReducedMotion } from './feedback.js'
 import { resolveCastMotionProfile } from './castMotionTuning.js'
@@ -535,7 +536,7 @@ export function installCastCameraPanPrototype(GameScene) {
     originalPreload?.apply(this, args)
     if (!enabled()) return
     fieldAssets().forEach(asset => {
-      if (asset?.status === 'ready' && asset.key && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && asset.key && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

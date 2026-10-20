@@ -2,6 +2,7 @@
 import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { Button } from '../ui/Button.js'
 import { getQaSceneRoute } from '../game/qaBootstrap.js'
 import { loadUiArt } from '../ui/UiArt.js'
@@ -20,7 +21,7 @@ export default class TitleScene extends Phaser.Scene {
   preload() {
     loadUiArt(this)
     const bg = ASSETS.backgrounds.titleHarborMorning
-    if (!this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    if (!this.textures.exists(bg.key)) loadGameTexture(this, bg)
   }
 
   create() {

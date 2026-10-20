@@ -67,7 +67,7 @@ assert.ok(townSource.includes("this._qaTownFeaturedCatch = Object.freeze"),
   'in-world fish display must be inspectable in real-browser QA')
 assert.ok(implementation.includes('getTownCatchReaction(catchArrival.fishId) ?? copy.body'),
   'Rarity fallback must survive unknown fish IDs')
-assert.ok(implementation.includes('this.load.image(art.key, art.path)'),
+assert.ok(implementation.includes('loadGameTexture(this, art)'),
   'Direct Result→Town route must preload all fish art')
 
 const before = { facilities: { market: 1, pier: 0, guide: 2, festival: 5 } }

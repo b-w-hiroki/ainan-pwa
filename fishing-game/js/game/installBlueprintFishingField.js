@@ -3,6 +3,7 @@ import { BobberManager } from '../scenes/components/BobberManager.js'
 import { FISHING_WORLD } from '../scenes/components/FishingCameraController.js'
 import { MOBILE_FRAME } from '../config/mobileFrame.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { castLaunched, twitchStarted } from './retrieveInputAcceptance.js'
 
 const TEXT_RES = typeof window !== 'undefined' ? (window.devicePixelRatio ?? 1) : 1
@@ -232,7 +233,7 @@ export function installBlueprintFishingField(GameScene) {
   GameScene.prototype.preload = function (...args) {
     originalPreload?.apply(this, args)
     Object.values(FIELD).forEach(asset => {
-      if (asset.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 

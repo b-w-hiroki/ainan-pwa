@@ -2,6 +2,7 @@ import { characterAppearanceCard } from '../game/characterAppearance.js'
 import Phaser from 'phaser'
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { backupSave, exportSaveData, getBackupSummaries, importSaveData, restoreLatestBackup, SAVE_VERSION } from '../game/saveSystem.js'
@@ -15,7 +16,7 @@ export default class SettingsScene extends Phaser.Scene {
   constructor() { super({ key: 'SettingsScene' }) }
   preload() {
     const bg = ASSETS.backgrounds.townGrowing
-    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) this.load.image(bg.key, bg.path)
+    if (bg?.status === 'ready' && !this.textures.exists(bg.key)) loadGameTexture(this, bg)
   }
   create() {
     const W = this.scale.width, H = this.scale.height

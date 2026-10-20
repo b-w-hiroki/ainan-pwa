@@ -2,6 +2,7 @@
 import Phaser from 'phaser'
 import { FONT, UI_COLORS } from '../config/fontStyles.js'
 import { ASSETS } from '../config/assetManifest.js'
+import { loadGameTexture } from '../utils/loadGameTexture.js'
 import { addCoverImage } from '../utils/imageLayout.js'
 import { buildFooterNav } from '../ui/FooterNav.js'
 import { ROD_META, getEquipment, getInventory, getScore } from '../game/progress.js'
@@ -18,7 +19,7 @@ export default class WorkshopScene extends Phaser.Scene {
   preload() {
     const wanted = [ASSETS.backgrounds.townGrowing, ...Object.values(ROD_ART)]
     wanted.forEach(asset => {
-      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) this.load.image(asset.key, asset.path)
+      if (asset?.status === 'ready' && !this.textures.exists(asset.key)) loadGameTexture(this, asset)
     })
   }
 
