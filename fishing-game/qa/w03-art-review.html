@@ -47,6 +47,11 @@
       <p><small>パーツは位置合わせをしたゲーム内合成ではなく、透過と筆致を確認する原画像です。猫・帽子・バッグはQA候補で、全ポーズの装着位置と射線回避は別途ゲーム画面で確認します。</small></p>
       <p><a href="../?qa=1&amp;scene=GameScene&amp;qaHarborPlayable=1&amp;cameraPan=1&amp;coneLoop=1&amp;qaParts=1&amp;qaCat=1&amp;qaCatArt=1&amp;qaAccessoryArt=1&amp;qaCap=1&amp;qaBag=1&amp;qaBody=cute-a-01">人物Aの実GameSceneで確認</a> · <a href="../?qa=1&amp;scene=GameScene&amp;qaHarborPlayable=1&amp;cameraPan=1&amp;coneLoop=1&amp;qaParts=1&amp;qaCat=1&amp;qaCatArt=1&amp;qaAccessoryArt=1&amp;qaCap=1&amp;qaBag=1&amp;qaBody=cute-b-01">人物Bの実GameSceneで確認</a></p>
     </section>
+    <section class="checklist" aria-label="独立した釣り竿の候補比較">
+      <h2>釣り竿の独立素材候補</h2>
+      <div class="strip" id="rods"></div>
+      <p><small>基本・カーボン・高級の3種は透過原画です。現在のゲームは曲がりと糸をnative Graphicsで描きます。この原画は未承認で、手元・竿先ソケットや各ポーズへの接続はまだ検証していません。</small></p>
+    </section>
     <section class="checklist">
       <h2>確認する点</h2>
       <ol>
@@ -54,12 +59,16 @@
         <li>透明背景と海色の双方で、輪郭に白・黒・高彩度のギザギザが見えないか。</li>
         <li>Bのポニーテールが顔や肩に不自然に重ならないか。</li>
         <li>猫・帽子・バッグの絵柄が人物と港に馴染むか。</li>
+        <li>3種の竿の輪郭・リール・色が人物の筆致に合い、透明な縁にノイズがないか。</li>
       </ol>
       <p>制作・採用状況は <a href="https://github.com/b-w-hiroki/ainan-pwa/issues/219">W03 Issue #219</a> で管理します。実プレイと装備位置は別のQA画面で検証し、画像だけで合格にしません。</p>
     </section>
   </main>
   <footer><small>AINAN / W03 art review · QA only</small></footer>
   <script type="module">
+    import basicRod from '../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-basic-v1.png'
+    import carbonRod from '../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-carbon-v1.png'
+    import premiumRod from '../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-premium-v1.png'
     const poses=['idle','cast-windup','cast-mid','cast-release','fight-left','fight-mid','fight-right','joy-lift','joy-mid','joy-hold','sad-drop','sad-mid','sad-slump']
     const pose=document.querySelector('#pose')
     poses.forEach(name=>pose.add(new Option(name,name)))
@@ -85,6 +94,16 @@
       const stage=document.createElement('div');stage.className='canvas'
       const img=document.createElement('img');img.src=base+file;img.alt=label+'の透過素材'
       const caption=document.createElement('div');caption.className='label';caption.textContent=label+' · '+file
+      stage.append(img);card.append(stage,caption);return card
+    }))
+    const rods=['basic','carbon','premium']
+    const rodLabels={basic:'基本',carbon:'カーボン',premium:'高級'}
+    const rodImages={basic:basicRod,carbon:carbonRod,premium:premiumRod}
+    document.querySelector('#rods').replaceChildren(...rods.map(id=>{
+      const card=document.createElement('div');card.className='card'
+      const stage=document.createElement('div');stage.className='canvas'
+      const img=document.createElement('img');img.src=rodImages[id];img.alt=`${rodLabels[id]}竿の透過素材`
+      const caption=document.createElement('div');caption.className='label';caption.textContent=`${rodLabels[id]} · ${id}`
       stage.append(img);card.append(stage,caption);return card
     }))
     render()

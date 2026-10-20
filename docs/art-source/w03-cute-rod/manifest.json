@@ -1,0 +1,67 @@
+{
+  "status": "candidate",
+  "generatedWith": "built-in image_gen",
+  "reference": "docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png",
+  "artApproved": false,
+  "runtimeConnected": false,
+  "rods": [
+    {
+      "id": "basic",
+      "file": "W03-CUTE-ROD-basic-v1.png",
+      "prompt": "W03-CUTE-ROD-basic-v1.prompt.txt",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        244,
+        85,
+        1182,
+        1156
+      ],
+      "detachedLowAlphaPixelsRemoved": 437,
+      "sha256": "da2e9fe9e3494b6445037d6927cd19fbee8414180efb172be810e5c62fb7116d",
+      "originalSha256": "0bd4f13f9bed93bdb3d5073566f3ccb0be4e078f0a4949422561f691113c9efd"
+    },
+    {
+      "id": "carbon",
+      "file": "W03-CUTE-ROD-carbon-v1.png",
+      "prompt": "W03-CUTE-ROD-carbon-v1.prompt.txt",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        243,
+        84,
+        1183,
+        1159
+      ],
+      "detachedLowAlphaPixelsRemoved": 770,
+      "sha256": "22a896be36eef3cc4bc3f9ce6aaa876c970119444049c8795ebee37abc91f745",
+      "originalSha256": "817f7188ea08b5477099fef6acc0a33a0e3e90bd6057b6352a93ed6f23a1674c"
+    },
+    {
+      "id": "premium",
+      "file": "W03-CUTE-ROD-premium-v1.png",
+      "prompt": "W03-CUTE-ROD-premium-v1.prompt.txt",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        242,
+        84,
+        1188,
+        1157
+      ],
+      "detachedLowAlphaPixelsRemoved": 302,
+      "sha256": "a39b8e0ca5eab9efc054b0929a2fc07c88dbacdf10fcbec6da438ff25dc40c9f",
+      "originalSha256": "1231b2b2097fa686f3cc83ed5b007d08b45723b4cc0bb0ab288a6ea55da834ab"
+    }
+  ],
+  "remaining": "Visual signoff, exact hand/tip sockets, 13-pose bend/occlusion, 3 loadout combinations and real iPhone QA required before normal gameplay use."
+}
