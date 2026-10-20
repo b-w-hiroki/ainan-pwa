@@ -11,6 +11,7 @@ import { getConditionSummary, getWorldConditions } from '../game/worldConditions
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 import { getFishingPreparation } from '../game/fishingJourney.js'
 import { getFishingGroundName } from '../game/fishingGroundNames.js'
+import { touchHeight } from '../ui/touchLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -66,6 +67,7 @@ export default class MapScene extends Phaser.Scene {
 
   create() {
     const { width: W, height: H } = this.scale
+    this._compactBackHeight = touchHeight(this, 44)
     this._detailPanel = null
     this._dismissLayer = null
     this._pointMarkers = {}
@@ -83,20 +85,23 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildHeader(W) {
-    const art = addArtPanel(this, { x: 72, y: 46, w: W - 92, h: 60, depth: 4 })
+    const compact = this._compactBackHeight > 54
+    const headerX = compact ? 110 : 72
+    const titleX = W / 2 + (compact ? 38 : 18)
+    const art = addArtPanel(this, { x: headerX, y: 46, w: W - headerX - 20, h: 60, depth: 4 })
     const g = this.add.graphics().setDepth(4)
     if (!art) {
       g.fillStyle(0x173248, 0.10)
-      g.fillRoundedRect(72, 50, W - 92, 56, 18)
+      g.fillRoundedRect(headerX, 50, W - headerX - 20, 56, 18)
       g.fillStyle(0xf8fdff, 0.94)
       g.lineStyle(2, 0xffffff, 0.82)
-      g.fillRoundedRect(72, 46, W - 92, 56, 18)
-      g.strokeRoundedRect(72, 46, W - 92, 56, 18)
+      g.fillRoundedRect(headerX, 46, W - headerX - 20, 56, 18)
+      g.strokeRoundedRect(headerX, 46, W - headerX - 20, 56, 18)
     }
-    this.add.text(W / 2 + 18, 64, '釣り場を選ぼう', {
+    this.add.text(titleX, 64, '釣り場を選ぼう', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2 + 18, 86, `${getConditionSummary()}  ・  海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
+    this.add.text(titleX, 86, `${getConditionSummary()}  ・  海 ${this._unlocks.unlockedCount}/${this._unlocks.totalCount}`, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -353,7 +358,7 @@ export default class MapScene extends Phaser.Scene {
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
     const preparation = getFishingPreparation(point.id)
 
-    const x = W * 0.05, y = H - 288, w = W * 0.90, h = 204
+    const x = W * 0.05, y = H - 330, w = W * 0.90, h = 246
     const items = []
     this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(19).setInteractive().on('pointerdown', () => this._closePointDetail())
 
@@ -418,14 +423,14 @@ export default class MapScene extends Phaser.Scene {
     const prepText = unlock.unlocked
       ? `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`
       : `釣り場 未解放 / 準備判定は解放後`
-    items.push(this.add.text(x + 18, y + 114, prepText, {
+    items.push(this.add.text(x + 18, y + 122, prepText, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
       color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: 2, wordWrap: { width: w - 158 },
     }))
 
     point.fishIds.slice(0, 4).forEach((id, i) => {
       const cx = x + 32 + i * 52
-      const cy = y + 142
+      const cy = y + 184
       const chip = this.add.graphics()
       chip.fillStyle(0xffffff, 0.96)
       chip.lineStyle(1.4, unlock.unlocked ? point.accent : 0xb2bdc2, 0.7)
@@ -445,19 +450,22 @@ export default class MapScene extends Phaser.Scene {
       }
     })
 
+    const actionHeight = touchHeight(this, 54)
+    const actionY = y + 184
+    const actionTop = actionY - actionHeight / 2
     const btn = this.add.graphics()
     btn.fillStyle(0x173248, 0.12)
-    btn.fillRoundedRect(x + w - 136, y + 124, 116, 54, 16)
+    btn.fillRoundedRect(x + w - 136, actionTop + 3, 116, actionHeight, 16)
     btn.fillStyle(unlock.unlocked ? 0xffd95a : 0xdff5ff, 1)
     btn.lineStyle(2, 0x173248, 0.82)
-    btn.fillRoundedRect(x + w - 138, y + 121, 116, 54, 16)
-    btn.strokeRoundedRect(x + w - 138, y + 121, 116, 54, 16)
+    btn.fillRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
+    btn.strokeRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
     const blocker = preparation.primaryBlocker
     const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? 'ここで釣る −1ST' : blocker.label
-    const btnText = this.add.text(x + w - 80, y + 148, actionLabel, {
+    const btnText = this.add.text(x + w - 80, actionY, actionLabel, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: actionLabel.length > 9 ? '10px' : '12px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
-    const hit = this.add.rectangle(x + w - 80, y + 148, 124, 60, 0x000000, 0)
+    const hit = this.add.rectangle(x + w - 80, actionY, 124, actionHeight + 8, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
         if (!unlock.unlocked) return this.scene.start('TownScene')
@@ -487,7 +495,11 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildBackBtn() {
-    this._backButton = createBackButton(this, { onClick: () => this.scene.start('HomeScene') })
+    const compact = this._compactBackHeight > 54
+    this._backButton = createBackButton(this, {
+      y: compact ? 48 : 35, h: this._compactBackHeight,
+      onClick: () => this.scene.start('HomeScene'),
+    })
   }
 
   _buildBackBtnLegacy() {

@@ -186,8 +186,8 @@ export class Button {
   }
 }
 
-export function createBackButton(scene, { x = 50, y = 35, label = '戻る', onClick, depth = 200 } = {}) {
+export function createBackButton(scene, { x = 50, y = 35, h = 44, label = '戻る', onClick, depth = 200 } = {}) {
   return new Button(scene, {
-    x, y, w: 76, h: 44, label: `‹ ${label}`, variant: 'ghost', fontSize: 14, depth, onClick,
+    x, y, w: 76, h, label: `‹ ${label}`, variant: 'ghost', fontSize: 14, depth, onClick,
   })
 }
