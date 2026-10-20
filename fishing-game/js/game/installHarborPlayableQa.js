@@ -130,17 +130,21 @@ export function installHarborPlayableQa(GameScene) {
 
     // The QA label belongs to screen-space HUD and must not affect cast hits.
     this._qaHarborPlayableBadge = this.add.text(
-      12, Math.max(76, this.scale.height - 170),
+      12, this.scale.height < 500 ? 76 : 98,
       'QA実装：背景美術は未承認',
       { fontFamily: 'M PLUS Rounded 1c, sans-serif',
         fontSize: '12px', color: '#ffffff', backgroundColor: '#14374abb',
         padding: { x: 7, y: 5 } },
     ).setDepth(9500).setScrollFactor(0).setAlpha(0.8)
+    this._qaHarborPlayableBadge.setX(Math.max(12,
+      this.scale.width - this._qaHarborPlayableBadge.width - 12))
 
     this._qaHarborPlayableOnResize = () => {
       showReviewLayer(this)
-      const badgeY = Math.max(76, this.scale.height - 170)
-      this._qaHarborPlayableBadge?.setY?.(badgeY)
+      this._qaHarborPlayableBadge?.setPosition?.(
+        Math.max(12, this.scale.width - this._qaHarborPlayableBadge.width - 12),
+        this.scale.height < 500 ? 76 : 98,
+      )
     }
     this.scale.on('resize', this._qaHarborPlayableOnResize)
     return result
