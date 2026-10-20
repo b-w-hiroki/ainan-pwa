@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>W03 キャラクター素材レビュー | AINAN</title>
+  <style>
+    :root{font-family:system-ui,"Noto Sans JP",sans-serif;color:#17354b;background:#e9f5f7}
+    *{box-sizing:border-box}body{margin:0}header,main,footer{max-width:1060px;margin:auto;padding:18px}
+    h1{font-size:1.35rem;margin:0 0 8px}h2{font-size:1.05rem;margin:0 0 10px}
+    p{line-height:1.6;margin:8px 0}small{color:#466476}.status{background:#fff3d9;border-left:4px solid #c57d20;padding:12px;border-radius:6px}
+    .controls{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}.controls label{display:grid;gap:5px;min-width:130px;font-weight:600}
+    select{font:inherit;padding:10px;border:1px solid #90b8c7;border-radius:8px;background:#fff;min-height:44px}
+    .comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .card{background:white;border-radius:12px;padding:12px;box-shadow:0 3px 16px #1238}
+    .canvas{width:100%;aspect-ratio:1;position:relative;overflow:hidden;border-radius:8px;background-color:#eaf2f3;
+      background-image:linear-gradient(45deg,#d9e5e9 25%,transparent 25%),linear-gradient(-45deg,#d9e5e9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d9e5e9 75%),linear-gradient(-45deg,transparent 75%,#d9e5e9 75%);
+      background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0}
+    .canvas.sea{background:#047aaa linear-gradient(160deg,#69d3e2,#08769f 65%,#06486c)}
+    .canvas img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0}
+    .comparison .canvas img{width:auto;height:100%;max-width:none;left:50%;right:auto;transform:translateX(-50%)}
+    .label{font-size:.85rem;color:#466476;margin-top:7px;overflow-wrap:anywhere}
+    .strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+    .strip .canvas{aspect-ratio:1}.strip img{object-fit:contain}
+    .checklist{background:#fff;border-radius:12px;padding:14px 18px;margin-top:18px}
+    .checklist li{line-height:1.5;margin:6px 0}a{color:#075b86}
+    @media(max-width:600px){header,main,footer{padding:14px}.comparison{gap:8px}.card{padding:7px}.strip{gap:8px}.strip .card{padding:6px}.label{font-size:.73rem}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>W03｜キャラクター素材レビュー</h1>
+    <p class="status">候補素材の比較画面です。美術承認・通常プレイへの切替は未完了です。ポーズ画像には既に白タンクトップ・紺短パン・髪が含まれ、衣装の完全分離を示すものではありません。</p>
+  </header>
+  <main>
+    <div class="controls">
+      <label>ポーズ<select id="pose"></select></label>
+      <label>背景<select id="background"><option value="checker">透過確認</option><option value="sea">海色で確認</option></select></label>
+    </div>
+    <section class="comparison" aria-label="人物AとBの同一ポーズ比較">
+      <div class="card"><h2>人物A</h2><div class="canvas" id="stage-a"><img id="actor-a" alt="人物Aのポーズ"></div><div class="label" id="file-a"></div></div>
+      <div class="card"><h2>人物B</h2><div class="canvas" id="stage-b"><img id="actor-b" alt="人物Bのポーズ"><img id="hair-b" alt="人物Bの独立ポニーテール"></div><div class="label" id="file-b"></div></div>
+    </section>
+    <section class="checklist">
+      <h2>独立パーツ候補</h2>
+      <div class="strip" id="parts"></div>
+      <p><small>パーツは位置合わせをしたゲーム内合成ではなく、透過と筆致を確認する原画像です。猫・帽子・バッグはQA候補で、全ポーズの装着位置と射線回避は別途ゲーム画面で確認します。</small></p>
+      <p><a href="../?qa=1&amp;scene=GameScene&amp;qaHarborPlayable=1&amp;cameraPan=1&amp;coneLoop=1&amp;qaParts=1&amp;qaCat=1&amp;qaCatArt=1&amp;qaAccessoryArt=1&amp;qaCap=1&amp;qaBag=1&amp;qaBody=cute-a-01">人物Aの実GameSceneで確認</a> · <a href="../?qa=1&amp;scene=GameScene&amp;qaHarborPlayable=1&amp;cameraPan=1&amp;coneLoop=1&amp;qaParts=1&amp;qaCat=1&amp;qaCatArt=1&amp;qaAccessoryArt=1&amp;qaCap=1&amp;qaBag=1&amp;qaBody=cute-b-01">人物Bの実GameSceneで確認</a></p>
+    </section>
+    <section class="checklist">
+      <h2>確認する点</h2>
+      <ol>
+        <li>13ポーズで同じ人物に見え、足位置・顔・手の動きが自然か。</li>
+        <li>透明背景と海色の双方で、輪郭に白・黒・高彩度のギザギザが見えないか。</li>
+        <li>Bのポニーテールが顔や肩に不自然に重ならないか。</li>
+        <li>猫・帽子・バッグの絵柄が人物と港に馴染むか。</li>
+      </ol>
+      <p>制作・採用状況は <a href="https://github.com/b-w-hiroki/ainan-pwa/issues/219">W03 Issue #219</a> で管理します。実プレイと装備位置は別のQA画面で検証し、画像だけで合格にしません。</p>
+    </section>
+  </main>
+  <footer><small>AINAN / W03 art review · QA only</small></footer>
+  <script type="module">
+    const poses=['idle','cast-windup','cast-mid','cast-release','fight-left','fight-mid','fight-right','joy-lift','joy-mid','joy-hold','sad-drop','sad-mid','sad-slump']
+    const pose=document.querySelector('#pose')
+    poses.forEach(name=>pose.add(new Option(name,name)))
+    const base='../assets/candidates/'
+    const actors={a:document.querySelector('#actor-a'),b:document.querySelector('#actor-b')}
+    const hair=document.querySelector('#hair-b')
+    function render(){
+      const name=pose.value
+      for(const id of ['a','b']){
+        const file=`w03-body-cute-${id}-01/${name}.png`
+        actors[id].src=base+file
+        actors[id].alt=`人物${id.toUpperCase()} ${name}`
+        document.querySelector(`#file-${id}`).textContent=file
+      }
+      hair.src=base+`w03-body-cute-b-01/hair-${name}.png`
+      document.querySelectorAll('.canvas').forEach(node=>node.classList.toggle('sea',document.querySelector('#background').value==='sea'))
+    }
+    pose.addEventListener('change',render)
+    document.querySelector('#background').addEventListener('change',render)
+    const parts=[['猫','w03-cat-v1/cat.png'],['帽子','w03-accessories-v1/cap.png'],['バッグ','w03-accessories-v1/bag.png']]
+    document.querySelector('#parts').replaceChildren(...parts.map(([label,file])=>{
+      const card=document.createElement('div');card.className='card'
+      const stage=document.createElement('div');stage.className='canvas'
+      const img=document.createElement('img');img.src=base+file;img.alt=label+'の透過素材'
+      const caption=document.createElement('div');caption.className='label';caption.textContent=label+' · '+file
+      stage.append(img);card.append(stage,caption);return card
+    }))
+    render()
+  </script>
+</body>
+</html>

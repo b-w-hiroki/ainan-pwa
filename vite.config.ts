@@ -40,6 +40,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         fishing: path.resolve(__dirname, 'fishing-game/index.html'),
+        w03ArtReview: path.resolve(__dirname, 'fishing-game/qa/w03-art-review.html'),
       },
       output: {
         manualChunks(id) {
