@@ -3,6 +3,12 @@
   "originalRestore": "git show <originalCommit>:<source>",
   "rule": "Replace saturated RGB (max > 220, range > 160) only at alpha 1..31 with nearest alpha >= 32 RGB; retain every alpha byte.",
   "limitations": "Does not alter silhouette aliasing, water texture, UI or renderer DPR. Source derivatives are review-only.",
+  "separatelyVerifiedFrames": [
+    "fishing-game/assets/candidates/w03-body-cute-a-01/cast-windup.png",
+    "fishing-game/assets/candidates/w03-body-cute-a-01/idle.png",
+    "fishing-game/assets/candidates/w03-body-cute-b-01/cast-windup.png",
+    "fishing-game/assets/candidates/w03-body-cute-b-01/idle.png"
+  ],
   "entries": [
     {
       "source": "docs/art-source/w03-cute-body/W03-CUTE-A-idle-01.png",
@@ -80,21 +86,6 @@
       ]
     },
     {
-      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-windup.png",
-      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/cast-windup.png",
-      "sourceSha256": "3621f7b6685db60c9cef95d138bbc53165c169b6185fbf042a1dd00b81bfab86",
-      "outputSha256": "3621f7b6685db60c9cef95d138bbc53165c169b6185fbf042a1dd00b81bfab86",
-      "changedPixels": 0,
-      "maxCompositeChannelDelta": 0.0,
-      "alphaUnchanged": true,
-      "unaffectedPixelsUnchanged": true,
-      "idempotent": true,
-      "size": [
-        640,
-        840
-      ]
-    },
-    {
       "source": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-left.png",
       "output": "fishing-game/assets/candidates/w03-body-cute-a-01/fight-left.png",
       "sourceSha256": "1388976c573ed894aaba0386cf42c0532ef02530ed773e707432050eb8a269ce",
@@ -131,21 +122,6 @@
       "outputSha256": "f6511329a910aeca948778cff33eda337c35e530fecdb08eb61bbd68192ff18e",
       "changedPixels": 955,
       "maxCompositeChannelDelta": 3.741176,
-      "alphaUnchanged": true,
-      "unaffectedPixelsUnchanged": true,
-      "idempotent": true,
-      "size": [
-        640,
-        840
-      ]
-    },
-    {
-      "source": "fishing-game/assets/candidates/w03-body-cute-a-01/idle.png",
-      "output": "fishing-game/assets/candidates/w03-body-cute-a-01/idle.png",
-      "sourceSha256": "98dad1fa10f8908b12dfed23f5de56455a0e0391650e8c946be0f4b307ec0a69",
-      "outputSha256": "98dad1fa10f8908b12dfed23f5de56455a0e0391650e8c946be0f4b307ec0a69",
-      "changedPixels": 0,
-      "maxCompositeChannelDelta": 0.0,
       "alphaUnchanged": true,
       "unaffectedPixelsUnchanged": true,
       "idempotent": true,
@@ -266,21 +242,6 @@
       "outputSha256": "acfab0c7bee7bf787e99f2a7d4224ea7dff4bf7c2f1e272ef4eae97142531ed3",
       "changedPixels": 1714,
       "maxCompositeChannelDelta": 1.976471,
-      "alphaUnchanged": true,
-      "unaffectedPixelsUnchanged": true,
-      "idempotent": true,
-      "size": [
-        640,
-        840
-      ]
-    },
-    {
-      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-windup.png",
-      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/cast-windup.png",
-      "sourceSha256": "68490a2ee9b27e1ab5291da7e1b53ac2a8c11391d8a798e33d5ee21a4ed65dae",
-      "outputSha256": "68490a2ee9b27e1ab5291da7e1b53ac2a8c11391d8a798e33d5ee21a4ed65dae",
-      "changedPixels": 0,
-      "maxCompositeChannelDelta": 0.0,
       "alphaUnchanged": true,
       "unaffectedPixelsUnchanged": true,
       "idempotent": true,
@@ -526,21 +487,6 @@
       "idempotent": true,
       "size": [
         896,
-        840
-      ]
-    },
-    {
-      "source": "fishing-game/assets/candidates/w03-body-cute-b-01/idle.png",
-      "output": "fishing-game/assets/candidates/w03-body-cute-b-01/idle.png",
-      "sourceSha256": "54c6fe475c9cc2a73a4fb4e6c911d5f409733257317ebc897db95e7d5003ffe6",
-      "outputSha256": "54c6fe475c9cc2a73a4fb4e6c911d5f409733257317ebc897db95e7d5003ffe6",
-      "changedPixels": 0,
-      "maxCompositeChannelDelta": 0.0,
-      "alphaUnchanged": true,
-      "unaffectedPixelsUnchanged": true,
-      "idempotent": true,
-      "size": [
-        640,
         840
       ]
     },

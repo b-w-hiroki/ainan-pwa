@@ -13,23 +13,10 @@ import subprocess
 
 import numpy as np
 from PIL import Image
-from scipy.ndimage import distance_transform_edt
+from transparent_edge import clean
 
 BASE = "887de90039d04b3695565204b46ebe15de1c9308"
 DEST = Path("docs/art-source/w03-edge-clean-v1")
-
-
-def clean(pixels):
-    result = pixels.copy()
-    rgb = pixels[:, :, :3].astype(np.int16)
-    alpha = pixels[:, :, 3]
-    mask = (alpha > 0) & (alpha < 32) & (rgb.max(2) > 220) & ((rgb.max(2) - rgb.min(2)) > 160)
-    if mask.any():
-        if not (alpha >= 32).any():
-            raise ValueError("No reliable color to borrow")
-        _, nearest = distance_transform_edt(alpha < 32, return_indices=True)
-        result[mask, :3] = pixels[nearest[0][mask], nearest[1][mask], :3]
-    return result, mask
 
 
 def main():
@@ -44,7 +31,13 @@ def main():
     ]
     runtime = [p for p in paths if p.endswith(".png") and any(
         p.startswith(f"fishing-game/assets/candidates/w03-body-cute-{body}-01/") for body in ("a", "b"))]
+    # The four active idle/windup frames now have a separate alpha-preserving
+    # derivation and check (repair-cute-frame-alpha.py).
+    repaired = {f"fishing-game/assets/candidates/w03-body-cute-{body}-01/{pose}.png"
+                for body in ("a", "b") for pose in ("idle", "cast-windup")}
     assert len(runtime) == 39, len(runtime)
+    runtime = [p for p in runtime if p not in repaired]
+    assert len(runtime) == 35, len(runtime)
     for body in ("a", "b"):
         metadata = f"fishing-game/assets/candidates/w03-body-cute-{body}-01/poses.json"
         # Git's Windows checkout can use CRLF; no metadata content may change.
@@ -90,6 +83,7 @@ def main():
     report = dict(originalCommit=BASE, originalRestore="git show <originalCommit>:<source>",
                   rule="Replace saturated RGB (max > 220, range > 160) only at alpha 1..31 with nearest alpha >= 32 RGB; retain every alpha byte.",
                   limitations="Does not alter silhouette aliasing, water texture, UI or renderer DPR. Source derivatives are review-only.",
+                  separatelyVerifiedFrames=sorted(repaired),
                   entries=entries)
     manifest = DEST / "manifest.json"
     if args.check:
