@@ -8,6 +8,7 @@ import json, sys
 from pathlib import Path
 import numpy as np
 from PIL import Image
+from transparent_edge import place_rgba
 
 SRC = Path('docs/art-source/harbor-character-v2')
 FRAME = (640, 840)
@@ -33,10 +34,8 @@ def build(body, out):
         im = Image.open(SRC / name).convert('RGBA')
         fcx, fy1, _ = feet_center(np.asarray(im)[..., 3])
         w, h = round(im.width * scale), round(im.height * scale)
-        im2 = im.resize((w, h), Image.LANCZOS)
         ox, oy = round(FEET_X - fcx * scale), round(FEET_Y - fy1 * scale)
-        frame = Image.new('RGBA', FRAME, (0, 0, 0, 0))
-        frame.alpha_composite(im2, (ox, oy)) if ox >= 0 and oy >= 0 else frame.paste(im2, (ox, oy), im2)
+        frame = place_rgba(im, (w, h), FRAME, (ox, oy))
         gx, gy = GRIP_SRC[body][pose]
         grip = [round((gx * scale + ox) / 2, 1), round((gy * scale + oy) / 2, 1)]   # 320x420 frame units
         file = 'idle.png' if pose == 'idle' else 'cast-windup.png'
@@ -78,16 +77,15 @@ def build_cute(vid, name, out):
     im = Image.open(CUTE / name).convert('RGBA'); a = np.asarray(im)[..., 3]
     fcx, fy1, fy0 = feet_center(a); scale = TARGET_H / (fy1 - fy0)
     w, h = round(im.width * scale), round(im.height * scale)
-    im2 = im.resize((w, h), Image.LANCZOS)
     ox, oy = round(FEET_X - fcx * scale), round(FEET_Y - fy1 * scale)
-    frame = Image.new('RGBA', FRAME, (0, 0, 0, 0)); frame.paste(im2, (ox, oy), im2)
+    frame = place_rgba(im, (w, h), FRAME, (ox, oy))
     gx, gy = hand_point(a)
     grip = [round((gx * scale + ox) / 2, 1), round((gy * scale + oy) / 2, 1)]
     frame.save(out / 'idle.png', optimize=True)
     info = {'body': vid, 'scale': scale, 'source': name, 'poses': {'idle': {'file': 'idle.png', 'grip': grip, 'offset': [ox, oy]}}}
     if vid in CUTE_WINDUP:   # same scale/offset as idle: the windup sprite shares the idle canvas and feet
         wi = Image.open(POSES_DIR / CUTE_WINDUP[vid]).convert('RGBA')
-        wf = Image.new('RGBA', FRAME, (0, 0, 0, 0)); wf.paste(wi.resize((w, h), Image.LANCZOS), (ox, oy), wi.resize((w, h), Image.LANCZOS))
+        wf = place_rgba(wi, (w, h), FRAME, (ox, oy))
         wx, wy = windup_point(np.asarray(wi)[..., 3])
         wf.save(out / 'cast-windup.png', optimize=True)
         info['poses']['castWindup'] = {'file': 'cast-windup.png', 'source': CUTE_WINDUP[vid],

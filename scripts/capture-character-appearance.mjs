@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict'
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { delimiter, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-const executable=process.env.PATH.split(':').map(dir=>join(dir,'playwright')).find(existsSync)
-assert.ok(executable)
-const {chromium}=await import(pathToFileURL(join(dirname(realpathSync(executable)),'index.mjs')).href)
+const bin=process.env.PATH.split(delimiter).find(dir=>existsSync(join(dir,'playwright'))||existsSync(join(dir,'playwright.cmd')))
+assert.ok(bin)
+const {chromium}=await import(pathToFileURL(join(bin,'..','playwright','index.mjs')).href)
+const base=process.env.QA_URL ?? 'http://127.0.0.1:4173'
 const appearance=process.env.CHARACTER_APPEARANCE ?? 'cute-b-01'
 assert.ok(['cute-a-01','cute-b-01'].includes(appearance))
 const root='artifacts/character-appearance/'+appearance
@@ -15,7 +16,7 @@ try {
  const errors=[]
  page.on('pageerror',e=>{if(e.message!=='service worker disabled in QA')errors.push(e.message)})
  await page.addInitScript(id=>{localStorage.setItem('ainan_character_appearance',id);localStorage.setItem('ainan_sound_enabled','0');if(!localStorage.getItem('ainan_accessories'))localStorage.setItem('ainan_accessories',JSON.stringify({owned:{cap:true,bag:true},equipped:{hat:'cap',bag:'bag'}}))},appearance)
- await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene')
+ await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene`)
  await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion?.cute)
  await page.evaluate(()=>window.__game.scene.getScene('GameScene').scene.pause())
  const poses=['idle','castWindup','castMid','castRelease','fightLeft','fightMid','fightRight','joyLift','joyMid','joyHold','sadDrop','sadMid','sadSlump']
@@ -47,7 +48,7 @@ try {
  // Retrieve must retain the selected actor over a character-free world while
  // keeping the existing three-button input owner. This used to fall back to a
  // full-screen bitmap with the classic fisher painted into it.
- await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve')
+ await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve`)
  await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?.phase==='retrieve')
  await page.waitForTimeout(300)
  const retrieve=await page.evaluate(()=>{
@@ -143,7 +144,7 @@ try {
  for (const [width,height] of [[390,844],[844,390]]) {
   await page.setViewportSize({width,height})
   for (const outcome of ['battle','caught','escaped']) {
-   await page.goto('http://127.0.0.1:4173/fishing-game/?qa=1&scene=GameScene&qaAction=battle')
+   await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaAction=battle`)
    await page.waitForFunction(()=>window.__game?.scene?.getScene('GameScene')?.phase==='battle')
    if(outcome!=='battle') await page.evaluate(value=>window.__game.scene.getScene('GameScene')._finishBattle(value),outcome)
    await page.waitForTimeout(1300)
@@ -182,7 +183,7 @@ try {
  }
  // Verify saved choice on a normal URL, without QA scene or rendering flags.
  await page.setViewportSize({width:390,height:844})
- await page.goto('http://127.0.0.1:4173/fishing-game/')
+ await page.goto(`${base}/fishing-game/`)
  await page.waitForFunction(()=>window.__game?.scene?.getScenes(true).length>0)
  await page.evaluate(()=>{
   const game=window.__game
