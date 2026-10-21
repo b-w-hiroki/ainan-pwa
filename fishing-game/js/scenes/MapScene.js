@@ -12,7 +12,7 @@ import { getConditionSummary, getWorldConditions } from '../game/worldConditions
 import { BOSS_META, getBossStates } from '../game/midgameProgression.js'
 import { getFishingPreparation } from '../game/fishingJourney.js'
 import { getFishingGroundName } from '../game/fishingGroundNames.js'
-import { touchHeight } from '../ui/touchLayout.js'
+import { canvasDisplayScale, touchHeight } from '../ui/touchLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -353,6 +353,7 @@ export default class MapScene extends Phaser.Scene {
 
   _showPointDetail(point, unlock = getFishingPointUnlock(point.id)) {
     const { width: W, height: H } = this.scale
+    const compact = canvasDisplayScale(this) < 0.75
     this._closePointDetail()
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
@@ -384,8 +385,8 @@ export default class MapScene extends Phaser.Scene {
     items.push(this.add.text(x + 88, y + 18, point.name, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink,
     }))
-    items.push(this.add.text(x + 88, y + 48, unlock.unlocked ? point.description : `未解放 / ${unlock.unlockedBy}で解放`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '12px', fontWeight: '800', color: unlock.unlocked ? UI_COLORS.inkSoft : '#d06b3b', wordWrap: { width: w - 110 },
+    items.push(this.add.text(x + 88, y + 48, unlock.unlocked ? (compact ? point.summary : point.description) : `未解放 / ${unlock.unlockedBy}で解放`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '16px' : '12px', fontWeight: '800', color: unlock.unlocked ? UI_COLORS.inkSoft : '#d06b3b', wordWrap: { width: w - 110 },
     }))
 
     this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty, unlock.unlocked)
@@ -402,11 +403,11 @@ export default class MapScene extends Phaser.Scene {
       items.push(this.add.text(x + 88, y + 76,
         bossState?.cleared ? '★ ' + bossMeta.title + ' / BEST ' + bossState.sizeCm + 'cm' : 'BOSSの気配  ' + bossMeta.title,
         {
-          fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+          fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '12px' : '9px', fontWeight: '900',
           color: bossState?.cleared ? '#a97700' : '#d65d47',
         }))
       const challenge = this.add.text(x + w - 22, y + 105, bossState?.cleared ? '大物挑戦 / 再戦 ›' : '大物挑戦 ›', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '12px' : '9px', fontWeight: '900',
         color: bossState?.cleared ? '#a97700' : '#d65d47',
         backgroundColor: bossState?.cleared ? '#fff2c7' : '#ffe1d8',
         padding: { x: 7, y: 4 },
@@ -416,17 +417,19 @@ export default class MapScene extends Phaser.Scene {
     }
 
     items.push(this.add.text(x + 18, y + 96, unlock.unlocked
-      ? `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`
+      ? (compact ? `未発見 ${unknownCount}/${point.fishIds.length} ・ 魚影 ${point.fishShadows}` : `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`)
       : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '14px' : '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
     }))
     const baitStock = preparation.bait.count === Infinity ? '∞' : preparation.bait.count
     const prepText = unlock.unlocked
-      ? `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`
+      ? (compact
+        ? `準備${preparation.ready ? 'OK' : '不足'}・ST ${preparation.stamina.current}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}`
+        : `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`)
       : `釣り場 未解放 / 準備判定は解放後`
     items.push(this.add.text(x + 18, y + 122, prepText, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900',
-      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: 2, wordWrap: { width: w - 158 },
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '14px' : '9px', fontWeight: '900',
+      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: compact ? 1 : 2, wordWrap: { width: w - (compact ? 36 : 158) },
     }))
 
     point.fishIds.slice(0, 4).forEach((id, i) => {
@@ -462,9 +465,9 @@ export default class MapScene extends Phaser.Scene {
     btn.fillRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
     btn.strokeRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
     const blocker = preparation.primaryBlocker
-    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? 'ここで釣る −1ST' : blocker.label
+    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? (compact ? 'ここで釣る' : 'ここで釣る −1ST') : blocker.label
     const btnText = this.add.text(x + w - 80, actionY, actionLabel, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: actionLabel.length > 9 ? '10px' : '12px', fontWeight: '900', color: UI_COLORS.ink,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? (actionLabel.length > 9 ? '13px' : '15px') : (actionLabel.length > 9 ? '10px' : '12px'), fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
     const hit = this.add.rectangle(x + w - 80, actionY, 124, actionHeight + 8, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
