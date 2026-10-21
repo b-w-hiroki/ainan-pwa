@@ -36,6 +36,8 @@
 
       #game-container canvas {
         display: block;
+        /* Flex owns centering on both entry points; suppress Phaser's inline margin. */
+        margin: 0 !important;
         width: min(100vw, 390px) !important;
         height: min(100vh, 844px) !important;
         max-width: calc(100vh * 390 / 844);

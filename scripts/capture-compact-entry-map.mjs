@@ -29,6 +29,15 @@ async function frame(page) {
 
 try {
   for (const [width, height] of [[320, 568], [375, 667], [390, 844]]) {
+    if (width === 320) {
+      const root = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+      try {
+        await root.goto(`${base}/`)
+        await root.waitForFunction(() => window.__game?.scene?.getScene('TitleScene')?.sys?.isActive?.())
+        await frame(root)
+        await root.screenshot({ path: `${output}/root-title-${width}.png`, animations: 'disabled' })
+      } finally { await root.close() }
+    }
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
     try {
       await page.goto(`${base}/fishing-game/`)
