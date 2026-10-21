@@ -726,7 +726,10 @@ export class CastPresentationHost {
   _onHostPointerDown(pointer) {
     if (!['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase) || !this.root?.visible) return
     const point = this._designPoint(pointer)
-    if (['cast', 'retrieve', 'result'].includes(this.scene.phase) && point.x <= 58 && point.y <= 68) {
+    const back = CAST_LAYER_CONFIG.controls.back
+    if (['cast', 'retrieve', 'result'].includes(this.scene.phase)
+      && point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
+      && point.y >= back.y - back.height / 2 && point.y <= back.y + back.height / 2) {
       this.adapter.back()
       return
     }

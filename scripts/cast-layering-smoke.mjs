@@ -40,6 +40,7 @@ for (const token of ['drawSky', 'drawClouds', 'drawDistantHarbor', 'drawSea', 'd
 assert.ok(!layeredScene.includes('localStorage'), 'presentation layers must not mutate saves')
 
 const host = read('fishing-game/js/presentation/cast/CastPresentationHost.js')
+assert.ok(host.includes('const back = CAST_LAYER_CONFIG.controls.back'), 'Cast host must use the shared back hit target')
 assert.ok(host.includes("layeredScene.nodes.fish.add(fishShadows)"), 'fish layer is not physically separated')
 assert.ok(host.includes("layeredScene.nodes.target.add(target)"), 'target layer is not physically separated')
 assert.ok(host.includes("applyCastLayerAdjustment(chrome, 'hud'"), 'HUD layer is not configurable')
