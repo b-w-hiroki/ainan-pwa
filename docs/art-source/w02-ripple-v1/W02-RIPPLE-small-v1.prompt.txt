@@ -1,0 +1,4 @@
+Use case: stylized-concept. Asset type: independent transparent water FX sprite for a 2.5D fishing game. Input image is style/color reference ONLY: match its hand-painted clear turquoise-to-blue morning sea and soft white reflections. Draw ONE small lure splash ripple viewed obliquely from above: three fine, slightly imperfect concentric elliptical rings and a few tiny surface glints, pale aqua and soft white, translucent painterly strokes, elegant and sparse. Center the ripple and leave generous fully transparent margin. Exactly one effect, no spritesheet. Absolutely no sea/background fill, fish, lure, fishing line, character, pier, rock, sky, horizon, text, UI, frame, or checkerboard. Output a PNG with real alpha transparency, not a flat colored background.
+
+Reference image: docs/art-source/w02-opensea-v5/W02-OPENSEA-v5.png
+Tool: built-in image_gen, transparent_background=true

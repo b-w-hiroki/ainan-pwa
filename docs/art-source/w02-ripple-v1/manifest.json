@@ -1,0 +1,35 @@
+{
+  "candidateId": "w02-ripple-small-v1",
+  "issue": "https://github.com/b-w-hiroki/ainan-pwa/issues/218",
+  "status": "review-source-only",
+  "artApproved": false,
+  "productionSwitched": false,
+  "qaRuntimeConnected": false,
+  "generator": "built-in image_gen",
+  "reference": "../w02-opensea-v5/W02-OPENSEA-v5.png",
+  "file": "W02-RIPPLE-small-v1.png",
+  "prompt": "W02-RIPPLE-small-v1.prompt.txt",
+  "sha256": "de08bbcb5299225376977b52ab6f579360396e607265b7ac0abdd8bd4528f1b7",
+  "bytes": 1234255,
+  "dimensions": [1536, 1024],
+  "colorMode": "RGBA",
+  "alpha": {
+    "min": 0,
+    "max": 253,
+    "transparentCorner": true,
+    "boundsAtLeast8": [213, 336, 1327, 750]
+  },
+  "review": {
+    "inspected": true,
+    "notes": [
+      "One oblique water ripple with transparent margin; no world or interface elements.",
+      "Source is an unmodified generated PNG, not a native-size ocean background.",
+      "Glow and color need visual comparison at actual lure display size before adoption."
+    ],
+    "remaining": [
+      "Art signoff against the approved mock and W02 water in GameScene.",
+      "Scale, alpha compositing, and phase timing in the real camera view.",
+      "W02 far/sea/quay and open-ocean world completion."
+    ]
+  }
+}
