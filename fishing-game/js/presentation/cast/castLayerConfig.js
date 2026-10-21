@@ -64,7 +64,7 @@ export const CAST_LAYER_CONFIG = Object.freeze({
   controls: Object.freeze({
     gauge: Object.freeze({ x: 36, y: 669, width: 320, height: 14 }),
     castButton: Object.freeze({ x: 195, y: 748, radius: 62 }),
-    back: Object.freeze({ x: 31, y: 40, width: 54, height: 52 }),
+    back: Object.freeze({ x: 33, y: 40, width: 66, height: 68 }),
   }),
   weather: Object.freeze({
     default: 'clear',

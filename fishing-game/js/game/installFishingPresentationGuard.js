@@ -8,6 +8,7 @@ import { FISHING_MOCK_LAYOUT as L } from '../presentation/layouts/fishingMockLay
 import { haptic } from './feedback.js'
 import { castLaunched } from './retrieveInputAcceptance.js'
 import { CastPresentationHost, castPresentationMode } from '../presentation/cast/CastPresentationHost.js'
+import { CAST_LAYER_CONFIG } from '../presentation/cast/castLayerConfig.js'
 import { characterMotionAssets, preloadCharacterAppearance } from '../presentation/cast/CharacterMotionController.js'
 
 const TEXT_RES = Math.min(2, Math.max(1, globalThis.devicePixelRatio ?? 1))
@@ -941,7 +942,10 @@ export function installFishingPresentationGuard(GameScene) {
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
     if (this.phase === 'cast' && this._castMotionInputLocked) return
-    if (['cast', 'retrieve'].includes(this.phase) && pointer?.x <= 58 && pointer?.y <= 70) {
+    const back = CAST_LAYER_CONFIG.controls.back
+    if (['cast', 'retrieve'].includes(this.phase)
+      && pointer?.x >= back.x - back.width / 2 && pointer?.x <= back.x + back.width / 2
+      && pointer?.y >= back.y - back.height / 2 && pointer?.y <= back.y + back.height / 2) {
       this.scene.start('MapScene')
       return
     }

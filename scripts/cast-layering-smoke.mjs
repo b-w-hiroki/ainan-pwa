@@ -14,6 +14,11 @@ assert.ok(CAST_LAYER_CONFIG.player.handAnchor, 'player hand anchor missing')
 assert.deepEqual(CAST_LAYER_CONFIG.player.modularHandAnchor, CAST_LAYER_CONFIG.rod.modularJoints[0], 'modular rod must start at the player hand')
 assert.deepEqual(CAST_LAYER_CONFIG.rod.lineStart, CAST_LAYER_CONFIG.rod.modularJoints.at(-1), 'modular line must start at the rod tip')
 assert.ok(CAST_LAYER_CONFIG.controls.castButton.radius >= 44, 'Cast touch target is too small')
+const shortPhoneScale = Math.min(320 / CAST_LAYER_CONFIG.design.width, 568 / CAST_LAYER_CONFIG.design.height)
+const back = CAST_LAYER_CONFIG.controls.back
+const backVisibleWidth = Math.min(CAST_LAYER_CONFIG.design.width, back.x + back.width / 2) - Math.max(0, back.x - back.width / 2)
+assert.ok(backVisibleWidth * shortPhoneScale >= 44 && back.height * shortPhoneScale >= 44,
+  'Cast back target must remain at least 44px on a 320x568 phone')
 
 const demo = readCastLayerDevOptions('?castLayers=1&castLayer=clouds&castLayerX=32&castLayerY=-4&castLayerScale=1.1&castWeather=overcast')
 assert.equal(demo.enabled, true)
