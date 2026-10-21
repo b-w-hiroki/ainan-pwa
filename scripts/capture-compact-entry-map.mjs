@@ -73,14 +73,18 @@ try {
       const action = await detail.evaluate(() => {
         const panel = window.__game.scene.getScene('MapScene')._detailPanel
         const hit = panel.list.find(node => node.type === 'Rectangle' && node.input)
-        const prep = panel.list.find(node => typeof node.text === 'string' && node.text.startsWith('釣り場 '))
+        const prep = panel.list.find(node => typeof node.text === 'string' && (node.text.startsWith('準備') || node.text.startsWith('釣り場 ')))
         const fish = panel.list.filter(node => node.type === 'Image' && node.displayWidth === 38)
         return { x: hit.x, y: hit.y + panel.y, hitHeight: hit.height,
-          prepBottom: prep.getBounds().bottom, fishTop: Math.min(...fish.map(node => node.y - 21)) }
+          prepBottom: prep.getBounds().bottom, fishTop: Math.min(...fish.map(node => node.y - 21)),
+          prepFont: Number.parseFloat(prep.style.fontSize) }
       })
       assert.ok(action.hitHeight * canvas.scale >= 44, 'Map fishing action shrank below 44 CSS px')
       assert.ok((action.hitHeight - 8) * canvas.scale >= 43.5, 'Map action visual is smaller than its tap target')
       assert.ok(action.prepBottom + 6 <= action.fishTop, 'Map preparation text overlaps fish icons')
+      if (canvas.scale < 0.75) {
+        assert.ok(action.prepFont * canvas.scale >= 9, 'Map preparation text is too small on compact screens')
+      }
       await detail.screenshot({ path: `${output}/map-detail-${width}.png`, animations: 'disabled' })
       await detail.mouse.click(canvas.x + action.x * canvas.scale, canvas.y + action.y * canvas.scale)
       await detail.waitForFunction(() => !window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.())
