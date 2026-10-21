@@ -106,6 +106,8 @@ export class CharacterMotionController {
     this.poseBack = null
     this.rod = null
     this.rodArt = null
+    this.rodArtRequested = false
+    this.rodArtActive = false
     this.rodType = DEFAULT_ROD_VISUAL_ID
     this.rodVisual = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
     this.rodTextureFallback = false
@@ -152,8 +154,10 @@ export class CharacterMotionController {
     // Keep the rod as native geometry. Some browsers composited the transparent
     // rod texture as an opaque black rectangle during alpha animation.
     this.rod = scene.add.graphics()
-    if (this.cute && isRodArtPreview() && Object.values(ROD_ART).every(asset => scene.textures.exists(asset.key))) {
-      this.rodArt = scene.add.image(0, 0, ROD_ART[DEFAULT_ROD_VISUAL_ID].key).setVisible(false)
+    this.rodArtRequested = this.cute && isRodArtPreview()
+    const availableRodArt = this.rodArtRequested && Object.values(ROD_ART).find(asset => scene.textures.exists(asset.key))
+    if (availableRodArt) {
+      this.rodArt = scene.add.image(0, 0, availableRodArt.key).setVisible(false)
     }
     for (const id of ['cap','bag']) {
       this.accessoryAccents[id] = this.cute
@@ -165,7 +169,7 @@ export class CharacterMotionController {
       .setVisible(false).setAngle(-4)
     this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
     this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.rodArt, this.line, this.fish].filter(Boolean))
-    this.root.setData('qaRodArt', Boolean(this.rodArt))
+    this.root.setData('qaRodArt', this.rodArtRequested)
     if (this.cute && this.appearance === 'cute-b-01') {
       this.hair = scene.add.image(this.layout.x, this.layout.y, cuteKey('idle', this.appearance) + '_hair').setOrigin(0.5, 1)
       this.root.add(this.hair)
@@ -208,6 +212,10 @@ export class CharacterMotionController {
     this.line.clear()
     if (!pose.grip || !pose.tip) {
       this.root.setData('rodGripLocal', null)
+      this.root.setData('rodGripWorld', null)
+      this.root.setData('rodTip', null)
+      this.root.setData('rodTipWorld', null)
+      this.root.setData('rodLineTargetWorld', null)
       this.rod.setVisible(false)
       this.rodArt?.setVisible(false)
       return
@@ -229,8 +237,8 @@ export class CharacterMotionController {
       x: grip.x + poseDx * visual.lengthScale - (poseDy / poseLength) * poseLength * flex,
       y: grip.y + poseDy * visual.lengthScale + (poseDx / poseLength) * poseLength * flex,
     }
-    this.rod.clear().setVisible(!this.rodArt)
-    if (this.rodArt) {
+    this.rod.clear().setVisible(!this.rodArtActive)
+    if (this.rodArtActive) {
       const sourceDx = ROD_ART_SOURCE.tip[0] - ROD_ART_SOURCE.grip[0]
       const sourceDy = ROD_ART_SOURCE.tip[1] - ROD_ART_SOURCE.grip[1]
       const scale = Math.hypot(tip.x - grip.x, tip.y - grip.y) / Math.hypot(sourceDx, sourceDy)
@@ -326,10 +334,12 @@ export class CharacterMotionController {
     const visual = ROD_VISUALS[resolvedType]
     this.rodType = resolvedType
     this.rodVisual = visual
-    this.rodTextureFallback = false
+    this.rodArtActive = Boolean(this.rodArtRequested && this.rodArt && this.scene.textures.exists(ROD_ART[resolvedType].key))
+    this.rodTextureFallback = this.rodArtRequested && !this.rodArtActive
     this.root.setData('rodType', resolvedType)
-    if (this.rodArt) this.rodArt.setTexture(ROD_ART[resolvedType].key)
-    this.root.setData('rodTexture', this.rodArt ? `candidate:${resolvedType}` : `native:${resolvedType}`)
+    if (this.rodArtActive) this.rodArt.setTexture(ROD_ART[resolvedType].key)
+    else this.rodArt?.setVisible(false)
+    this.root.setData('rodTexture', this.rodArtActive ? `candidate:${resolvedType}` : `native:${resolvedType}`)
     this.root.setData('rodTextureFallback', this.rodTextureFallback)
     const pose = this.poses[this.currentPose]
     if (pose) this._applyRod(pose)

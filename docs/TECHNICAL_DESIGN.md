@@ -42,7 +42,7 @@ HIT前のWaitで手動引き上げまたはミス後に戻る場合は、`GameSc
 
 ## 描画・素材の契約
 
-W03の候補素材は `fishing-game/qa/w03-art-review.html` でA/Bの同一13ポーズ、Bの独立髪、猫・帽子・バッグと3種の竿原画を透過背景と海色で比較できる。Viteの独立HTML入口としてビルドするレビュー専用画面であり、画像の重ね位置・実プレイ・美術承認を代替しない。`qa=1&qaRodArt=1` かつcute人物を選んだGameSceneでは、3種の竿候補を既存の手元・竿先ソケットに回転・等倍比率で仮接続し、native竿Graphicを隠して二重描画を防ぐ。糸は既存ownerのまま。画像読込に失敗した場合はnative竿へ戻る。全ポーズ・全画角の目視承認は未完了であり、通常URLの竿ownerと素材選択は変更しない。
+W03の候補素材は `fishing-game/qa/w03-art-review.html` でA/Bの同一13ポーズ、Bの独立髪、猫・帽子・バッグと3種の竿原画を透過背景と海色で比較できる。Viteの独立HTML入口としてビルドするレビュー専用画面であり、画像の重ね位置・実プレイ・美術承認を代替しない。`qa=1&qaRodArt=1` かつcute人物を選んだGameSceneでは、3種の竿候補を既存の手元・竿先ソケットに回転・等比率で仮接続し、native竿Graphicを隠して二重描画を防ぐ。糸は既存ownerのまま。候補画像が欠けた装備だけnative竿へ戻し、他の候補は表示を続ける。竿を持たないポーズでは手元・竿先・糸の目標座標を消す。全ポーズ・全画角の目視承認は未完了であり、通常URLの竿ownerと素材選択は変更しない。
 
 各画面スロットの最終描画責任は単一ownerにする。[visual-owners.json](pipeline/visual-owners.json)、[asset-states.json](pipeline/asset-states.json)、[asset-migration-inventory.json](pipeline/asset-migration-inventory.json) が所有者、現行/候補状態、移行証跡を扱う。アセットはmanifest・preload・シーン配置をそろえてから本番表示へ昇格する。候補画像を生成しただけでは採用ではない。過去素材は復旧可能に残し、背景・人物・髪・装備・竿・猫の独立レイヤー契約とアルファ品質を確認する。
 
@@ -52,7 +52,7 @@ W03のかわいい男女キャラクターの待機・振りかぶりフレー�
 
 W03の猫候補は原画と境界補正版を別々に保持し、`python scripts/art/prepare-w03-cat.py --check` でRGBA・輪郭・透明余白を検証する。`qaHarborPlayable=1&cameraPan=1&coneLoop=1&qaParts=1&qaCat=1&qaCatArt=1` のQA条件だけで独立GameObjectとして読み込み、既存の猫シルエットと比較できる。通常導線の描画・装備保存は変えず、アート承認前は候補のままとする。
 
-人物が握る竿は `CharacterMotionController` の単一Graphics ownerで描き、装備IDに応じた差し色を使う。根元から先端へ径を細くした曲線、ガイド、リールを同じ曲線上に置く。糸の起点となる先端座標と各ポーズの手元ソケットは変えない。透過ビットマップ竿で発生した黒矩形を避けるため、竿の表示はnative geometryを継続する。
+通常URLで人物が握る竿は `CharacterMotionController` の単一Graphics ownerで描き、装備IDに応じた差し色を使う。根元から先端へ径を細くした曲線、ガイド、リールを同じ曲線上に置く。糸の起点となる先端座標と各ポーズの手元ソケットは変えない。従来の透過ビットマップ竿で発生した黒矩形を避けるため、正式表示はnative geometryを継続する。上記QA条件の候補画像だけ、同時表示しない単一spriteへ切り替える。
 
 帽子・バッグの既存透過原画は `python scripts/art/prepare-w03-accessories.py --check` で境界だけ補正したQA用コピーと照合する。上記の港QA条件に `qaAccessoryArt=1` を加えた場合だけ、共通のポーズ別ソケット上で仮図形を実画像へ差し替える。描画サイズは人物の実表示幅に比例し、帽子・バッグそれぞれが独立GameObjectのまま追従する。正式装備表示やセーブには接続せず、人物との重なり・全13ポーズ・画風の承認は別途行う。
 港QAの「背景美術は未承認」表示は右上の海側に置き、縦横や画面回転で位置を再計算する。人物・装備の画質比較を文字が遮らないようにするためのQA表示変更で、釣り入力には関与しない。
