@@ -571,41 +571,33 @@ export class CastPresentationHost {
     chrome.add([retrieveHudCover, hudBase, hudSkin, back, pin, location, rod, distance, tackle, instruction])
 
     const dockBase = scene.add.graphics()
-    dockBase.fillStyle(0x031d2e, 0.94)
-    dockBase.fillRect(0, DOCK_TOP, DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP)
-    dockBase.lineStyle(1.5, 0xc9f4ff, 0.34)
-    dockBase.lineBetween(0, DOCK_TOP, DESIGN_WIDTH, DOCK_TOP)
-    const dockSkin = scene.textures.exists(ASSETS.ui.artOperationDockV2.key)
-      ? scene.add.image(DESIGN_WIDTH / 2, DOCK_TOP + (DESIGN_HEIGHT - DOCK_TOP) / 2, ASSETS.ui.artOperationDockV2.key)
-        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP + 8)
-      : null
+    dockBase.fillStyle(0xf7fcff, 0.96)
+    dockBase.lineStyle(2, 0x9bcfe5, 0.94)
+    dockBase.fillRoundedRect(8, DOCK_TOP, DESIGN_WIDTH - 16, DESIGN_HEIGHT - DOCK_TOP - 8, 22)
+    dockBase.strokeRoundedRect(8, DOCK_TOP, DESIGN_WIDTH - 16, DESIGN_HEIGHT - DOCK_TOP - 8, 22)
     const dockInstructionBacking = scene.add.graphics()
-    dockInstructionBacking.fillStyle(0x073754, 0.92)
+    dockInstructionBacking.fillStyle(0xe7f6ff, 0.94)
     dockInstructionBacking.fillRoundedRect(88, DOCK_TOP + 5, 214, 31, 15)
-    dockInstructionBacking.lineStyle(1, 0x8edfff, 0.58)
+    dockInstructionBacking.lineStyle(1, 0x9bcfe5, 0.9)
     dockInstructionBacking.strokeRoundedRect(88, DOCK_TOP + 5, 214, 31, 15)
     const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 20.5, '長押し → 離して投げる', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#173e61',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
     const powerTrack = scene.add.graphics()
-    powerTrack.fillStyle(0x082b45, 1)
+    powerTrack.fillStyle(0xd9eaf3, 1)
     const gaugeConfig = CAST_LAYER_CONFIG.controls.gauge
     powerTrack.fillRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
-    powerTrack.lineStyle(1.4, 0xb8eaff, 0.72)
+    powerTrack.lineStyle(1.4, 0x78bddd, 0.86)
     powerTrack.strokeRoundedRect(gaugeConfig.x, gaugeConfig.y, gaugeConfig.width, gaugeConfig.height, gaugeConfig.height / 2)
-    const powerTrackSkin = scene.textures.exists(ASSETS.ui.artGaugeTrackV2.key)
-      ? scene.add.image(gaugeConfig.x + gaugeConfig.width / 2, gaugeConfig.y + gaugeConfig.height / 2, ASSETS.ui.artGaugeTrackV2.key)
-        .setDisplaySize(gaugeConfig.width + 12, gaugeConfig.height + 10)
-      : null
     const powerFill = scene.add.graphics()
 
     const buttonY = CAST_LAYER_CONFIG.controls.castButton.y
-    const buttonBase = scene.add.circle(CAST_LAYER_CONFIG.controls.castButton.x, buttonY, 55, 0xffd957, 1)
-      .setStrokeStyle(3, 0xfff1a1, 1)
-    const buttonRing = scene.add.image(DESIGN_WIDTH / 2, buttonY, ASSETS.ui.fishingApprovedCastRing.key)
-      .setDisplaySize(130, 130)
+    const buttonBase = scene.add.circle(CAST_LAYER_CONFIG.controls.castButton.x, buttonY, 55, 0x168fce, 1)
+      .setStrokeStyle(3, 0xd8f5ff, 1)
+    const buttonRing = scene.add.circle(DESIGN_WIDTH / 2, buttonY, 61, 0xffffff, 0.001)
+      .setStrokeStyle(2, 0x58b8df, 0.9)
     const castIcon = scene.add.graphics().setPosition(DESIGN_WIDTH / 2, buttonY - 18)
-    castIcon.lineStyle(3, 0x102b43, 1)
+    castIcon.lineStyle(3, 0xffffff, 1)
     castIcon.beginPath()
     castIcon.moveTo(-22, 12)
     castIcon.lineTo(-14, -4)
@@ -616,9 +608,9 @@ export class CastPresentationHost {
     castIcon.strokePath()
     castIcon.strokeCircle(-13, 7, 7)
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#102335',
-    }).setOrigin(0.5).setResolution(2).setScale(1.6)
-    castDock.add([dockBase, ...(dockSkin ? [dockSkin] : []), dockInstructionBacking, dockInstruction, powerTrack, ...(powerTrackSkin ? [powerTrackSkin] : []), powerFill, buttonBase, buttonRing, castIcon, castLabel])
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setResolution(2).setScale(1.25)
+    castDock.add([dockBase, dockInstructionBacking, dockInstruction, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backConfig = CAST_LAYER_CONFIG.controls.back
     const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
@@ -628,7 +620,7 @@ export class CastPresentationHost {
       { item: buttonBase, scale: 1 },
       { item: buttonRing, scale: 1 },
       { item: castIcon, scale: 1 },
-      { item: castLabel, scale: 1.6 },
+      { item: castLabel, scale: 1.25 },
     ]
     const resetScale = () => pressables.forEach(({ item, scale }) => item.setScale(scale))
     castHit.on('pointerdown', pointer => {
@@ -909,7 +901,7 @@ export class CastPresentationHost {
     if (castVisible) {
       this.nodes.powerFill.clear()
       const gauge = CAST_LAYER_CONFIG.controls.gauge
-      drawStatusMeter(this.nodes.powerFill, { x: gauge.x + 3, y: gauge.y + 3, w: gauge.width - 6, h: gauge.height - 6, value: view.charge01, max: 1, tone: 'sun' })
+      drawStatusMeter(this.nodes.powerFill, { x: gauge.x + 3, y: gauge.y + 3, w: gauge.width - 6, h: gauge.height - 6, value: view.charge01, max: 1, tone: 'ocean' })
     }
     if (battleVisible) {
       const battle = view.battle

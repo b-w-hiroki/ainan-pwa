@@ -5,7 +5,7 @@ const checks=[
  ['fishing-game/js/ui/UiArt.js',['loadUiArt','addArtPanel','addArtCard','addArtDialog','addArtGauge']],
  ['fishing-game/js/scenes/UpgradeScene.js',['addArtCard','addArtDialog','addArtPanel']],
  ['fishing-game/js/scenes/MenuScene.js',['addArtCard','addArtPanel']],
- ['fishing-game/js/presentation/cast/CastPresentationHost.js',['artOperationDockV2','artGaugeTrackV2','artResultCardV2']],
+ ['fishing-game/js/presentation/cast/CastPresentationHost.js',['dockInstructionBacking','powerTrack','artResultCardV2']],
 ]
 for(const [file,tokens] of checks){const text=fs.readFileSync(file,'utf8');for(const token of tokens)if(!text.includes(token))throw new Error(`${file} missing ${token}`)}
 console.log('UI art system v2 smoke QA passed')
