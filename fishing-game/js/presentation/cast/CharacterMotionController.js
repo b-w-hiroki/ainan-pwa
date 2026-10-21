@@ -68,6 +68,16 @@ const isCute = () => ['cute-a-01', 'cute-b-01'].includes(getActiveCharacterAppea
 const cuteKey = (name, id = getActiveCharacterAppearance()) => `character_cute_${id === 'cute-a-01' ? 'a' : 'b'}_${name}`
 const cuteFile = name => name.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase())
 const cuteDir = () => `${import.meta.env?.BASE_URL ?? '/'}fishing-game/assets/candidates/w03-body-${getActiveCharacterAppearance()}/`
+const ROD_ART_SOURCE = Object.freeze({ grip: [448, 840], tip: [1167, 101], size: 1254 })
+const ROD_ART = Object.freeze({
+  basic: { key: 'character_cute_rod_basic', path: new URL('../../../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-basic-v1.png', import.meta.url).href, status: 'candidate' },
+  carbon: { key: 'character_cute_rod_carbon', path: new URL('../../../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-carbon-v1.png', import.meta.url).href, status: 'candidate' },
+  premium: { key: 'character_cute_rod_premium', path: new URL('../../../../docs/art-source/w03-cute-rod/W03-CUTE-ROD-premium-v1.png', import.meta.url).href, status: 'candidate' },
+})
+const isRodArtPreview = (search = globalThis.window?.location?.search ?? '') => {
+  const params = new URLSearchParams(search)
+  return params.get('qa') === '1' && params.get('qaRodArt') === '1'
+}
 export function preloadCharacterAppearance(scene) {
   if ((isCharacterAppearancePreview() || isCute()) && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
     scene.load.image(CHARACTER_PREVIEW_BACKGROUND.key, CHARACTER_PREVIEW_BACKGROUND.path)
@@ -79,6 +89,7 @@ export function characterMotionAssets() {
   return [...new Set([
     ...requiredAssets(),
     ...(isCute() ? cuteEquipmentAssets() : []),
+    ...(isCute() && isRodArtPreview() ? Object.values(ROD_ART) : []),
     ...(isCute() ? Object.keys(CHARACTER_MOTION_POSES).flatMap(name => [
       { key: cuteKey(name), path: cuteDir() + cuteFile(name) + '.png', status: 'ready' },
       ...(getActiveCharacterAppearance() === 'cute-b-01' ? [{ key: cuteKey(name) + '_hair', path: cuteDir() + 'hair-' + cuteFile(name) + '.png', status: 'ready' }] : []),
@@ -94,6 +105,7 @@ export class CharacterMotionController {
     this.poseFront = null
     this.poseBack = null
     this.rod = null
+    this.rodArt = null
     this.rodType = DEFAULT_ROD_VISUAL_ID
     this.rodVisual = ROD_VISUALS[DEFAULT_ROD_VISUAL_ID]
     this.rodTextureFallback = false
@@ -140,6 +152,9 @@ export class CharacterMotionController {
     // Keep the rod as native geometry. Some browsers composited the transparent
     // rod texture as an opaque black rectangle during alpha animation.
     this.rod = scene.add.graphics()
+    if (this.cute && isRodArtPreview() && Object.values(ROD_ART).every(asset => scene.textures.exists(asset.key))) {
+      this.rodArt = scene.add.image(0, 0, ROD_ART[DEFAULT_ROD_VISUAL_ID].key).setVisible(false)
+    }
     for (const id of ['cap','bag']) {
       this.accessoryAccents[id] = this.cute
         ? (scene.textures.exists(CUTE_EQUIPMENT[id].key) ? scene.add.image(0,0,CUTE_EQUIPMENT[id].key).setVisible(false) : null)
@@ -149,7 +164,8 @@ export class CharacterMotionController {
     this.fish = scene.add.image(0, 0, ASSETS.fishHeroes.tai.key)
       .setVisible(false).setAngle(-4)
     this._fitFish(HELD_FISH_BOUNDS.width, HELD_FISH_BOUNDS.height)
-    this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.line, this.fish].filter(Boolean))
+    this.root.add([this.poseFront, this.accessoryAccents.bag, this.accessoryAccents.cap, this.rod, this.rodArt, this.line, this.fish].filter(Boolean))
+    this.root.setData('qaRodArt', Boolean(this.rodArt))
     if (this.cute && this.appearance === 'cute-b-01') {
       this.hair = scene.add.image(this.layout.x, this.layout.y, cuteKey('idle', this.appearance) + '_hair').setOrigin(0.5, 1)
       this.root.add(this.hair)
@@ -193,6 +209,7 @@ export class CharacterMotionController {
     if (!pose.grip || !pose.tip) {
       this.root.setData('rodGripLocal', null)
       this.rod.setVisible(false)
+      this.rodArt?.setVisible(false)
       return
     }
     const grip = this._point(pose.grip)
@@ -212,7 +229,15 @@ export class CharacterMotionController {
       x: grip.x + poseDx * visual.lengthScale - (poseDy / poseLength) * poseLength * flex,
       y: grip.y + poseDy * visual.lengthScale + (poseDx / poseLength) * poseLength * flex,
     }
-    this.rod.clear().setVisible(true)
+    this.rod.clear().setVisible(!this.rodArt)
+    if (this.rodArt) {
+      const sourceDx = ROD_ART_SOURCE.tip[0] - ROD_ART_SOURCE.grip[0]
+      const sourceDy = ROD_ART_SOURCE.tip[1] - ROD_ART_SOURCE.grip[1]
+      const scale = Math.hypot(tip.x - grip.x, tip.y - grip.y) / Math.hypot(sourceDx, sourceDy)
+      const angle = Math.atan2(tip.y - grip.y, tip.x - grip.x) - Math.atan2(sourceDy, sourceDx)
+      this.rodArt.setOrigin(ROD_ART_SOURCE.grip[0] / ROD_ART_SOURCE.size, ROD_ART_SOURCE.grip[1] / ROD_ART_SOURCE.size)
+        .setPosition(grip.x, grip.y).setScale(scale).setRotation(angle).setVisible(true)
+    }
     const rodControl = {
       x: (grip.x + tip.x) / 2 - (poseDy / poseLength) * poseLength * flex * 0.55,
       y: (grip.y + tip.y) / 2 + (poseDx / poseLength) * poseLength * flex * 0.55,
@@ -303,7 +328,8 @@ export class CharacterMotionController {
     this.rodVisual = visual
     this.rodTextureFallback = false
     this.root.setData('rodType', resolvedType)
-    this.root.setData('rodTexture', `native:${resolvedType}`)
+    if (this.rodArt) this.rodArt.setTexture(ROD_ART[resolvedType].key)
+    this.root.setData('rodTexture', this.rodArt ? `candidate:${resolvedType}` : `native:${resolvedType}`)
     this.root.setData('rodTextureFallback', this.rodTextureFallback)
     const pose = this.poses[this.currentPose]
     if (pose) this._applyRod(pose)
