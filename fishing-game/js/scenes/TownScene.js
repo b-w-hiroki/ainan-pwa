@@ -205,16 +205,16 @@ export default class TownScene extends Phaser.Scene {
       g.fillRoundedRect(20, 18, W - 40, 10, 5)
     }
 
-    this.add.text(26, 40, 'みんなの港町', {
+    this.add.text(26, this._hasKue ? 31 : 40, 'みんなの港町', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink, shadow: SHADOW.subtle,
     }).setOrigin(0, 0.5).setDepth(10)
 
     if (this._hasKue) {
       g.fillStyle(0xffd95a, 1)
       g.lineStyle(1.4, 0x9a6b00, 0.72)
-      g.fillRoundedRect(172, 34, 62, 23, 10)
-      g.strokeRoundedRect(172, 34, 62, 23, 10)
-      this.add.text(203, 45, 'LEGEND', {
+      g.fillRoundedRect(26, 46, 62, 20, 9)
+      g.strokeRoundedRect(26, 46, 62, 20, 9)
+      this.add.text(57, 56, 'LEGEND', {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.ink, letterSpacing: 1,
       }).setOrigin(0.5).setDepth(10)
     }
