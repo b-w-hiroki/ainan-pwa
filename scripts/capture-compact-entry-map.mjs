@@ -12,10 +12,19 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 async function frame(page) {
-  return page.evaluate(() => {
-    const rect = window.__game.canvas.getBoundingClientRect()
-    return { x: rect.x, y: rect.y, scale: rect.width / window.__game.scale.width }
+  const measurement = await page.evaluate(() => {
+    const canvas = window.__game.canvas
+    const rect = canvas.getBoundingClientRect()
+    const container = canvas.parentElement
+    const bounds = container.getBoundingClientRect()
+    const style = getComputedStyle(container)
+    const leftGap = rect.left - bounds.left - Number.parseFloat(style.paddingLeft)
+    const rightGap = bounds.right - Number.parseFloat(style.paddingRight) - rect.right
+    return { x: rect.x, y: rect.y, scale: rect.width / window.__game.scale.width, leftGap, rightGap }
   })
+  assert.ok(Math.abs(measurement.leftGap - measurement.rightGap) <= 1,
+    `Portrait canvas is off-center: ${JSON.stringify(measurement)}`)
+  return measurement
 }
 
 try {
