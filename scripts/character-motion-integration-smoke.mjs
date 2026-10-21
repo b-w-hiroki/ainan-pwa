@@ -79,6 +79,37 @@ for (const [phase, layout] of Object.entries(CHARACTER_MOTION_LAYOUTS)) {
   }
 }
 
+// A missing candidate must affect only its own equipment choice; stale rod
+// coordinates must not survive a pose with no held rod.
+const loadedRodArt = new Set(['character_cute_rod_basic', 'character_cute_rod_premium'])
+const preview = new CharacterMotionController({ textures: { exists: key => loadedRodArt.has(key) } })
+const previewData = new Map()
+preview.root = { setData: (key, value) => previewData.set(key, value) }
+preview.poses = {}
+preview.rodArtRequested = true
+preview.rodArt = {
+  setTexture(key) { this.texture = key; return this },
+  setVisible(value) { this.visible = value; return this },
+}
+preview._setRodVisual('basic', true)
+assert.equal(previewData.get('rodTexture'), 'candidate:basic')
+assert.equal(previewData.get('rodTextureFallback'), false)
+preview._setRodVisual('carbon')
+assert.equal(previewData.get('rodTexture'), 'native:carbon')
+assert.equal(previewData.get('rodTextureFallback'), true)
+assert.equal(preview.rodArt.visible, false)
+preview._setRodVisual('premium')
+assert.equal(previewData.get('rodTexture'), 'candidate:premium')
+assert.equal(previewData.get('rodTextureFallback'), false)
+preview.line = { clear() {} }
+preview.rod = { setVisible(value) { this.visible = value } }
+preview._applyRod({})
+for (const key of ['rodGripLocal', 'rodGripWorld', 'rodTip', 'rodTipWorld', 'rodLineTargetWorld']) {
+  assert.equal(previewData.get(key), null, `${key} must clear when the rod is hidden`)
+}
+assert.equal(preview.rod.visible, false)
+assert.equal(preview.rodArt.visible, false)
+
 const controller = read('fishing-game/js/presentation/cast/CharacterMotionController.js')
 for (const token of ['isReducedMotion', "phase === 'battle'", "phase === 'result'", 'this.previous.charging', 'this.token += 1', 'fishingMotionHeldRod']) {
   assert.ok(controller.includes(token), `motion controller missing: ${token}`)
