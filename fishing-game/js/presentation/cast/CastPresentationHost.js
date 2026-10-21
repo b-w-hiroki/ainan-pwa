@@ -583,6 +583,9 @@ export class CastPresentationHost {
     const dockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 20.5, '長押し → 離して投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#173e61',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
+    const powerLabel = scene.add.text(36, DOCK_TOP + 20.5, 'パワー', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#173e61',
+    }).setOrigin(0, 0.5).setResolution(2).setScale(1.25)
     const powerTrack = scene.add.graphics()
     powerTrack.fillStyle(0xd9eaf3, 1)
     const gaugeConfig = CAST_LAYER_CONFIG.controls.gauge
@@ -610,7 +613,7 @@ export class CastPresentationHost {
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
-    castDock.add([dockBase, dockInstructionBacking, dockInstruction, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
+    castDock.add([dockBase, dockInstructionBacking, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backConfig = CAST_LAYER_CONFIG.controls.back
     const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
