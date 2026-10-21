@@ -46,11 +46,18 @@ try {
       await map.waitForTimeout(400)
       const canvas = await frame(map)
       const back = await map.evaluate(() => {
-        const button = window.__game.scene.getScene('MapScene')._backButton
-        return { x: button.container.x, y: button.container.y, hitHeight: button.hit.height }
+        const scene = window.__game.scene.getScene('MapScene')
+        const button = scene._backButton
+        const footerLabels = scene.children.list.filter(node => node.type === 'Text' && ['ホーム', '装備', 'まち', '交換', 'メニュー'].includes(node.text))
+        return { x: button.container.x, y: button.container.y, hitHeight: button.hit.height,
+          footerFonts: footerLabels.map(node => Number.parseFloat(node.style.fontSize)) }
       })
       assert.ok(back.hitHeight * canvas.scale >= 44, 'Map back touch area shrank below 44 CSS px')
       assert.ok((back.hitHeight - 8) * canvas.scale >= 43.5, 'Map back visual is smaller than its tap target')
+      assert.equal(back.footerFonts.length, 5, 'Map footer labels missing')
+      if (canvas.scale < 0.9) {
+        assert.ok(Math.min(...back.footerFonts) * canvas.scale >= 9.5, 'Map footer labels are too small on compact screens')
+      }
       await map.screenshot({ path: `${output}/map-${width}.png`, animations: 'disabled' })
       await map.mouse.click(canvas.x + back.x * canvas.scale, canvas.y + back.y * canvas.scale)
       await map.waitForFunction(() => window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.())

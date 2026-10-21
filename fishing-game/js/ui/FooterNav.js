@@ -3,6 +3,7 @@ import { ICONS } from '../config/icons.js'
 import { getCatches, getTownFacilities } from '../game/progress.js'
 import { isReducedMotion, playSfx } from '../game/feedback.js'
 import { drawGlyph } from './UiGlyph.js'
+import { canvasDisplayScale } from './touchLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 
@@ -26,6 +27,7 @@ export const FOOTER_NAV_SPEC = Object.freeze({
 export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   if (activeKey === 'town') buildTownReaction(scene, W, H)
 
+  const compact = canvasDisplayScale(scene) < 0.9
   const disabledKeys = new Set(options.disabledKeys ?? [])
   const h = FOOTER_NAV_SPEC.height
   const y = H - h - FOOTER_NAV_SPEC.bottomInset
@@ -59,6 +61,7 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
     active: tab.key === activeKey,
     disabled: disabledKeys.has(tab.key),
     useArt,
+    compact,
   }))
   scene._footerKeyboardFocus = false
   let focusIndex = Math.max(0, FOOTER_TABS.findIndex(tab => tab.key === activeKey))
@@ -110,7 +113,7 @@ export function buildFooterNav(scene, W, H, activeKey = 'home', options = {}) {
   })
   scene._footerTabs = tabs
 }
-function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
+function createFooterTab(scene, x, y, tab, { active, disabled, useArt, compact }) {
   const width = 68
   const centerY = y + 38
   const surface = scene.add.graphics().setDepth(91)
@@ -123,7 +126,7 @@ function createFooterTab(scene, x, y, tab, { active, disabled, useArt }) {
     ? scene.add.image(x, y + 28, artKey).setDisplaySize(tab.key === 'town' ? 39 : 35, tab.key === 'equip' ? 42 : 35).setDepth(93)
     : null
   const label = scene.add.text(x, y + FOOTER_NAV_SPEC.labelBaseline, tab.label, {
-    fontFamily: FONT, resolution: TEXT_RES, fontSize: active ? '12px' : '11px', fontWeight: '900',
+    fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? (active ? '16px' : '15px') : (active ? '12px' : '11px'), fontWeight: '900',
     color: active ? UI_COLORS.oceanDeep : disabled ? '#a9b9c3' : UI_COLORS.muted,
   }).setOrigin(0.5).setDepth(93)
   const hit = scene.add.rectangle(x, centerY, width, FOOTER_NAV_SPEC.hitHeight, 0x000000, 0).setDepth(94)
