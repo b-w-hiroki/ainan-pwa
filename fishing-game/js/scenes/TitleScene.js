@@ -8,7 +8,7 @@ import { getQaSceneRoute } from '../game/qaBootstrap.js'
 import { loadUiArt } from '../ui/UiArt.js'
 import { isReducedMotion } from '../game/feedback.js'
 import { addCoverImage, addReadableOverlay } from '../utils/imageLayout.js'
-import { touchHeight } from '../ui/touchLayout.js'
+import { canvasDisplayScale, touchHeight } from '../ui/touchLayout.js'
 
 const TEXT_RES = window.devicePixelRatio ?? 1
 const BUILD_ID = (import.meta.env.VITE_BUILD_SHA ?? 'local').slice(0, 8)
@@ -26,6 +26,7 @@ export default class TitleScene extends Phaser.Scene {
 
   create() {
     const { width: W, height: H } = this.scale
+    const compact = canvasDisplayScale(this) < 0.75
 
     // Deterministic CI screenshot routing. Normal play is unaffected.
     const qaRoute = getQaSceneRoute(window.location.search)
@@ -87,7 +88,7 @@ export default class TitleScene extends Phaser.Scene {
     location.strokeRoundedRect(W / 2 - 81, H * 0.105 - 14, 162, 28, 14)
     this.add.text(W / 2, H * 0.105, 'EHIME  ·  愛南の海', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '900',
+      fontSize: compact ? '15px' : '12px', fontWeight: '900',
       color: '#fff5d9', letterSpacing: 1.1,
     }).setOrigin(0.5).setDepth(5)
 
@@ -114,7 +115,7 @@ export default class TitleScene extends Phaser.Scene {
     subBg.strokeRoundedRect(W / 2 - 112, H * 0.27 - 16, 224, 32, 16)
     this.add.text(W / 2, H * 0.27, '釣りと町づくりの海辺の暮らし', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '14px', fontWeight: '900',
+      fontSize: compact ? '17px' : '14px', fontWeight: '900',
       color: '#ffffff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
@@ -128,13 +129,13 @@ export default class TitleScene extends Phaser.Scene {
     copyBg.strokeRoundedRect(W / 2 - 156, copyY - 37, 312, 74, 20)
     this.add.text(W / 2, copyY - 12, '釣って、育てて、港町を元気に。', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '16px', fontWeight: '900',
+      fontSize: compact ? '18px' : '16px', fontWeight: '900',
       color: '#fff5d9',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
     this.add.text(W / 2, copyY + 15, '愛南の海から、物語をはじめよう', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '800',
+      fontSize: compact ? '15px' : '12px', fontWeight: '800',
       color: '#e5f7ff',
       shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
@@ -173,7 +174,7 @@ export default class TitleScene extends Phaser.Scene {
     footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
     this.add.text(W / 2, H * 0.95, '釣り × 町おこし  AINAN', {
       fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: '12px', fontWeight: '700',
+      fontSize: compact ? '15px' : '12px', fontWeight: '700',
       color: '#1a3a5a',
     }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
 

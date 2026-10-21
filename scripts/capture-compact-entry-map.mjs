@@ -46,11 +46,17 @@ try {
       const title = await page.evaluate(() => {
         const scene = window.__game.scene.getScene('TitleScene')
         const button = scene.children.list.find(node => node.getData?.('uiRole') === 'button' && node.list.some(child => child.text === '遊び方'))
-        return { x: button.x, y: button.y, hitHeight: button.list.find(child => child.type === 'Rectangle' && child.input).height }
+        const copy = scene.children.list.find(node => node.text === '愛南の海から、物語をはじめよう')
+        return { x: button.x, y: button.y, hitHeight: button.list.find(child => child.type === 'Rectangle' && child.input).height,
+          copyFont: Number.parseFloat(copy.style.fontSize), copyWidth: copy.width }
       })
       const canvas = await frame(page)
       assert.ok(title.hitHeight * canvas.scale >= 44, 'Title help touch area shrank below 44 CSS px')
       assert.ok((title.hitHeight - 8) * canvas.scale >= 43.5, 'Title help visual is smaller than its tap target')
+      assert.ok(title.copyWidth <= 312, 'Title story copy overflows its card')
+      if (canvas.scale < 0.75) {
+        assert.ok(title.copyFont * canvas.scale >= 10, 'Title story copy is too small on compact screens')
+      }
       await page.screenshot({ path: `${output}/title-${width}.png`, animations: 'disabled' })
       await page.mouse.click(canvas.x + title.x * canvas.scale, canvas.y + title.y * canvas.scale)
       await page.waitForFunction(() => window.__game?.scene?.getScene('HelpScene')?.sys?.isActive?.())
