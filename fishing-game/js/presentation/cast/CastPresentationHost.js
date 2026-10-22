@@ -9,6 +9,7 @@ import { applyCastLayerAdjustment, createLayeredCastScene } from './CastLayeredS
 import { CharacterMotionController } from './CharacterMotionController.js'
 import { getRetryJourneyCopy } from '../../game/fishingJourney.js'
 import { drawStatusMeter } from '../../ui/UiPrimitives.js'
+import { canvasDisplayScale } from '../../ui/touchLayout.js'
 import { isReducedMotion } from '../../game/feedback.js'
 import { battleJumpFrame } from './battleJumpMotion.js'
 
@@ -133,6 +134,7 @@ export class CastPresentationHost {
   mount() {
     if (this.root?.active) return this
     const scene = this.scene
+    const compact = canvasDisplayScale(scene) < 0.75
     const root = scene.add.container(0, 0).setDepth(6000).setScrollFactor(0)
     root.name = 'cast-presentation-host'
 
@@ -364,7 +366,7 @@ export class CastPresentationHost {
     }).setOrigin(0, 0.5).setResolution(2)
     const battlePhase = scene.add.text(146, 39, 'BATTLE', {
       fontFamily: 'Nunito, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173e61',
-    }).setOrigin(0, 0.5).setResolution(2)
+    }).setOrigin(0, 0.5).setResolution(2).setVisible(!compact)
     const battleTensionTrack = scene.add.graphics()
     battleTensionTrack.fillStyle(0x092b43, 1)
     battleTensionTrack.fillRoundedRect(205, 31, 154, 17, 9)
@@ -377,11 +379,11 @@ export class CastPresentationHost {
       : null
     const battleOpeningMeter = scene.add.graphics().setVisible(false)
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '15px' : '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
     }).setOrigin(0.5).setResolution(2)
     const battleRage = scene.add.text(DESIGN_WIDTH / 2, 104, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#fff3a5',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '16px' : '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setResolution(2).setVisible(false)
     const battleInstructionBacking = scene.add.graphics()
@@ -390,7 +392,7 @@ export class CastPresentationHost {
     battleInstructionBacking.lineStyle(1, 0x8edfff, 0.25)
       .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
     const battleInstruction = scene.add.text(DESIGN_WIDTH / 2, 648, 'タップ / 下へスワイプで巻く', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compact ? '16px' : '12px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2)
     battleField.add([battleBackground, battleSplash, battleLine, battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction, battleFish])
 
@@ -674,6 +676,7 @@ export class CastPresentationHost {
       castLocationOverlay,
       retrieveLocationOverlay,
       battleFishName,
+      battlePhase,
       battleTensionFill,
       battleTensionStatus,
       battleOpeningMeter,
