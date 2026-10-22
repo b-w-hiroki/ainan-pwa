@@ -48,11 +48,9 @@ jobs:
   mobile-e2e:
     needs: build
     runs-on: ubuntu-latest
-    # Full captures plus artifact upload reached 15m on run 39031399419.
-    # Keep every assertion and allow cleanup to finish on slower runners.
-    # Density coverage adds four phases, eight scenes, context restoration and
-    # five 2x-density drags to the existing ~17m run. Retain every assertion.
-    timeout-minutes: 25
+    # Full assertions and artifact upload now take about 25m on some runners.
+    # Leave time for post-job cleanup without dropping any visual coverage.
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v4
