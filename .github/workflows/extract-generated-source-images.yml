@@ -7,15 +7,17 @@ on:
       - '.github/workflows/extract-generated-source-images.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  archive:
+  render:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - name: Install image renderer
-        run: python3 -m pip install --quiet cairosvg pillow
+        run: python3 -m pip install --disable-pip-version-check --quiet 'CairoSVG==2.8.2' 'Pillow==12.0.0'
       - name: Render production parts to PNG archive
         shell: bash
         run: |
@@ -76,6 +78,25 @@ jobs:
               sheet.alpha_composite(im, ((i % cols)*220, (i // cols)*190))
           sheet.save(out / 'generated_asset_sheet.png', optimize=True)
           PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: generated-source-images
+          path: docs/art-spec/generated-source-images/files/
+          if-no-files-found: error
+
+  archive:
+    needs: render
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: generated-source-images
+          path: docs/art-spec/generated-source-images/files/
       - name: Commit archived PNG images
         run: |
           git config user.name 'github-actions[bot]'
@@ -86,4 +107,4 @@ jobs:
             exit 0
           fi
           git commit -m 'assets: archive generated fishing images'
-          git push
+          git push origin HEAD:"$GITHUB_REF"
