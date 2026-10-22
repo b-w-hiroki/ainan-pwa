@@ -46,6 +46,11 @@ const cameraPanPrototype = typeof window !== 'undefined'
   && (['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan'))
     || new URLSearchParams(window.location.search).get('coneLoop') === '1'
     || isNativeLandscapeQaResize(window.location.search))
+// QA-only portrait experiment. Other scenes keep their existing layout until
+// the entire navigation and fishing loop can use the shorter logical height.
+const compactPortraitPrototype = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('qa') === '1'
+  && new URLSearchParams(window.location.search).get('compactPortrait') === '1'
 
 installFishingRuntime(GameScene)
 installTownCatchArrival(TownScene)
@@ -78,7 +83,7 @@ const config = {
   },
   callbacks: { postBoot: installDenseRendering },
   scale: {
-    mode: cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
+    mode: cameraPanPrototype || compactPortraitPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: MOBILE_FRAME.width,
     height: MOBILE_FRAME.height,

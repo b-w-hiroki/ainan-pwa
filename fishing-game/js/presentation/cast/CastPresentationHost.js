@@ -16,6 +16,9 @@ import { battleJumpFrame } from './battleJumpMotion.js'
 const DESIGN_WIDTH = CAST_LAYER_CONFIG.design.width
 const DESIGN_HEIGHT = CAST_LAYER_CONFIG.design.height
 const DOCK_TOP = CAST_LAYER_CONFIG.dockTop
+const compactPortraitPrototype = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('qa') === '1'
+  && new URLSearchParams(window.location.search).get('compactPortrait') === '1'
 const RETRIEVE_FISH_LABELS = Object.freeze({
   noticed: '気づいた', follow: '追っている', inspect: '様子見', biteReady: '食いそう',
 })
@@ -125,6 +128,11 @@ export class CastPresentationHost {
       if (!this._slowPointerHeld) return
       this._slowPointerHeld = false
       this.adapter.endSlowRetrieve()
+    }
+    this._cancelCompactCast = () => {
+      if (!this._compactChargeHeld) return
+      this._compactChargeHeld = false
+      this.adapter.cancelCharge()
     }
     this._cancelHiddenRetrieve = () => {
       if (document.hidden) this._cancelHeldRetrieve()
@@ -575,6 +583,9 @@ export class CastPresentationHost {
     chrome.add([retrieveHudCover, hudBase, hudSkin, back, pin, location, rod, distance, tackle, instruction])
 
     const dockBase = scene.add.graphics()
+    const compactDockBacking = scene.add.graphics().setVisible(false)
+    compactDockBacking.fillStyle(0xf7fcff, 1)
+    compactDockBacking.fillRoundedRect(8, DOCK_TOP, DESIGN_WIDTH - 16, DESIGN_HEIGHT - DOCK_TOP - 8, 22)
     dockBase.fillStyle(0xf7fcff, 0.96)
     dockBase.lineStyle(2, 0x9bcfe5, 0.94)
     dockBase.fillRoundedRect(8, DOCK_TOP, DESIGN_WIDTH - 16, DESIGN_HEIGHT - DOCK_TOP - 8, 22)
@@ -617,7 +628,7 @@ export class CastPresentationHost {
     const castLabel = scene.add.text(DESIGN_WIDTH / 2, buttonY + 25, '投げる', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2).setScale(1.25)
-    castDock.add([dockBase, dockInstructionBacking, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
+    castDock.add([compactDockBacking, dockBase, dockInstructionBacking, dockInstruction, powerLabel, powerTrack, powerFill, buttonBase, buttonRing, castIcon, castLabel])
 
     const backConfig = CAST_LAYER_CONFIG.controls.back
     const castButtonConfig = CAST_LAYER_CONFIG.controls.castButton
@@ -656,6 +667,7 @@ export class CastPresentationHost {
       instruction,
       instructionSkin,
       buttonRing,
+      compactDockBacking,
       castHit,
       backHit,
       castField,
@@ -714,10 +726,15 @@ export class CastPresentationHost {
     scene.input.on('pointerdown', this._onHostPointerDown, this)
     scene.input.on('pointerup', this._onHostPointerUp, this)
     scene.input.on('pointerupoutside', this._cancelHeldRetrieve)
+    scene.input.on('pointerupoutside', this._cancelCompactCast)
     scene.input.on('gameout', this._cancelHeldRetrieve)
+    scene.input.on('gameout', this._cancelCompactCast)
     scene.scale.on('resize', this._cancelHeldRetrieve)
+    scene.scale.on('resize', this._cancelCompactCast)
     scene.game.canvas.addEventListener('pointercancel', this._cancelHeldRetrieve)
+    scene.game.canvas.addEventListener('pointercancel', this._cancelCompactCast)
     window.addEventListener('blur', this._cancelHeldRetrieve)
+    window.addEventListener('blur', this._cancelCompactCast)
     document.addEventListener('visibilitychange', this._cancelHiddenRetrieve)
     scene.input.keyboard?.on('keydown-ENTER', this._onResultKeyboard, this)
     return this
@@ -731,6 +748,14 @@ export class CastPresentationHost {
   _onHostPointerDown(pointer) {
     if (!['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase) || !this.root?.visible) return
     const point = this._designPoint(pointer)
+    if (this._compactCastActive && this.scene.phase === 'cast') {
+      const dockY = this.nodes.castDock.y
+      if (Math.hypot(point.x - CAST_LAYER_CONFIG.controls.castButton.x,
+        point.y - (CAST_LAYER_CONFIG.controls.castButton.y + dockY)) <= CAST_LAYER_CONFIG.controls.castButton.radius) {
+        this._compactChargeHeld = this.scene.isCharging || this.adapter.beginCharge()
+        return
+      }
+    }
     const back = CAST_LAYER_CONFIG.controls.back
     if (['cast', 'retrieve', 'result'].includes(this.scene.phase)
       && point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
@@ -768,6 +793,11 @@ export class CastPresentationHost {
   }
 
   _onHostPointerUp() {
+    if (this._compactChargeHeld) {
+      this._compactChargeHeld = false
+      this.adapter.releaseCharge()
+      return
+    }
     if (this._resultPointerAction) {
       const action = this._resultPointerAction
       this._resultPointerAction = null
@@ -803,6 +833,30 @@ export class CastPresentationHost {
     if (!this.root?.active) return
     const width = this.scene.scale.width
     const height = this.scene.scale.height
+    // First compact slice: Cast owns separate field and dock containers, so
+    // the dock can follow the viewport bottom without shrinking the sea.
+    // Retrieve/Battle/Result retain the proven FIT composition for now.
+    const compactCast = compactPortraitPrototype && this.scene.phase === 'cast'
+      && width < DESIGN_WIDTH && height < DESIGN_HEIGHT
+    this._compactCastActive = compactCast
+    this.nodes.compactDockBacking.setVisible(compactCast)
+    const compactScale = width / DESIGN_WIDTH
+    const designHeight = height / compactScale
+    const dockOffset = compactCast ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
+    this.nodes.castDock.setY(dockOffset)
+    this.nodes.castInteraction.setY(dockOffset)
+    if (this.nodes.characterMotion?.ready) {
+      // The actor is independent of the painted harbor. Keep the feet just
+      // above the relocated dock so the compact crop still shows the fisher.
+      this.nodes.characterMotion.root.setY(compactCast
+        ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
+        : 0)
+    }
+    if (compactCast) {
+      this.root.setScale(compactScale)
+      this.root.setPosition(0, 0)
+      return
+    }
     const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)
     this.root.setScale(scale)
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
@@ -828,6 +882,10 @@ export class CastPresentationHost {
 
   sync() {
     if (!this.root?.active) return
+    if (compactPortraitPrototype && this._lastLayoutPhase !== this.scene.phase) {
+      this._lastLayoutPhase = this.scene.phase
+      this.layout()
+    }
     if (this.scene.phase !== 'retrieve') this._cancelHeldRetrieve()
     const view = readCastViewModel(this.scene)
     this.nodes.characterMotion?.sync(view)
@@ -1095,14 +1153,20 @@ export class CastPresentationHost {
 
   destroy() {
     this._cancelHeldRetrieve()
+    this._cancelCompactCast()
     this.scene.scale?.off?.('resize', this.layout, this)
     this.scene.scale?.off?.('resize', this._cancelHeldRetrieve)
+    this.scene.scale?.off?.('resize', this._cancelCompactCast)
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
     this.scene.input?.off?.('pointerupoutside', this._cancelHeldRetrieve)
+    this.scene.input?.off?.('pointerupoutside', this._cancelCompactCast)
     this.scene.input?.off?.('gameout', this._cancelHeldRetrieve)
+    this.scene.input?.off?.('gameout', this._cancelCompactCast)
     this.scene.game.canvas.removeEventListener('pointercancel', this._cancelHeldRetrieve)
+    this.scene.game.canvas.removeEventListener('pointercancel', this._cancelCompactCast)
     window.removeEventListener('blur', this._cancelHeldRetrieve)
+    window.removeEventListener('blur', this._cancelCompactCast)
     document.removeEventListener('visibilitychange', this._cancelHiddenRetrieve)
     this.scene.input.keyboard?.off('keydown-ENTER', this._onResultKeyboard, this)
     this.nodes?.characterMotion?.destroy?.()

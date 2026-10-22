@@ -90,6 +90,12 @@
         max-height: none !important;
         aspect-ratio: auto;
       }
+      html[data-compact-portrait-prototype='1'] #game-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        aspect-ratio: auto;
+      }
       @supports not (height: 100dvh) {
         body,
         #game-container {
@@ -111,6 +117,7 @@
       const pageParams = new URLSearchParams(location.search)
       const isQa = new URLSearchParams(location.search).get('qa') === '1'
       if (['1', 'true'].includes(pageParams.get('cameraPan')) || pageParams.get('coneLoop') === '1' || (isQa && pageParams.get('nativeLandscapeAll') === '1')) document.documentElement.dataset.cameraPanPrototype = '1'
+      if (isQa && pageParams.get('compactPortrait') === '1') document.documentElement.dataset.compactPortraitPrototype = '1'
       if (isQa) {
         // Fixed visual QA must render the current preview build, never a prior
         // Workbox precache. Production PWA registration remains unchanged.
