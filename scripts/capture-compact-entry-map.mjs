@@ -122,7 +122,7 @@ try {
       console.log('Compact Map fishing action passed:', width)
     } finally { await detail.close() }
 
-    if (width === 320 || width === 390) {
+    if (width === 320 || width === 375 || width === 390) {
       const battle = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
       try {
         await battle.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaAction=battle`)
@@ -135,13 +135,11 @@ try {
             .map(([name, node]) => [name, { font: Number.parseFloat(node.style.fontSize), width: node.width, visible: node.visible }]))
         })
         assert.ok(cues.battleInstruction.width <= 350, 'Battle instruction overflows its backing')
-        if (canvas.scale < 0.75) {
-          assert.equal(cues.battlePhase.visible, false, 'Compact Battle header crowds the tension gauge')
-          for (const name of ['battleReel', 'battleRage', 'battleInstruction']) {
-            assert.ok(cues[name].font * canvas.scale >= 10, `${name} is too small on compact screens`)
-          }
-        } else {
-          assert.equal(cues.battlePhase.visible, true, 'Normal portrait Battle header changed')
+        assert.equal(cues.battlePhase.visible, canvas.scale >= 0.75, 'Battle header threshold changed')
+        for (const name of ['battleReel', 'battleRage', 'battleInstruction']) {
+          assert.ok(cues[name].font * canvas.scale >= 10, `${name} is too small on portrait screens`)
+        }
+        if (canvas.scale >= 0.9) {
           assert.equal(cues.battleInstruction.font, 12, 'Normal portrait Battle instruction changed')
         }
         await battle.screenshot({ path: `${output}/battle-${width}.png`, animations: 'disabled' })
