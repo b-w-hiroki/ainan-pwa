@@ -5,6 +5,7 @@ on:
     paths:
       - 'fishing-game/assets/fishing-field/**/*.svg'
       - '.github/workflows/extract-generated-source-images.yml'
+      - '.github/requirements-image-archive.lock'
 
 permissions:
   contents: read
@@ -16,8 +17,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
       - name: Install image renderer
-        run: python3 -m pip install --disable-pip-version-check --quiet 'CairoSVG==2.8.2' 'Pillow==12.0.0'
+        run: "python -m pip install --disable-pip-version-check --quiet --only-binary=:all: --require-hashes -r .github/requirements-image-archive.lock"
       - name: Render production parts to PNG archive
         shell: bash
         run: |
@@ -81,7 +85,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: generated-source-images
-          path: docs/art-spec/generated-source-images/files/
+          path: docs/art-spec/generated-source-images/files/*.png
           if-no-files-found: error
 
   archive:
@@ -96,7 +100,44 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: generated-source-images
-          path: docs/art-spec/generated-source-images/files/
+          path: ${{ runner.temp }}/generated-source-images
+      - name: Validate archive artifact before copying into checkout
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/generated-source-images
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path(os.environ['ARTIFACT_DIR'])
+          target = Path('docs/art-spec/generated-source-images/files')
+          names = {
+              'water_base_generated.png', 'water_pattern_generated.png',
+              'water_highlight_generated.png', 'underwater_depth_generated.png',
+              'fish_shadow_s_idle_generated.png', 'fish_shadow_m_idle_generated.png',
+              'fish_shadow_m_turn_generated.png', 'fish_shadow_l_idle_generated.png',
+              'rock_generated.png', 'seaweed_generated.png',
+              'lure_idle_generated.png', 'lure_trail_generated.png',
+              'fx_ripple_small_generated.png', 'fx_follow_wave_generated.png',
+              'fx_ripple_bite_generated.png', 'fx_hit_flash_generated.png',
+              'retrieve_button_short_reel_generated.png', 'generated_asset_sheet.png',
+          }
+          if source.is_symlink() or not source.is_dir():
+              raise SystemExit('Invalid archive artifact directory')
+          actual = {p.name for p in source.iterdir()}
+          if actual != names:
+              raise SystemExit(f'Unexpected archive artifact files: {sorted(actual ^ names)}')
+          if target.is_symlink() or any(p.is_symlink() for p in target.parents):
+              raise SystemExit('Archive target crosses a symlink')
+          if any((target / name).is_symlink() for name in names):
+              raise SystemExit('Archive target includes a symlink')
+          target.mkdir(parents=True, exist_ok=True)
+          for name in sorted(names):
+              file = source / name
+              if file.is_symlink() or not file.is_file() or file.read_bytes()[:8] != b'\x89PNG\r\n\x1a\n':
+                  raise SystemExit(f'Invalid PNG artifact: {name}')
+              (target / name).write_bytes(file.read_bytes())
+          PY
       - name: Commit archived PNG images
         run: |
           git config user.name 'github-actions[bot]'
@@ -108,3 +149,4 @@ jobs:
           fi
           git commit -m 'assets: archive generated fishing images'
           git push origin HEAD:"$GITHUB_REF"
+
