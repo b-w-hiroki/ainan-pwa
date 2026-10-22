@@ -845,6 +845,13 @@ export class CastPresentationHost {
     const dockOffset = compactCast ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
     this.nodes.castDock.setY(dockOffset)
     this.nodes.castInteraction.setY(dockOffset)
+    if (this.nodes.characterMotion?.ready) {
+      // The actor is independent of the painted harbor. Keep the feet just
+      // above the relocated dock so the compact crop still shows the fisher.
+      this.nodes.characterMotion.root.setY(compactCast
+        ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
+        : 0)
+    }
     if (compactCast) {
       this.root.setScale(compactScale)
       this.root.setPosition(0, 0)

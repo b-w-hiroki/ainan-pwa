@@ -26,6 +26,7 @@ try {
         return {
           canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
           scale: host.root.scaleX, dockY: host.nodes.castDock.y,
+          actorY: host.nodes.characterMotion?.root?.y ?? null,
           button: { x: hit.x, y: hit.y },
           phase: scene.phase,
         }
@@ -34,6 +35,7 @@ try {
       assert.ok(Math.abs(state.canvas.width - width) <= 1, 'Cast canvas does not fill portrait width')
       assert.ok(Math.abs(state.scale - width / 390) < 0.01, 'Cast field did not use width scale')
       assert.ok(state.dockY < 0, 'Cast dock did not move into the shorter viewport')
+      if (state.actorY !== null) assert.ok(state.actorY < 0, 'Fisher stayed behind compact dock')
       assert.ok((state.button.y + state.dockY) * state.scale < height - 35, 'Cast button fell below viewport')
       await page.screenshot({ path: `${output}/cast-${width}.png`, animations: 'disabled' })
       const x = state.canvas.x + state.button.x * state.scale
