@@ -67,7 +67,9 @@ assert.ok(ci.includes('node scripts/capture-settings-storage-actions.mjs'),
 const boot=read('fishing-game/js/main.js')
 const wideFlags=read('fishing-game/js/presentation/landscape/nativeLandscapeQaFlags.js')
 const viewportContract=read('scripts/viewport-prototype-contract-smoke.mjs')
-assert.ok(boot.includes('cameraPanPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT'),
+assert.ok(boot.includes('cameraPanPrototype || compactPortraitPrototype ? Phaser.Scale.RESIZE : Phaser.Scale.FIT')
+  && boot.includes("new URLSearchParams(window.location.search).get('qa') === '1'")
+  && boot.includes("new URLSearchParams(window.location.search).get('compactPortrait') === '1'"),
   'Default production viewport must stay portrait FIT until release gate')
 assert.ok(boot.includes('isNativeLandscapeQaResize(window.location.search)'),
   'Wide QA Phaser viewport must use explicit opt-in')
