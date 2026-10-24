@@ -119,7 +119,8 @@ try {
           await page.mouse.move(state.resultPrimary.x, state.resultPrimary.y)
           await page.mouse.down()
           await page.mouse.up()
-          await page.waitForTimeout(500)
+          await page.waitForFunction(() => window.__game?.scene?.getScenes(true)
+            .some(scene => scene.scene.key === 'TownScene'))
           const navigation = await page.evaluate(() => {
             const game = window.__game
             const scene = game.scene.getScene('GameScene')
