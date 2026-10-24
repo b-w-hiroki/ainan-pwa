@@ -1,0 +1,90 @@
+import assert from 'node:assert/strict'
+import { delimiter, join } from 'node:path'
+import { existsSync, mkdirSync, statSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
+
+const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
+assert.ok(bin, 'Run via npm exec --package=playwright')
+const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'index.mjs')).href)
+const output = 'artifacts/compact-fishing-loop/handoff'
+mkdirSync(output, { recursive: true })
+const browser = await chromium.launch({ headless: true })
+
+try {
+  const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+  const errors = []
+  page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
+  try {
+    await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
+    await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    const point = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const host = scene._castPresentationHost
+      const rect = scene.game.canvas.getBoundingClientRect()
+      return { x: rect.x + 195 * host.root.scaleX,
+        y: rect.y + (748 + host.nodes.castDock.y) * host.root.scaleY }
+    })
+    await page.mouse.move(point.x, point.y)
+    await page.mouse.down()
+    await page.waitForTimeout(260)
+    await page.mouse.up()
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'retrieve', null, { timeout: 10000 })
+    const retrieve = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      return { phase: scene.phase, compact: scene._castPresentationHost._compactRetrieveActive,
+        dock: scene._castPresentationHost.nodes.retrieveDock.y }
+    })
+    assert.equal(retrieve.compact, true)
+    assert.ok(retrieve.dock < 0)
+    await page.screenshot({ path: `${output}/01-retrieve.png`, animations: 'disabled' })
+
+    // Start a deterministic QA Battle after a real Cast and Retrieve. Fish RNG
+    // and bite timing are outside this layout handoff check.
+    const entered = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
+      if (!runtime) return false
+      scene._targetFishIndex = runtime.index ?? 0
+      scene._targetFishGfx = runtime.gfx
+      scene._enterBattle()
+      return scene.phase === 'battle'
+    })
+    assert.equal(entered, true, 'QA Battle handoff failed')
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
+    const battlePoint = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const host = scene._castPresentationHost
+      scene.battleState.isRaging = false
+      scene.battleState.nextRageAt = Number.POSITIVE_INFINITY
+      scene._battleNextReelInputAt = 0
+      window.__compactBeforeReel = scene.battleState.reel
+      const rect = scene.game.canvas.getBoundingClientRect()
+      return { x: rect.x + 195 * host.root.scaleX,
+        y: rect.y + (746 + host._compactDockOffset) * host.root.scaleY }
+    })
+    await page.mouse.click(battlePoint.x, battlePoint.y)
+    const reel = await page.evaluate(() => window.__game.scene.getScene('GameScene').battleState.reel)
+    const beforeReel = await page.evaluate(() => window.__compactBeforeReel)
+    assert.ok(reel > beforeReel, 'Battle dial did not apply reel input after phase handoff')
+
+    await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
+    const result = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const host = scene._castPresentationHost
+      const rect = scene.game.canvas.getBoundingClientRect()
+      return { compact: host._compactResultActive, x: rect.x + 195 * host.root.scaleX,
+        y: rect.y + host.nodes.resultPrimarySkin.y * host.root.scaleY }
+    })
+    assert.equal(result.compact, true)
+    await page.screenshot({ path: `${output}/03-result.png`, animations: 'disabled' })
+    await page.mouse.click(result.x, result.y)
+    await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
+    for (const file of ['01-retrieve.png', '02-battle.png', '03-result.png']) {
+      assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
+    }
+    assert.deepEqual(errors, [])
+    console.log('Compact 320x568 Cast → Retrieve → controlled Battle → Result → Town handoff passed')
+  } finally { await page.close() }
+} finally { await browser.close() }

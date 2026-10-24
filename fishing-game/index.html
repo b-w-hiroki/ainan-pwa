@@ -90,6 +90,13 @@
         max-height: none !important;
         aspect-ratio: auto;
       }
+      html[data-compact-portrait-prototype='1'] #game-container {
+        width: calc(100vw - var(--safe-left) - var(--safe-right));
+        height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+        height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
+        margin: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+        padding: 0;
+      }
       html[data-compact-portrait-prototype='1'] #game-container canvas {
         width: 100% !important;
         height: 100% !important;
