@@ -38,18 +38,42 @@ try {
     assert.ok(retrieve.dock < 0)
     await page.screenshot({ path: `${output}/01-retrieve.png`, animations: 'disabled' })
 
-    // Start a deterministic QA Battle after a real Cast and Retrieve. Fish RNG
-    // and bite timing are outside this layout handoff check.
+    // Exercise the relocated Retrieve controls before a controlled fish-ready
+    // event. Fish selection remains a QA fixture; HIT is a real pointer input.
+    await page.waitForFunction(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      return scene.phase === 'retrieve' && scene.time.now >= (scene._retrieveReadyAt ?? 0)
+    })
+    const retrievePoint = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const host = scene._castPresentationHost
+      const rect = scene.game.canvas.getBoundingClientRect()
+      return { twitchX: rect.x + 195 * host.root.scaleX,
+        slowX: rect.x + 318 * host.root.scaleX,
+        y: rect.y + (746 + host._compactDockOffset) * host.root.scaleY }
+    })
+    await page.mouse.click(retrievePoint.twitchX, retrievePoint.y)
+    await page.mouse.move(retrievePoint.slowX, retrievePoint.y)
+    await page.mouse.down()
+    await page.waitForTimeout(280)
+    await page.mouse.up()
+    const decisions = await page.evaluate(() => window.__game.scene.getScene('GameScene').retrieveState?.decisionCount ?? 0)
+    assert.ok(decisions >= 2, 'moved Retrieve controls must record two player decisions')
     const entered = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
-      const runtime = scene.bg?._fishRuntime?.find(item => item?.gfx?.active)
-      if (!runtime) return false
-      scene._targetFishIndex = runtime.index ?? 0
-      scene._targetFishGfx = runtime.gfx
-      scene._enterBattle()
-      return scene.phase === 'battle'
+      const runtime = scene.bg?._fishRuntime?.find(item => item?.fishDef && item.gfx?.active)
+      if (!runtime || scene.phase !== 'retrieve') return false
+      scene._tickFishInterest = () => {}
+      const openHitWindow = scene._openHitWindow.bind(scene)
+      scene._openHitWindow = ms => openHitWindow(Math.max(ms, 5000))
+      scene._beginRetrieveBite(runtime)
+      if (scene.phase === 'wait') scene.fish = { ...scene.fish, biteRate: 1 }
+      return scene.phase === 'wait'
     })
-    assert.equal(entered, true, 'QA Battle handoff failed')
+    assert.equal(entered, true, 'controlled fish-ready event did not open the bite sequence')
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').waitTapActive, null, { timeout: 30000 })
+    await page.mouse.click(160, 265)
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
     await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
     const battlePoint = await page.evaluate(() => {
@@ -85,6 +109,6 @@ try {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log('Compact 320x568 Cast → Retrieve → controlled Battle → Result → Town handoff passed')
+    console.log('Compact 320x568 Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed')
   } finally { await page.close() }
 } finally { await browser.close() }
