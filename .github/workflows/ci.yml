@@ -93,6 +93,9 @@ jobs:
       - name: Verify compact Title and Map touch navigation
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-entry-map.mjs
 
+      - name: Verify compact Title to Cast physical tap journey
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-entry-handoff.mjs
+
       - name: Verify compact Cast reflow prototype
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-cast-prototype.mjs
 

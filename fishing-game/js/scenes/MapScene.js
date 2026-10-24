@@ -354,13 +354,16 @@ export default class MapScene extends Phaser.Scene {
   _showPointDetail(point, unlock = getFishingPointUnlock(point.id)) {
     const { width: W, height: H } = this.scale
     const compact = canvasDisplayScale(this) < 0.75
+    const qaCompact = new URLSearchParams(window.location.search).get('qa') === '1'
+      && new URLSearchParams(window.location.search).get('compactPortrait') === '1'
+      && W < 390 && H < 844
     this._closePointDetail()
     markLicenseFlag('ainan_seen_spot')
     const caughtIds = new Set(getCatches().map(c => c.fishId))
     const unknownCount = point.fishIds.filter(id => !caughtIds.has(id)).length
     const preparation = getFishingPreparation(point.id)
 
-    const x = W * 0.05, y = H - 330, w = W * 0.90, h = 246
+    const x = W * 0.05, y = H - (qaCompact ? 406 : 330), w = W * 0.90, h = qaCompact ? 320 : 246
     const items = []
     this._dismissLayer = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(19).setInteractive().on('pointerdown', () => this._closePointDetail())
 
@@ -385,8 +388,8 @@ export default class MapScene extends Phaser.Scene {
     items.push(this.add.text(x + 88, y + 18, point.name, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '21px', fontWeight: '900', color: UI_COLORS.ink,
     }))
-    items.push(this.add.text(x + 88, y + 48, unlock.unlocked ? (compact ? point.summary : point.description) : `未解放 / ${unlock.unlockedBy}で解放`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '16px' : '12px', fontWeight: '800', color: unlock.unlocked ? UI_COLORS.inkSoft : '#d06b3b', wordWrap: { width: w - 110 },
+    items.push(this.add.text(x + 88, y + 48, unlock.unlocked ? (compact || qaCompact ? point.summary : point.description) : `未解放 / ${unlock.unlockedBy}で解放`, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? '16px' : '12px', fontWeight: '800', color: unlock.unlocked ? UI_COLORS.inkSoft : '#d06b3b', wordWrap: { width: w - 110 },
     }))
 
     this._addDifficultyTo(items, x + w - 18, y + 18, point.difficulty, unlock.unlocked)
@@ -396,18 +399,18 @@ export default class MapScene extends Phaser.Scene {
     if (bossMeta && unlock.unlocked) {
       const bossArt = ASSETS.bosses[bossMeta.id]
       if (bossArt?.key && this.textures.exists(bossArt.key)) {
-        items.push(this.add.image(x + w - 44, y + 82, bossArt.key)
-          .setDisplaySize(bossMeta.id === 'kue' ? 82 : 74, bossMeta.id === 'kue' ? 51 : 45)
+        items.push(this.add.image(x + w - (qaCompact ? 34 : 44), y + (qaCompact ? 88 : 82), bossArt.key)
+          .setDisplaySize(qaCompact ? 50 : bossMeta.id === 'kue' ? 82 : 74, qaCompact ? 32 : bossMeta.id === 'kue' ? 51 : 45)
           .setAlpha(bossState?.cleared ? 0.92 : 0.78))
       }
-      items.push(this.add.text(x + 88, y + 76,
+      items.push(this.add.text(x + (qaCompact ? 18 : 88), y + (qaCompact ? 79 : 76),
         bossState?.cleared ? '★ ' + bossMeta.title + ' / BEST ' + bossState.sizeCm + 'cm' : 'BOSSの気配  ' + bossMeta.title,
         {
-          fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '12px' : '9px', fontWeight: '900',
+          fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? '12px' : '9px', fontWeight: '900',
           color: bossState?.cleared ? '#a97700' : '#d65d47',
         }))
-      const challenge = this.add.text(x + w - 22, y + 105, bossState?.cleared ? '大物挑戦 / 再戦 ›' : '大物挑戦 ›', {
-        fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '12px' : '9px', fontWeight: '900',
+      const challenge = this.add.text(x + w - 22, y + (qaCompact ? 111 : 105), bossState?.cleared ? '大物挑戦 / 再戦 ›' : '大物挑戦 ›', {
+        fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? '12px' : '9px', fontWeight: '900',
         color: bossState?.cleared ? '#a97700' : '#d65d47',
         backgroundColor: bossState?.cleared ? '#fff2c7' : '#ffe1d8',
         padding: { x: 7, y: 4 },
@@ -416,25 +419,25 @@ export default class MapScene extends Phaser.Scene {
       items.push(challenge)
     }
 
-    items.push(this.add.text(x + 18, y + 96, unlock.unlocked
-      ? (compact ? `未発見 ${unknownCount}/${point.fishIds.length} ・ 魚影 ${point.fishShadows}` : `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`)
+    items.push(this.add.text(x + 18, y + (qaCompact ? 131 : 96), unlock.unlocked
+      ? (compact || qaCompact ? `未発見 ${unknownCount}/${point.fishIds.length} ・ 魚影 ${point.fishShadows}` : `未発見 ${unknownCount}/${point.fishIds.length}   魚影 ${point.fishShadows}   ${point.env}`)
       : `町へ戻って ${unlock.unlockedBy} を達成しよう`, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '14px' : '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? '14px' : '10px', fontWeight: '900', color: unlock.unlocked ? UI_COLORS.inkSoft : '#65747b',
     }))
     const baitStock = preparation.bait.count === Infinity ? '∞' : preparation.bait.count
     const prepText = unlock.unlocked
-      ? (compact
+      ? (compact || qaCompact
         ? `準備${preparation.ready ? 'OK' : '不足'}・ST ${preparation.stamina.current}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}`
         : `釣り場 解放済み / 準備 ${preparation.ready ? '完了' : '未完了'}\n${preparation.rod.name}・${preparation.bait.name} ${baitStock}・ST ${preparation.stamina.current}`)
       : `釣り場 未解放 / 準備判定は解放後`
-    items.push(this.add.text(x + 18, y + 122, prepText, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? '14px' : '9px', fontWeight: '900',
-      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: compact ? 1 : 2, wordWrap: { width: w - (compact ? 36 : 158) },
+    items.push(this.add.text(x + 18, y + (qaCompact ? 158 : 122), prepText, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? '14px' : '9px', fontWeight: '900',
+      color: preparation.ready ? '#278761' : '#d06b3b', lineSpacing: compact || qaCompact ? 1 : 2, wordWrap: { width: w - (compact || qaCompact ? 36 : 158) },
     }))
 
     point.fishIds.slice(0, 4).forEach((id, i) => {
-      const cx = x + 32 + i * 52
-      const cy = y + 184
+      const cx = x + (qaCompact ? 50 : 32) + i * (qaCompact ? 60 : 52)
+      const cy = y + (qaCompact ? 225 : 184)
       const chip = this.add.graphics()
       chip.fillStyle(0xffffff, 0.96)
       chip.lineStyle(1.4, unlock.unlocked ? point.accent : 0xb2bdc2, 0.7)
@@ -455,21 +458,23 @@ export default class MapScene extends Phaser.Scene {
     })
 
     const actionHeight = touchHeight(this, 54)
-    const actionY = y + 184
+    const actionY = y + (qaCompact ? 281 : 184)
     const actionTop = actionY - actionHeight / 2
+    const actionX = qaCompact ? x + w / 2 : x + w - 80
+    const actionWidth = qaCompact ? w - 30 : 116
     const btn = this.add.graphics()
     btn.fillStyle(0x173248, 0.12)
-    btn.fillRoundedRect(x + w - 136, actionTop + 3, 116, actionHeight, 16)
+    btn.fillRoundedRect(actionX - actionWidth / 2 + 2, actionTop + 3, actionWidth, actionHeight, 16)
     btn.fillStyle(unlock.unlocked ? 0xffd95a : 0xdff5ff, 1)
     btn.lineStyle(2, 0x173248, 0.82)
-    btn.fillRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
-    btn.strokeRoundedRect(x + w - 138, actionTop, 116, actionHeight, 16)
+    btn.fillRoundedRect(actionX - actionWidth / 2, actionTop, actionWidth, actionHeight, 16)
+    btn.strokeRoundedRect(actionX - actionWidth / 2, actionTop, actionWidth, actionHeight, 16)
     const blocker = preparation.primaryBlocker
-    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? (compact ? 'ここで釣る' : 'ここで釣る −1ST') : blocker.label
-    const btnText = this.add.text(x + w - 80, actionY, actionLabel, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact ? (actionLabel.length > 9 ? '13px' : '15px') : (actionLabel.length > 9 ? '10px' : '12px'), fontWeight: '900', color: UI_COLORS.ink,
+    const actionLabel = !unlock.unlocked ? '町を育てる' : preparation.ready ? (compact || qaCompact ? 'ここで釣る' : 'ここで釣る −1ST') : blocker.label
+    const btnText = this.add.text(actionX, actionY, actionLabel, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: compact || qaCompact ? (actionLabel.length > 9 ? '13px' : '15px') : (actionLabel.length > 9 ? '10px' : '12px'), fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0.5)
-    const hit = this.add.rectangle(x + w - 80, actionY, 124, actionHeight + 8, 0x000000, 0)
+    const hit = this.add.rectangle(actionX, actionY, qaCompact ? actionWidth + 8 : 124, actionHeight + 8, 0x000000, 0)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
         if (!unlock.unlocked) return this.scene.start('TownScene')
