@@ -46,8 +46,8 @@ const cameraPanPrototype = typeof window !== 'undefined'
   && (['1', 'true'].includes(new URLSearchParams(window.location.search).get('cameraPan'))
     || new URLSearchParams(window.location.search).get('coneLoop') === '1'
     || isNativeLandscapeQaResize(window.location.search))
-// QA-only portrait experiment. Other scenes keep their existing layout until
-// the entire navigation and fishing loop can use the shorter logical height.
+// QA-only portrait experiment. The fishing host reflows its four phases;
+// other scenes keep their existing layout until the full journey is verified.
 const compactPortraitPrototype = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('qa') === '1'
   && new URLSearchParams(window.location.search).get('compactPortrait') === '1'

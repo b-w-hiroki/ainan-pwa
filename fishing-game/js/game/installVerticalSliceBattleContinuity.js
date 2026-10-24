@@ -36,6 +36,13 @@ function clearBattleContinuity(scene) {
 }
 
 function isInsideBattleReelDial(scene, pointer) {
+  const host = scene._castPresentationHost
+  if (host?._compactBattleActive && host.root?.active && pointer) {
+    const scale = host.root.scaleX
+    const x = host.root.x + 195 * scale
+    const y = host.root.y + (746 + host._compactDockOffset) * scale
+    return Math.hypot(pointer.x - x, pointer.y - y) <= 78 * scale
+  }
   const layout = scene._reelCtaLayout
   if (!layout || !pointer) return false
   const radius = layout.dialSize * 0.46

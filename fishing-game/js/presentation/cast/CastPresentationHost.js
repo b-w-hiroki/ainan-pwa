@@ -143,8 +143,8 @@ export class CastPresentationHost {
     if (this.root?.active) return this
     const scene = this.scene
     const displayScale = canvasDisplayScale(scene)
-    const compact = displayScale < 0.75
-    const enlargedCues = displayScale < 0.9
+    const compact = displayScale < 0.75 || (compactPortraitPrototype && scene.scale.width < DESIGN_WIDTH)
+    const enlargedCues = displayScale < 0.9 || compact
     const root = scene.add.container(0, 0).setDepth(6000).setScrollFactor(0)
     root.name = 'cast-presentation-host'
 
@@ -301,6 +301,7 @@ export class CastPresentationHost {
     let retrieveLure = null
     const retrieveFishShadows = []
     let retrieveStatusText = null
+    let retrieveStatus = null
     if (useCuteHarbor) {
       const shadow = ASSETS.fishingField.fishShadowMediumIdle
       for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
@@ -329,6 +330,7 @@ export class CastPresentationHost {
       // The approved dock skin has "following" painted into it. Cover only
       // that status slot, then report the actual fish-interest state.
       const status = scene.add.container(309, DOCK_TOP + 32)
+      retrieveStatus = status
       const backing = scene.add.graphics()
       backing.fillStyle(0x08344e, 1).fillRoundedRect(-69, -21, 138, 42, 17)
       backing.lineStyle(1, 0x72c8ed, 0.72).strokeRoundedRect(-68.5, -20.5, 137, 41, 16.5)
@@ -368,6 +370,10 @@ export class CastPresentationHost {
     const battleFish = scene.add.image(210, 326, FISH_ART.tai.key).setDisplaySize(306, 190).setAngle(-8)
     const battleBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedBattleBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const battleCompactBacking = scene.add.rectangle(DESIGN_WIDTH / 2, 732, DESIGN_WIDTH, 224, 0x082d43).setVisible(false)
+    const battleCompactDock = scene.add.image(0, 0, ASSETS.ui.fishingApprovedBattleBase.key)
+      .setOrigin(0).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+    const battleCompactBottom = scene.add.rectangle(DESIGN_WIDTH / 2, 0, DESIGN_WIDTH, 34, 0x082d43).setVisible(false)
     const battleHeaderBg = scene.add.graphics()
     battleHeaderBg.fillStyle(0xffffff, 1)
     battleHeaderBg.fillRoundedRect(18, 19, 354, 40, 16)
@@ -420,6 +426,7 @@ export class CastPresentationHost {
     const resultFish = scene.add.image(DESIGN_WIDTH / 2, 304, FISH_ART.tai.key).setDisplaySize(292, 184).setAngle(-4)
     const resultBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedResultBase.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const resultCompactBacking = scene.add.rectangle(DESIGN_WIDTH / 2, 585, DESIGN_WIDTH, 510, 0x062c44, 1).setVisible(false)
     const resultGet = scene.add.text(DESIGN_WIDTH / 2, 150, 'GET!', {
       fontFamily: 'Nunito, sans-serif', fontSize: '68px', fontStyle: 'bold', color: '#ffdf5a',
       stroke: '#824400', strokeThickness: 6,
@@ -505,6 +512,9 @@ export class CastPresentationHost {
     battleForeground.addAt(battleLocationOverlay, 1)
     battleForeground.addAt(battleJumpFx, 2)
     battleForeground.addAt(battleFish, 3)
+    battleForeground.addAt(battleCompactBacking, 4)
+    battleForeground.addAt(battleCompactDock, 5)
+    battleForeground.add(battleCompactBottom)
     const resultForeground = scene.add.container(0, 0).setVisible(false)
     const resultUi = [resultBase, resultGet, resultCard, ...(resultInfoSkin ? [resultInfoSkin] : []), resultName, resultSize, resultScore, ...(resultPrimarySkin ? [resultPrimarySkin] : []), resultTownMask, resultTownMaskText, ...(resultSecondarySkin ? [resultSecondarySkin] : []), ...(resultFailureLeftSkin ? [resultFailureLeftSkin] : []), ...(resultFailureRightSkin ? [resultFailureRightSkin] : []), resultFailureOptions, resultRetryText, resultFailureEquip, resultFailurePort]
     resultField.remove(resultUi)
@@ -513,7 +523,21 @@ export class CastPresentationHost {
     // Host owns the hero layer; keep fish above the skin and below GET/card.
     resultField.remove(resultFish)
     resultForeground.addAt(resultFish, 1)
+    resultForeground.addAt(resultCompactBacking, 1)
     field.add([battleForeground, resultForeground])
+
+    const retrieveCompactBacking = scene.add.rectangle(DESIGN_WIDTH / 2, (DOCK_TOP + DESIGN_HEIGHT) / 2,
+      DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP, 0xf7fcff).setVisible(false)
+    const retrieveCompactPanel = scene.add.image(0, 0, ASSETS.ui.fishingApprovedRetrievePanel.key)
+      .setOrigin(0).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+    const retrieveSource = retrieveCompactPanel.texture.getSourceImage()
+    const retrieveCropY = Math.round(retrieveSource.height * DOCK_TOP / DESIGN_HEIGHT)
+    retrieveCompactPanel.setCrop(0, retrieveCropY, retrieveSource.width, retrieveSource.height - retrieveCropY)
+    const battleSource = battleCompactDock.texture.getSourceImage()
+    const battleCropY = Math.round(battleSource.height * 620 / DESIGN_HEIGHT)
+    battleCompactDock.setCrop(0, battleCropY, battleSource.width, battleSource.height - battleCropY)
+    retrieveDock.add([retrieveCompactBacking, retrieveCompactPanel])
+    if (retrieveStatus) retrieveDock.add(retrieveStatus)
 
     // The Retrieve master bitmap has Harbor's label painted in its HUD.
     // A fully opaque Bay/Cape underlay is needed: the normal HUD's 0.96
@@ -675,6 +699,8 @@ export class CastPresentationHost {
       retrieveLure,
       retrieveFishShadows,
       retrieveStatusText,
+      retrieveCompactBacking,
+      retrieveCompactPanel,
       battleField,
       resultField,
       castDock,
@@ -686,6 +712,9 @@ export class CastPresentationHost {
       chrome,
       battleFish,
       battleJumpFx,
+      battleCompactBacking,
+      battleCompactDock,
+      battleCompactBottom,
       battleLocationOverlay,
       castLocationOverlay,
       retrieveLocationOverlay,
@@ -702,6 +731,9 @@ export class CastPresentationHost {
       resultOutcomeFx,
       resultFish,
       resultGet,
+      resultCard,
+      resultInfoSkin,
+      resultCompactBacking,
       resultName,
       resultSize,
       resultScore,
@@ -765,9 +797,10 @@ export class CastPresentationHost {
     }
     if (this.scene.phase === 'result') {
       this._resultPointerAction = null
-      if (point.y >= 610 && point.y <= 696) {
+      const actionY = point.y - (this._compactResultActive ? this._resultActionOffset : 0)
+      if (actionY >= 610 && actionY <= 696) {
         this._resultPointerAction = this.scene._castPresentationOutcome === 'caught' ? 'town' : 'retry'
-      } else if (point.y >= 700 && point.y <= 790) {
+      } else if (actionY >= 700 && actionY <= 790) {
         if (this.scene._castPresentationOutcome === 'caught') this._resultPointerAction = 'retry'
         else this._resultPointerAction = point.x < DESIGN_WIDTH / 2 ? 'prepare' : 'port'
       }
@@ -785,9 +818,10 @@ export class CastPresentationHost {
       return
     }
     if (this.scene.phase !== 'retrieve') return
-    if (Math.hypot(point.x - 72, point.y - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveWait()
-    else if (Math.hypot(point.x - 195, point.y - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveTwitch()
-    else if (Math.hypot(point.x - 318, point.y - (DOCK_TOP + 126)) <= 48) {
+    const retrieveY = point.y - (this._compactRetrieveActive ? this._compactDockOffset : 0)
+    if (Math.hypot(point.x - 72, retrieveY - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveWait()
+    else if (Math.hypot(point.x - 195, retrieveY - (DOCK_TOP + 126)) <= 48) this.adapter.retrieveTwitch()
+    else if (Math.hypot(point.x - 318, retrieveY - (DOCK_TOP + 126)) <= 48) {
       this._slowPointerHeld = this.adapter.beginSlowRetrieve()
     }
   }
@@ -833,26 +867,71 @@ export class CastPresentationHost {
     if (!this.root?.active) return
     const width = this.scene.scale.width
     const height = this.scene.scale.height
-    // First compact slice: Cast owns separate field and dock containers, so
-    // the dock can follow the viewport bottom without shrinking the sea.
-    // Retrieve/Battle/Result retain the proven FIT composition for now.
-    const compactCast = compactPortraitPrototype && this.scene.phase === 'cast'
-      && width < DESIGN_WIDTH && height < DESIGN_HEIGHT
+    // Keep the world at the width scale; move each phase's controls into the
+    // shorter logical height. The QA flag leaves ordinary play unchanged.
+    const compactPhase = compactPortraitPrototype && width < DESIGN_WIDTH && height < DESIGN_HEIGHT
+      && ['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase)
+    const compactCast = compactPhase && this.scene.phase === 'cast'
+    const compactRetrieve = compactPhase && this.scene.phase === 'retrieve'
+    const compactBattle = compactPhase && this.scene.phase === 'battle'
+    const compactResult = compactPhase && this.scene.phase === 'result'
     this._compactCastActive = compactCast
+    this._compactRetrieveActive = compactRetrieve
+    this._compactBattleActive = compactBattle
+    this._compactResultActive = compactResult
     this.nodes.compactDockBacking.setVisible(compactCast)
     const compactScale = width / DESIGN_WIDTH
     const designHeight = height / compactScale
-    const dockOffset = compactCast ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
-    this.nodes.castDock.setY(dockOffset)
-    this.nodes.castInteraction.setY(dockOffset)
+    const dockOffset = compactPhase ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
+    this._compactDockOffset = dockOffset
+    this.nodes.castDock.setY(compactCast ? dockOffset : 0)
+    this.nodes.castInteraction.setY(compactCast ? dockOffset : 0)
+    this.nodes.retrieveDock.setY(compactRetrieve ? dockOffset : 0)
+    this.nodes.retrieveInteraction.setY(compactRetrieve ? dockOffset : 0)
+    this.nodes.retrieveCompactBacking.setVisible(compactRetrieve)
+    this.nodes.retrieveCompactPanel.setVisible(compactRetrieve)
+    this.nodes.battleCompactBacking.setVisible(compactBattle)
+      .setY(732 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleCompactDock.setVisible(compactBattle)
+      .setY(compactBattle ? dockOffset : 0)
+    this.nodes.battleCompactBottom.setVisible(compactBattle)
+      .setY(designHeight + 2)
+    this.nodes.battleReel.setY(574 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleOpeningMeter.setY(compactBattle ? dockOffset : 0)
+    this.nodes.battleInstructionBacking.setY(compactBattle ? dockOffset : 0)
+    this.nodes.battleInstruction.setY(648 + (compactBattle ? dockOffset : 0))
+    const cardOffset = compactResult ? dockOffset * 0.72 : 0
+    const resultFishOffset = compactResult ? dockOffset * 0.55 : 0
+    const resultButtonOffset = compactResult ? dockOffset + 18 : 0
+    this._resultActionOffset = resultButtonOffset
+    this.nodes.resultCompactBacking.setVisible(compactResult)
+    this.nodes.resultGet.setY(150 + (compactResult ? dockOffset * 0.3 : 0))
+    this.nodes.resultFish.setY(304 + resultFishOffset)
+    this.nodes.resultCard.setY(cardOffset)
+    this.nodes.resultInfoSkin?.setY(506 + cardOffset)
+    this.nodes.resultName.setY(469 + cardOffset)
+    this.nodes.resultSize.setY(526 + cardOffset)
+    this.nodes.resultScore.setY(526 + cardOffset)
+    this.nodes.resultTownMask.setY(resultButtonOffset)
+    this.nodes.resultTownMaskText.setY(655 + resultButtonOffset)
+    this.nodes.resultRetryText.setY(746 + resultButtonOffset)
+    this.nodes.resultFailureOptions.setY(resultButtonOffset)
+    this.nodes.resultFailureEquip.setY(746 + resultButtonOffset)
+    this.nodes.resultFailurePort.setY(746 + resultButtonOffset)
+    this.nodes.resultPrimarySkin?.setY(655 + resultButtonOffset)
+    this.nodes.resultSecondarySkin?.setY(746 + resultButtonOffset)
+    this.nodes.resultFailureLeftSkin?.setY(746 + resultButtonOffset)
+    this.nodes.resultFailureRightSkin?.setY(746 + resultButtonOffset)
     if (this.nodes.characterMotion?.ready) {
       // The actor is independent of the painted harbor. Keep the feet just
       // above the relocated dock so the compact crop still shows the fisher.
       this.nodes.characterMotion.root.setY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
-        : 0)
+        : compactRetrieve ? dockOffset * 1.35
+          : compactBattle ? dockOffset * 0.45
+          : compactResult ? resultFishOffset : 0)
     }
-    if (compactCast) {
+    if (compactPhase) {
       this.root.setScale(compactScale)
       this.root.setPosition(0, 0)
       return
@@ -891,6 +970,9 @@ export class CastPresentationHost {
     this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
+    if (retrieveVisible && this._compactRetrieveActive && this.nodes.characterMotion?.ready) {
+      this.nodes.characterMotion.root.setVisible(true)
+    }
     if (retrieveVisible && this.nodes.retrieveLure && view.retrieve.distanceMeters !== null) {
       if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
         this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
@@ -939,7 +1021,7 @@ export class CastPresentationHost {
     this.nodes.battleForeground.setVisible(battleVisible)
     this.nodes.resultForeground.setVisible(resultVisible)
     this.nodes.castDock.setVisible(castVisible)
-    this.nodes.retrieveDock.setVisible(false)
+    this.nodes.retrieveDock.setVisible(retrieveVisible)
     this.nodes.castInteraction.setVisible(castVisible)
     this.nodes.retrieveInteraction.setVisible(retrieveVisible)
     // Bay/Cape Retrieve needs a native location label above its Harbor-based
@@ -1093,7 +1175,8 @@ export class CastPresentationHost {
       name.setText(caught ? result.fishName : retry.cause).setFontSize(caught ? 28 : 19)
       name.setScale(Math.min(caught ? 1.5 : 1.15, 294 / Math.max(1, name.width)))
       const size = this.nodes.resultSize
-      size.setPosition(caught ? 119 : DESIGN_WIDTH / 2, 526)
+      size.setPosition(caught ? 119 : DESIGN_WIDTH / 2,
+        526 + (this._compactResultActive ? this._compactDockOffset * 0.72 : 0))
         .setFontSize(caught ? 23 : 13)
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
@@ -1147,7 +1230,9 @@ export class CastPresentationHost {
         this.nodes.resultTownMask.setAlpha(0)
         this.nodes.resultFailureOptions.setAlpha(0)
       }
-      this.scene._resultActionMetrics = Object.freeze({ primaryHit: [9, 616, 372, 78], secondaryHitHeight: 80, labelsAreLiveText: true })
+      this.scene._resultActionMetrics = Object.freeze({ primaryHit: [9,
+        616 + (this._compactResultActive ? this._resultActionOffset : 0), 372, 78],
+        secondaryHitHeight: 80, labelsAreLiveText: true })
     }
   }
 

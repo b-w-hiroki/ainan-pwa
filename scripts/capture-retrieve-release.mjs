@@ -98,10 +98,20 @@ try {
   const cleanup = await page.evaluate(() => {
     const scene = window.__game.scene.getScene('GameScene')
     const before = scene.input.listenerCount('gameout')
+    const retrieveListener = scene._castPresentationHost._cancelHeldRetrieve
+    const castListener = scene._castPresentationHost._cancelCompactCast
+    const beforeListeners = scene.input.listeners('gameout')
     scene._castPresentationHost.destroy()
-    return { before, after: scene.input.listenerCount('gameout'), slowHeld: scene.retrieveState.slowHeld }
+    const afterListeners = scene.input.listeners('gameout')
+    return { before, after: scene.input.listenerCount('gameout'), slowHeld: scene.retrieveState.slowHeld,
+      retrieveRegistered: beforeListeners.includes(retrieveListener), castRegistered: beforeListeners.includes(castListener),
+      retrieveRemoved: !afterListeners.includes(retrieveListener), castRemoved: !afterListeners.includes(castListener) }
   })
-  assert.equal(cleanup.after, cleanup.before - 1, 'destroy must remove the cancellation listener')
+  assert.equal(cleanup.retrieveRegistered, true, 'Retrieve cancellation listener must be registered')
+  assert.equal(cleanup.castRegistered, true, 'Cast cancellation listener must be registered')
+  assert.equal(cleanup.retrieveRemoved, true, 'destroy must remove the Retrieve cancellation listener')
+  assert.equal(cleanup.castRemoved, true, 'destroy must remove the Cast cancellation listener')
+  assert.equal(cleanup.after, cleanup.before - 2, 'destroy must remove both cancellation listeners')
   assert.equal(cleanup.slowHeld, false, 'destroy must stop an active held retrieve')
   assert.deepEqual(errors, [])
   console.log('PASS held retrieve: release, canvas exit, pointercancel, blur, hidden, resize, phase exit, listener cleanup')

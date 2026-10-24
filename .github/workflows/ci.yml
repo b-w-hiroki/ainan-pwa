@@ -93,8 +93,17 @@ jobs:
       - name: Verify compact Title and Map touch navigation
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-entry-map.mjs
 
+      - name: Verify compact Title to Cast physical tap journey
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-entry-handoff.mjs
+
       - name: Verify compact Cast reflow prototype
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-cast-prototype.mjs
+
+      - name: Verify compact fishing phases and controls
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-fishing-loop.mjs
+
+      - name: Verify compact fishing Retrieve actions and real HIT handoff
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-phase-handoff.mjs
 
       - name: Verify QA arrival survives slow Title and Town loading
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-qa-route-loading-race.mjs
@@ -267,6 +276,7 @@ jobs:
             artifacts/town-compact
             artifacts/compact-entry-map
             artifacts/compact-cast-prototype
+            artifacts/compact-fishing-loop
             artifacts/orientation
             artifacts/location-preview
             artifacts/qa-route-loading
