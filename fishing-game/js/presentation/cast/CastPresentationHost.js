@@ -882,7 +882,6 @@ export class CastPresentationHost {
     this._compactCastActive = compactCast
     this._compactRetrieveActive = compactRetrieve
     this._compactBattleActive = compactBattle
-    this._compactBattleSceneOffset = compactBattle ? -110 : 0
     this._compactResultActive = compactResult
     // A live viewport resize can enter or leave the compact phase without
     // remounting this host. Keep type size in step with the layout switch.
@@ -896,6 +895,12 @@ export class CastPresentationHost {
     this.nodes.compactDockBacking.setVisible(compactCast)
     const compactScale = width / DESIGN_WIDTH
     const designHeight = height / compactScale
+    // Below the 320x568 / 375x667 baseline, reclaim water space gradually
+    // instead of cropping the fisher or pushing GET! into the header.
+    const verticalSqueeze = compactPhase
+      ? Math.min(1, Math.max(0, (692 - designHeight) / 107)) : 0
+    this._compactVerticalSqueeze = verticalSqueeze
+    this._compactBattleSceneOffset = compactBattle ? -110 - 45 * verticalSqueeze : 0
     const dockOffset = compactPhase ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
     this._compactDockOffset = dockOffset
     this.nodes.castDock.setY(compactCast ? dockOffset : 0)
@@ -910,7 +915,8 @@ export class CastPresentationHost {
       .setY(compactBattle ? dockOffset : 0)
     this.nodes.battleCompactBottom.setVisible(compactBattle)
       .setY(designHeight + 2)
-    this.nodes.battleReel.setY(574 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleReel.setPosition(DESIGN_WIDTH / 2 + (compactBattle ? 75 * verticalSqueeze : 0),
+      574 + (compactBattle ? dockOffset : 0))
     this.nodes.battleSplash.setY(this._compactBattleSceneOffset)
     this.nodes.battleLine.setY(this._compactBattleSceneOffset)
     this.nodes.battleJumpFx.setY(349 + this._compactBattleSceneOffset)
@@ -918,12 +924,13 @@ export class CastPresentationHost {
     this.nodes.battleOpeningMeter.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstructionBacking.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstruction.setY(648 + (compactBattle ? dockOffset : 0))
-    const cardOffset = compactResult ? dockOffset * 0.72 : 0
+    const cardOffset = compactResult ? dockOffset * 0.72 - 15 * verticalSqueeze : 0
+    this._resultCardOffset = cardOffset
     const resultFishOffset = compactResult ? dockOffset * 0.55 : 0
-    const resultButtonOffset = compactResult ? dockOffset + 18 : 0
+    const resultButtonOffset = compactResult ? dockOffset + 18 + 15 * verticalSqueeze : 0
     this._resultActionOffset = resultButtonOffset
     this.nodes.resultCompactBacking.setVisible(compactResult)
-    this.nodes.resultGet.setY(150 + (compactResult ? dockOffset * 0.3 : 0))
+    this.nodes.resultGet.setY(compactResult ? Math.max(104, 150 + dockOffset * 0.3) : 150)
     this.nodes.resultFish.setY(304 + resultFishOffset)
     this.nodes.resultCard.setY(cardOffset)
     this.nodes.resultInfoSkin?.setY(506 + cardOffset)
@@ -946,8 +953,8 @@ export class CastPresentationHost {
       this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
         : compactRetrieve ? dockOffset * 1.35
-          : compactBattle ? dockOffset * 0.45
-          : compactResult ? resultFishOffset : 0)
+          : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
+          : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
     }
     if (compactPhase) {
       this.root.setScale(compactScale)
@@ -1200,7 +1207,10 @@ export class CastPresentationHost {
       // the single visual owner in Result.
       this.nodes.resultFish.setVisible(caught)
       if (caught) this.nodes.characterMotion?.fish?.setVisible(false)
-      this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
+      const squeeze = this._compactResultActive ? this._compactVerticalSqueeze : 0
+      this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED')
+        .setFontSize(Math.round(caught ? 68 - 20 * squeeze : 44 - 10 * squeeze))
+        .setX(caught ? DESIGN_WIDTH / 2 - 90 * squeeze : DESIGN_WIDTH / 2)
       // The Result card must read at phone size without changing its layout.
       // Clamp name/score width so long Japanese labels stay within their columns.
       const name = this.nodes.resultName
@@ -1208,7 +1218,7 @@ export class CastPresentationHost {
       name.setScale(Math.min(caught ? 1.5 : 1.15, 294 / Math.max(1, name.width)))
       const size = this.nodes.resultSize
       size.setPosition(caught ? 119 : DESIGN_WIDTH / 2,
-        526 + (this._compactResultActive ? this._compactDockOffset * 0.72 : 0))
+        526 + this._resultCardOffset)
         .setFontSize(caught ? 23 : this._compactResultActive ? 17 : 13)
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)

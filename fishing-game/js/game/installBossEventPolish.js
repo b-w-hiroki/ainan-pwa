@@ -146,16 +146,18 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
   const resultHost = scene._castPresentationHost?.root
   const hostActive = Boolean(resultHost?.active)
   const compactResult = hostActive && scene._castPresentationHost?._compactResultActive
+  const squeeze = compactResult ? scene._castPresentationHost._compactVerticalSqueeze ?? 0 : 0
   const x = compactResult ? 85 : W / 2
-  const y = compactResult ? 215 : hostActive ? H / 2 + 173 : H / 2 + 78
+  const y = compactResult ? 215 - 65 * squeeze : hostActive ? H / 2 + 173 : H / 2 + 78
   const halfWidth = compactResult ? 76 : 120
+  const halfHeight = 22 - 3 * squeeze
   const c = scene.add.container(x, y).setDepth(146).setScrollFactor(0).setAlpha(0)
   const bg = scene.add.graphics()
   const reward = first ? rewardToken('trophy') : isNew ? rewardToken('record') : { label: 'BOSS CLEARED', color: 0x173248, text: '#ffffff' }
   bg.fillStyle(reward.color, 0.96)
   bg.lineStyle(2, 0xffffff, 0.68)
-  bg.fillRoundedRect(-halfWidth, -22, halfWidth * 2, 44, 15)
-  bg.strokeRoundedRect(-halfWidth, -22, halfWidth * 2, 44, 15)
+  bg.fillRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
+  bg.strokeRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
   const label = scene.add.text(0, -5, reward.label, {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold',
     color: reward.text, letterSpacing: 1,
