@@ -187,6 +187,67 @@ try {
       console.log(`320x568 simulated safe area: ${phase} canvas and controls passed`)
     }
   } finally { await safeArea.close() }
+  for (const width of [320, 375]) {
+    for (const action of (width === 320 ? ['retry', 'prepare', 'port'] : ['capture'])) {
+      const page = await browser.newPage({ viewport: { width, height: width === 320 ? 568 : 667 }, deviceScaleFactor: 2 })
+      try {
+        await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1`)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'battle')
+        await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('escaped'))
+        await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
+        await page.waitForFunction(() => !window.__game.scene.getScene('GameScene').cameras.main.flashEffect.isRunning)
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+        const escaped = await page.evaluate(kind => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const n = host.nodes
+          const canvas = scene.game.canvas.getBoundingClientRect()
+          const scale = host.root.scaleX
+          const local = (x, y) => ({ x: canvas.x + x * scale, y: canvas.y + y * scale })
+          return { outcome: scene._castPresentationOutcome, compact: host._compactResultActive,
+            title: n.resultGet.text, fishVisible: n.resultFish.visible,
+            labels: [n.resultTownMaskText.text, n.resultFailureEquip.text, n.resultFailurePort.text],
+            labelPx: [n.resultTownMaskText, n.resultFailureEquip, n.resultFailurePort]
+              .map(node => parseFloat(node.style.fontSize) * node.scaleX * scale),
+            labelWidths: [n.resultTownMaskText, n.resultFailureEquip, n.resultFailurePort]
+              .map(node => node.width * node.scaleX),
+            advicePx: parseFloat(n.resultSize.style.fontSize) * n.resultSize.scaleX * scale,
+            cardBottom: local(195, 572 + n.resultCard.y).y,
+            primaryTop: local(195, n.resultPrimarySkin.y - 44).y,
+            button: kind === 'retry' ? local(195, n.resultPrimarySkin.y)
+              : kind === 'prepare' ? local(101, n.resultFailureLeftSkin.y)
+                : local(289, n.resultFailureRightSkin.y),
+            bottom: canvas.bottom }
+        }, action)
+        assert.equal(escaped.outcome, 'escaped')
+        assert.equal(escaped.compact, true)
+        assert.equal(escaped.title, 'ESCAPED')
+        assert.equal(escaped.fishVisible, false)
+        assert.ok(escaped.labels.every(Boolean), `escaped Result labels missing: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.labelPx.every(size => size >= 16), `escaped Result label too small: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.advicePx >= 13, `escaped Result advice too small: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.labelWidths[0] <= 340 && escaped.labelWidths.slice(1).every(size => size <= 160),
+          `escaped Result label exceeds its button: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.cardBottom + 8 < escaped.primaryTop, 'escaped Result card and action overlap')
+        assert.ok(escaped.button.y < escaped.bottom - 30, 'escaped Result action off screen')
+        if (action === 'capture' || (width === 320 && action === 'retry')) {
+          const path = `${output}/result-escaped-${width}.png`
+          await page.screenshot({ path, animations: 'disabled' })
+          assert.ok(statSync(path).size > 15000, 'escaped Result browser frame blank')
+        }
+        if (action !== 'capture') {
+          await page.mouse.click(escaped.button.x, escaped.button.y)
+          const expected = action === 'retry' ? 'cast' : action === 'prepare' ? 'UpgradeScene' : 'HomeScene'
+          await page.waitForFunction(target => {
+            const game = window.__game
+            return target === 'cast' ? game.scene.getScene('GameScene').phase === 'cast'
+              : game.scene.getScenes(true).some(scene => scene.scene.key === target)
+          }, expected)
+        }
+        console.log(`${width}x${width === 320 ? 568 : 667} escaped Result ${action}: layout and input passed`)
+      } finally { await page.close() }
+    }
+  }
   for (const action of ['back', 'retry']) {
     const page = await browser.newPage({ viewport: { width: 320, height: 568 } })
     try {

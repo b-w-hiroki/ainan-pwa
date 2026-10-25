@@ -470,10 +470,10 @@ export class CastPresentationHost {
     resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
     const resultFailureEquip = scene.add.text(101, 746, '装備を見直す', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const resultFailurePort = scene.add.text(289, 746, '港へ戻る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const resultPrimarySkin = scene.textures.exists(ASSETS.ui.artButtonPrimary.key)
       ? scene.add.image(DESIGN_WIDTH / 2, 655, ASSETS.ui.artButtonPrimary.key).setDisplaySize(382, 88)
       : null
@@ -1198,7 +1198,7 @@ export class CastPresentationHost {
       const size = this.nodes.resultSize
       size.setPosition(caught ? 119 : DESIGN_WIDTH / 2,
         526 + (this._compactResultActive ? this._compactDockOffset * 0.72 : 0))
-        .setFontSize(caught ? 23 : 13)
+        .setFontSize(caught ? 23 : this._compactResultActive ? 17 : 13)
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
       size.setScale(caught ? Math.min(1.3, 132 / Math.max(1, size.width)) : 1)
@@ -1218,9 +1218,11 @@ export class CastPresentationHost {
         .setColor('#173248')
         .setFontSize(caught ? 16 : 18)
         .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
-      this.nodes.resultTownMaskText.setFontSize(caught ? 23 : 22)
+      const primaryLabel = this.nodes.resultTownMaskText
+      primaryLabel.setFontSize(caught ? 23 : this._compactResultActive ? 25 : 22)
         .setText(caught ? '町へ持ち帰る' : retry.primary)
-        .setScale(caught ? 1.25 : 1)
+      primaryLabel.setScale(caught ? 1.25 : this._compactResultActive
+        ? Math.min(1.1, 338 / Math.max(1, primaryLabel.width)) : 1)
       this.nodes.resultRetryText.setText('もう一投').setFontSize(25).setScale(caught ? 1.3 : 1)
       this.nodes.resultFailureOptions.clear().setVisible(true)
       this.nodes.resultFailureOptions.fillStyle(0x031d2e, 0.25)
@@ -1241,8 +1243,12 @@ export class CastPresentationHost {
         this.nodes.resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
       }
       this.nodes.resultRetryText.setVisible(caught)
-      this.nodes.resultFailureEquip.setVisible(!caught).setFontSize(18).setText('装備を見直す')
-      this.nodes.resultFailurePort.setVisible(!caught).setFontSize(18).setText('港へ戻る')
+      for (const [label, copy] of [[this.nodes.resultFailureEquip, '装備を見直す'],
+        [this.nodes.resultFailurePort, '港へ戻る']]) {
+        label.setVisible(!caught).setFontSize(this._compactResultActive ? 24 : 18).setText(copy)
+        label.setStroke('#074365', this._compactResultActive ? 2 : 0)
+        label.setScale(this._compactResultActive ? Math.min(1, 160 / Math.max(1, label.width)) : 1)
+      }
       if (this.nodes.resultPrimarySkin) {
         this.nodes.resultPrimarySkin.setVisible(true).setTexture(ASSETS.ui.artButtonPrimary.key)
         this.nodes.resultSecondarySkin?.setVisible(caught)
