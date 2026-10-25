@@ -162,21 +162,30 @@ try {
         '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
       await route.fulfill({ response, body })
     })
-    await safeArea.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&compactPortrait=1`)
-    await safeArea.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'result')
-    const inset = await safeArea.evaluate(() => {
-      const scene = window.__game.scene.getScene('GameScene')
-      const host = scene._castPresentationHost
-      const canvas = scene.game.canvas.getBoundingClientRect()
-      const container = document.getElementById('game-container')
-      return { top: canvas.top, bottom: canvas.bottom, sceneHeight: scene.scale.height,
-        containerHeight: container.getBoundingClientRect().height,
-        containerPadding: getComputedStyle(container).padding,
-        secondaryBottom: canvas.top + (host.nodes.resultSecondarySkin.y + 44) * host.root.scaleY }
-    })
-    assert.ok(inset.top >= 19 && inset.bottom <= 535, `canvas ignores simulated safe area: ${JSON.stringify(inset)}`)
-    assert.ok(inset.secondaryBottom < inset.bottom - 20, `Result action enters bottom safe area: ${JSON.stringify(inset)}`)
-    console.log('320x568 simulated safe area: canvas and Result controls passed')
+    for (const phase of ['cast', 'retrieve', 'battle', 'result']) {
+      await safeArea.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=${phase}&compactPortrait=1`)
+      await safeArea.waitForFunction(expected => window.__game?.scene?.getScene('GameScene')?.phase === expected, phase)
+      const inset = await safeArea.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        const host = scene._castPresentationHost
+        const canvas = scene.game.canvas.getBoundingClientRect()
+        const container = document.getElementById('game-container')
+        const phase = scene.phase
+        const actionY = phase === 'result' ? host.nodes.resultSecondarySkin.y
+          : 746 + (host._compactDockOffset ?? 0)
+        return { phase, top: canvas.top, bottom: canvas.bottom,
+          containerPadding: getComputedStyle(container).padding,
+          actionBottom: canvas.top + (actionY + 44) * host.root.scaleY }
+      })
+      assert.ok(inset.top >= 19 && inset.bottom <= 535,
+        `${phase}: canvas ignores simulated safe area: ${JSON.stringify(inset)}`)
+      assert.ok(inset.actionBottom < inset.bottom - 20,
+        `${phase}: action enters bottom safe area: ${JSON.stringify(inset)}`)
+      const path = `${output}/${phase}-safe-area-320.png`
+      await safeArea.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, `${phase}: blank safe-area frame`)
+      console.log(`320x568 simulated safe area: ${phase} canvas and controls passed`)
+    }
   } finally { await safeArea.close() }
   for (const action of ['back', 'retry']) {
     const page = await browser.newPage({ viewport: { width: 320, height: 568 } })
