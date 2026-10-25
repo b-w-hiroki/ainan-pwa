@@ -48,6 +48,11 @@ try {
             resultFish: localToScreen(n.resultFish.x, n.resultFish.y),
             battleFish: localToScreen(n.battleFish.x, n.battleFish.y),
             battleActorTop: n.characterMotion?.poseFront?.getBounds()?.y,
+            conditionBadge: scene._conditionPresentation?.badge && {
+              depth: scene._conditionPresentation.badge.depth,
+              y: scene._conditionPresentation.badge.y,
+              fontPx: parseFloat(scene._conditionPresentation.badge.style.fontSize),
+            },
             battleTextSize: n.battleInstruction.style.fontSize,
             battleTextPx: parseFloat(n.battleInstruction.style.fontSize) * scale,
             resultActionTextPx: parseFloat(n.resultTownMaskText.style.fontSize) * n.resultTownMaskText.scaleX * scale,
@@ -58,6 +63,10 @@ try {
         assert.ok(Math.abs(state.scale - width / 390) < 0.01, `${phase}: width scale missing`)
         if (width < 390) {
           assert.ok(state.dockOffset < 0, `${phase}: dock did not move`)
+          if (phase === 'cast' || phase === 'retrieve') {
+            assert.ok(state.conditionBadge?.depth > 6000 && state.conditionBadge.y >= 90
+              && state.conditionBadge.fontPx >= 13, `${phase}: conditions are hidden behind the header`)
+          }
           if (phase === 'retrieve') {
             assert.equal(state.retrieveDockVisible, true)
             assert.ok(state.retrieveButton.y < height - 40 && state.retrieveButton.y > height - 160)

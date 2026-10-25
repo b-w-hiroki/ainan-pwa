@@ -972,6 +972,17 @@ export class CastPresentationHost {
       this._lastLayoutPhase = this.scene.phase
       this.layout()
     }
+    const conditionBadge = this.scene._conditionPresentation?.badge
+    if (compactPortraitPrototype && conditionBadge) {
+      const showCompactBadge = this._compactCastActive || this._compactRetrieveActive
+      const layoutKey = `${showCompactBadge}:${this.scene.scale.width}`
+      if (this._conditionBadgeLayoutKey !== layoutKey) {
+        this._conditionBadgeLayoutKey = layoutKey
+        conditionBadge.setDepth(showCompactBadge ? 6001 : 96)
+          .setPosition(this.scene.scale.width - (showCompactBadge ? 10 : 14), showCompactBadge ? 96 : 18)
+          .setFontSize(showCompactBadge ? '13px' : '9px')
+      }
+    }
     if (this.scene.phase !== 'retrieve') this._cancelHeldRetrieve()
     const view = readCastViewModel(this.scene)
     this.nodes.characterMotion?.sync(view)
