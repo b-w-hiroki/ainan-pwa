@@ -47,6 +47,7 @@ try {
             resultPrimaryTop: localToScreen(195, (n.resultPrimarySkin?.y ?? n.resultTownMaskText.y) - 44),
             resultFish: localToScreen(n.resultFish.x, n.resultFish.y),
             battleFish: localToScreen(n.battleFish.x, n.battleFish.y),
+            battleActorTop: n.characterMotion?.poseFront?.getBounds()?.y,
             battleTextSize: n.battleInstruction.style.fontSize,
             battleTextPx: parseFloat(n.battleInstruction.style.fontSize) * scale,
             resultActionTextPx: parseFloat(n.resultTownMaskText.style.fontSize) * n.resultTownMaskText.scaleX * scale,
@@ -66,6 +67,8 @@ try {
             assert.ok(state.battleTextPx >= 12, 'Battle instruction is too small on screen')
             assert.ok(state.battleInstruction.y < height - 30 && state.battleInstruction.y > height - 190)
             assert.ok(state.battleFish.y < state.battleInstruction.y - 80, 'fish and battle instructions overlap')
+            assert.ok(state.battleFish.y + 40 < state.battleActorTop,
+              'Battle fish did not clear the player on the short screen')
           }
           if (phase === 'result') {
             assert.equal(state.resultBackingVisible, true)

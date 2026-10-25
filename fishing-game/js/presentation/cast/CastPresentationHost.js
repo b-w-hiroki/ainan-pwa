@@ -710,6 +710,8 @@ export class CastPresentationHost {
       layeredScene,
       approvedSplit,
       chrome,
+      battleSplash,
+      battleLine,
       battleFish,
       battleJumpFx,
       battleCompactBacking,
@@ -878,6 +880,7 @@ export class CastPresentationHost {
     this._compactCastActive = compactCast
     this._compactRetrieveActive = compactRetrieve
     this._compactBattleActive = compactBattle
+    this._compactBattleSceneOffset = compactBattle ? -110 : 0
     this._compactResultActive = compactResult
     this.nodes.compactDockBacking.setVisible(compactCast)
     const compactScale = width / DESIGN_WIDTH
@@ -897,6 +900,10 @@ export class CastPresentationHost {
     this.nodes.battleCompactBottom.setVisible(compactBattle)
       .setY(designHeight + 2)
     this.nodes.battleReel.setY(574 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleSplash.setY(this._compactBattleSceneOffset)
+    this.nodes.battleLine.setY(this._compactBattleSceneOffset)
+    this.nodes.battleJumpFx.setY(349 + this._compactBattleSceneOffset)
+    this.nodes.battleRage.setY(compactBattle ? 80 : 104)
     this.nodes.battleOpeningMeter.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstructionBacking.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstruction.setY(648 + (compactBattle ? dockOffset : 0))
@@ -1070,7 +1077,8 @@ export class CastPresentationHost {
       this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
       // Motion is presentation-only. Its peak stays within the approved
       // foreground bounds; the same fish, input and Battle owner are retained.
-      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0), 326 + (jump?.liftY ?? 0))
+      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0),
+        326 + this._compactBattleSceneOffset + (jump?.liftY ?? 0))
         .setAngle(jump?.angleDeg ?? -8)
       this.nodes.battleJumpFx.setVisible(leap).setAlpha(jump?.splashAlpha ?? 1)
       if (leap) this.nodes.battleJumpFx.setTexture(FISH_JUMP_FX[battle.fishId].key)
