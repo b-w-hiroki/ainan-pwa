@@ -1171,8 +1171,8 @@ export class CastPresentationHost {
       const caught = result.outcome === 'caught'
       const retry = getRetryJourneyCopy(this.scene.env?.point)
       this._syncFishImage(this.nodes.resultFish, result.fishId, 'result')
-      if (this.nodes.characterMotion?.cute) {
-        // Leave the left side for the complete celebration pose, above the card.
+      if (this._compactResultActive || this.nodes.characterMotion?.cute) {
+        // Leave the left side for the fisher, above the card.
         const hero = this.nodes.resultFish
         const heroWidth = this._compactResultActive ? 205 : 230
         const ratio = heroWidth / hero.displayWidth

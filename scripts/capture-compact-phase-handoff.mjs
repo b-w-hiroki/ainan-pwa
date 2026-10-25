@@ -11,7 +11,8 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 try {
-  const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+  for (const [width, height] of [[320, 568], [375, 667]]) {
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
   try {
@@ -39,7 +40,7 @@ try {
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
-    await page.screenshot({ path: `${output}/01-retrieve.png`, animations: 'disabled' })
+    await page.screenshot({ path: `${output}/01-retrieve-${width}.png`, animations: 'disabled' })
 
     // Exercise the relocated Retrieve controls before a controlled fish-ready
     // event. Fish selection remains a QA fixture; HIT is a real pointer input.
@@ -75,7 +76,7 @@ try {
     })
     assert.equal(entered, true, 'controlled fish-ready event did not open the bite sequence')
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').waitTapActive, null, { timeout: 30000 })
-    await page.mouse.click(160, 265)
+    await page.mouse.click(width / 2, Math.round(height * 0.466))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 96,
@@ -101,7 +102,7 @@ try {
     })
     assert.ok(reelInput.phase === 'battle' && reelInput.reel > reelInput.before,
       `Battle dial did not apply reel input after phase handoff: ${JSON.stringify(reelInput)}`)
-    await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
+    await page.screenshot({ path: `${output}/02-battle-${width}.png`, animations: 'disabled' })
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
@@ -123,16 +124,17 @@ try {
     // A phase flip can precede Chromium's canvas compositing by a frame.
     // Require a rendered Result capture; keep the blank-frame gate below.
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      await page.screenshot({ path: `${output}/03-result.png`, animations: 'disabled' })
-      if (statSync(`${output}/03-result.png`).size > 15000) break
+      await page.screenshot({ path: `${output}/03-result-${width}.png`, animations: 'disabled' })
+      if (statSync(`${output}/03-result-${width}.png`).size > 15000) break
       await page.waitForTimeout(200)
     }
     await page.mouse.click(result.x, result.y)
     await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
-    for (const file of ['01-retrieve.png', '02-battle.png', '03-result.png']) {
+    for (const file of [`01-retrieve-${width}.png`, `02-battle-${width}.png`, `03-result-${width}.png`]) {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log('Compact 320x568 Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed')
+    console.log(`Compact ${width}x${height} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
+  }
 } finally { await browser.close() }

@@ -47,7 +47,6 @@ try {
             resultPrimaryTop: localToScreen(195, (n.resultPrimarySkin?.y ?? n.resultTownMaskText.y) - 44),
             resultFish: localToScreen(n.resultFish.x, n.resultFish.y),
             resultFishWidth: n.resultFish.displayWidth,
-            cuteCharacter: Boolean(n.characterMotion?.cute),
             battleFish: localToScreen(n.battleFish.x, n.battleFish.y),
             battleActorTop: n.characterMotion?.poseFront?.getBounds()?.y,
             conditionBadge: scene._conditionPresentation?.badge && {
@@ -85,11 +84,9 @@ try {
             assert.equal(state.resultBackingVisible, true)
             assert.ok(state.resultActionTextPx >= 16, 'Result action label is too small on screen')
             assert.ok(state.resultFish.y < state.resultCard.y - 40, 'fish and result card overlap')
-            if (state.cuteCharacter) {
-              assert.ok(state.resultFish.x >= 280 * state.scale,
-                'Result fish still covers the fisher celebration pose')
-              assert.ok(state.resultFishWidth <= 205, 'compact Result fish width was not adjusted')
-            }
+            assert.ok(state.resultFish.x >= 280 * state.scale,
+              'Result fish still covers the fisher')
+            assert.ok(state.resultFishWidth <= 205, 'compact Result fish width was not adjusted')
             assert.ok(state.resultCardBottom.y + 8 < state.resultPrimaryTop.y, 'result card and primary action overlap')
             assert.ok(state.resultSecondary.y < height - 35, 'second result action off screen')
           }
@@ -247,6 +244,34 @@ try {
         console.log(`${width}x${width === 320 ? 568 : 667} escaped Result ${action}: layout and input passed`)
       } finally { await page.close() }
     }
+  }
+  for (const [width, height] of [[320, 568], [375, 667]]) {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+    try {
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1&qaBoss=harborRunner&qaFreshBoss=1`)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'battle')
+      await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
+      await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._bossRecordBadge?.active)
+      await page.waitForFunction(() => !window.__game.scene.getScene('GameScene').cameras.main.flashEffect.isRunning)
+      const badge = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        const host = scene._castPresentationHost
+        const notice = scene._bossRecordBadge
+        return { compact: host._compactResultActive, x: notice.x,
+          badgeBottom: notice.getBounds().bottom,
+          cardTop: host.nodes.resultInfoSkin.getBounds().top,
+          actionTop: host.nodes.resultPrimarySkin.getBounds().top }
+      })
+      assert.equal(badge.compact, true)
+      assert.ok(badge.x <= 100 && badge.badgeBottom < badge.cardTop,
+        `compact boss badge covers the Result card: ${JSON.stringify(badge)}`)
+      assert.ok(badge.badgeBottom < badge.actionTop,
+        `compact boss badge covers the Result action: ${JSON.stringify(badge)}`)
+      const path = `${output}/result-boss-${width}.png`
+      await page.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, 'compact boss Result browser frame blank')
+      console.log(`${width}x${height} compact boss Result badge: card and action clear`)
+    } finally { await page.close() }
   }
   for (const action of ['back', 'retry']) {
     const page = await browser.newPage({ viewport: { width: 320, height: 568 } })
