@@ -328,6 +328,15 @@ export class CharacterMotionController {
     }
   }
 
+  setStageY(y) {
+    if (Math.abs(this.root.y - y) < 0.01) return
+    this.root.setY(y)
+    // The line target is in stage coordinates. Redraw its local endpoint
+    // whenever the character container moves during a live viewport resize.
+    const pose = this.poses[this.currentPose]
+    if (pose) this._applyRod(pose)
+  }
+
   _setRodVisual(rodType, force = false) {
     const resolvedType = ROD_VISUALS[rodType] ? rodType : DEFAULT_ROD_VISUAL_ID
     if (!force && this.rodType === resolvedType) return

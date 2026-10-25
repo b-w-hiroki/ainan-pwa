@@ -886,7 +886,9 @@ export class CastPresentationHost {
     this._compactResultActive = compactResult
     // A live viewport resize can enter or leave the compact phase without
     // remounting this host. Keep type size in step with the layout switch.
-    const enlargedBattleCues = canvasDisplayScale(this.scene) < 0.9 || compactPhase
+    const displayScale = canvasDisplayScale(this.scene)
+    const enlargedBattleCues = displayScale < 0.9 || compactPhase
+    this.nodes.battlePhase.setVisible(!(displayScale < 0.75 || compactBattle))
     this.nodes.battleFishName.setFontSize(compactBattle ? 20 : 17)
     this.nodes.battleReel.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 15 : 11)
     this.nodes.battleRage.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 16 : 13)
@@ -941,7 +943,7 @@ export class CastPresentationHost {
     if (this.nodes.characterMotion?.ready) {
       // The actor is independent of the painted harbor. Keep the feet just
       // above the relocated dock so the compact crop still shows the fisher.
-      this.nodes.characterMotion.root.setY(compactCast
+      this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
         : compactRetrieve ? dockOffset * 1.35
           : compactBattle ? dockOffset * 0.45
