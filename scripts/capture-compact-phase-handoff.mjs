@@ -69,14 +69,16 @@ try {
       const runtime = scene.bg?._fishRuntime?.find(item => item?.fishDef && item.gfx?.active)
       if (!runtime || scene.phase !== 'retrieve') return false
       scene._tickFishInterest = () => {}
-      const openHitWindow = scene._openHitWindow.bind(scene)
-      scene._openHitWindow = ms => openHitWindow(Math.max(ms, 5000))
       scene._beginRetrieveBite(runtime)
-      if (scene.phase === 'wait') scene.fish = { ...scene.fish, biteRate: 1 }
-      return scene.phase === 'wait'
+      if (scene.phase !== 'wait') return false
+      // Pin only the randomized pre-HIT timing. Keep the real HIT pointer,
+      // Battle reel, Result action, and phase ownership under test.
+      scene.fish = { ...scene.fish, biteRate: 1 }
+      scene._killWaitTimers()
+      scene._openHitWindow(5000)
+      return scene.phase === 'wait' && scene.waitTapActive && scene.hitHint.visible
     })
-    assert.equal(entered, true, 'controlled fish-ready event did not open the bite sequence')
-    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').waitTapActive, null, { timeout: 30000 })
+    assert.equal(entered, true, 'controlled fish-ready event did not open the HIT window')
     await page.mouse.click(width / 2, Math.round(height * 0.466))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
