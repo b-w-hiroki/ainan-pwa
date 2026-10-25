@@ -17,6 +17,7 @@ try {
   try {
     await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._conditionPresentation?.badge?.depth === 6001)
     const point = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
@@ -36,6 +37,8 @@ try {
     })
     assert.equal(retrieve.compact, true)
     assert.ok(retrieve.dock < 0)
+    assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
+      'Retrieve conditions should remain above the compact presentation')
     await page.screenshot({ path: `${output}/01-retrieve.png`, animations: 'disabled' })
 
     // Exercise the relocated Retrieve controls before a controlled fish-ready
@@ -75,6 +78,8 @@ try {
     await page.mouse.click(160, 265)
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 96,
+      'Battle should restore the environmental badge below its own HUD')
     await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
     const battlePoint = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
@@ -94,6 +99,8 @@ try {
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
+    assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 96,
+      'Result should retain the normal environmental badge depth')
     const result = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
