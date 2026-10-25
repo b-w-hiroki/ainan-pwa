@@ -145,6 +145,8 @@ export class CastPresentationHost {
     const displayScale = canvasDisplayScale(scene)
     const compact = displayScale < 0.75 || (compactPortraitPrototype && scene.scale.width < DESIGN_WIDTH)
     const enlargedCues = displayScale < 0.9 || compact
+    const compactBattleCues = compactPortraitPrototype
+      && scene.scale.width < DESIGN_WIDTH && scene.scale.height < DESIGN_HEIGHT
     const root = scene.add.container(0, 0).setDepth(6000).setScrollFactor(0)
     root.name = 'cast-presentation-host'
 
@@ -378,7 +380,7 @@ export class CastPresentationHost {
     battleHeaderBg.fillStyle(0xffffff, 1)
     battleHeaderBg.fillRoundedRect(18, 19, 354, 40, 16)
     const battleFishName = scene.add.text(54, 39, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#0b2d47',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '20px' : '17px', fontStyle: 'bold', color: '#0b2d47',
     }).setOrigin(0, 0.5).setResolution(2)
     const battlePhase = scene.add.text(146, 39, 'BATTLE', {
       fontFamily: 'Nunito, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173e61',
@@ -395,11 +397,11 @@ export class CastPresentationHost {
       : null
     const battleOpeningMeter = scene.add.graphics().setVisible(false)
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '15px' : '11px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '18px' : enlargedCues ? '15px' : '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
     }).setOrigin(0.5).setResolution(2)
     const battleRage = scene.add.text(DESIGN_WIDTH / 2, 104, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '16px' : '13px', fontStyle: 'bold', color: '#fff3a5',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '18px' : enlargedCues ? '16px' : '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setResolution(2).setVisible(false)
     const battleInstructionBacking = scene.add.graphics()
@@ -408,7 +410,7 @@ export class CastPresentationHost {
     battleInstructionBacking.lineStyle(1, 0x8edfff, 0.25)
       .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
     const battleInstruction = scene.add.text(DESIGN_WIDTH / 2, 648, 'タップ / 下へスワイプで巻く', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '16px' : '12px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '19px' : enlargedCues ? '16px' : '12px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2)
     battleField.add([battleBackground, battleSplash, battleLine, battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction, battleFish])
 
@@ -882,6 +884,13 @@ export class CastPresentationHost {
     this._compactBattleActive = compactBattle
     this._compactBattleSceneOffset = compactBattle ? -110 : 0
     this._compactResultActive = compactResult
+    // A live viewport resize can enter or leave the compact phase without
+    // remounting this host. Keep type size in step with the layout switch.
+    const enlargedBattleCues = canvasDisplayScale(this.scene) < 0.9 || compactPhase
+    this.nodes.battleFishName.setFontSize(compactBattle ? 20 : 17)
+    this.nodes.battleReel.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 15 : 11)
+    this.nodes.battleRage.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 16 : 13)
+    this.nodes.battleInstruction.setFontSize(compactBattle ? 19 : enlargedBattleCues ? 16 : 12)
     this.nodes.compactDockBacking.setVisible(compactCast)
     const compactScale = width / DESIGN_WIDTH
     const designHeight = height / compactScale
@@ -1099,7 +1108,7 @@ export class CastPresentationHost {
       overlay.setTexture(art.key).setVisible(point !== 'pointA')
         .setAlpha(point === 'pointC' ? 0.32 : 0.28)
       this.nodes.battleFishName.setText(battle.fishName)
-        .setScale(Math.min(1, 82 / Math.max(1, this.nodes.battleFishName.width)))
+        .setScale(Math.min(1, (this._compactBattleActive ? 140 : 82) / Math.max(1, this.nodes.battleFishName.width)))
       this.nodes.battleTensionFill.clear()
       drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : battle.tension01 >= 0.48 ? 'sun' : 'mint' })
       if (this.nodes.battleTensionStatus) {

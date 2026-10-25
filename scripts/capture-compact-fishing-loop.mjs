@@ -56,6 +56,11 @@ try {
             },
             battleTextSize: n.battleInstruction.style.fontSize,
             battleTextPx: parseFloat(n.battleInstruction.style.fontSize) * scale,
+            battleInstructionWidth: n.battleInstruction.displayWidth,
+            battleFishNamePx: parseFloat(n.battleFishName.style.fontSize) * n.battleFishName.scaleX * scale,
+            battleFishNameEnd: n.battleFishName.x + n.battleFishName.displayWidth,
+            battleReelPx: parseFloat(n.battleReel.style.fontSize) * scale,
+            battleRagePx: parseFloat(n.battleRage.style.fontSize) * scale,
             resultActionTextPx: parseFloat(n.resultTownMaskText.style.fontSize) * n.resultTownMaskText.scaleX * scale,
           }
         })
@@ -74,7 +79,12 @@ try {
           }
           if (phase === 'battle') {
             assert.equal(state.battleDockVisible, true)
-            assert.ok(state.battleTextPx >= 12, 'Battle instruction is too small on screen')
+            assert.ok(state.battleTextPx >= 15, 'Battle instruction is too small on screen')
+            assert.ok(state.battleFishNamePx >= 16, 'Battle fish name is too small on screen')
+            assert.ok(state.battleReelPx >= 14 && state.battleRagePx >= 14,
+              'Battle progress or warning is too small on screen')
+            assert.ok(state.battleFishNameEnd <= 205, 'Battle fish name overlaps the tension gauge')
+            assert.ok(state.battleInstructionWidth <= 350, 'Battle instruction exceeds its card')
             assert.ok(state.battleInstruction.y < height - 30 && state.battleInstruction.y > height - 190)
             assert.ok(state.battleFish.y < state.battleInstruction.y - 80, 'fish and battle instructions overlap')
             assert.ok(state.battleFish.y + 40 < state.battleActorTop,
@@ -298,6 +308,42 @@ try {
       console.log(`320x568 Result ${action}: input passed`)
     } finally { await page.close() }
   }
+  const resized = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  try {
+    await resized.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1`)
+    await resized.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    await resized.setViewportSize({ width: 320, height: 568 })
+    await resized.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    assert.equal(await resized.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.battleInstruction.style.fontSize),
+      '19px', 'Battle instruction did not grow after entering compact viewport')
+    await resized.setViewportSize({ width: 390, height: 844 })
+    await resized.waitForFunction(() => !window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    assert.equal(await resized.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.battleInstruction.style.fontSize),
+      '12px', 'Battle instruction did not restore after leaving compact viewport')
+    console.log('390→320→390 Battle resize: compact cues and ordinary size restored')
+  } finally { await resized.close() }
+  const longName = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+  try {
+    await longName.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaJump=1&qaFish=bass&compactPortrait=1`)
+    await longName.waitForFunction(() => {
+      const scene = window.__game?.scene?.getScene('GameScene')
+      return scene?._castPresentationHost?._compactBattleActive
+        && scene?._castPresentationHost?.nodes?.battleRage?.visible
+    })
+    const cue = await longName.evaluate(() => {
+      const n = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+      return { name: n.battleFishName.text, nameEnd: n.battleFishName.x + n.battleFishName.displayWidth,
+        warningPx: parseFloat(n.battleRage.style.fontSize) * 320 / 390,
+        instructionWidth: n.battleInstruction.displayWidth }
+    })
+    assert.equal(cue.name, 'ブラックバス')
+    assert.ok(cue.nameEnd <= 205 && cue.warningPx >= 14 && cue.instructionWidth <= 350,
+      `long fish name or rage cue exceeds compact Battle space: ${JSON.stringify(cue)}`)
+    const path = `${output}/battle-rage-bass-320.png`
+    await longName.screenshot({ path, animations: 'disabled' })
+    assert.ok(statSync(path).size > 15000, 'compact bass rage browser frame blank')
+    console.log('320x568 Black Bass rage: long name, warning, and instruction clear')
+  } finally { await longName.close() }
   const ordinary = await browser.newPage({ viewport: { width: 320, height: 568 } })
   try {
     await ordinary.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast`)
