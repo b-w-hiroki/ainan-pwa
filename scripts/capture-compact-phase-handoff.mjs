@@ -11,7 +11,8 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 try {
-  for (const [width, height] of [[320, 568], [375, 667]]) {
+  for (const [width, height] of [[320, 480], [320, 568], [375, 667]]) {
+  const sizeKey = height === 480 ? '320x480' : width
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
@@ -40,7 +41,7 @@ try {
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
-    await page.screenshot({ path: `${output}/01-retrieve-${width}.png`, animations: 'disabled' })
+    await page.screenshot({ path: `${output}/01-retrieve-${sizeKey}.png`, animations: 'disabled' })
 
     // Exercise the relocated Retrieve controls before a controlled fish-ready
     // event. Fish selection remains a QA fixture; HIT is a real pointer input.
@@ -102,7 +103,7 @@ try {
     })
     assert.ok(reelInput.phase === 'battle' && reelInput.reel > reelInput.before,
       `Battle dial did not apply reel input after phase handoff: ${JSON.stringify(reelInput)}`)
-    await page.screenshot({ path: `${output}/02-battle-${width}.png`, animations: 'disabled' })
+    await page.screenshot({ path: `${output}/02-battle-${sizeKey}.png`, animations: 'disabled' })
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
@@ -124,13 +125,13 @@ try {
     // A phase flip can precede Chromium's canvas compositing by a frame.
     // Require a rendered Result capture; keep the blank-frame gate below.
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      await page.screenshot({ path: `${output}/03-result-${width}.png`, animations: 'disabled' })
-      if (statSync(`${output}/03-result-${width}.png`).size > 15000) break
+      await page.screenshot({ path: `${output}/03-result-${sizeKey}.png`, animations: 'disabled' })
+      if (statSync(`${output}/03-result-${sizeKey}.png`).size > 15000) break
       await page.waitForTimeout(200)
     }
     await page.mouse.click(result.x, result.y)
     await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
-    for (const file of [`01-retrieve-${width}.png`, `02-battle-${width}.png`, `03-result-${width}.png`]) {
+    for (const file of [`01-retrieve-${sizeKey}.png`, `02-battle-${sizeKey}.png`, `03-result-${sizeKey}.png`]) {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
