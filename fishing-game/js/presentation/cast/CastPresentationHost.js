@@ -1174,8 +1174,10 @@ export class CastPresentationHost {
       if (this.nodes.characterMotion?.cute) {
         // Leave the left side for the complete celebration pose, above the card.
         const hero = this.nodes.resultFish
-        const ratio = 230 / hero.displayWidth
-        hero.setDisplaySize(230, hero.displayHeight * ratio).setX(250)
+        const heroWidth = this._compactResultActive ? 205 : 230
+        const ratio = heroWidth / hero.displayWidth
+        hero.setDisplaySize(heroWidth, hero.displayHeight * ratio)
+          .setX(this._compactResultActive ? 285 : 250)
       }
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught && !this.nodes.resultOutcomeFx)

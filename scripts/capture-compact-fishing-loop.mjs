@@ -46,6 +46,8 @@ try {
             resultCardBottom: localToScreen(195, 572 + n.resultCard.y),
             resultPrimaryTop: localToScreen(195, (n.resultPrimarySkin?.y ?? n.resultTownMaskText.y) - 44),
             resultFish: localToScreen(n.resultFish.x, n.resultFish.y),
+            resultFishWidth: n.resultFish.displayWidth,
+            cuteCharacter: Boolean(n.characterMotion?.cute),
             battleFish: localToScreen(n.battleFish.x, n.battleFish.y),
             battleActorTop: n.characterMotion?.poseFront?.getBounds()?.y,
             conditionBadge: scene._conditionPresentation?.badge && {
@@ -83,6 +85,11 @@ try {
             assert.equal(state.resultBackingVisible, true)
             assert.ok(state.resultActionTextPx >= 16, 'Result action label is too small on screen')
             assert.ok(state.resultFish.y < state.resultCard.y - 40, 'fish and result card overlap')
+            if (state.cuteCharacter) {
+              assert.ok(state.resultFish.x >= 280 * state.scale,
+                'Result fish still covers the fisher celebration pose')
+              assert.ok(state.resultFishWidth <= 205, 'compact Result fish width was not adjusted')
+            }
             assert.ok(state.resultCardBottom.y + 8 < state.resultPrimaryTop.y, 'result card and primary action overlap')
             assert.ok(state.resultSecondary.y < height - 35, 'second result action off screen')
           }
