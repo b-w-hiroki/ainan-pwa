@@ -27,6 +27,7 @@ export default class TitleScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale
     const compact = canvasDisplayScale(this) < 0.75
+    const shortPortrait = H <= 500 && W < H
 
     // Deterministic CI screenshot routing. Normal play is unaffected.
     const qaRoute = getQaSceneRoute(window.location.search)
@@ -121,7 +122,7 @@ export default class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
 
     // ─── 世界観と遊びの紹介 ──────────────────────────
-    const copyY = H * 0.615
+    const copyY = H * (shortPortrait ? 0.52 : 0.615)
     const copyBg = this.add.graphics().setDepth(4)
     copyBg.fillStyle(0x123a54, 0.76)
     copyBg.lineStyle(1.5, 0xffffff, 0.56)
@@ -141,8 +142,8 @@ export default class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5)
 
     // ─── スタートボタン ──────────────────────────────
-    new Button(this, {
-      x: W / 2, y: H * 0.735,
+    this._startButton = new Button(this, {
+      x: W / 2, y: H * (shortPortrait ? 0.70 : 0.735),
       w: 282, h: 70,
       label: 'ゲームをはじめる',
       subLabel: '釣って、育てて、町を元気に',
@@ -156,8 +157,8 @@ export default class TitleScene extends Phaser.Scene {
     })
 
     const helpHeight = touchHeight(this, 46)
-    new Button(this, {
-      x: W / 2, y: H * (helpHeight > 54 ? 0.84 : 0.825),
+    this._helpButton = new Button(this, {
+      x: W / 2, y: H * (shortPortrait ? 0.87 : helpHeight > 54 ? 0.84 : 0.825),
       w: 210, h: helpHeight,
       label: '遊び方',
       icon: ICONS.HELP,
@@ -169,14 +170,16 @@ export default class TitleScene extends Phaser.Scene {
 
     // ボタン誘導パルス
     // ─── フッター ─────────────────────────────────
-    const footerBg = this.add.graphics().setDepth(4)
-    footerBg.fillStyle(0xffffff, 0.70)
-    footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
-    this.add.text(W / 2, H * 0.95, '釣り × 町おこし  AINAN', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '15px' : '12px', fontWeight: '700',
-      color: '#1a3a5a',
-    }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
+    if (!shortPortrait) {
+      const footerBg = this.add.graphics().setDepth(4)
+      footerBg.fillStyle(0xffffff, 0.70)
+      footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
+      this.add.text(W / 2, H * 0.95, '釣り × 町おこし  AINAN', {
+        fontFamily: FONT, resolution: TEXT_RES,
+        fontSize: compact ? '15px' : '12px', fontWeight: '700',
+        color: '#1a3a5a',
+      }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
+    }
 
     this.add.text(W - 8, H - 7, `build ${BUILD_ID}`, {
       fontFamily: FONT, resolution: TEXT_RES,
