@@ -80,12 +80,13 @@ try {
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 96,
       'Battle should restore the environmental badge below its own HUD')
-    await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
     const battlePoint = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
       scene.battleState.isRaging = false
       scene.battleState.nextRageAt = Number.POSITIVE_INFINITY
+      scene.battleState.escape = 0
+      scene.battleState.reel = Math.min(scene.battleState.reel, 80)
       scene._battleNextReelInputAt = 0
       window.__compactBeforeReel = scene.battleState.reel
       const rect = scene.game.canvas.getBoundingClientRect()
@@ -93,9 +94,14 @@ try {
         y: rect.y + (746 + host._compactDockOffset) * host.root.scaleY }
     })
     await page.mouse.click(battlePoint.x, battlePoint.y)
-    const reel = await page.evaluate(() => window.__game.scene.getScene('GameScene').battleState.reel)
-    const beforeReel = await page.evaluate(() => window.__compactBeforeReel)
-    assert.ok(reel > beforeReel, 'Battle dial did not apply reel input after phase handoff')
+    const reelInput = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      return { phase: scene.phase, reel: scene.battleState?.reel,
+        before: window.__compactBeforeReel, raging: scene.battleState?.isRaging }
+    })
+    assert.ok(reelInput.phase === 'battle' && reelInput.reel > reelInput.before,
+      `Battle dial did not apply reel input after phase handoff: ${JSON.stringify(reelInput)}`)
+    await page.screenshot({ path: `${output}/02-battle.png`, animations: 'disabled' })
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
@@ -109,7 +115,18 @@ try {
         y: rect.y + host.nodes.resultPrimarySkin.y * host.root.scaleY }
     })
     assert.equal(result.compact, true)
-    await page.screenshot({ path: `${output}/03-result.png`, animations: 'disabled' })
+    await page.waitForFunction(() => {
+      const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+      return host?.nodes?.resultPrimarySkin?.visible && host?.nodes?.resultFish?.visible
+    })
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    // A phase flip can precede Chromium's canvas compositing by a frame.
+    // Require a rendered Result capture; keep the blank-frame gate below.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await page.screenshot({ path: `${output}/03-result.png`, animations: 'disabled' })
+      if (statSync(`${output}/03-result.png`).size > 15000) break
+      await page.waitForTimeout(200)
+    }
     await page.mouse.click(result.x, result.y)
     await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
     for (const file of ['01-retrieve.png', '02-battle.png', '03-result.png']) {
