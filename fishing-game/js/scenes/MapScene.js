@@ -171,7 +171,8 @@ export default class MapScene extends Phaser.Scene {
       const a = FISHING_POINTS[i]
       const b = FISHING_POINTS[i + 1]
       const targetUnlocked = this._unlocks.points[b.id]?.unlocked ?? true
-      const x1 = W * a.pos.x, y1 = H * a.pos.y, x2 = W * b.pos.x, y2 = H * b.pos.y
+      const lift = H <= 500 && W < H ? 12 : 0
+      const x1 = W * a.pos.x, y1 = H * a.pos.y - lift, x2 = W * b.pos.x, y2 = H * b.pos.y - lift
       shadow.lineStyle(5, 0x173248, targetUnlocked ? 0.16 : 0.08)
       line.lineStyle(3, targetUnlocked ? 0xffffff : 0x9caab0, targetUnlocked ? 0.76 : 0.42)
       this._drawDashedLine(shadow, x1, y1 + 2, x2, y2 + 2, 10, 8)
@@ -189,6 +190,7 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _showMapHint(W, H) {
+    if (H <= 500 && W < H) return
     const nextLocked = Object.values(this._unlocks.points).find(p => !p.unlocked)
     const label = nextLocked ? `次の海: ${nextLocked.unlockedBy}` : 'すべての釣り場を解放済み'
     const g = this.add.graphics().setDepth(4)
@@ -202,7 +204,8 @@ export default class MapScene extends Phaser.Scene {
   }
 
   _buildPointMarker(point, W, H, index) {
-    const x = W * point.pos.x, y = H * point.pos.y
+    const shortPortrait = H <= 500 && W < H
+    const x = W * point.pos.x, y = H * point.pos.y - (shortPortrait ? 12 : 0)
     const unlock = this._unlocks.points[point.id] ?? getFishingPointUnlock(point.id)
     const marker = this.add.container(x, y).setDepth(6)
     this._pointMarkers[point.id] = marker
@@ -247,9 +250,9 @@ export default class MapScene extends Phaser.Scene {
       const cleared = !!bossState?.cleared
       badge.fillStyle(cleared ? 0xffd95a : 0xff765a, 0.96)
       badge.lineStyle(1.5, 0xffffff, 0.82)
-      badge.fillRoundedRect(-41, -48, 82, 22, 9)
-      badge.strokeRoundedRect(-41, -48, 82, 22, 9)
-      const bossLabel = this.add.text(0, -37, cleared ? '★ TROPHY' : 'BOSS!', {
+      badge.fillRoundedRect(shortPortrait ? 32 : -41, shortPortrait ? -24 : -48, shortPortrait ? 70 : 82, 22, 9)
+      badge.strokeRoundedRect(shortPortrait ? 32 : -41, shortPortrait ? -24 : -48, shortPortrait ? 70 : 82, 22, 9)
+      const bossLabel = this.add.text(shortPortrait ? 67 : 0, shortPortrait ? -13 : -37, cleared ? '★ TROPHY' : 'BOSS!', {
         fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900',
         color: cleared ? UI_COLORS.ink : '#ffffff',
       }).setOrigin(0.5)

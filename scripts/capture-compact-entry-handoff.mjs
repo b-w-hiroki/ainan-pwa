@@ -11,9 +11,9 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 try {
-  for (const [width, height, safeArea] of [[320, 568, false], [320, 568, true], [375, 667, false], [390, 844, false], [430, 932, false]]) {
+  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [320, 568, true], [375, 667, false], [390, 844, false], [430, 932, false]]) {
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
-    const label = safeArea ? `${width}-safe` : String(width)
+    const label = safeArea ? `${width}-safe` : height === 480 ? '320x480' : String(width)
     const errors = []
     page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
     try {
@@ -40,9 +40,43 @@ try {
         assert.ok(canvas.top >= 19 && canvas.bottom <= 535, `Title ignores safe area: ${JSON.stringify(canvas)}`)
       }
       await page.screenshot({ path: `${output}/title-${label}.png`, animations: 'disabled' })
+      if (height === 480) {
+        const buttons = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('TitleScene')
+          return { startBottom: scene._startButton.container.y + 35 + 8,
+            helpTop: scene._helpButton.container.y - 23 - 8 }
+        })
+        assert.ok(buttons.startBottom < buttons.helpTop, `short Title actions overlap: ${JSON.stringify(buttons)}`)
+      }
+      if (width < 390 && height <= 667 && !safeArea) {
+        const help = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('TitleScene')
+          return window.__compactScreenPoint(scene, scene._helpButton.container.x, scene._helpButton.container.y)
+        })
+        await page.mouse.click(help.x, help.y)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('HelpScene')?.sys?.isActive?.())
+        await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
+        await page.mouse.move(width / 2, height - 115)
+        await page.mouse.down()
+        await page.mouse.move(width / 2, 135, { steps: 12 })
+        await page.mouse.up()
+        const dragged = await page.evaluate(() => window.__game.scene.getScene('HelpScene')._helpScroll)
+        assert.ok(dragged > 100, `short Help did not respond to drag: ${dragged}`)
+        await page.mouse.wheel(0, 800)
+        await page.waitForFunction(() => window.__game.scene.getScene('HelpScene')._helpScroll > 300)
+        await page.screenshot({ path: `${output}/help-bottom-${label}.png`, animations: 'disabled' })
+        for (const position of ['top', 'bottom']) {
+          assert.ok(statSync(`${output}/help-${position}-${label}.png`).size > 15000,
+            `Help ${position} browser frame blank`)
+        }
+        await page.mouse.click(width * 0.1, height - 40)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.())
+        await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&compactPortrait=1`)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('TitleScene')?.sys?.isActive?.())
+      }
       const start = await page.evaluate(() => {
         const scene = window.__game.scene.getScene('TitleScene')
-        return { x: scene.scale.width / 2, y: scene.scale.height * 0.735 }
+        return window.__compactScreenPoint(scene, scene._startButton.container.x, scene._startButton.container.y)
       })
       await page.mouse.click(start.x, start.y)
       await page.waitForFunction(() => window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.())
@@ -52,6 +86,13 @@ try {
         return { next: scene._journey?.scene, point: window.__compactScreenPoint(scene, scene._mainCta.container.x, scene._mainCta.container.y) }
       })
       assert.equal(home.next, 'MapScene', `fresh Home journey does not lead to Map: ${JSON.stringify(home)}`)
+      if (height === 480) {
+        const action = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('HomeScene')
+          return { bottom: scene._mainCta.container.y + 42, footerTop: scene.scale.height - 86 }
+        })
+        assert.ok(action.bottom < action.footerTop, `short Home action overlaps footer: ${JSON.stringify(action)}`)
+      }
       await page.screenshot({ path: `${output}/home-${label}.png`, animations: 'disabled' })
       await page.mouse.click(home.point.x, home.point.y)
       await page.waitForFunction(() => window.__game?.scene?.getScene('MapScene')?.sys?.isActive?.())
@@ -62,6 +103,19 @@ try {
         return window.__compactScreenPoint(scene, point.x, point.y)
       })
       await page.screenshot({ path: `${output}/map-${label}.png`, animations: 'disabled' })
+      if (height === 480) {
+        const markers = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('MapScene')
+          return { aBottom: scene._pointMarkers.pointA.y + 59,
+            bBadgeTop: scene._pointMarkers.pointB.y - 24,
+            bBottom: scene._pointMarkers.pointB.y + 59,
+            cBadgeTop: scene._pointMarkers.pointC.y - 24,
+            cBottom: scene._pointMarkers.pointC.y + 59,
+            footerTop: scene.scale.height - 86 }
+        })
+        assert.ok(markers.aBottom < markers.bBadgeTop && markers.bBottom < markers.cBadgeTop
+          && markers.cBottom < markers.footerTop, `short Map marker labels overlap: ${JSON.stringify(markers)}`)
+      }
       await page.mouse.click(marker.x, marker.y)
       await page.waitForFunction(() => window.__game.scene.getScene('MapScene')._detailPanel?.active)
       await page.waitForTimeout(220)

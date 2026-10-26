@@ -36,8 +36,9 @@ for (const token of ["294 / Math.max(1, name.width)", "132 / Math.max(1, size.wi
   "143 / Math.max(1, score.width)", "'町へ持ち帰る'", "'もう一投'"]) {
   assert.ok(resultHost.includes(token), 'Result readability contract missing: ' + token)
 }
-assert.ok(resultHost.includes('resultTownMaskText.setFontSize(caught ? 23 : 22)'),
-  'Result primary CTA must remain clear in the approved panel')
+assert.ok(resultHost.includes('primaryLabel.setFontSize(caught ? 23 : this._compactResultActive ? 25 : 22)')
+  && resultHost.includes('Math.min(1.1, 338 / Math.max(1, primaryLabel.width))'),
+  'Result primary CTA must remain clear and fit the approved panel')
 assert.ok(resultHost.includes("this.nodes.resultRetryText.setText('もう一投')"),
   'Result retry label must match the approved game loop')
 

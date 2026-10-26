@@ -145,6 +145,8 @@ export class CastPresentationHost {
     const displayScale = canvasDisplayScale(scene)
     const compact = displayScale < 0.75 || (compactPortraitPrototype && scene.scale.width < DESIGN_WIDTH)
     const enlargedCues = displayScale < 0.9 || compact
+    const compactBattleCues = compactPortraitPrototype
+      && scene.scale.width < DESIGN_WIDTH && scene.scale.height < DESIGN_HEIGHT
     const root = scene.add.container(0, 0).setDepth(6000).setScrollFactor(0)
     root.name = 'cast-presentation-host'
 
@@ -378,7 +380,7 @@ export class CastPresentationHost {
     battleHeaderBg.fillStyle(0xffffff, 1)
     battleHeaderBg.fillRoundedRect(18, 19, 354, 40, 16)
     const battleFishName = scene.add.text(54, 39, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#0b2d47',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '20px' : '17px', fontStyle: 'bold', color: '#0b2d47',
     }).setOrigin(0, 0.5).setResolution(2)
     const battlePhase = scene.add.text(146, 39, 'BATTLE', {
       fontFamily: 'Nunito, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#173e61',
@@ -395,11 +397,11 @@ export class CastPresentationHost {
       : null
     const battleOpeningMeter = scene.add.graphics().setVisible(false)
     const battleReel = scene.add.text(DESIGN_WIDTH / 2, 574, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '15px' : '11px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '18px' : enlargedCues ? '15px' : '11px', fontStyle: 'bold', color: '#ffffff',
       backgroundColor: 'rgba(3,29,46,0.78)', padding: { x: 10, y: 4 },
     }).setOrigin(0.5).setResolution(2)
     const battleRage = scene.add.text(DESIGN_WIDTH / 2, 104, '', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '16px' : '13px', fontStyle: 'bold', color: '#fff3a5',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '18px' : enlargedCues ? '16px' : '13px', fontStyle: 'bold', color: '#fff3a5',
       backgroundColor: 'rgba(94,32,26,0.86)', padding: { x: 12, y: 5 },
     }).setOrigin(0.5).setResolution(2).setVisible(false)
     const battleInstructionBacking = scene.add.graphics()
@@ -408,7 +410,7 @@ export class CastPresentationHost {
     battleInstructionBacking.lineStyle(1, 0x8edfff, 0.25)
       .strokeRoundedRect(20, 631, DESIGN_WIDTH - 40, 34, 14)
     const battleInstruction = scene.add.text(DESIGN_WIDTH / 2, 648, 'タップ / 下へスワイプで巻く', {
-      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: enlargedCues ? '16px' : '12px', fontStyle: 'bold', color: '#ffffff',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: compactBattleCues ? '19px' : enlargedCues ? '16px' : '12px', fontStyle: 'bold', color: '#ffffff',
     }).setOrigin(0.5).setResolution(2)
     battleField.add([battleBackground, battleSplash, battleLine, battleBase, battleInstructionBacking, battleHeaderBg, battleFishName, battlePhase, battleTensionTrack, ...(battleTensionSkin ? [battleTensionSkin] : []), battleTensionFill, ...(battleTensionStatus ? [battleTensionStatus] : []), battleOpeningMeter, battleReel, battleRage, battleInstruction, battleFish])
 
@@ -470,10 +472,10 @@ export class CastPresentationHost {
     resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
     const resultFailureEquip = scene.add.text(101, 746, '装備を見直す', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const resultFailurePort = scene.add.text(289, 746, '港へ戻る', {
       fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff',
-    }).setOrigin(0.5).setVisible(false)
+    }).setOrigin(0.5).setResolution(2).setVisible(false)
     const resultPrimarySkin = scene.textures.exists(ASSETS.ui.artButtonPrimary.key)
       ? scene.add.image(DESIGN_WIDTH / 2, 655, ASSETS.ui.artButtonPrimary.key).setDisplaySize(382, 88)
       : null
@@ -710,6 +712,8 @@ export class CastPresentationHost {
       layeredScene,
       approvedSplit,
       chrome,
+      battleSplash,
+      battleLine,
       battleFish,
       battleJumpFx,
       battleCompactBacking,
@@ -879,9 +883,24 @@ export class CastPresentationHost {
     this._compactRetrieveActive = compactRetrieve
     this._compactBattleActive = compactBattle
     this._compactResultActive = compactResult
+    // A live viewport resize can enter or leave the compact phase without
+    // remounting this host. Keep type size in step with the layout switch.
+    const displayScale = canvasDisplayScale(this.scene)
+    const enlargedBattleCues = displayScale < 0.9 || compactPhase
+    this.nodes.battlePhase.setVisible(!(displayScale < 0.75 || compactBattle))
+    this.nodes.battleFishName.setFontSize(compactBattle ? 20 : 17)
+    this.nodes.battleReel.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 15 : 11)
+    this.nodes.battleRage.setFontSize(compactBattle ? 18 : enlargedBattleCues ? 16 : 13)
+    this.nodes.battleInstruction.setFontSize(compactBattle ? 19 : enlargedBattleCues ? 16 : 12)
     this.nodes.compactDockBacking.setVisible(compactCast)
     const compactScale = width / DESIGN_WIDTH
     const designHeight = height / compactScale
+    // Below the 320x568 / 375x667 baseline, reclaim water space gradually
+    // instead of cropping the fisher or pushing GET! into the header.
+    const verticalSqueeze = compactPhase
+      ? Math.min(1, Math.max(0, (692 - designHeight) / 107)) : 0
+    this._compactVerticalSqueeze = verticalSqueeze
+    this._compactBattleSceneOffset = compactBattle ? -110 - 45 * verticalSqueeze : 0
     const dockOffset = compactPhase ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
     this._compactDockOffset = dockOffset
     this.nodes.castDock.setY(compactCast ? dockOffset : 0)
@@ -896,16 +915,22 @@ export class CastPresentationHost {
       .setY(compactBattle ? dockOffset : 0)
     this.nodes.battleCompactBottom.setVisible(compactBattle)
       .setY(designHeight + 2)
-    this.nodes.battleReel.setY(574 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleReel.setPosition(DESIGN_WIDTH / 2 + (compactBattle ? 75 * verticalSqueeze : 0),
+      574 + (compactBattle ? dockOffset : 0))
+    this.nodes.battleSplash.setY(this._compactBattleSceneOffset)
+    this.nodes.battleLine.setY(this._compactBattleSceneOffset)
+    this.nodes.battleJumpFx.setY(349 + this._compactBattleSceneOffset)
+    this.nodes.battleRage.setY(compactBattle ? 80 : 104)
     this.nodes.battleOpeningMeter.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstructionBacking.setY(compactBattle ? dockOffset : 0)
     this.nodes.battleInstruction.setY(648 + (compactBattle ? dockOffset : 0))
-    const cardOffset = compactResult ? dockOffset * 0.72 : 0
+    const cardOffset = compactResult ? dockOffset * 0.72 - 15 * verticalSqueeze : 0
+    this._resultCardOffset = cardOffset
     const resultFishOffset = compactResult ? dockOffset * 0.55 : 0
-    const resultButtonOffset = compactResult ? dockOffset + 18 : 0
+    const resultButtonOffset = compactResult ? dockOffset + 18 + 15 * verticalSqueeze : 0
     this._resultActionOffset = resultButtonOffset
     this.nodes.resultCompactBacking.setVisible(compactResult)
-    this.nodes.resultGet.setY(150 + (compactResult ? dockOffset * 0.3 : 0))
+    this.nodes.resultGet.setY(compactResult ? Math.max(104, 150 + dockOffset * 0.3) : 150)
     this.nodes.resultFish.setY(304 + resultFishOffset)
     this.nodes.resultCard.setY(cardOffset)
     this.nodes.resultInfoSkin?.setY(506 + cardOffset)
@@ -925,11 +950,11 @@ export class CastPresentationHost {
     if (this.nodes.characterMotion?.ready) {
       // The actor is independent of the painted harbor. Keep the feet just
       // above the relocated dock so the compact crop still shows the fisher.
-      this.nodes.characterMotion.root.setY(compactCast
+      this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
         : compactRetrieve ? dockOffset * 1.35
-          : compactBattle ? dockOffset * 0.45
-          : compactResult ? resultFishOffset : 0)
+          : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
+          : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
     }
     if (compactPhase) {
       this.root.setScale(compactScale)
@@ -964,6 +989,17 @@ export class CastPresentationHost {
     if (compactPortraitPrototype && this._lastLayoutPhase !== this.scene.phase) {
       this._lastLayoutPhase = this.scene.phase
       this.layout()
+    }
+    const conditionBadge = this.scene._conditionPresentation?.badge
+    if (compactPortraitPrototype && conditionBadge) {
+      const showCompactBadge = this._compactCastActive || this._compactRetrieveActive
+      const layoutKey = `${showCompactBadge}:${this.scene.scale.width}`
+      if (this._conditionBadgeLayoutKey !== layoutKey) {
+        this._conditionBadgeLayoutKey = layoutKey
+        conditionBadge.setDepth(showCompactBadge ? 6001 : 96)
+          .setPosition(this.scene.scale.width - (showCompactBadge ? 10 : 14), showCompactBadge ? 96 : 18)
+          .setFontSize(showCompactBadge ? '13px' : '9px')
+      }
     }
     if (this.scene.phase !== 'retrieve') this._cancelHeldRetrieve()
     const view = readCastViewModel(this.scene)
@@ -1070,7 +1106,8 @@ export class CastPresentationHost {
       this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
       // Motion is presentation-only. Its peak stays within the approved
       // foreground bounds; the same fish, input and Battle owner are retained.
-      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0), 326 + (jump?.liftY ?? 0))
+      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0),
+        326 + this._compactBattleSceneOffset + (jump?.liftY ?? 0))
         .setAngle(jump?.angleDeg ?? -8)
       this.nodes.battleJumpFx.setVisible(leap).setAlpha(jump?.splashAlpha ?? 1)
       if (leap) this.nodes.battleJumpFx.setTexture(FISH_JUMP_FX[battle.fishId].key)
@@ -1080,7 +1117,7 @@ export class CastPresentationHost {
       overlay.setTexture(art.key).setVisible(point !== 'pointA')
         .setAlpha(point === 'pointC' ? 0.32 : 0.28)
       this.nodes.battleFishName.setText(battle.fishName)
-        .setScale(Math.min(1, 82 / Math.max(1, this.nodes.battleFishName.width)))
+        .setScale(Math.min(1, (this._compactBattleActive ? 140 : 82) / Math.max(1, this.nodes.battleFishName.width)))
       this.nodes.battleTensionFill.clear()
       drawStatusMeter(this.nodes.battleTensionFill, { x: 208, y: 34, w: 148, h: 11, value: battle.tension01, max: 1, tone: battle.tension01 >= 0.72 ? 'coral' : battle.tension01 >= 0.48 ? 'sun' : 'mint' })
       if (this.nodes.battleTensionStatus) {
@@ -1152,11 +1189,13 @@ export class CastPresentationHost {
       const caught = result.outcome === 'caught'
       const retry = getRetryJourneyCopy(this.scene.env?.point)
       this._syncFishImage(this.nodes.resultFish, result.fishId, 'result')
-      if (this.nodes.characterMotion?.cute) {
-        // Leave the left side for the complete celebration pose, above the card.
+      if (this._compactResultActive || this.nodes.characterMotion?.cute) {
+        // Leave the left side for the fisher, above the card.
         const hero = this.nodes.resultFish
-        const ratio = 230 / hero.displayWidth
-        hero.setDisplaySize(230, hero.displayHeight * ratio).setX(250)
+        const heroWidth = this._compactResultActive ? 205 : 230
+        const ratio = heroWidth / hero.displayWidth
+        hero.setDisplaySize(heroWidth, hero.displayHeight * ratio)
+          .setX(this._compactResultActive ? 285 : 250)
       }
       this.nodes.characterMotion?.setFishTexture(FISH_ART[result.fishId] ?? FISH_ART.tai)
       this.nodes.resultGlow.setVisible(caught && !this.nodes.resultOutcomeFx)
@@ -1168,7 +1207,10 @@ export class CastPresentationHost {
       // the single visual owner in Result.
       this.nodes.resultFish.setVisible(caught)
       if (caught) this.nodes.characterMotion?.fish?.setVisible(false)
-      this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED').setFontSize(caught ? 68 : 44)
+      const squeeze = this._compactResultActive ? this._compactVerticalSqueeze : 0
+      this.nodes.resultGet.setText(caught ? 'GET!' : 'ESCAPED')
+        .setFontSize(Math.round(caught ? 68 - 20 * squeeze : 44 - 10 * squeeze))
+        .setX(caught ? DESIGN_WIDTH / 2 - 90 * squeeze : DESIGN_WIDTH / 2)
       // The Result card must read at phone size without changing its layout.
       // Clamp name/score width so long Japanese labels stay within their columns.
       const name = this.nodes.resultName
@@ -1176,8 +1218,8 @@ export class CastPresentationHost {
       name.setScale(Math.min(caught ? 1.5 : 1.15, 294 / Math.max(1, name.width)))
       const size = this.nodes.resultSize
       size.setPosition(caught ? 119 : DESIGN_WIDTH / 2,
-        526 + (this._compactResultActive ? this._compactDockOffset * 0.72 : 0))
-        .setFontSize(caught ? 23 : 13)
+        526 + this._resultCardOffset)
+        .setFontSize(caught ? 23 : this._compactResultActive ? 17 : 13)
         .setWordWrapWidth(caught ? 0 : 284)
         .setText(caught ? `サイズ\n${result.sizeCm} cm` : retry.advice)
       size.setScale(caught ? Math.min(1.3, 132 / Math.max(1, size.width)) : 1)
@@ -1197,9 +1239,11 @@ export class CastPresentationHost {
         .setColor('#173248')
         .setFontSize(caught ? 16 : 18)
         .setText(caught ? '港の変化を見る（釣果登録済み）' : retry.primary)
-      this.nodes.resultTownMaskText.setFontSize(caught ? 23 : 22)
+      const primaryLabel = this.nodes.resultTownMaskText
+      primaryLabel.setFontSize(caught ? 23 : this._compactResultActive ? 25 : 22)
         .setText(caught ? '町へ持ち帰る' : retry.primary)
-        .setScale(caught ? 1.25 : 1)
+      primaryLabel.setScale(caught ? 1.25 : this._compactResultActive
+        ? Math.min(1.1, 338 / Math.max(1, primaryLabel.width)) : 1)
       this.nodes.resultRetryText.setText('もう一投').setFontSize(25).setScale(caught ? 1.3 : 1)
       this.nodes.resultFailureOptions.clear().setVisible(true)
       this.nodes.resultFailureOptions.fillStyle(0x031d2e, 0.25)
@@ -1220,8 +1264,12 @@ export class CastPresentationHost {
         this.nodes.resultFailureOptions.strokeRoundedRect(198, 706, 182, 80, 22)
       }
       this.nodes.resultRetryText.setVisible(caught)
-      this.nodes.resultFailureEquip.setVisible(!caught).setFontSize(18).setText('装備を見直す')
-      this.nodes.resultFailurePort.setVisible(!caught).setFontSize(18).setText('港へ戻る')
+      for (const [label, copy] of [[this.nodes.resultFailureEquip, '装備を見直す'],
+        [this.nodes.resultFailurePort, '港へ戻る']]) {
+        label.setVisible(!caught).setFontSize(this._compactResultActive ? 24 : 18).setText(copy)
+        label.setStroke('#074365', this._compactResultActive ? 2 : 0)
+        label.setScale(this._compactResultActive ? Math.min(1, 160 / Math.max(1, label.width)) : 1)
+      }
       if (this.nodes.resultPrimarySkin) {
         this.nodes.resultPrimarySkin.setVisible(true).setTexture(ASSETS.ui.artButtonPrimary.key)
         this.nodes.resultSecondarySkin?.setVisible(caught)

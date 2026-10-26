@@ -369,7 +369,7 @@ export default class HomeScene extends Phaser.Scene {
       ? `あと約${waitMin}分・ジェム${STAMINA_REFILL_GEM_COST}で全回復`
       : this._journey.progress
     this._mainCta = new Button(this, {
-      x: W / 2, y: H * 0.805, w: 300, h: 68,
+      x: W / 2, y: H * (H <= 500 && W < H ? 0.72 : 0.805), w: 300, h: 68,
       label: waiting ? 'スタミナ回復待ち' : this._journey.shortCta,
       subLabel, glyph: 'rod', trailing: '›',
       variant: waiting ? 'secondary' : 'primary',

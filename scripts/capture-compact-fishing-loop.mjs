@@ -12,7 +12,7 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 try {
-  for (const [width, height] of (process.env.QA_SAFE_ONLY === '1' ? [] : [[320, 568], [375, 667], [390, 844], [430, 932]])) {
+  for (const [width, height] of (process.env.QA_SAFE_ONLY === '1' ? [] : [[320, 480], [320, 568], [375, 667], [390, 844], [430, 932]])) {
     for (const phase of ['cast', 'retrieve', 'battle', 'result']) {
       const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
       const errors = []
@@ -39,6 +39,7 @@ try {
             resultBackingVisible: n.resultCompactBacking.visible,
             retrieveButton: localToScreen(318, 746 + (host._compactRetrieveActive ? host._compactDockOffset : 0)),
             battleInstruction: localToScreen(195, n.battleInstruction.y),
+            battleReel: localToScreen(n.battleReel.x, n.battleReel.y),
             battleButton: localToScreen(195, 746 + (host._compactBattleActive ? host._compactDockOffset : 0)),
             resultPrimary: localToScreen(195, n.resultPrimarySkin?.y ?? n.resultTownMaskText.y),
             resultSecondary: localToScreen(195, n.resultSecondarySkin?.y ?? n.resultRetryText.y),
@@ -46,9 +47,23 @@ try {
             resultCardBottom: localToScreen(195, 572 + n.resultCard.y),
             resultPrimaryTop: localToScreen(195, (n.resultPrimarySkin?.y ?? n.resultTownMaskText.y) - 44),
             resultFish: localToScreen(n.resultFish.x, n.resultFish.y),
+            resultFishWidth: n.resultFish.displayWidth,
             battleFish: localToScreen(n.battleFish.x, n.battleFish.y),
+            battleActorTop: n.characterMotion?.poseFront?.getBounds()?.y,
+            battleActorRootY: n.characterMotion?.root?.y,
+            resultTitleTop: localToScreen(195, n.resultGet.y - n.resultGet.height / 2).y,
+            conditionBadge: scene._conditionPresentation?.badge && {
+              depth: scene._conditionPresentation.badge.depth,
+              y: scene._conditionPresentation.badge.y,
+              fontPx: parseFloat(scene._conditionPresentation.badge.style.fontSize),
+            },
             battleTextSize: n.battleInstruction.style.fontSize,
             battleTextPx: parseFloat(n.battleInstruction.style.fontSize) * scale,
+            battleInstructionWidth: n.battleInstruction.displayWidth,
+            battleFishNamePx: parseFloat(n.battleFishName.style.fontSize) * n.battleFishName.scaleX * scale,
+            battleFishNameEnd: n.battleFishName.x + n.battleFishName.displayWidth,
+            battleReelPx: parseFloat(n.battleReel.style.fontSize) * scale,
+            battleRagePx: parseFloat(n.battleRage.style.fontSize) * scale,
             resultActionTextPx: parseFloat(n.resultTownMaskText.style.fontSize) * n.resultTownMaskText.scaleX * scale,
           }
         })
@@ -57,25 +72,50 @@ try {
         assert.ok(Math.abs(state.scale - width / 390) < 0.01, `${phase}: width scale missing`)
         if (width < 390) {
           assert.ok(state.dockOffset < 0, `${phase}: dock did not move`)
+          if (phase === 'cast' || phase === 'retrieve') {
+            assert.ok(state.conditionBadge?.depth > 6000 && state.conditionBadge.y >= 90
+              && state.conditionBadge.fontPx >= 13, `${phase}: conditions are hidden behind the header`)
+          }
           if (phase === 'retrieve') {
             assert.equal(state.retrieveDockVisible, true)
             assert.ok(state.retrieveButton.y < height - 40 && state.retrieveButton.y > height - 160)
           }
           if (phase === 'battle') {
             assert.equal(state.battleDockVisible, true)
-            assert.ok(state.battleTextPx >= 12, 'Battle instruction is too small on screen')
+            assert.ok(state.battleTextPx >= 15, 'Battle instruction is too small on screen')
+            assert.ok(state.battleFishNamePx >= 16, 'Battle fish name is too small on screen')
+            assert.ok(state.battleReelPx >= 14 && state.battleRagePx >= 14,
+              'Battle progress or warning is too small on screen')
+            assert.ok(state.battleFishNameEnd <= 205, 'Battle fish name overlaps the tension gauge')
+            assert.ok(state.battleInstructionWidth <= 350, 'Battle instruction exceeds its card')
             assert.ok(state.battleInstruction.y < height - 30 && state.battleInstruction.y > height - 190)
             assert.ok(state.battleFish.y < state.battleInstruction.y - 80, 'fish and battle instructions overlap')
+            if (height >= 568) {
+              assert.ok(state.battleFish.y + 40 < state.battleActorTop,
+                'Battle fish did not clear the player on the short screen')
+            } else {
+              // The opaque cap starts below the sprite's transparent bounds
+              // at 320x480; verify the actor is lifted and the progress cue
+              // stays below the fish, then inspect the captured pixels.
+              assert.ok(state.battleActorRootY < -180 && state.battleFish.y + 60 < state.battleReel.y,
+                'extreme-short Battle actor, fish, or progress placement failed')
+            }
           }
           if (phase === 'result') {
             assert.equal(state.resultBackingVisible, true)
             assert.ok(state.resultActionTextPx >= 16, 'Result action label is too small on screen')
             assert.ok(state.resultFish.y < state.resultCard.y - 40, 'fish and result card overlap')
+            assert.ok(state.resultFish.x >= 280 * state.scale,
+              'Result fish still covers the fisher')
+            assert.ok(state.resultFishWidth <= 205, 'compact Result fish width was not adjusted')
             assert.ok(state.resultCardBottom.y + 8 < state.resultPrimaryTop.y, 'result card and primary action overlap')
             assert.ok(state.resultSecondary.y < height - 35, 'second result action off screen')
+            if (height === 480) assert.ok(state.resultTitleTop > 55,
+              'extreme-short Result title overlaps the header')
           }
         }
-        const path = `${output}/${phase}-${width}.png`
+        const sizeKey = height === 480 ? '320x480' : width
+        const path = `${output}/${phase}-${sizeKey}.png`
         await page.screenshot({ path, animations: 'disabled' })
         assert.ok(statSync(path).size > 15000, `${phase}: blank browser frame`)
         if (phase === 'retrieve' && width < 390) {
@@ -119,7 +159,8 @@ try {
           await page.mouse.move(state.resultPrimary.x, state.resultPrimary.y)
           await page.mouse.down()
           await page.mouse.up()
-          await page.waitForTimeout(500)
+          await page.waitForFunction(() => window.__game?.scene?.getScenes(true)
+            .some(scene => scene.scene.key === 'TownScene'))
           const navigation = await page.evaluate(() => {
             const game = window.__game
             const scene = game.scene.getScene('GameScene')
@@ -142,22 +183,125 @@ try {
         '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
       await route.fulfill({ response, body })
     })
-    await safeArea.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&compactPortrait=1`)
-    await safeArea.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'result')
-    const inset = await safeArea.evaluate(() => {
-      const scene = window.__game.scene.getScene('GameScene')
-      const host = scene._castPresentationHost
-      const canvas = scene.game.canvas.getBoundingClientRect()
-      const container = document.getElementById('game-container')
-      return { top: canvas.top, bottom: canvas.bottom, sceneHeight: scene.scale.height,
-        containerHeight: container.getBoundingClientRect().height,
-        containerPadding: getComputedStyle(container).padding,
-        secondaryBottom: canvas.top + (host.nodes.resultSecondarySkin.y + 44) * host.root.scaleY }
-    })
-    assert.ok(inset.top >= 19 && inset.bottom <= 535, `canvas ignores simulated safe area: ${JSON.stringify(inset)}`)
-    assert.ok(inset.secondaryBottom < inset.bottom - 20, `Result action enters bottom safe area: ${JSON.stringify(inset)}`)
-    console.log('320x568 simulated safe area: canvas and Result controls passed')
+    for (const phase of ['cast', 'retrieve', 'battle', 'result']) {
+      await safeArea.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=${phase}&compactPortrait=1`)
+      await safeArea.waitForFunction(expected => window.__game?.scene?.getScene('GameScene')?.phase === expected, phase)
+      const inset = await safeArea.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        const host = scene._castPresentationHost
+        const canvas = scene.game.canvas.getBoundingClientRect()
+        const container = document.getElementById('game-container')
+        const phase = scene.phase
+        const actionY = phase === 'result' ? host.nodes.resultSecondarySkin.y
+          : 746 + (host._compactDockOffset ?? 0)
+        return { phase, top: canvas.top, bottom: canvas.bottom,
+          containerPadding: getComputedStyle(container).padding,
+          actionBottom: canvas.top + (actionY + 44) * host.root.scaleY }
+      })
+      assert.ok(inset.top >= 19 && inset.bottom <= 535,
+        `${phase}: canvas ignores simulated safe area: ${JSON.stringify(inset)}`)
+      assert.ok(inset.actionBottom < inset.bottom - 20,
+        `${phase}: action enters bottom safe area: ${JSON.stringify(inset)}`)
+      const path = `${output}/${phase}-safe-area-320.png`
+      await safeArea.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, `${phase}: blank safe-area frame`)
+      console.log(`320x568 simulated safe area: ${phase} canvas and controls passed`)
+    }
   } finally { await safeArea.close() }
+  for (const [width, height, actions] of [[320, 480, ['capture', 'retry']],
+    [320, 568, ['retry', 'prepare', 'port']], [375, 667, ['capture']]]) {
+    for (const action of actions) {
+      const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+      try {
+        await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1`)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'battle')
+        await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('escaped'))
+        await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'result')
+        await page.waitForFunction(() => !window.__game.scene.getScene('GameScene').cameras.main.flashEffect.isRunning)
+        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+        const escaped = await page.evaluate(kind => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const n = host.nodes
+          const canvas = scene.game.canvas.getBoundingClientRect()
+          const scale = host.root.scaleX
+          const local = (x, y) => ({ x: canvas.x + x * scale, y: canvas.y + y * scale })
+          return { outcome: scene._castPresentationOutcome, compact: host._compactResultActive,
+            title: n.resultGet.text, fishVisible: n.resultFish.visible,
+            labels: [n.resultTownMaskText.text, n.resultFailureEquip.text, n.resultFailurePort.text],
+            labelPx: [n.resultTownMaskText, n.resultFailureEquip, n.resultFailurePort]
+              .map(node => parseFloat(node.style.fontSize) * node.scaleX * scale),
+            labelWidths: [n.resultTownMaskText, n.resultFailureEquip, n.resultFailurePort]
+              .map(node => node.width * node.scaleX),
+            advicePx: parseFloat(n.resultSize.style.fontSize) * n.resultSize.scaleX * scale,
+            cardBottom: local(195, 572 + n.resultCard.y).y,
+            primaryTop: local(195, n.resultPrimarySkin.y - 44).y,
+            button: kind === 'retry' ? local(195, n.resultPrimarySkin.y)
+              : kind === 'prepare' ? local(101, n.resultFailureLeftSkin.y)
+                : local(289, n.resultFailureRightSkin.y),
+            bottom: canvas.bottom }
+        }, action)
+        assert.equal(escaped.outcome, 'escaped')
+        assert.equal(escaped.compact, true)
+        assert.equal(escaped.title, 'ESCAPED')
+        assert.equal(escaped.fishVisible, false)
+        assert.ok(escaped.labels.every(Boolean), `escaped Result labels missing: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.labelPx.every(size => size >= 16), `escaped Result label too small: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.advicePx >= 13, `escaped Result advice too small: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.labelWidths[0] <= 340 && escaped.labelWidths.slice(1).every(size => size <= 160),
+          `escaped Result label exceeds its button: ${JSON.stringify(escaped)}`)
+        assert.ok(escaped.cardBottom + 8 < escaped.primaryTop, 'escaped Result card and action overlap')
+        assert.ok(escaped.button.y < escaped.bottom - 30, 'escaped Result action off screen')
+        if (action === 'capture' || (width === 320 && height === 568 && action === 'retry')) {
+          const sizeKey = height === 480 ? '320x480' : width
+          const path = `${output}/result-escaped-${sizeKey}.png`
+          await page.screenshot({ path, animations: 'disabled' })
+          assert.ok(statSync(path).size > 15000, 'escaped Result browser frame blank')
+        }
+        if (action !== 'capture') {
+          await page.mouse.click(escaped.button.x, escaped.button.y)
+          const expected = action === 'retry' ? 'cast' : action === 'prepare' ? 'UpgradeScene' : 'HomeScene'
+          await page.waitForFunction(target => {
+            const game = window.__game
+            return target === 'cast' ? game.scene.getScene('GameScene').phase === 'cast'
+              : game.scene.getScenes(true).some(scene => scene.scene.key === target)
+          }, expected)
+        }
+        console.log(`${width}x${height} escaped Result ${action}: layout and input passed`)
+      } finally { await page.close() }
+    }
+  }
+  for (const [width, height] of [[320, 480], [320, 568], [375, 667]]) {
+    const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+    try {
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1&qaBoss=harborRunner&qaFreshBoss=1`)
+      await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'battle')
+      await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
+      await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._bossRecordBadge?.active)
+      await page.waitForFunction(() => !window.__game.scene.getScene('GameScene').cameras.main.flashEffect.isRunning)
+      const badge = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        const host = scene._castPresentationHost
+        const notice = scene._bossRecordBadge
+        return { compact: host._compactResultActive, x: notice.x,
+          badgeBottom: notice.getBounds().bottom,
+          cardTop: host.nodes.resultInfoSkin.getBounds().top,
+          actionTop: host.nodes.resultPrimarySkin.getBounds().top }
+      })
+      assert.equal(badge.compact, true)
+      assert.ok(badge.x <= 100 && badge.badgeBottom < badge.cardTop,
+        `compact boss badge covers the Result card: ${JSON.stringify(badge)}`)
+      assert.ok(badge.badgeBottom < badge.actionTop,
+        `compact boss badge covers the Result action: ${JSON.stringify(badge)}`)
+      if (height === 480) assert.ok(badge.badgeBottom < badge.cardTop - 45,
+        `extreme-short boss badge covers the fisher: ${JSON.stringify(badge)}`)
+      const sizeKey = height === 480 ? '320x480' : width
+      const path = `${output}/result-boss-${sizeKey}.png`
+      await page.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, 'compact boss Result browser frame blank')
+      console.log(`${width}x${height} compact boss Result badge: card and action clear`)
+    } finally { await page.close() }
+  }
   for (const action of ['back', 'retry']) {
     const page = await browser.newPage({ viewport: { width: 320, height: 568 } })
     try {
@@ -183,6 +327,42 @@ try {
       console.log(`320x568 Result ${action}: input passed`)
     } finally { await page.close() }
   }
+  const resized = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  try {
+    await resized.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1`)
+    await resized.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    await resized.setViewportSize({ width: 320, height: 568 })
+    await resized.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    assert.equal(await resized.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.battleInstruction.style.fontSize),
+      '19px', 'Battle instruction did not grow after entering compact viewport')
+    await resized.setViewportSize({ width: 390, height: 844 })
+    await resized.waitForFunction(() => !window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)
+    assert.equal(await resized.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.battleInstruction.style.fontSize),
+      '12px', 'Battle instruction did not restore after leaving compact viewport')
+    console.log('390→320→390 Battle resize: compact cues and ordinary size restored')
+  } finally { await resized.close() }
+  const longName = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+  try {
+    await longName.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaJump=1&qaFish=bass&compactPortrait=1`)
+    await longName.waitForFunction(() => {
+      const scene = window.__game?.scene?.getScene('GameScene')
+      return scene?._castPresentationHost?._compactBattleActive
+        && scene?._castPresentationHost?.nodes?.battleRage?.visible
+    })
+    const cue = await longName.evaluate(() => {
+      const n = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+      return { name: n.battleFishName.text, nameEnd: n.battleFishName.x + n.battleFishName.displayWidth,
+        warningPx: parseFloat(n.battleRage.style.fontSize) * 320 / 390,
+        instructionWidth: n.battleInstruction.displayWidth }
+    })
+    assert.equal(cue.name, 'ブラックバス')
+    assert.ok(cue.nameEnd <= 205 && cue.warningPx >= 14 && cue.instructionWidth <= 350,
+      `long fish name or rage cue exceeds compact Battle space: ${JSON.stringify(cue)}`)
+    const path = `${output}/battle-rage-bass-320.png`
+    await longName.screenshot({ path, animations: 'disabled' })
+    assert.ok(statSync(path).size > 15000, 'compact bass rage browser frame blank')
+    console.log('320x568 Black Bass rage: long name, warning, and instruction clear')
+  } finally { await longName.close() }
   const ordinary = await browser.newPage({ viewport: { width: 320, height: 568 } })
   try {
     await ordinary.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast`)
