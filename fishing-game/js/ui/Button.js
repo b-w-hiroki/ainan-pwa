@@ -21,7 +21,8 @@ const VARIANTS = {
 export class Button {
   constructor(scene, {
     x, y, w = 260, h = 60, label, subLabel = '', icon, glyph, trailing = '', variant = 'primary',
-    fontSize = 20, depth = 10, disabled = false, keyboard = false, pulse = false, artKeys = null, artIconKey = '', onClick,
+    fontSize = 20, titleOffsetY, subLabelOffsetY, depth = 10, disabled = false, keyboard = false, pulse = false,
+    artKeys = null, artIconKey = '', onClick,
   }) {
     h = Math.max(BUTTON_SPEC.minHeight, h)
     const v = VARIANTS[variant] ?? VARIANTS.primary
@@ -46,13 +47,14 @@ export class Button {
       ? scene.add.image(-w / 2 + 39, 0, artIconKey).setDisplaySize(36, 49)
       : null
     const labelX = glyph || icon ? 15 : 0
-    const titleY = subLabel ? -8 : 0
+    const titleY = Number.isFinite(titleOffsetY) ? titleOffsetY : subLabel ? -8 : 0
+    const subY = Number.isFinite(subLabelOffsetY) ? subLabelOffsetY : 15
     const title = scene.add.text(labelX, titleY, label, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: `${fontSize}px`, fontWeight: '900', color: v.text,
       stroke: variant === 'danger' ? '#173248' : '#ffffff', strokeThickness: variant === 'danger' ? 2 : 1,
       align: 'center', wordWrap: { width: w - (glyph || icon ? 104 : 48), useAdvancedWrap: true },
     }).setOrigin(0.5)
-    const sub = subLabel ? scene.add.text(labelX, 15, subLabel, {
+    const sub = subLabel ? scene.add.text(labelX, subY, subLabel, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.inkSoft,
       align: 'center', wordWrap: { width: w - 100, useAdvancedWrap: true },
     }).setOrigin(0.5) : null
@@ -101,7 +103,7 @@ export class Button {
         }
       }
       artIcon?.setY(dy).setAlpha(isDisabled ? 0.55 : 1)
-      title.setY(titleY + dy); sub?.setY(15 + dy); trail?.setY(dy); iconText?.setY(dy)
+      title.setY(titleY + dy); sub?.setY(subY + dy); trail?.setY(dy); iconText?.setY(dy)
       const alpha = isDisabled ? 0.68 : 1
       title.setAlpha(alpha); sub?.setAlpha(alpha); trail?.setAlpha(alpha); iconText?.setAlpha(alpha)
     }
