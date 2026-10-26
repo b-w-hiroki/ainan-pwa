@@ -149,7 +149,7 @@ export default class TitleScene extends Phaser.Scene {
       subLabel: '釣って、育てて、町を元気に',
       icon:  ICONS.PLAY,
       variant: 'primary',
-      fontSize: 22,
+      fontSize: compact ? 18 : 22,
       depth: 10,
       keyboard: true,
       pulse: true,

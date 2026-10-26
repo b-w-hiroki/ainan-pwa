@@ -40,6 +40,22 @@ try {
         assert.ok(canvas.top >= 19 && canvas.bottom <= 535, `Title ignores safe area: ${JSON.stringify(canvas)}`)
       }
       await page.screenshot({ path: `${output}/title-${label}.png`, animations: 'disabled' })
+      if (width < 390 && !safeArea) {
+        const startCopy = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('TitleScene')
+          const textNodes = scene._startButton.container.list.filter(node => node.type === 'Text')
+          const title = textNodes.find(node => node.text === 'ゲームをはじめる')
+          const sub = textNodes.find(node => node.text === '釣って、育てて、町を元気に')
+          return {
+            titleLines: title?.getWrappedText(title.text).length,
+            titleBottom: title ? title.y + title.displayHeight / 2 : null,
+            subTop: sub ? sub.y - sub.displayHeight / 2 : null,
+          }
+        })
+        assert.equal(startCopy.titleLines, 1, `compact Title CTA wraps: ${JSON.stringify(startCopy)}`)
+        assert.ok(startCopy.titleBottom < startCopy.subTop,
+          `compact Title CTA copy overlaps: ${JSON.stringify(startCopy)}`)
+      }
       if (height === 480) {
         const buttons = await page.evaluate(() => {
           const scene = window.__game.scene.getScene('TitleScene')
