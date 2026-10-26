@@ -47,12 +47,30 @@ try {
             helpTop: scene._helpButton.container.y - 23 - 8 }
         })
         assert.ok(buttons.startBottom < buttons.helpTop, `short Title actions overlap: ${JSON.stringify(buttons)}`)
+      }
+      if (width < 390 && height <= 667 && !safeArea) {
         const help = await page.evaluate(() => {
           const scene = window.__game.scene.getScene('TitleScene')
           return window.__compactScreenPoint(scene, scene._helpButton.container.x, scene._helpButton.container.y)
         })
         await page.mouse.click(help.x, help.y)
         await page.waitForFunction(() => window.__game?.scene?.getScene('HelpScene')?.sys?.isActive?.())
+        await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
+        await page.mouse.move(width / 2, height - 115)
+        await page.mouse.down()
+        await page.mouse.move(width / 2, 135, { steps: 12 })
+        await page.mouse.up()
+        const dragged = await page.evaluate(() => window.__game.scene.getScene('HelpScene')._helpScroll)
+        assert.ok(dragged > 100, `short Help did not respond to drag: ${dragged}`)
+        await page.mouse.wheel(0, 800)
+        await page.waitForFunction(() => window.__game.scene.getScene('HelpScene')._helpScroll > 300)
+        await page.screenshot({ path: `${output}/help-bottom-${label}.png`, animations: 'disabled' })
+        for (const position of ['top', 'bottom']) {
+          assert.ok(statSync(`${output}/help-${position}-${label}.png`).size > 15000,
+            `Help ${position} browser frame blank`)
+        }
+        await page.mouse.click(width * 0.1, height - 40)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.())
         await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&compactPortrait=1`)
         await page.waitForFunction(() => window.__game?.scene?.getScene('TitleScene')?.sys?.isActive?.())
       }

@@ -31,11 +31,62 @@ export default class HelpScene extends Phaser.Scene {
 
   create() {
     const { width: W, height: H } = this.scale
+    this._narrowHelp = W < 390 && W < H
     this._background(W, H)
     this._header(W)
+    const firstContentIndex = this.children.list.length
     this._loopPanel(W)
     this._controls(W)
+    if (this._narrowHelp) this._enableContentScroll(W, H, this.children.list.slice(firstContentIndex))
     buildFooterNav(this, W, H, 'menu')
+  }
+
+  _enableContentScroll(W, H, children) {
+    const top = 106
+    const bottom = H - 88
+    const contentBottom = 950
+    const maxScroll = Math.max(0, contentBottom - bottom)
+    this._helpContent = this.add.container(0, 0, children).setDepth(6)
+    const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
+    maskShape.fillStyle(0xffffff).fillRect(0, top, W, bottom - top)
+    this._helpContent.setMask(maskShape.createGeometryMask())
+    this._helpScroll = 0
+    const scrollBar = this.add.graphics().setDepth(80)
+    const trackHeight = bottom - top - 16
+    const thumbHeight = Math.max(26, trackHeight * (bottom - top) / (contentBottom - top))
+    const scrollTo = value => {
+      this._helpScroll = Phaser.Math.Clamp(value, 0, maxScroll)
+      this._helpContent.setY(-this._helpScroll)
+      scrollBar.clear().fillStyle(0x9bcfe5, 0.7).fillRoundedRect(W - 8, top + 8, 3, trackHeight, 2)
+      scrollBar.fillStyle(0x1f6f9f, 0.95).fillRoundedRect(W - 9,
+        top + 8 + (trackHeight - thumbHeight) * (maxScroll ? this._helpScroll / maxScroll : 0), 5, thumbHeight, 3)
+    }
+    scrollTo(0)
+    const onWheel = (pointer, _objects, _dx, dy) => {
+      if (pointer.y >= top && pointer.y <= bottom) scrollTo(this._helpScroll + dy)
+    }
+    let lastY = null
+    const onDown = pointer => { if (pointer.y >= top && pointer.y <= bottom) lastY = pointer.y }
+    const onMove = pointer => {
+      if (lastY == null || !pointer.isDown) return
+      scrollTo(this._helpScroll + lastY - pointer.y)
+      lastY = pointer.y
+    }
+    const onEnd = () => { lastY = null }
+    this.input.on('wheel', onWheel)
+    this.input.on('pointerdown', onDown)
+    this.input.on('pointermove', onMove)
+    this.input.on('pointerup', onEnd)
+    this.input.on('gameout', onEnd)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.off('wheel', onWheel)
+      this.input.off('pointerdown', onDown)
+      this.input.off('pointermove', onMove)
+      this.input.off('pointerup', onEnd)
+      this.input.off('gameout', onEnd)
+      this._helpContent.clearMask(true)
+      maskShape.destroy()
+    })
   }
 
   _background(W, H) {
@@ -67,7 +118,7 @@ export default class HelpScene extends Phaser.Scene {
   }
 
   _loopPanel(W) {
-    const x = 18, y = 112, w = W - 36, h = 260
+    const x = 18, y = 112, w = W - 36, h = this._narrowHelp ? 430 : 260
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
@@ -81,11 +132,11 @@ export default class HelpScene extends Phaser.Scene {
     }).setOrigin(1, 0.5).setDepth(5)
 
     LOOP_STEPS.forEach((step, i) => {
-      const col = i % 2
-      const row = Math.floor(i / 2)
+      const col = this._narrowHelp ? 0 : i % 2
+      const row = this._narrowHelp ? i : Math.floor(i / 2)
       const cx = x + 18 + col * 174
-      const cy = y + 50 + row * 94
-      this._loopCard(cx, cy, 162, 82, step)
+      const cy = y + 50 + row * (this._narrowHelp ? 78 : 94)
+      this._loopCard(cx, cy, this._narrowHelp ? w - 36 : 162, this._narrowHelp ? 72 : 82, step)
     })
 
     const foot = this.add.graphics().setDepth(4)
@@ -93,7 +144,7 @@ export default class HelpScene extends Phaser.Scene {
     foot.lineStyle(1.5, 0xffb45d, 0.72)
     foot.fillRoundedRect(x + 18, y + h - 42, w - 36, 28, 12)
     foot.strokeRoundedRect(x + 18, y + h - 42, w - 36, 28, 12)
-    this.add.text(W / 2, y + h - 28, '魚市場Lv.2で魚屋 / 広場Lv.2で食堂 / 桟橋Lv.2で黒潮崎', {
+    this.add.text(W / 2, y + h - 28, this._narrowHelp ? '町を育てると新しい海が開く' : '魚市場Lv.2で魚屋 / 広場Lv.2で食堂 / 桟橋Lv.2で黒潮崎', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '900', color: '#b45d32',
     }).setOrigin(0.5).setDepth(5)
   }
@@ -118,7 +169,7 @@ export default class HelpScene extends Phaser.Scene {
   }
 
   _controls(W) {
-    const x = 18, y = 390, w = W - 36, h = 284
+    const x = 18, y = this._narrowHelp ? 558 : 390, w = W - 36, h = this._narrowHelp ? 392 : 284
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
@@ -131,9 +182,10 @@ export default class HelpScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.oceanDeep,
     }).setOrigin(1, 0.5).setDepth(5)
 
-    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * 50, w - 32, 44, item))
+    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * (this._narrowHelp ? 72 : 50),
+      w - 32, this._narrowHelp ? 66 : 44, item))
 
-    this.add.text(W / 2, y + h - 20, '季節・時間帯・日替わり天候で魚の出やすさも変化。大物ほど沖を狙おう。', {
+    this.add.text(W / 2, y + h - 20, this._narrowHelp ? '季節・時間・天候を見て大物を狙おう' : '季節・時間帯・日替わり天候で魚の出やすさも変化。大物ほど沖を狙おう。', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.success,
     }).setOrigin(0.5).setDepth(5)
   }
@@ -152,9 +204,9 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(x + 116, y + 13, item.title, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + 116, y + 29, item.desc, {
+    this.add.text(this._narrowHelp ? x + 12 : x + 116, this._narrowHelp ? y + 46 : y + 29, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft,
-      wordWrap: { width: w - 128 },
+      wordWrap: { width: this._narrowHelp ? w - 24 : w - 128 },
     }).setOrigin(0, 0.5).setDepth(5)
   }
 }
