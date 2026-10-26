@@ -118,4 +118,59 @@ try {
       console.log(`${phase}: 390→320→390→320 layout, screenshot, and real input passed`)
     } finally { await page.close() }
   }
+
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+  const errors = []
+  page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
+  try {
+    await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve&compactPortrait=1`)
+    await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'retrieve')
+    const entered = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const runtime = scene.bg?._fishRuntime?.find(item => item?.fishDef && item.gfx?.active)
+      if (!runtime) return false
+      scene.retrieveState.decisionCount = 2
+      scene._biteReadableReadyAt = scene.time.now - 1
+      scene._tickFishInterest = () => {}
+      scene._beginRetrieveBite(runtime)
+      if (scene.phase !== 'wait') return false
+      scene._killWaitTimers()
+      return true
+    })
+    assert.ok(entered, 'Could not enter Wait for resize verification')
+    for (const hit of [false, true]) {
+      if (hit) await page.evaluate(() => window.__game.scene.getScene('GameScene')._openHitWindow(30000))
+      for (const [width, height, compact] of [[390, 844, false], [320, 568, true], [390, 844, false], [320, 568, true]]) {
+        await page.setViewportSize({ width, height })
+        await page.waitForFunction(({ width, compact }) => {
+          const scene = window.__game.scene.getScene('GameScene')
+          return scene.scale.width === width && scene._castPresentationHost?._compactWaitActive === compact
+        }, { width, compact })
+        const state = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const cue = host.nodes.waitPrompt
+          const bounds = cue.getBounds()
+          return { phase: scene.phase, hit: scene.waitTapActive,
+            dock: host.root.visible && host.nodes.waitDock.visible,
+            fisher: host.nodes.characterMotion?.root?.visible,
+            cue: cue.text, cueLeft: bounds.left, cueRight: bounds.right,
+            cueHeight: cue.displayHeight * host.root.scaleY }
+        })
+        assert.equal(state.phase, 'wait')
+        assert.equal(state.hit, hit, 'HIT state changed during resize')
+        assert.equal(state.dock, compact, `Wait/HIT dock at ${width}x${height}`)
+        if (compact) {
+          assert.ok(state.fisher, 'Compact Wait/HIT fisher hidden after resize')
+          assert.ok(state.cueLeft >= 0 && state.cueRight <= width && state.cueHeight >= 25,
+            `Wait/HIT cue outside short screen after resize: ${JSON.stringify(state)}`)
+        }
+        assert.equal(state.cue.includes('タップ'), hit, 'Wait/HIT cue failed to follow the phase')
+      }
+    }
+    await page.mouse.click(160, 265)
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle')
+    assert.deepEqual(errors, [], 'Wait/HIT browser errors after resize')
+    console.log('wait/HIT: 390→320→390→320 layout, cue, and real HIT input passed')
+  } finally { await page.close() }
 } finally { await browser.close() }
