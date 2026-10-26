@@ -24,7 +24,8 @@ permissions:
 jobs:
   character-appearance:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # Cold Playwright browser setup can take 11m before the pose captures run.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
