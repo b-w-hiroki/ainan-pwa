@@ -150,6 +150,8 @@ export default class TitleScene extends Phaser.Scene {
       icon:  ICONS.PLAY,
       variant: 'primary',
       fontSize: compact ? 18 : 22,
+      titleOffsetY: compact ? -18 : undefined,
+      subLabelOffsetY: compact ? 19 : undefined,
       depth: 10,
       keyboard: true,
       pulse: true,
