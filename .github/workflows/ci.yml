@@ -48,9 +48,10 @@ jobs:
   mobile-e2e:
     needs: build
     runs-on: ubuntu-latest
-    # Full assertions and artifact upload now take about 25m on some runners.
-    # Leave time for post-job cleanup without dropping any visual coverage.
-    timeout-minutes: 35
+    # Full assertions and artifact upload can consume the previous 35m limit,
+    # and Playwright browser preparation has taken another 12m on a cold runner.
+    # Keep every visual check while leaving time for setup and post-job cleanup.
+    timeout-minutes: 50
     steps:
       - name: Checkout
         uses: actions/checkout@v4
