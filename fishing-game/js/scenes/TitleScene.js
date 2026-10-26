@@ -27,6 +27,7 @@ export default class TitleScene extends Phaser.Scene {
   create() {
     const { width: W, height: H } = this.scale
     const compact = canvasDisplayScale(this) < 0.75
+    const compactTitleAction = compact || window.innerWidth < 390
     const shortPortrait = H <= 500 && W < H
 
     // Deterministic CI screenshot routing. Normal play is unaffected.
@@ -149,7 +150,9 @@ export default class TitleScene extends Phaser.Scene {
       subLabel: '釣って、育てて、町を元気に',
       icon:  ICONS.PLAY,
       variant: 'primary',
-      fontSize: 22,
+      fontSize: compactTitleAction ? 18 : 22,
+      titleOffsetY: compactTitleAction ? -18 : undefined,
+      subLabelOffsetY: compactTitleAction ? 19 : undefined,
       depth: 10,
       keyboard: true,
       pulse: true,
