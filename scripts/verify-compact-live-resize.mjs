@@ -134,6 +134,8 @@ try {
       scene._tickFishInterest = () => {}
       scene._beginRetrieveBite(runtime)
       if (scene.phase !== 'wait') return false
+      // This gate checks layout and input ownership, not randomized hook odds.
+      scene.fish = { ...scene.fish, biteRate: 1 }
       scene._killWaitTimers()
       return true
     })
@@ -142,10 +144,13 @@ try {
       if (hit) await page.evaluate(() => window.__game.scene.getScene('GameScene')._openHitWindow(30000))
       for (const [width, height, compact] of [[390, 844, false], [320, 568, true], [390, 844, false], [320, 568, true]]) {
         await page.setViewportSize({ width, height })
-        await page.waitForFunction(({ width, compact }) => {
+        await page.waitForFunction(({ width, compact, hit }) => {
           const scene = window.__game.scene.getScene('GameScene')
-          return scene.scale.width === width && scene._castPresentationHost?._compactWaitActive === compact
-        }, { width, compact })
+          const host = scene._castPresentationHost
+          return scene.scale.width === width && host?._compactWaitActive === compact
+            && (!compact || (host.root.visible && host.nodes.waitDock.visible
+              && host.nodes.waitPrompt.text.includes('タップ') === hit))
+        }, { width, compact, hit })
         const state = await page.evaluate(() => {
           const scene = window.__game.scene.getScene('GameScene')
           const host = scene._castPresentationHost
@@ -154,6 +159,7 @@ try {
           return { phase: scene.phase, hit: scene.waitTapActive,
             dock: host.root.visible && host.nodes.waitDock.visible,
             fisher: host.nodes.characterMotion?.root?.visible,
+            nativeHit: scene.hitHint.visible,
             cue: cue.text, cueLeft: bounds.left, cueRight: bounds.right,
             cueHeight: cue.displayHeight * host.root.scaleY }
         })
@@ -164,8 +170,10 @@ try {
           assert.ok(state.fisher, 'Compact Wait/HIT fisher hidden after resize')
           assert.ok(state.cueLeft >= 0 && state.cueRight <= width && state.cueHeight >= 25,
             `Wait/HIT cue outside short screen after resize: ${JSON.stringify(state)}`)
+          assert.equal(state.cue.includes('タップ'), hit, 'Visible Wait/HIT cue failed to follow the phase')
+        } else {
+          assert.equal(state.nativeHit, hit, 'Native HIT cue failed to follow the phase')
         }
-        assert.equal(state.cue.includes('タップ'), hit, 'Wait/HIT cue failed to follow the phase')
       }
     }
     await page.mouse.click(160, 265)
