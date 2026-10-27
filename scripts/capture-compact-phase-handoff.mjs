@@ -75,10 +75,41 @@ try {
       // Battle reel, Result action, and phase ownership under test.
       scene.fish = { ...scene.fish, biteRate: 1 }
       scene._killWaitTimers()
+      return scene.phase === 'wait' && !scene.waitTapActive
+    })
+    assert.equal(entered, true, 'controlled fish-ready event did not enter Wait')
+    await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactWaitActive)
+    assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
+      '合図を待とう')
+    await page.screenshot({ path: `${output}/02-wait-${sizeKey}.png`, animations: 'disabled' })
+    const hitOpened = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
       scene._openHitWindow(5000)
       return scene.phase === 'wait' && scene.waitTapActive && scene.hitHint.visible
     })
-    assert.equal(entered, true, 'controlled fish-ready event did not open the HIT window')
+    assert.equal(hitOpened, true, 'controlled HIT window did not open')
+    // GameScene opens the window before the presentation's next render tick.
+    await page.waitForFunction(() => {
+      const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+      return host.root.visible && host.nodes.waitDock.visible && host.nodes.waitPrompt.text === '今！タップ'
+    })
+    const wait = await page.evaluate(() => {
+      const scene = window.__game.scene.getScene('GameScene')
+      const host = scene._castPresentationHost
+      const bounds = host.nodes.waitPrompt.getBounds()
+      return { visible: host.root.visible && host.nodes.retrieveField.visible && host.nodes.waitDock.visible,
+        characterVisible: host.nodes.characterMotion?.root?.visible,
+        prompt: host.nodes.waitPrompt.text, left: bounds.left, right: bounds.right,
+        width: scene.scale.width, dockY: host.nodes.waitDock.y,
+        textHeight: host.nodes.waitPrompt.displayHeight * host.root.scaleY }
+    })
+    assert.ok(wait.visible && wait.characterVisible && wait.prompt.includes('タップ'),
+      `compact HIT cue or fisher is hidden: ${JSON.stringify(wait)}`)
+    assert.ok(wait.left >= 0 && wait.right <= wait.width && wait.dockY < 0,
+      `compact HIT cue or dock is outside the screen: ${JSON.stringify(wait)}`)
+    assert.ok(wait.textHeight >= 25,
+      `compact HIT cue is too small: ${JSON.stringify(wait)}`)
+    await page.screenshot({ path: `${output}/02-hit-${sizeKey}.png`, animations: 'disabled' })
     await page.mouse.click(width / 2, Math.round(height * 0.466))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactBattleActive)

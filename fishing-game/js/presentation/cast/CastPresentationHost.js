@@ -161,10 +161,11 @@ export class CastPresentationHost {
     const resultField = scene.add.container(0, 0)
     const castDock = scene.add.container(0, 0)
     const retrieveDock = scene.add.container(0, 0)
+    const waitDock = scene.add.container(0, 0).setVisible(false)
     const castInteraction = scene.add.container(0, 0)
     const retrieveInteraction = scene.add.container(0, 0)
     field.add([castField, retrieveField, battleField, resultField])
-    dock.add([castDock, retrieveDock])
+    dock.add([castDock, retrieveDock, waitDock])
     interaction.add([castInteraction, retrieveInteraction])
 
     const useApprovedComposite = castCompositePrototypeEnabled()
@@ -540,6 +541,18 @@ export class CastPresentationHost {
     battleCompactDock.setCrop(0, battleCropY, battleSource.width, battleSource.height - battleCropY)
     retrieveDock.add([retrieveCompactBacking, retrieveCompactPanel])
     if (retrieveStatus) retrieveDock.add(retrieveStatus)
+    const waitTitle = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 42, '魚が食いついた…', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '28px', fontStyle: 'bold', color: '#ffffff',
+    }).setOrigin(0.5).setResolution(3).setScale(2.6)
+    const waitPrompt = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 98, '合図を待とう', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '33px', fontStyle: 'bold', color: '#ffdf5a',
+    }).setOrigin(0.5).setResolution(3).setScale(2.6)
+    const waitDockBacking = scene.add.rectangle(DESIGN_WIDTH / 2, (DOCK_TOP + DESIGN_HEIGHT) / 2,
+      DESIGN_WIDTH, DESIGN_HEIGHT - DOCK_TOP, 0x062c44, 1)
+    const waitDockInstruction = scene.add.text(DESIGN_WIDTH / 2, DOCK_TOP + 151, '合図が出たら画面をタップ', {
+      fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '20px', fontStyle: 'bold', color: '#d8f5ff',
+    }).setOrigin(0.5).setResolution(3).setScale(2.6)
+    waitDock.add([waitDockBacking, waitTitle, waitPrompt, waitDockInstruction])
 
     // The Retrieve master bitmap has Harbor's label painted in its HUD.
     // A fully opaque Bay/Cape underlay is needed: the normal HUD's 0.96
@@ -698,6 +711,9 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      waitTitle,
+      waitPrompt,
+      waitDock,
       retrieveLure,
       retrieveFishShadows,
       retrieveStatusText,
@@ -874,13 +890,15 @@ export class CastPresentationHost {
     // Keep the world at the width scale; move each phase's controls into the
     // shorter logical height. The QA flag leaves ordinary play unchanged.
     const compactPhase = compactPortraitPrototype && width < DESIGN_WIDTH && height < DESIGN_HEIGHT
-      && ['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase)
+      && ['cast', 'retrieve', 'wait', 'battle', 'result'].includes(this.scene.phase)
     const compactCast = compactPhase && this.scene.phase === 'cast'
     const compactRetrieve = compactPhase && this.scene.phase === 'retrieve'
+    const compactWait = compactPhase && this.scene.phase === 'wait'
     const compactBattle = compactPhase && this.scene.phase === 'battle'
     const compactResult = compactPhase && this.scene.phase === 'result'
     this._compactCastActive = compactCast
     this._compactRetrieveActive = compactRetrieve
+    this._compactWaitActive = compactWait
     this._compactBattleActive = compactBattle
     this._compactResultActive = compactResult
     // A live viewport resize can enter or leave the compact phase without
@@ -906,6 +924,7 @@ export class CastPresentationHost {
     this.nodes.castDock.setY(compactCast ? dockOffset : 0)
     this.nodes.castInteraction.setY(compactCast ? dockOffset : 0)
     this.nodes.retrieveDock.setY(compactRetrieve ? dockOffset : 0)
+    this.nodes.waitDock.setY(compactWait ? dockOffset : 0)
     this.nodes.retrieveInteraction.setY(compactRetrieve ? dockOffset : 0)
     this.nodes.retrieveCompactBacking.setVisible(compactRetrieve)
     this.nodes.retrieveCompactPanel.setVisible(compactRetrieve)
@@ -952,7 +971,7 @@ export class CastPresentationHost {
       // above the relocated dock so the compact crop still shows the fisher.
       this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
-        : compactRetrieve ? dockOffset * 1.35
+        : (compactRetrieve || compactWait) ? dockOffset * 1.35
           : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
           : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
     }
@@ -1006,7 +1025,8 @@ export class CastPresentationHost {
     this.nodes.characterMotion?.sync(view)
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
-    if (retrieveVisible && this._compactRetrieveActive && this.nodes.characterMotion?.ready) {
+    const waitVisible = view.phase === 'wait' && this._compactWaitActive
+    if (((retrieveVisible && this._compactRetrieveActive) || waitVisible) && this.nodes.characterMotion?.ready) {
       this.nodes.characterMotion.root.setVisible(true)
     }
     if (retrieveVisible && this.nodes.retrieveLure && view.retrieve.distanceMeters !== null) {
@@ -1047,11 +1067,17 @@ export class CastPresentationHost {
     }
     const battleVisible = view.phase === 'battle'
     const resultVisible = view.phase === 'result'
-    const visible = castVisible || retrieveVisible || battleVisible || resultVisible
+    const visible = castVisible || retrieveVisible || waitVisible || battleVisible || resultVisible
     this.root.setVisible(visible)
     if (!visible) return
     this.nodes.castField.setVisible(castVisible)
-    this.nodes.retrieveField.setVisible(retrieveVisible)
+    this.nodes.retrieveField.setVisible(retrieveVisible || waitVisible)
+    this.nodes.waitDock.setVisible(waitVisible)
+    if (waitVisible) {
+      const ready = Boolean(this.scene.waitTapActive)
+      this.nodes.waitTitle.setText(ready ? '今がチャンス！' : '魚が食いついた…')
+      this.nodes.waitPrompt.setText(ready ? '今！タップ' : '合図を待とう')
+    }
     this.nodes.battleField.setVisible(battleVisible)
     this.nodes.resultField.setVisible(resultVisible)
     this.nodes.battleForeground.setVisible(battleVisible)
@@ -1065,7 +1091,7 @@ export class CastPresentationHost {
     // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
     const nonHarborRetrieveHud = retrieveVisible
       && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
-    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || (retrieveVisible && this._useCuteHarbor))
+    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && this._useCuteHarbor))
     this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)

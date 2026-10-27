@@ -47,7 +47,8 @@ jobs:
 
   mobile-e2e:
     needs: build
-    runs-on: ubuntu-latest
+    # Playwright 1.55 cannot install Chromium dependencies on Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     # Full assertions and artifact upload can consume the previous 35m limit,
     # and Playwright browser preparation has taken another 12m on a cold runner.
     # Keep every visual check while leaving time for setup and post-job cleanup.
