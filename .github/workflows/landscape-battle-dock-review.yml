@@ -10,7 +10,8 @@ permissions:
   contents: read
 jobs:
   battle-layout:
-    runs-on: ubuntu-latest
+    # Playwright 1.55 cannot install Chromium dependencies on Ubuntu 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
