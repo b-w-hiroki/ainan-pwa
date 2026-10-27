@@ -88,6 +88,11 @@ try {
       return scene.phase === 'wait' && scene.waitTapActive && scene.hitHint.visible
     })
     assert.equal(hitOpened, true, 'controlled HIT window did not open')
+    // GameScene opens the window before the presentation's next render tick.
+    await page.waitForFunction(() => {
+      const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+      return host.root.visible && host.nodes.waitDock.visible && host.nodes.waitPrompt.text === '今！タップ'
+    })
     const wait = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
