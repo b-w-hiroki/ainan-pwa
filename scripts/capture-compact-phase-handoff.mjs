@@ -189,4 +189,58 @@ try {
     console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
   }
+
+  for (const safeArea of [false, true]) {
+    for (const hit of [false, true]) {
+      const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+      const errors = []
+      page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
+      try {
+        if (safeArea) {
+          await page.route('**/fishing-game/**', async route => {
+            if (route.request().resourceType() !== 'document') return route.continue()
+            const response = await route.fetch()
+            const body = (await response.text()).replace('</head>',
+              '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+            await route.fulfill({ response, body })
+          })
+        }
+        await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve&compactPortrait=1`)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'retrieve')
+        const entered = await page.evaluate(hit => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const fish = scene.bg?._fishRuntime?.find(item => item?.fishDef && item.gfx?.active)
+          if (!fish) return false
+          scene.retrieveState.decisionCount = 2
+          scene._biteReadableReadyAt = scene.time.now - 1
+          scene._tickFishInterest = () => {}
+          scene._beginRetrieveBite(fish)
+          if (scene.phase !== 'wait') return false
+          scene.fish = { ...scene.fish, biteRate: 1 }
+          scene._killWaitTimers()
+          if (hit) scene._openHitWindow(30000)
+          return scene.phase === 'wait'
+        }, hit)
+        assert.ok(entered, 'Could not enter controlled Wait for back-button check')
+        await page.waitForFunction(hit => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          return host?._compactWaitActive && host.root.visible && host.nodes.waitDock.visible
+            && scene.waitTapActive === hit && host.nodes.waitPrompt.text.includes('タップ') === hit
+        }, hit)
+        const point = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const rect = scene.game.canvas.getBoundingClientRect()
+          return { x: rect.x + host.root.x + 33 * host.root.scaleX,
+            y: rect.y + host.root.y + 40 * host.root.scaleY }
+        })
+        await page.mouse.click(point.x, point.y)
+        await page.waitForFunction(() => window.__game.scene.getScenes(true)
+          .some(scene => scene.scene.key === 'MapScene'), null, { timeout: 5000 })
+        assert.deepEqual(errors, [])
+        console.log(`Compact ${hit ? 'HIT' : 'Wait'} back to Map${safeArea ? ' with simulated safe area' : ''} passed`)
+      } finally { await page.close() }
+    }
+  }
 } finally { await browser.close() }

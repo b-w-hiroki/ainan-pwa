@@ -797,8 +797,18 @@ export class CastPresentationHost {
     return { x: (pointer.x - this.root.x) / scale, y: (pointer.y - this.root.y) / scale }
   }
 
+  isCompactWaitBack(pointer) {
+    if (this.scene.phase !== 'wait' || !this._compactWaitActive || !this.root?.visible) return false
+    const point = this._designPoint(pointer)
+    const back = CAST_LAYER_CONFIG.controls.back
+    return point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
+      && point.y >= back.y - back.height / 2 && point.y <= back.y + back.height / 2
+  }
+
   _onHostPointerDown(pointer) {
-    if (!['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase) || !this.root?.visible) return
+    const compactWait = this.scene.phase === 'wait' && this._compactWaitActive
+    if (!compactWait && !['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase)) return
+    if (!this.root?.visible) return
     const point = this._designPoint(pointer)
     if (this._compactCastActive && this.scene.phase === 'cast') {
       const dockY = this.nodes.castDock.y
@@ -809,7 +819,7 @@ export class CastPresentationHost {
       }
     }
     const back = CAST_LAYER_CONFIG.controls.back
-    if (['cast', 'retrieve', 'result'].includes(this.scene.phase)
+    if ((compactWait || ['cast', 'retrieve', 'result'].includes(this.scene.phase))
       && point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
       && point.y >= back.y - back.height / 2 && point.y <= back.y + back.height / 2) {
       this.adapter.back()
