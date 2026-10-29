@@ -11,12 +11,21 @@ mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
 try {
-  for (const [width, height] of [[320, 480], [320, 568], [375, 667]]) {
-  const sizeKey = height === 480 ? '320x480' : width
+  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true]]) {
+  const sizeKey = safeArea ? '320-safe-area' : height === 480 ? '320x480' : width
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
   try {
+    if (safeArea) {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+    }
     await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._conditionPresentation?.badge?.depth === 6001)
@@ -97,10 +106,13 @@ try {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
       const bounds = host.nodes.waitPrompt.getBounds()
+      const canvas = scene.game.canvas.getBoundingClientRect()
       return { visible: host.root.visible && host.nodes.retrieveField.visible && host.nodes.waitDock.visible,
         characterVisible: host.nodes.characterMotion?.root?.visible,
         prompt: host.nodes.waitPrompt.text, left: bounds.left, right: bounds.right,
         width: scene.scale.width, dockY: host.nodes.waitDock.y,
+        canvasTop: canvas.top, canvasBottom: canvas.bottom,
+        cueTop: canvas.top + bounds.top, cueBottom: canvas.top + bounds.bottom,
         textHeight: host.nodes.waitPrompt.displayHeight * host.root.scaleY }
     })
     assert.ok(wait.visible && wait.characterVisible && wait.prompt.includes('タップ'),
@@ -109,6 +121,12 @@ try {
       `compact HIT cue or dock is outside the screen: ${JSON.stringify(wait)}`)
     assert.ok(wait.textHeight >= 25,
       `compact HIT cue is too small: ${JSON.stringify(wait)}`)
+    if (safeArea) {
+      assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= 535,
+        `HIT canvas ignores simulated safe area: ${JSON.stringify(wait)}`)
+      assert.ok(wait.cueTop >= wait.canvasTop && wait.cueBottom <= wait.canvasBottom,
+        `HIT cue crosses the safe-area canvas: ${JSON.stringify(wait)}`)
+    }
     await page.screenshot({ path: `${output}/02-hit-${sizeKey}.png`, animations: 'disabled' })
     await page.mouse.click(width / 2, Math.round(height * 0.466))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
@@ -168,7 +186,7 @@ try {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log(`Compact ${width}x${height} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
+    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
   }
 } finally { await browser.close() }
