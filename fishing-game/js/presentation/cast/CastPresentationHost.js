@@ -23,6 +23,8 @@ const RETRIEVE_FISH_LABELS = Object.freeze({
   noticed: '気づいた', follow: '追っている', inspect: '様子見', biteReady: '食いそう',
 })
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
+// Preserve the location header when safe-area insets further shorten the water.
+const COMPACT_RETRIEVE_ACTOR_MIN_Y = -365
 // Reserve horizontal breathing room for the angled tail inside 390px.
 const BATTLE_FISH_BOUNDS = Object.freeze({ width: 310, height: 194 })
 const BATTLE_LOCATION_ART = Object.freeze({
@@ -928,6 +930,8 @@ export class CastPresentationHost {
     const verticalSqueeze = compactPhase
       ? Math.min(1, Math.max(0, (692 - designHeight) / 107)) : 0
     this._compactVerticalSqueeze = verticalSqueeze
+    this._compactExtremeSqueeze = compactPhase
+      ? Math.min(1, Math.max(0, (585 - designHeight) / 80)) : 0
     this._compactBattleSceneOffset = compactBattle ? -110 - 45 * verticalSqueeze : 0
     const dockOffset = compactPhase ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
     this._compactDockOffset = dockOffset
@@ -981,7 +985,7 @@ export class CastPresentationHost {
       // above the relocated dock so the compact crop still shows the fisher.
       this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
-        : (compactRetrieve || compactWait) ? dockOffset * 1.35
+        : (compactRetrieve || compactWait) ? Math.max(dockOffset * 1.35, COMPACT_RETRIEVE_ACTOR_MIN_Y)
           : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
           : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
     }
@@ -1140,9 +1144,15 @@ export class CastPresentationHost {
         ? battleJumpFrame(battle.fishId, this.scene.time.now - this._jumpRageStartedAt, isReducedMotion())
         : null
       this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
+      const extremeSqueeze = this._compactBattleActive ? this._compactExtremeSqueeze : 0
+      if (extremeSqueeze > 0) {
+        const fish = this.nodes.battleFish
+        const width = fish.displayWidth * (1 - 0.4 * extremeSqueeze)
+        fish.setDisplaySize(width, fish.displayHeight * (1 - 0.4 * extremeSqueeze))
+      }
       // Motion is presentation-only. Its peak stays within the approved
       // foreground bounds; the same fish, input and Battle owner are retained.
-      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0),
+      this.nodes.battleFish.setPosition(210 + 65 * extremeSqueeze + (jump?.driftX ?? 0),
         326 + this._compactBattleSceneOffset + (jump?.liftY ?? 0))
         .setAngle(jump?.angleDeg ?? -8)
       this.nodes.battleJumpFx.setVisible(leap).setAlpha(jump?.splashAlpha ?? 1)

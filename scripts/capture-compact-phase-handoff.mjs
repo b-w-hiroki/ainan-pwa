@@ -10,9 +10,68 @@ const output = 'artifacts/compact-fishing-loop/handoff'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
+async function assertActorClearsLocation(page, phase) {
+  const overlap = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const label = host.nodes.location.getBounds()
+    const actor = host.nodes.characterMotion
+    let count = 0
+    // Ignore transparent sprite padding; only visible actor pixels can obscure
+    // the location text. The matrix maps texture pixels into the host's world.
+    for (const image of [actor.poseFront, actor.hair].filter(node => node?.visible && node.alpha > 0)) {
+      const source = image.texture.getSourceImage()
+      const canvas = document.createElement('canvas')
+      canvas.width = source.width; canvas.height = source.height
+      const context = canvas.getContext('2d')
+      context.drawImage(source, 0, 0)
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+      const matrix = image.getWorldTransformMatrix()
+      for (let y = 0; y < canvas.height; y += 2) for (let x = 0; x < canvas.width; x += 2) {
+        if (pixels[(y * canvas.width + x) * 4 + 3] <= 32) continue
+        const point = matrix.transformPoint(x - image.displayOriginX, y - image.displayOriginY)
+        if (point.x >= label.left && point.x <= label.right && point.y >= label.top && point.y <= label.bottom) count++
+      }
+    }
+    return count
+  })
+  assert.equal(overlap, 0, `${phase}: opaque actor pixels cover the location label`)
+}
+
+async function assertBattleFishClearsActor(page) {
+  const state = await page.evaluate(() => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const host = scene._castPresentationHost
+    const actor = host.nodes.characterMotion
+    const paint = images => {
+      const canvas = document.createElement('canvas')
+      canvas.width = scene.scale.width; canvas.height = scene.scale.height
+      const context = canvas.getContext('2d')
+      for (const image of images.filter(node => node?.visible && node.alpha > 0)) {
+        const matrix = image.getWorldTransformMatrix()
+        context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f)
+        context.drawImage(image.texture.getSourceImage(), -image.displayOriginX, -image.displayOriginY)
+      }
+      return context.getImageData(0, 0, canvas.width, canvas.height).data
+    }
+    const actorPixels = paint([actor.poseFront, actor.hair])
+    const fishPixels = paint([host.nodes.battleFish])
+    let overlap = 0, actorCount = 0, fishCount = 0
+    for (let i = 3; i < actorPixels.length; i += 4) {
+      if (actorPixels[i] > 32) actorCount++
+      if (fishPixels[i] > 32) fishCount++
+      if (actorPixels[i] > 32 && fishPixels[i] > 32) overlap++
+    }
+    const bounds = host.nodes.battleFish.getBounds()
+    return { overlap, actorCount, fishCount, left: bounds.left, right: bounds.right, width: scene.scale.width }
+  })
+  assert.ok(state.actorCount > 100 && state.fishCount > 100, `Battle actor or fish is missing: ${JSON.stringify(state)}`)
+  assert.ok(state.overlap <= 3, `Battle fish covers the actor: ${JSON.stringify(state)}`)
+  assert.ok(state.left >= 0 && state.right <= state.width, `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
+}
+
 try {
-  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true]]) {
-  const sizeKey = safeArea ? '320-safe-area' : height === 480 ? '320x480' : width
+  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true]]) {
+  const sizeKey = safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
@@ -50,6 +109,7 @@ try {
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
+    if (safeArea && height === 480) await assertActorClearsLocation(page, 'Retrieve')
     await page.screenshot({ path: `${output}/01-retrieve-${sizeKey}.png`, animations: 'disabled' })
 
     // Exercise the relocated Retrieve controls before a controlled fish-ready
@@ -90,6 +150,7 @@ try {
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactWaitActive)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
+    if (safeArea && height === 480) await assertActorClearsLocation(page, 'Wait')
     await page.screenshot({ path: `${output}/02-wait-${sizeKey}.png`, animations: 'disabled' })
     const hitOpened = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
@@ -122,7 +183,7 @@ try {
     assert.ok(wait.textHeight >= 25,
       `compact HIT cue is too small: ${JSON.stringify(wait)}`)
     if (safeArea) {
-      assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= 535,
+      assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= height - 33,
         `HIT canvas ignores simulated safe area: ${JSON.stringify(wait)}`)
       assert.ok(wait.cueTop >= wait.canvasTop && wait.cueBottom <= wait.canvasBottom,
         `HIT cue crosses the safe-area canvas: ${JSON.stringify(wait)}`)
@@ -154,6 +215,7 @@ try {
     })
     assert.ok(reelInput.phase === 'battle' && reelInput.reel > reelInput.before,
       `Battle dial did not apply reel input after phase handoff: ${JSON.stringify(reelInput)}`)
+    if (safeArea && height === 480) await assertBattleFishClearsActor(page)
     await page.screenshot({ path: `${output}/02-battle-${sizeKey}.png`, animations: 'disabled' })
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
@@ -242,5 +304,36 @@ try {
         console.log(`Compact ${hit ? 'HIT' : 'Wait'} back to Map${safeArea ? ' with simulated safe area' : ''} passed`)
       } finally { await page.close() }
     }
+  }
+
+  for (const fish of ['aji', 'buri', 'kue']) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
+    try {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+      await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaFish=${fish}&compactPortrait=1`)
+      await page.waitForFunction(fish => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        return scene?.phase === 'battle' && host?._compactBattleActive
+          && host.nodes.characterMotion?.ready && host.nodes.battleFish.texture.key === `fish_hero_${fish}`
+      }, fish)
+      await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        scene.battleState.isRaging = false
+        scene.battleState.nextRageAt = Number.POSITIVE_INFINITY
+        scene._castPresentationHost.sync()
+      })
+      await assertBattleFishClearsActor(page)
+      const path = `${output}/battle-${fish}-320x480-safe-area.png`
+      await page.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area Battle frame`)
+      console.log(`320x480 simulated safe area Battle ${fish}: fish and actor separation passed`)
+    } finally { await page.close() }
   }
 } finally { await browser.close() }
