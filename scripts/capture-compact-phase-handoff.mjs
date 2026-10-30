@@ -37,6 +37,20 @@ async function assertActorClearsLocation(page, phase) {
   assert.equal(overlap, 0, `${phase}: opaque actor pixels cover the location label`)
 }
 
+async function assertWaitLineOnLure(page, appearance) {
+  const state = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const motion = host.nodes.characterMotion, lure = host.nodes.retrieveLure
+    const target = motion.root.getData('rodLineTargetWorld')
+    const commands = motion.line.commandBuffer
+    return { targetError: lure && target ? Math.hypot(target.x - lure.x, target.y - lure.y) : null,
+      lineError: lure && commands.length >= 3
+        ? Math.hypot(commands.at(-3) + motion.root.x - lure.x, commands.at(-2) + motion.root.y - lure.y) : null }
+  })
+  assert.ok(state.targetError !== null && state.targetError < 1 && state.lineError !== null && state.lineError < 1,
+    `${appearance}: Wait line missed the visible lure: ${JSON.stringify(state)}`)
+}
+
 async function assertBattleFishClearsActor(page) {
   const state = await page.evaluate(() => {
     const scene = window.__game.scene.getScene('GameScene')
@@ -72,9 +86,10 @@ async function assertBattleFishClearsActor(page) {
 }
 
 try {
-  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true]]) {
-  const sizeKey = safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width
+  for (const [width, height, safeArea, appearance] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01']]) {
+  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}`
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+  if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
   try {
@@ -89,6 +104,10 @@ try {
     }
     await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    if (appearance) await page.waitForFunction(expected => {
+      const actor = window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion
+      return actor?.ready && actor.cute && actor.appearance === expected
+    }, appearance)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._conditionPresentation?.badge?.depth === 6001)
     const point = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
@@ -104,8 +123,10 @@ try {
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'retrieve', null, { timeout: 10000 })
     const retrieve = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
+      const actor = scene._castPresentationHost.nodes.characterMotion
       return { phase: scene.phase, compact: scene._castPresentationHost._compactRetrieveActive,
-        dock: scene._castPresentationHost.nodes.retrieveDock.y }
+        dock: scene._castPresentationHost.nodes.retrieveDock.y,
+        actorWidth: actor.poseFront.displayWidth, actorHeight: actor.poseFront.displayHeight }
     })
     assert.equal(retrieve.compact, true)
     assert.ok(retrieve.dock < 0)
@@ -149,7 +170,31 @@ try {
       return scene.phase === 'wait' && !scene.waitTapActive
     })
     assert.equal(entered, true, 'controlled fish-ready event did not enter Wait')
-    await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactWaitActive)
+    await page.waitForFunction(() => {
+      const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+      return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
+    })
+    if (appearance) {
+      const actorState = await page.evaluate(() => {
+        const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+        const actor = host.nodes.characterMotion.poseFront
+        return { width: actor.displayWidth, height: actor.displayHeight }
+      })
+      assert.ok(Math.abs(actorState.width - retrieve.actorWidth) < 0.01 && Math.abs(actorState.height - retrieve.actorHeight) < 0.01,
+        `${appearance}: actor size changed between Retrieve and Wait`)
+      await assertWaitLineOnLure(page, appearance)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.phase === 'wait' && scene.scale.width === 390 && !scene._castPresentationHost?._compactWaitActive
+      })
+      await page.setViewportSize({ width, height })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.phase === 'wait' && scene.scale.width === 320 && scene._castPresentationHost?._compactWaitActive
+      })
+      await assertWaitLineOnLure(page, appearance)
+    }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
     if (safeArea && height === 480) await assertActorClearsLocation(page, 'Wait')
@@ -184,6 +229,7 @@ try {
       `compact HIT cue or dock is outside the screen: ${JSON.stringify(wait)}`)
     assert.ok(wait.textHeight >= 25,
       `compact HIT cue is too small: ${JSON.stringify(wait)}`)
+    if (appearance) await assertWaitLineOnLure(page, appearance)
     if (safeArea) {
       assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= height - 33,
         `HIT canvas ignores simulated safe area: ${JSON.stringify(wait)}`)
@@ -250,7 +296,7 @@ try {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
+    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''}${appearance ? ` ${appearance}` : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
   }
 

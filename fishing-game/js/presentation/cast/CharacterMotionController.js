@@ -46,7 +46,7 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
 
 const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displayHeight: 183.75 })
 const CUTE_LAYOUTS = Object.freeze({
-  cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT,
+  cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT, wait: CUTE_CAST_LAYOUT,
   battle: Object.freeze({ x: 78, y: 600, displayWidth: 110, displayHeight: 144.375 }),
   result: Object.freeze({ x: 82, y: 430, displayWidth: 120, displayHeight: 157.5 }),
 })
@@ -285,7 +285,7 @@ export class CharacterMotionController {
       ? { x: 228, y: 330 }
       : phase === 'result'
         ? { x: tip.x + 14 + this.root.x, y: tip.y + 24 + this.root.y }
-        : phase === 'retrieve' && this.retrieveTarget
+        : (phase === 'retrieve' || (phase === 'wait' && this.scene._castPresentationHost?._compactWaitActive)) && this.retrieveTarget
           ? this.retrieveTarget
           : { x: 310, y: 235 }
     // Keep the lure/line target in stage coordinates as the entire character

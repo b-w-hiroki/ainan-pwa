@@ -1079,7 +1079,9 @@ export class CastPresentationHost {
     } else {
       this._retrievePresentation = null
       this._retrieveFishUpdatedAt = null
-      this.nodes.characterMotion?.setRetrieveTarget(null)
+      // Keep the last lure target while a QA Wait screen is temporarily
+      // resized out of compact mode; the host becomes visible again on return.
+      if (!(compactPortraitPrototype && view.phase === 'wait')) this.nodes.characterMotion?.setRetrieveTarget(null)
     }
     const battleVisible = view.phase === 'battle'
     const resultVisible = view.phase === 'result'
