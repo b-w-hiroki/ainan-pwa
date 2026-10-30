@@ -271,35 +271,92 @@ try {
       } finally { await page.close() }
     }
   }
-  for (const [width, height] of [[320, 480], [320, 568], [375, 667]]) {
+  for (const [width, height, safeArea] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 480, true]]) {
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
     try {
+      if (safeArea) {
+        await page.route('**/fishing-game/**', async route => {
+          if (route.request().resourceType() !== 'document') return route.continue()
+          const response = await route.fetch()
+          const body = (await response.text()).replace('</head>',
+            '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+          await route.fulfill({ response, body })
+        })
+      }
       await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=battle&compactPortrait=1&qaBoss=harborRunner&qaFreshBoss=1`)
       await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'battle')
       await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
       await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._bossRecordBadge?.active)
       await page.waitForFunction(() => !window.__game.scene.getScene('GameScene').cameras.main.flashEffect.isRunning)
+      if (safeArea) await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._bossRecordBadge.alpha >= 0.99)
       const badge = await page.evaluate(() => {
         const scene = window.__game.scene.getScene('GameScene')
         const host = scene._castPresentationHost
         const notice = scene._bossRecordBadge
+        const label = notice.list.find(node => node.type === 'Text' && node.visible)
         return { compact: host._compactResultActive, x: notice.x,
           badgeBottom: notice.getBounds().bottom,
+          badgeTop: notice.getBounds().top,
           cardTop: host.nodes.resultInfoSkin.getBounds().top,
-          actionTop: host.nodes.resultPrimarySkin.getBounds().top }
+          actionTop: host.nodes.resultPrimarySkin.getBounds().top,
+          secondaryBottom: host.nodes.resultSecondarySkin.getBounds().bottom,
+          backgroundTop: (notice.y - 9) * host.root.scaleY,
+          backgroundBottom: (notice.y + 9) * host.root.scaleY,
+          canvasHeight: scene.scale.height,
+          label: label?.text, labelPx: label && parseFloat(label.style.fontSize) * label.scaleY * host.root.scaleY }
       })
       assert.equal(badge.compact, true)
-      assert.ok(badge.x <= 100 && badge.badgeBottom < badge.cardTop,
-        `compact boss badge covers the Result card: ${JSON.stringify(badge)}`)
-      assert.ok(badge.badgeBottom < badge.actionTop,
-        `compact boss badge covers the Result action: ${JSON.stringify(badge)}`)
-      if (height === 480) assert.ok(badge.badgeBottom < badge.cardTop - 45,
-        `extreme-short boss badge covers the fisher: ${JSON.stringify(badge)}`)
-      const sizeKey = height === 480 ? '320x480' : width
+      if (safeArea) {
+        assert.ok(badge.backgroundTop > badge.secondaryBottom && badge.backgroundBottom <= badge.canvasHeight,
+          `safe-area boss badge overlaps an action or leaves the canvas: ${JSON.stringify(badge)}`)
+        assert.ok(badge.label?.includes('BEST') && badge.labelPx >= 10,
+          `safe-area boss badge text is missing or too small: ${JSON.stringify(badge)}`)
+      } else {
+        assert.ok(badge.x <= 100 && badge.badgeBottom < badge.cardTop,
+          `compact boss badge covers the Result card: ${JSON.stringify(badge)}`)
+        assert.ok(badge.badgeBottom < badge.actionTop,
+          `compact boss badge covers the Result action: ${JSON.stringify(badge)}`)
+        if (height === 480) assert.ok(badge.badgeBottom < badge.cardTop - 45,
+          `extreme-short boss badge covers the fisher: ${JSON.stringify(badge)}`)
+      }
+      const sizeKey = safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width
       const path = `${output}/result-boss-${sizeKey}.png`
       await page.screenshot({ path, animations: 'disabled' })
       assert.ok(statSync(path).size > 15000, 'compact boss Result browser frame blank')
-      console.log(`${width}x${height} compact boss Result badge: card and action clear`)
+      if (safeArea) {
+        await page.setViewportSize({ width: 390, height: 844 })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const texts = scene._bossRecordBadge?.list?.filter(node => node.type === 'Text' && node.visible) ?? []
+          return scene.scale.width === 390 && !host._compactResultActive && texts.length === 2
+            && texts.some(node => node.text.startsWith('BEST'))
+        })
+        await page.setViewportSize({ width: 320, height: 480 })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const texts = scene._bossRecordBadge?.list?.filter(node => node.type === 'Text' && node.visible) ?? []
+          return scene.scale.width === 320 && host._compactExtremeSqueeze > 0 && texts.length === 1
+            && texts[0].text.includes('BEST')
+        })
+        const afterResize = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost, notice = scene._bossRecordBadge
+          const rect = scene.game.canvas.getBoundingClientRect()
+          return { badgeTop: (notice.y - 9) * host.root.scaleY,
+            badgeBottom: (notice.y + 9) * host.root.scaleY,
+            actionBottom: host.nodes.resultSecondarySkin.getBounds().bottom,
+            height: scene.scale.height,
+            x: rect.x + 195 * host.root.scaleX,
+            y: rect.y + host.nodes.resultPrimarySkin.y * host.root.scaleY }
+        })
+        assert.ok(afterResize.badgeTop > afterResize.actionBottom && afterResize.badgeBottom <= afterResize.height,
+          `boss badge did not recover after resize: ${JSON.stringify(afterResize)}`)
+        await page.mouse.click(afterResize.x, afterResize.y)
+        await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
+      }
+      console.log(`${width}x${height}${safeArea ? ' simulated safe area' : ''} compact boss Result badge: card and action clear`)
     } finally { await page.close() }
   }
   for (const action of ['back', 'retry']) {

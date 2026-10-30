@@ -62,11 +62,13 @@ async function assertBattleFishClearsActor(page) {
       if (actorPixels[i] > 32 && fishPixels[i] > 32) overlap++
     }
     const bounds = host.nodes.battleFish.getBounds()
-    return { overlap, actorCount, fishCount, left: bounds.left, right: bounds.right, width: scene.scale.width }
+    return { overlap, actorCount, fishCount, left: bounds.left, right: bounds.right,
+      top: bounds.top, bottom: bounds.bottom, width: scene.scale.width, height: scene.scale.height }
   })
   assert.ok(state.actorCount > 100 && state.fishCount > 100, `Battle actor or fish is missing: ${JSON.stringify(state)}`)
   assert.ok(state.overlap <= 3, `Battle fish covers the actor: ${JSON.stringify(state)}`)
-  assert.ok(state.left >= 0 && state.right <= state.width, `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
+  assert.ok(state.left >= 0 && state.right <= state.width && state.top >= 0 && state.bottom <= state.height,
+    `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
 }
 
 try {
@@ -334,6 +336,48 @@ try {
       await page.screenshot({ path, animations: 'disabled' })
       assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area Battle frame`)
       console.log(`320x480 simulated safe area Battle ${fish}: fish and actor separation passed`)
+    } finally { await page.close() }
+  }
+
+  for (const fish of ['aji', 'buri', 'kue']) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
+    try {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+      await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaJump=1&qaFish=${fish}&compactPortrait=1`)
+      await page.waitForFunction(fish => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        return scene?.phase === 'battle' && host?._compactBattleActive && host.nodes.characterMotion?.ready
+          && host.nodes.battleFish.texture.key === `fish_jump_${fish}`
+      }, fish)
+      await page.evaluate(() => window.__game.scene.getScene('GameScene').scene.pause())
+      for (const elapsed of [0, 250, 500, 700]) {
+        await page.evaluate(({ fish, elapsed }) => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          scene.battleState.isRaging = true
+          host._jumpRageFishId = fish
+          host._jumpRageStartedAt = scene.time.now - elapsed
+          host.sync()
+        }, { fish, elapsed })
+        await assertBattleFishClearsActor(page)
+        if (elapsed === 250) {
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+          const airborne = `${output}/rage-airborne-${fish}-320x480-safe-area.png`
+          await page.screenshot({ path: airborne, animations: 'disabled' })
+          assert.ok(statSync(airborne).size > 15000, `${fish}: blank safe-area airborne frame`)
+        }
+      }
+      const path = `${output}/rage-${fish}-320x480-safe-area.png`
+      await page.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area rage frame`)
+      console.log(`320x480 simulated safe area rage ${fish}: four motion offsets passed`)
     } finally { await page.close() }
   }
 } finally { await browser.close() }

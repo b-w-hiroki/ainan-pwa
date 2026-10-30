@@ -992,11 +992,13 @@ export class CastPresentationHost {
     if (compactPhase) {
       this.root.setScale(compactScale)
       this.root.setPosition(0, 0)
+      this.scene._layoutBossRecordBadge?.()
       return
     }
     const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)
     this.root.setScale(scale)
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
+    this.scene._layoutBossRecordBadge?.()
   }
 
   _syncFishImage(image, fishId, slot = 'battle', leaping = false) {
