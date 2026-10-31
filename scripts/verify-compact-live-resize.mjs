@@ -175,7 +175,7 @@ try {
     } finally { await page.close() }
   }
 
-  for (const appearance of [null, 'cute-a-01', 'cute-b-01']) {
+  for (const [appearance, syncBeforeBite] of [[null, true], [null, false], ['cute-a-01', true], ['cute-a-01', false], ['cute-b-01', true], ['cute-b-01', false]]) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
     if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
     try {
@@ -186,7 +186,7 @@ try {
           && (!expected || host.nodes.characterMotion.appearance === expected)
           && scene.bg?._fishRuntime?.some(item => item?.fishDef && item.gfx?.active)
       }, appearance)
-      const entered = await page.evaluate(() => {
+      const entered = await page.evaluate(syncBeforeBite => {
         const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
         const runtime = scene.bg._fishRuntime.find(item => item?.fishDef && item.gfx?.active)
         scene.retrieveState.decisionCount = 2
@@ -194,13 +194,13 @@ try {
         scene._tickFishInterest = () => {}
         const dx = scene.bobber.x - scene.anchorX, dy = scene.bobber.y - scene.anchorY
         scene.bobber.setPosition(scene.anchorX + dx * 0.5, scene.anchorY + dy * 0.5)
-        host.sync()
+        if (syncBeforeBite) host.sync()
         scene._beginRetrieveBite(runtime)
         if (scene.phase !== 'wait') return false
         scene.fish = { ...scene.fish, biteRate: 1 }
         scene._killWaitTimers()
         return true
-      })
+      }, syncBeforeBite)
       assert.ok(entered, `${appearance ?? 'classic'}: controlled bite did not enter Wait`)
       for (const height of [568, 480]) {
         await page.setViewportSize({ width: 320, height })
@@ -223,11 +223,11 @@ try {
           && state.targetError !== null && state.targetError < 1 && state.lineError !== null && state.lineError < 1,
           `${appearance ?? 'classic'}: Wait lost lure progress or line after resize: ${JSON.stringify(state)}`)
       }
-      await page.screenshot({ path: `${output}/wait-enter-compact-${appearance ?? 'classic'}.png`, animations: 'disabled' })
+      await page.screenshot({ path: `${output}/wait-enter-compact-${appearance ?? 'classic'}${syncBeforeBite ? '' : '-same-frame'}.png`, animations: 'disabled' })
       await page.evaluate(() => window.__game.scene.getScene('GameScene')._openHitWindow(30000))
       await page.mouse.click(160, 240)
       await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle')
-      console.log(`${appearance ?? 'classic'}: normal Retrieve → Wait → 320x568 → 320x480 preserves lure and real HIT`)
+      console.log(`${appearance ?? 'classic'}${syncBeforeBite ? '' : ' same-frame'}: normal Retrieve → Wait → 320x568 → 320x480 preserves lure and real HIT`)
     } finally { await page.close() }
   }
 

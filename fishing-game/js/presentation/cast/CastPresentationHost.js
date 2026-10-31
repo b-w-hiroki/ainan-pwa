@@ -1099,7 +1099,10 @@ export class CastPresentationHost {
       && this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
       this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
     }
-    if (compactPortraitPrototype && retrieveVisible && view.retrieve.distanceMeters !== null && this._retrievePresentation) {
+    // Capture the authoritative position once more on entering Wait: a bite
+    // can occur after movement but before Retrieve's next presentation sync.
+    if (compactPortraitPrototype && (retrieveVisible || view.phase === 'wait')
+      && view.retrieve.distanceMeters !== null && this._retrievePresentation) {
       this._lastRetrieveProgress = Math.max(0, Math.min(1,
         1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
     } else if (compactPortraitPrototype && !retrieveVisible && view.phase !== 'wait') {
