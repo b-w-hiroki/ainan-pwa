@@ -2,23 +2,240 @@ import assert from 'node:assert/strict'
 import { delimiter, join } from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
+import { getFishingGroundName } from '../fishing-game/js/game/fishingGroundNames.js'
+import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 
 const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
 assert.ok(bin, 'Run via npm exec --package=playwright')
 const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'index.mjs')).href)
-const output = 'artifacts/compact-fishing-loop/handoff'
+const output = process.env.COMPACT_HANDOFF_OUTPUT ?? 'artifacts/compact-fishing-loop/handoff'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
+const representativeFish = new Set(['aji', 'buri', 'kue'])
+const allFishIds = FISH_LIST.map(fish => fish.id)
+
+async function assertActorClearsLocation(page, phase) {
+  const overlap = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const label = host.nodes.location.getBounds()
+    const actor = host.nodes.characterMotion
+    let count = 0
+    // Ignore transparent sprite padding; only visible actor pixels can obscure
+    // the location text. The matrix maps texture pixels into the host's world.
+    for (const image of [actor.poseFront, actor.hair].filter(node => node?.visible && node.alpha > 0)) {
+      const source = image.texture.getSourceImage()
+      const canvas = document.createElement('canvas')
+      canvas.width = source.width; canvas.height = source.height
+      const context = canvas.getContext('2d')
+      context.drawImage(source, 0, 0)
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+      const matrix = image.getWorldTransformMatrix()
+      for (let y = 0; y < canvas.height; y += 2) for (let x = 0; x < canvas.width; x += 2) {
+        if (pixels[(y * canvas.width + x) * 4 + 3] <= 32) continue
+        const point = matrix.transformPoint(x - image.displayOriginX, y - image.displayOriginY)
+        if (point.x >= label.left && point.x <= label.right && point.y >= label.top && point.y <= label.bottom) count++
+      }
+    }
+    return count
+  })
+  assert.equal(overlap, 0, `${phase}: opaque actor pixels cover the location label`)
+}
+
+async function assertWaitLineOnLure(page, appearance) {
+  const state = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const motion = host.nodes.characterMotion, lure = host.nodes.retrieveLure
+    const target = motion.root.getData('rodLineTargetWorld')
+    const commands = motion.line.commandBuffer
+    return { targetError: lure && target ? Math.hypot(target.x - lure.x, target.y - lure.y) : null,
+      lineError: lure && commands.length >= 3
+        ? Math.hypot(commands.at(-3) + motion.root.x - lure.x, commands.at(-2) + motion.root.y - lure.y) : null }
+  })
+  assert.ok(state.targetError !== null && state.targetError < 1 && state.lineError !== null && state.lineError < 1,
+    `${appearance}: Wait line missed the visible lure: ${JSON.stringify(state)}`)
+}
+
+async function assertCompactQuay(page, appearance) {
+  const state = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const actor = host.nodes.characterMotion, quay = host.nodes.retrieveQuay
+    const children = host.nodes.retrieveField.list
+    return { visible: quay?.visible, footY: actor.root.y + actor.poseFront.y,
+      quayY: quay?.y, quayOrder: children.indexOf(quay),
+      waterOrder: children.indexOf(host.nodes.retrieveFishShadows[0]?.parentContainer),
+      lureOrder: children.indexOf(host.nodes.retrieveLure) }
+  })
+  assert.ok(state.visible && Math.abs(state.footY - state.quayY - 40) < 0.01,
+    `${appearance}: compact quay is not aligned to the fisher: ${JSON.stringify(state)}`)
+  assert.ok(state.waterOrder < state.quayOrder && state.quayOrder < state.lureOrder,
+    `${appearance}: compact quay covers the lure or exposes fish over land: ${JSON.stringify(state)}`)
+}
+
+async function assertRetrieveLurePath(page, appearance) {
+  const states = await page.evaluate(pxPerMeter => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const host = scene._castPresentationHost
+    const meters = Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter
+    const original = host._retrievePresentation.startMeters
+    const states = []
+    for (const progress of [0, 0.5, 0.95]) {
+      host._retrievePresentation.startMeters = meters / (1 - progress)
+      host.sync()
+      const lure = host.nodes.retrieveLure
+      const quay = host.nodes.retrieveQuay
+      const sampleX = Math.floor(lure.x - 24 - quay.x)
+      const sampleY = Math.floor(lure.y + 9 - quay.y)
+      states.push({ progress, x: lure.x, y: lure.y, dockTop: 620 + host._compactDockOffset,
+        quayAlpha: scene.textures.getPixelAlpha(sampleX, sampleY, quay.texture.key),
+        target: host.nodes.characterMotion.root.getData('rodLineTargetWorld') })
+    }
+    host._retrievePresentation.startMeters = original
+    host.sync()
+    return states
+  }, FISHING_WORLD.pxPerMeter)
+  for (const state of states) {
+    assert.ok(state.y + 12 < state.dockTop, `${appearance}: lure is hidden by controls: ${JSON.stringify(state)}`)
+    assert.ok(!state.quayAlpha, `${appearance}: lure overlaps the quay: ${JSON.stringify(state)}`)
+    assert.ok(Math.hypot(state.target.x - state.x, state.target.y - state.y) < 1,
+      `${appearance}: line misses the lure: ${JSON.stringify(state)}`)
+  }
+}
+
+async function assertRetrieveFishVisibility(page, appearance) {
+  const states = await page.evaluate(() => {
+    const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+    const saved = scene.bg._fishRuntime
+    const fish = { state: 'follow', interest: 99, gfx: { active: true, scaleX: 1,
+      x: scene.bobber.x, y: scene.bobber.y + 180 } }
+    const sample = () => host.nodes.retrieveFishShadows.map(shadow => ({
+      y: shadow.y, halfHeight: shadow.displayHeight / 2, dockTop: 620 + host._compactDockOffset,
+    }))
+    scene.bg._fishRuntime = []
+    host.sync()
+    const idle = sample()
+    scene.bg._fishRuntime = [fish]
+    for (let i = 0; i < 30; i++) { host._retrieveFishUpdatedAt = -100000; host.sync() }
+    const following = sample()
+    scene.bg._fishRuntime = saved
+    host.sync()
+    return { idle, following }
+  })
+  for (const [mode, shadows] of Object.entries(states)) for (const shadow of shadows) {
+    assert.ok(shadow.y + shadow.halfHeight < shadow.dockTop,
+      `${appearance}: ${mode} fish shadow is behind controls: ${JSON.stringify(shadow)}`)
+  }
+}
+
+async function assertBattleFishClearsActor(page) {
+  const state = await page.evaluate(() => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const host = scene._castPresentationHost
+    const actor = host.nodes.characterMotion
+    const paint = images => {
+      const canvas = document.createElement('canvas')
+      canvas.width = scene.scale.width; canvas.height = scene.scale.height
+      const context = canvas.getContext('2d')
+      for (const image of images.filter(node => node?.visible && node.alpha > 0)) {
+        const matrix = image.getWorldTransformMatrix()
+        context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f)
+        context.drawImage(image.texture.getSourceImage(), -image.displayOriginX, -image.displayOriginY)
+      }
+      return context.getImageData(0, 0, canvas.width, canvas.height).data
+    }
+    const actorPixels = paint([actor.poseFront, actor.hair])
+    const fishPixels = paint([host.nodes.battleFish])
+    let overlap = 0, actorCount = 0, fishCount = 0
+    for (let i = 3; i < actorPixels.length; i += 4) {
+      if (actorPixels[i] > 32) actorCount++
+      if (fishPixels[i] > 32) fishCount++
+      if (actorPixels[i] > 32 && fishPixels[i] > 32) overlap++
+    }
+    const bounds = host.nodes.battleFish.getBounds()
+    return { overlap, actorCount, fishCount, left: bounds.left, right: bounds.right,
+      top: bounds.top, bottom: bounds.bottom, width: scene.scale.width, height: scene.scale.height }
+  })
+  assert.ok(state.actorCount > 100 && state.fishCount > 100, `Battle actor or fish is missing: ${JSON.stringify(state)}`)
+  assert.ok(state.overlap <= 3, `Battle fish covers the actor: ${JSON.stringify(state)}`)
+  assert.ok(state.left >= 0 && state.right <= state.width && state.top >= 0 && state.bottom <= state.height,
+    `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
+}
+
+async function captureRenderedViewport(page, path) {
+  const snapshot = await page.evaluate(async () => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const canvas = scene.game.canvas.getBoundingClientRect()
+    const takeSnapshot = () => new Promise((resolve, reject) => {
+      scene.game.renderer.snapshot(image => {
+        if (!image?.src) return reject(new Error('Phaser renderer snapshot did not return an image'))
+        const probe = document.createElement('canvas')
+        probe.width = image.naturalWidth || image.width
+        probe.height = image.naturalHeight || image.height
+        const context = probe.getContext('2d', { willReadFrequently: true })
+        context.drawImage(image, 0, 0)
+        const scaleY = probe.height / scene.scale.height
+        const headerRows = [20, 30, 40].map(y => {
+          const row = context.getImageData(0, Math.round(y * scaleY), probe.width, 1).data
+          let lightPixels = 0
+          let samples = 0
+          for (let x = Math.round(probe.width * 0.04); x < probe.width * 0.96; x += 4) {
+            const index = x * 4
+            const channels = [row[index], row[index + 1], row[index + 2]]
+            if (Math.min(...channels) > 210 && Math.max(...channels) - Math.min(...channels) < 35) lightPixels += 1
+            samples += 1
+          }
+          return lightPixels / samples
+        })
+        resolve({ src: image.src, headerReady: headerRows.every(fraction => fraction > 0.5) })
+      })
+    })
+    for (let frame = 0; frame < 120; frame += 1) {
+      const captured = await takeSnapshot()
+      if (captured.headerReady) return { src: captured.src,
+        canvas: { left: canvas.left, top: canvas.top, width: canvas.width, height: canvas.height } }
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    }
+    throw new Error('Compact WAIT header did not render within 120 frames after resize')
+  })
+  await page.evaluate(async ({ src, canvas }) => {
+    const image = document.createElement('img')
+    image.id = 'qa-renderer-snapshot'
+    Object.assign(image.style, { position: 'fixed', pointerEvents: 'none', zIndex: '2147483647',
+      left: `${canvas.left}px`, top: `${canvas.top}px`, width: `${canvas.width}px`, height: `${canvas.height}px` })
+    image.src = src
+    document.body.append(image)
+    await image.decode()
+  }, snapshot)
+  try {
+    await page.screenshot({ path })
+  } finally {
+    await page.evaluate(() => document.querySelector('#qa-renderer-snapshot')?.remove())
+  }
+}
 
 try {
-  for (const [width, height] of [[320, 480], [320, 568], [375, 667]]) {
-  const sizeKey = height === 480 ? '320x480' : width
+  for (const [width, height, safeArea, appearance, locationId] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01'], [320, 568, false, null, 'pointB'], [320, 568, false, null, 'pointC']]) {
+  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}${locationId ? `-${locationId}` : ''}`
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+  if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
   try {
-    await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
+    if (safeArea) {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+    }
+    await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1${locationId ? `&qaLocation=${locationId}` : ''}`)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
+    if (appearance) await page.waitForFunction(expected => {
+      const actor = window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion
+      return actor?.ready && actor.cute && actor.appearance === expected
+    }, appearance)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._conditionPresentation?.badge?.depth === 6001)
     const point = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
@@ -34,13 +251,84 @@ try {
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'retrieve', null, { timeout: 10000 })
     const retrieve = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
+      const actor = scene._castPresentationHost.nodes.characterMotion
       return { phase: scene.phase, compact: scene._castPresentationHost._compactRetrieveActive,
-        dock: scene._castPresentationHost.nodes.retrieveDock.y }
+        dock: scene._castPresentationHost.nodes.retrieveDock.y,
+        actorWidth: actor.poseFront.displayWidth, actorHeight: actor.poseFront.displayHeight }
     })
     assert.equal(retrieve.compact, true)
+    await assertCompactQuay(page, appearance ?? 'classic')
+    await assertRetrieveLurePath(page, appearance ?? 'classic')
+    await assertRetrieveFishVisibility(page, appearance ?? 'classic')
+    if (!appearance) {
+      const composition = await page.evaluate(() => {
+        const nodes = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+        return { clean: nodes.cleanRetrieveBase?.visible, baked: nodes.retrieveBase.visible,
+          lure: nodes.retrieveLure?.visible, status: nodes.retrieveStatus?.visible }
+      })
+      assert.deepEqual(composition, { clean: true, baked: false, lure: true, status: true },
+        'classic compact Retrieve must use the live lure and fish feedback without the baked line')
+      if (safeArea && height === 480) {
+        const beforeResize = await page.evaluate(pxPerMeter => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          const meters = Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter
+          const original = host._retrievePresentation.startMeters
+          host._retrievePresentation.startMeters = meters * 2
+          host.sync()
+          return { original, baseline: host._retrievePresentation.startMeters, lureX: host.nodes.retrieveLure.x }
+        }, FISHING_WORLD.pxPerMeter)
+        await page.setViewportSize({ width: 390, height: 844 })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          return scene.phase === 'retrieve' && scene.scale.width === 390 && !host._compactRetrieveActive
+            && host.nodes.retrieveBase.visible && !host.nodes.cleanRetrieveBase.visible
+            && !host.nodes.retrieveQuay.visible && !host.nodes.retrieveLure.visible && !host.nodes.retrieveStatus.visible
+        })
+        await page.setViewportSize({ width, height })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          return scene.phase === 'retrieve' && scene.scale.width === 320 && host._compactRetrieveActive
+            && host.nodes.cleanRetrieveBase.visible && host.nodes.retrieveQuay.visible && host.nodes.retrieveLure.visible
+        })
+        const afterResize = await page.evaluate(() => {
+          const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+          return { baseline: host._retrievePresentation?.startMeters, lureX: host.nodes.retrieveLure.x }
+        })
+        assert.ok(Math.abs(afterResize.baseline - beforeResize.baseline) < 0.01
+          && Math.abs(afterResize.lureX - beforeResize.lureX) < 1,
+          `classic Retrieve progress reset after resize: ${JSON.stringify({ beforeResize, afterResize })}`)
+        await page.evaluate(original => {
+          const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+          host._retrievePresentation.startMeters = original
+          host.sync()
+        }, beforeResize.original)
+        await assertCompactQuay(page, 'classic after resize')
+        await assertRetrieveLurePath(page, 'classic after resize')
+        await assertRetrieveFishVisibility(page, 'classic after resize')
+      }
+    }
+    if (appearance && safeArea && height === 480) {
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return scene.phase === 'retrieve' && scene.scale.width === 390 && !host._compactRetrieveActive
+          && !host.nodes.retrieveQuay.visible && host.nodes.retrieveFishShadows[1].y === 410
+          && host.nodes.retrieveFishShadows[2].y === 401
+      })
+      await page.setViewportSize({ width, height })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return scene.phase === 'retrieve' && scene.scale.width === 320 && host._compactRetrieveActive
+          && host.nodes.retrieveQuay.visible
+      })
+      await assertCompactQuay(page, appearance)
+      await assertRetrieveLurePath(page, appearance)
+      await assertRetrieveFishVisibility(page, appearance)
+    }
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
+    if (safeArea && height === 480) await assertActorClearsLocation(page, 'Retrieve')
     await page.screenshot({ path: `${output}/01-retrieve-${sizeKey}.png`, animations: 'disabled' })
 
     // Exercise the relocated Retrieve controls before a controlled fish-ready
@@ -78,10 +366,69 @@ try {
       return scene.phase === 'wait' && !scene.waitTapActive
     })
     assert.equal(entered, true, 'controlled fish-ready event did not enter Wait')
-    await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost?._compactWaitActive)
+    await page.waitForFunction(() => {
+      const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+      return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
+        && host._retrievePresentation === null
+    })
+    if (appearance || (safeArea && height === 480 && !locationId)) {
+      const actorLabel = appearance ?? 'classic'
+      await assertCompactQuay(page, actorLabel)
+      const distance = await page.evaluate(pxPerMeter => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return { label: scene._castPresentationHost.nodes.distance.text,
+          meters: Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter }
+      }, FISHING_WORLD.pxPerMeter)
+      assert.match(distance.label, /^\d+\.\dm$/, `${actorLabel}: Wait distance is missing`)
+      assert.ok(Math.abs(Number.parseFloat(distance.label) - distance.meters) < 0.2,
+        `${actorLabel}: Wait distance does not match the lure: ${JSON.stringify(distance)}`)
+      const actorState = await page.evaluate(() => {
+        const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+        const actor = host.nodes.characterMotion.poseFront
+        return { width: actor.displayWidth, height: actor.displayHeight }
+      })
+      assert.ok(Math.abs(actorState.width - retrieve.actorWidth) < 0.01 && Math.abs(actorState.height - retrieve.actorHeight) < 0.01,
+        `${actorLabel}: actor size changed between Retrieve and Wait`)
+      await assertWaitLineOnLure(page, actorLabel)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.phase === 'wait' && scene.scale.width === 390 && !scene._castPresentationHost?._compactWaitActive
+          && !scene._castPresentationHost?.nodes.retrieveQuay?.visible
+      })
+      await page.setViewportSize({ width, height })
+      await page.waitForFunction(({ expectedWidth, expectedHeight }) => {
+        const scene = window.__game.scene.getScene('GameScene')
+        const container = document.querySelector('#game-container')?.getBoundingClientRect()
+        const canvas = scene.game.canvas.getBoundingClientRect()
+        return scene.phase === 'wait'
+          && scene.scale.width === expectedWidth
+          && scene.scale.height === expectedHeight
+          && scene._castPresentationHost?._compactWaitActive
+          && Math.abs(canvas.width - container.width) < 1
+          && Math.abs(canvas.height - container.height) < 1
+      }, { expectedWidth: width, expectedHeight: height - (safeArea ? 54 : 0) })
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      await assertWaitLineOnLure(page, actorLabel)
+      await assertCompactQuay(page, actorLabel)
+    }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
-    await page.screenshot({ path: `${output}/02-wait-${sizeKey}.png`, animations: 'disabled' })
+    if (!appearance) await assertWaitLineOnLure(page, 'classic')
+    if (locationId) {
+      const hud = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), nodes = scene._castPresentationHost.nodes
+        return { point: scene.env.point, label: nodes.location.text, visible: nodes.chrome.visible,
+          cover: nodes.retrieveHudCover.visible }
+      })
+      assert.deepEqual(hud, { point: locationId, label: getFishingGroundName(locationId), visible: true, cover: true },
+        `${locationId}: Wait must show the selected fishing ground instead of the baked Harbor header`)
+    }
+    if (safeArea && height === 480) await assertActorClearsLocation(page, 'Wait')
+    // Browser screenshots can expose a stale WebGL compositor surface after
+    // a live resize. Preserve Phaser's completed renderer snapshot at the
+    // canvas position so the full safe-area viewport remains reviewable.
+    await captureRenderedViewport(page, `${output}/02-wait-${sizeKey}.png`)
     const hitOpened = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       scene._openHitWindow(5000)
@@ -97,10 +444,13 @@ try {
       const scene = window.__game.scene.getScene('GameScene')
       const host = scene._castPresentationHost
       const bounds = host.nodes.waitPrompt.getBounds()
+      const canvas = scene.game.canvas.getBoundingClientRect()
       return { visible: host.root.visible && host.nodes.retrieveField.visible && host.nodes.waitDock.visible,
         characterVisible: host.nodes.characterMotion?.root?.visible,
         prompt: host.nodes.waitPrompt.text, left: bounds.left, right: bounds.right,
         width: scene.scale.width, dockY: host.nodes.waitDock.y,
+        canvasTop: canvas.top, canvasBottom: canvas.bottom,
+        cueTop: canvas.top + bounds.top, cueBottom: canvas.top + bounds.bottom,
         textHeight: host.nodes.waitPrompt.displayHeight * host.root.scaleY }
     })
     assert.ok(wait.visible && wait.characterVisible && wait.prompt.includes('タップ'),
@@ -109,6 +459,21 @@ try {
       `compact HIT cue or dock is outside the screen: ${JSON.stringify(wait)}`)
     assert.ok(wait.textHeight >= 25,
       `compact HIT cue is too small: ${JSON.stringify(wait)}`)
+    if (locationId) {
+      const hud = await page.evaluate(() => {
+        const nodes = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+        return { label: nodes.location.text, visible: nodes.chrome.visible, cover: nodes.retrieveHudCover.visible }
+      })
+      assert.deepEqual(hud, { label: getFishingGroundName(locationId), visible: true, cover: true },
+        `${locationId}: HIT must retain the selected fishing ground`)
+    }
+    await assertWaitLineOnLure(page, appearance ?? 'classic')
+    if (safeArea) {
+      assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= height - 33,
+        `HIT canvas ignores simulated safe area: ${JSON.stringify(wait)}`)
+      assert.ok(wait.cueTop >= wait.canvasTop && wait.cueBottom <= wait.canvasBottom,
+        `HIT cue crosses the safe-area canvas: ${JSON.stringify(wait)}`)
+    }
     await page.screenshot({ path: `${output}/02-hit-${sizeKey}.png`, animations: 'disabled' })
     await page.mouse.click(width / 2, Math.round(height * 0.466))
     await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle', null, { timeout: 5000 })
@@ -136,6 +501,7 @@ try {
     })
     assert.ok(reelInput.phase === 'battle' && reelInput.reel > reelInput.before,
       `Battle dial did not apply reel input after phase handoff: ${JSON.stringify(reelInput)}`)
+    if (safeArea && height === 480) await assertBattleFishClearsActor(page)
     await page.screenshot({ path: `${output}/02-battle-${sizeKey}.png`, animations: 'disabled' })
 
     await page.evaluate(() => window.__game.scene.getScene('GameScene')._finishBattle('caught'))
@@ -168,7 +534,144 @@ try {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log(`Compact ${width}x${height} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
+    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''}${appearance ? ` ${appearance}` : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
+  }
+
+  for (const safeArea of [false, true]) {
+    for (const hit of [false, true]) {
+      const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+      const errors = []
+      page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
+      try {
+        if (safeArea) {
+          await page.route('**/fishing-game/**', async route => {
+            if (route.request().resourceType() !== 'document') return route.continue()
+            const response = await route.fetch()
+            const body = (await response.text()).replace('</head>',
+              '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+            await route.fulfill({ response, body })
+          })
+        }
+        await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve&compactPortrait=1`)
+        await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?.phase === 'retrieve')
+        const entered = await page.evaluate(hit => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const fish = scene.bg?._fishRuntime?.find(item => item?.fishDef && item.gfx?.active)
+          if (!fish) return false
+          scene.retrieveState.decisionCount = 2
+          scene._biteReadableReadyAt = scene.time.now - 1
+          scene._tickFishInterest = () => {}
+          scene._beginRetrieveBite(fish)
+          if (scene.phase !== 'wait') return false
+          scene.fish = { ...scene.fish, biteRate: 1 }
+          scene._killWaitTimers()
+          if (hit) scene._openHitWindow(30000)
+          return scene.phase === 'wait'
+        }, hit)
+        assert.ok(entered, 'Could not enter controlled Wait for back-button check')
+        await page.waitForFunction(hit => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          return host?._compactWaitActive && host.root.visible && host.nodes.waitDock.visible
+            && scene.waitTapActive === hit && host.nodes.waitPrompt.text.includes('タップ') === hit
+        }, hit)
+        const point = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          const rect = scene.game.canvas.getBoundingClientRect()
+          return { x: rect.x + host.root.x + 33 * host.root.scaleX,
+            y: rect.y + host.root.y + 40 * host.root.scaleY }
+        })
+        await page.mouse.click(point.x, point.y)
+        await page.waitForFunction(() => window.__game.scene.getScenes(true)
+          .some(scene => scene.scene.key === 'MapScene'), null, { timeout: 5000 })
+        assert.deepEqual(errors, [])
+        console.log(`Compact ${hit ? 'HIT' : 'Wait'} back to Map${safeArea ? ' with simulated safe area' : ''} passed`)
+      } finally { await page.close() }
+    }
+  }
+
+  for (const fish of representativeFish) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
+    try {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+      await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaFish=${fish}&compactPortrait=1`)
+      await page.waitForFunction(fish => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        return scene?.phase === 'battle' && host?._compactBattleActive
+          && host.nodes.characterMotion?.ready && host.nodes.battleFish.texture.key === `fish_hero_${fish}`
+      }, fish)
+      await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        scene.battleState.isRaging = false
+        scene.battleState.nextRageAt = Number.POSITIVE_INFINITY
+        scene._castPresentationHost.sync()
+      })
+      await assertBattleFishClearsActor(page)
+      const path = `${output}/battle-${fish}-320x480-safe-area.png`
+      await page.screenshot({ path, animations: 'disabled' })
+      assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area Battle frame`)
+      console.log(`320x480 simulated safe area Battle ${fish}: fish and actor separation passed`)
+    } finally { await page.close() }
+  }
+
+  for (const fish of allFishIds) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
+    try {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+      await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaAction=battle&qaJump=1&qaFish=${fish}&compactPortrait=1`)
+      await page.waitForFunction(fish => {
+        const scene = window.__game?.scene?.getScene('GameScene')
+        const host = scene?._castPresentationHost
+        return scene?.phase === 'battle' && host?._compactBattleActive && host.nodes.characterMotion?.ready
+          && host.nodes.battleFish.texture.key === `fish_jump_${fish}`
+      }, fish)
+      // Some species can inherit a short Battle-entry camera flash. Pausing the
+      // scene while that effect is active freezes a full-screen wash into every
+      // review frame, hiding the pose we intend to inspect. Require the real
+      // transient effect to finish before freezing controlled rage offsets.
+      await page.waitForFunction(() => {
+        const camera = window.__game.scene.getScene('GameScene').cameras.main
+        return !camera.flashEffect?.isRunning
+      }, null, { timeout: 5000 })
+      await page.evaluate(() => window.__game.scene.getScene('GameScene').scene.pause())
+      for (const elapsed of [0, 250, 500, 700]) {
+        await page.evaluate(({ fish, elapsed }) => {
+          const scene = window.__game.scene.getScene('GameScene')
+          const host = scene._castPresentationHost
+          scene.battleState.isRaging = true
+          host._jumpRageFishId = fish
+          host._jumpRageStartedAt = scene.time.now - elapsed
+          host.sync()
+        }, { fish, elapsed })
+        await assertBattleFishClearsActor(page)
+        if (elapsed === 250 && representativeFish.has(fish)) {
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+          const airborne = `${output}/rage-airborne-${fish}-320x480-safe-area.png`
+          await page.screenshot({ path: airborne, animations: 'disabled' })
+          assert.ok(statSync(airborne).size > 15000, `${fish}: blank safe-area airborne frame`)
+        }
+      }
+      if (representativeFish.has(fish)) {
+        const path = `${output}/rage-${fish}-320x480-safe-area.png`
+        await page.screenshot({ path, animations: 'disabled' })
+        assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area rage frame`)
+      }
+      console.log(`320x480 simulated safe area rage ${fish}: four motion offsets passed`)
+    } finally { await page.close() }
   }
 } finally { await browser.close() }

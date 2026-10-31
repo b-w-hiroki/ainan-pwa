@@ -937,6 +937,7 @@ export default class GameScene extends Phaser.Scene {
   // INPUT
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   _onDown(pointer) {
+    if (this._castPresentationHost?.isCompactWaitBack?.(pointer)) return
     if (pointer.y < 50 && pointer.x < 130) return   // ナビ領域を除外
     if (this._skipNextDown) { this._skipNextDown = false; return }
     if (this.tackleUI?._openPanel != null) return   // タックルパネル開時はゲーム入力をブロック

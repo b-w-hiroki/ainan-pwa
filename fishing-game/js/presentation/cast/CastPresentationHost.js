@@ -23,6 +23,14 @@ const RETRIEVE_FISH_LABELS = Object.freeze({
   noticed: '気づいた', follow: '追っている', inspect: '様子見', biteReady: '食いそう',
 })
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
+// Preserve the location header when safe-area insets further shorten the water.
+const COMPACT_RETRIEVE_ACTOR_MIN_Y = -365
+function compactRetrieveTarget(progress, dockOffset) {
+  const bottom = DOCK_TOP + dockOffset - 20
+  const startY = Math.min(235, bottom)
+  const endY = Math.max(startY, Math.min(505, bottom))
+  return { x: 310 - 25 * progress, y: startY + (endY - startY) * progress }
+}
 // Reserve horizontal breathing room for the angled tail inside 390px.
 const BATTLE_FISH_BOUNDS = Object.freeze({ width: 310, height: 194 })
 const BATTLE_LOCATION_ART = Object.freeze({
@@ -123,6 +131,7 @@ export class CastPresentationHost {
     this._jumpRageStartedAt = null
     this._jumpRageFishId = null
     this._retrievePresentation = null
+    this._lastRetrieveProgress = null
     this._retrieveFishUpdatedAt = null
     this._cancelHeldRetrieve = () => {
       if (!this._slowPointerHeld) return
@@ -290,6 +299,10 @@ export class CastPresentationHost {
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const cleanRetrieveBase = compactPortraitPrototype && !useCuteHarbor
+      ? scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
+        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+      : null
     if (useCuteHarbor) {
       // The legacy Retrieve panel has its fisher baked into the water. Keep
       // the selected actor, rod and line independent throughout the loop.
@@ -305,7 +318,7 @@ export class CastPresentationHost {
     const retrieveFishShadows = []
     let retrieveStatusText = null
     let retrieveStatus = null
-    if (useCuteHarbor) {
+    if (useCuteHarbor || compactPortraitPrototype) {
       const shadow = ASSETS.fishingField.fishShadowMediumIdle
       for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
         const fish = shadow?.key && scene.textures.exists(shadow.key)
@@ -322,14 +335,31 @@ export class CastPresentationHost {
       if (scene.textures.exists(ASSETS.fishingField.lureIdle.key)) {
         retrieveLure.add(scene.add.image(0, -2, ASSETS.fishingField.lureIdle.key).setDisplaySize(27, 13).setAngle(-22))
       }
-      retrieveWater.add(retrieveLure)
+      if (!compactPortraitPrototype) retrieveWater.add(retrieveLure)
     }
     const retrieveLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
-    retrieveField.add([retrieveBase, retrieveWater, ...retrieveSkins])
+    let retrieveQuay = null
+    if (compactPortraitPrototype && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+      // Clip the near-quay stones from the existing harbor image; the sloped
+      // edge meets the water while the lower area remains behind the dock.
+      const key = 'compact_retrieve_quay'
+      if (!scene.textures.exists(key)) {
+        const texture = scene.textures.createCanvas(key, 260, 124)
+        const ctx = texture.getContext()
+        ctx.beginPath()
+        ctx.moveTo(0, 0); ctx.lineTo(0, 124); ctx.lineTo(260, 124)
+        ctx.lineTo(170, 40); ctx.closePath(); ctx.clip()
+        ctx.drawImage(scene.textures.get(CHARACTER_PREVIEW_BACKGROUND.key).getSourceImage(), 0, -900)
+        texture.refresh()
+      }
+      retrieveQuay = scene.add.image(0, 0, key).setOrigin(0).setVisible(false)
+    }
+    retrieveField.add([retrieveBase, ...(cleanRetrieveBase ? [cleanRetrieveBase] : []), retrieveWater, ...(retrieveQuay ? [retrieveQuay] : []),
+      ...(retrieveLure && compactPortraitPrototype ? [retrieveLure] : []), ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
-    if (useCuteHarbor) {
+    if (useCuteHarbor || compactPortraitPrototype) {
       // The approved dock skin has "following" painted into it. Cover only
       // that status slot, then report the actual fish-interest state.
       const status = scene.add.container(309, DOCK_TOP + 32)
@@ -711,12 +741,17 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      retrieveBase,
+      cleanRetrieveBase,
+      retrieveWater,
+      retrieveQuay,
       waitTitle,
       waitPrompt,
       waitDock,
       retrieveLure,
       retrieveFishShadows,
       retrieveStatusText,
+      retrieveStatus,
       retrieveCompactBacking,
       retrieveCompactPanel,
       battleField,
@@ -797,8 +832,18 @@ export class CastPresentationHost {
     return { x: (pointer.x - this.root.x) / scale, y: (pointer.y - this.root.y) / scale }
   }
 
+  isCompactWaitBack(pointer) {
+    if (this.scene.phase !== 'wait' || !this._compactWaitActive || !this.root?.visible) return false
+    const point = this._designPoint(pointer)
+    const back = CAST_LAYER_CONFIG.controls.back
+    return point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
+      && point.y >= back.y - back.height / 2 && point.y <= back.y + back.height / 2
+  }
+
   _onHostPointerDown(pointer) {
-    if (!['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase) || !this.root?.visible) return
+    const compactWait = this.scene.phase === 'wait' && this._compactWaitActive
+    if (!compactWait && !['cast', 'retrieve', 'battle', 'result'].includes(this.scene.phase)) return
+    if (!this.root?.visible) return
     const point = this._designPoint(pointer)
     if (this._compactCastActive && this.scene.phase === 'cast') {
       const dockY = this.nodes.castDock.y
@@ -809,7 +854,7 @@ export class CastPresentationHost {
       }
     }
     const back = CAST_LAYER_CONFIG.controls.back
-    if (['cast', 'retrieve', 'result'].includes(this.scene.phase)
+    if ((compactWait || ['cast', 'retrieve', 'result'].includes(this.scene.phase))
       && point.x >= back.x - back.width / 2 && point.x <= back.x + back.width / 2
       && point.y >= back.y - back.height / 2 && point.y <= back.y + back.height / 2) {
       this.adapter.back()
@@ -918,6 +963,8 @@ export class CastPresentationHost {
     const verticalSqueeze = compactPhase
       ? Math.min(1, Math.max(0, (692 - designHeight) / 107)) : 0
     this._compactVerticalSqueeze = verticalSqueeze
+    this._compactExtremeSqueeze = compactPhase
+      ? Math.min(1, Math.max(0, (585 - designHeight) / 80)) : 0
     this._compactBattleSceneOffset = compactBattle ? -110 - 45 * verticalSqueeze : 0
     const dockOffset = compactPhase ? Math.min(0, designHeight - DESIGN_HEIGHT) : 0
     this._compactDockOffset = dockOffset
@@ -971,18 +1018,29 @@ export class CastPresentationHost {
       // above the relocated dock so the compact crop still shows the fisher.
       this.nodes.characterMotion.setStageY(compactCast
         ? dockOffset - (this.nodes.characterMotion.cute ? 0 : 50)
-        : (compactRetrieve || compactWait) ? dockOffset * 1.35
+        : (compactRetrieve || compactWait) ? Math.max(dockOffset * 1.35, COMPACT_RETRIEVE_ACTOR_MIN_Y)
           : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
           : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
+    }
+    if (this.nodes.retrieveQuay) {
+      const actor = this.nodes.characterMotion
+      const visible = (compactRetrieve || compactWait) && actor?.ready
+      this.nodes.retrieveQuay.setVisible(Boolean(visible))
+      if (visible) {
+        const y = actor.root.y + actor.poseFront.y - 40
+        this.nodes.retrieveQuay.setPosition(0, y)
+      }
     }
     if (compactPhase) {
       this.root.setScale(compactScale)
       this.root.setPosition(0, 0)
+      this.scene._layoutBossRecordBadge?.()
       return
     }
     const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT)
     this.root.setScale(scale)
     this.root.setPosition((width - DESIGN_WIDTH * scale) / 2, (height - DESIGN_HEIGHT * scale) / 2)
+    this.scene._layoutBossRecordBadge?.()
   }
 
   _syncFishImage(image, fishId, slot = 'battle', leaping = false) {
@@ -1026,10 +1084,31 @@ export class CastPresentationHost {
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
     const waitVisible = view.phase === 'wait' && this._compactWaitActive
+    const cleanRetrieve = Boolean(this.nodes.cleanRetrieveBase && (this._compactRetrieveActive || waitVisible))
+    this.nodes.cleanRetrieveBase?.setVisible(cleanRetrieve)
+    this.nodes.retrieveBase.setVisible(!cleanRetrieve)
+    this.nodes.retrieveWater.setVisible(this._useCuteHarbor || cleanRetrieve)
+    if (!this._useCuteHarbor) this.nodes.retrieveLure?.setVisible(cleanRetrieve)
+    this.nodes.retrieveStatus?.setVisible(this._useCuteHarbor || this._compactRetrieveActive)
     if (((retrieveVisible && this._compactRetrieveActive) || waitVisible) && this.nodes.characterMotion?.ready) {
       this.nodes.characterMotion.root.setVisible(true)
     }
-    if (retrieveVisible && this.nodes.retrieveLure && view.retrieve.distanceMeters !== null) {
+    // Record the start even when QA begins at the ordinary size, so entering
+    // compact mode during the same Retrieve preserves the actual progress.
+    if (compactPortraitPrototype && retrieveVisible && view.retrieve.distanceMeters !== null
+      && this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
+      this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
+    }
+    // Capture the authoritative position once more on entering Wait: a bite
+    // can occur after movement but before Retrieve's next presentation sync.
+    if (compactPortraitPrototype && (retrieveVisible || view.phase === 'wait')
+      && view.retrieve.distanceMeters !== null && this._retrievePresentation) {
+      this._lastRetrieveProgress = Math.max(0, Math.min(1,
+        1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
+    } else if (compactPortraitPrototype && !retrieveVisible && view.phase !== 'wait') {
+      this._lastRetrieveProgress = null
+    }
+    if (retrieveVisible && this.nodes.retrieveLure && (this._useCuteHarbor || cleanRetrieve) && view.retrieve.distanceMeters !== null) {
       if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
         this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
       }
@@ -1037,33 +1116,57 @@ export class CastPresentationHost {
       // The lure travels from open water toward the quay as the player reels.
       const progress = Math.max(0, Math.min(1,
         1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
-      const target = { x: 310 - 125 * progress, y: 235 + 270 * progress }
+      const compact = this._compactRetrieveActive
+      // Keep the ripple in open water above the relocated controls throughout
+      // retrieval; the gameplay distance remains the source of progress.
+      const target = compact ? compactRetrieveTarget(progress, this._compactDockOffset)
+        : { x: 310 - 125 * progress, y: 235 + 270 * progress }
       this.nodes.retrieveLure.setPosition(target.x, target.y)
       this.nodes.characterMotion?.setRetrieveTarget(target)
       const focus = view.retrieve.focusFish
       const leadShadow = this.nodes.retrieveFishShadows[0]
+      const shadowBottom = shadow => compact
+        ? DOCK_TOP + this._compactDockOffset - shadow.displayHeight / 2 - 4
+        : Infinity
+      if (compact) {
+        this.nodes.retrieveFishShadows.slice(1).forEach((shadow, index) => {
+          shadow.setY(Math.min([410, 401][index], shadowBottom(shadow) - (index + 1) * 20))
+        })
+      } else {
+        this.nodes.retrieveFishShadows.slice(1).forEach((shadow, index) => shadow.setY([410, 401][index]))
+      }
       this.nodes.retrieveStatusText?.setText(view.retrieve.spooked
         ? '警戒中' : RETRIEVE_FISH_LABELS[focus?.state] ?? '魚影を探す')
       if (leadShadow && focus && focus.state !== 'noticed') {
         const fishX = Math.max(48, Math.min(350, target.x + focus.dx * 0.36))
-        const fishY = Math.max(130, Math.min(DOCK_TOP - 100, target.y + focus.dy * 0.36))
+        const fishY = Math.max(130, Math.min(DOCK_TOP - 100, shadowBottom(leadShadow), target.y + focus.dy * 0.36))
         const now = this.scene.time.now
         const elapsed = Math.max(16, Math.min(50, now - (this._retrieveFishUpdatedAt ?? now)))
         const blend = isReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 110)
         leadShadow.setPosition(
           leadShadow.x + (fishX - leadShadow.x) * blend,
-          leadShadow.y + (fishY - leadShadow.y) * blend,
+          Math.min(shadowBottom(leadShadow), leadShadow.y + (fishY - leadShadow.y) * blend),
         ).setAlpha(focus.spooked ? 0.35 : focus.state === 'biteReady' ? 0.78 : 0.62)
         leadShadow.setFlipX?.(focus.facing < 0)
         this._retrieveFishUpdatedAt = now
       } else if (leadShadow) {
-        leadShadow.setPosition(236, 331).setAlpha(0.55)
+        leadShadow.setPosition(236, Math.min(331, shadowBottom(leadShadow))).setAlpha(0.55)
         this._retrieveFishUpdatedAt = null
       }
     } else {
-      this._retrievePresentation = null
+      // A classic compact Retrieve can temporarily use the ordinary layout
+      // after a resize. Keep its starting distance until Retrieve ends so the
+      // lure does not jump back to the start when compact mode returns.
+      if (!(compactPortraitPrototype && view.phase === 'retrieve')) this._retrievePresentation = null
       this._retrieveFishUpdatedAt = null
-      this.nodes.characterMotion?.setRetrieveTarget(null)
+      // Keep the last lure target while a QA Wait screen is temporarily
+      // resized out of compact mode; the host becomes visible again on return.
+      if (!(compactPortraitPrototype && view.phase === 'wait')) this.nodes.characterMotion?.setRetrieveTarget(null)
+    }
+    if (waitVisible && this.nodes.retrieveLure && this._lastRetrieveProgress !== null) {
+      const target = compactRetrieveTarget(this._lastRetrieveProgress, this._compactDockOffset)
+      this.nodes.retrieveLure.setPosition(target.x, target.y)
+      this.nodes.characterMotion?.setRetrieveTarget(target)
     }
     const battleVisible = view.phase === 'battle'
     const resultVisible = view.phase === 'result'
@@ -1086,12 +1189,12 @@ export class CastPresentationHost {
     this.nodes.retrieveDock.setVisible(retrieveVisible)
     this.nodes.castInteraction.setVisible(castVisible)
     this.nodes.retrieveInteraction.setVisible(retrieveVisible)
-    // Bay/Cape Retrieve needs a native location label above its Harbor-based
-    // approved bitmap. Shield the baked lettering with an opaque backing.
+    // Bay/Cape Retrieve and compact Wait need a native location label above
+    // the Harbor-based bitmap. Shield the baked lettering with a backing.
     // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
-    const nonHarborRetrieveHud = retrieveVisible
+    const nonHarborRetrieveHud = (retrieveVisible || waitVisible)
       && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
-    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && this._useCuteHarbor))
+    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && (this._useCuteHarbor || cleanRetrieve)))
     this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)
@@ -1130,9 +1233,15 @@ export class CastPresentationHost {
         ? battleJumpFrame(battle.fishId, this.scene.time.now - this._jumpRageStartedAt, isReducedMotion())
         : null
       this._syncFishImage(this.nodes.battleFish, battle.fishId, 'battle', leap)
+      const extremeSqueeze = this._compactBattleActive ? this._compactExtremeSqueeze : 0
+      if (extremeSqueeze > 0) {
+        const fish = this.nodes.battleFish
+        const width = fish.displayWidth * (1 - 0.4 * extremeSqueeze)
+        fish.setDisplaySize(width, fish.displayHeight * (1 - 0.4 * extremeSqueeze))
+      }
       // Motion is presentation-only. Its peak stays within the approved
       // foreground bounds; the same fish, input and Battle owner are retained.
-      this.nodes.battleFish.setPosition(210 + (jump?.driftX ?? 0),
+      this.nodes.battleFish.setPosition(210 + 65 * extremeSqueeze + (jump?.driftX ?? 0),
         326 + this._compactBattleSceneOffset + (jump?.liftY ?? 0))
         .setAngle(jump?.angleDeg ?? -8)
       this.nodes.battleJumpFx.setVisible(leap).setAlpha(jump?.splashAlpha ?? 1)
