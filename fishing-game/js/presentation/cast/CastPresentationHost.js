@@ -1080,7 +1080,14 @@ export class CastPresentationHost {
       // The lure travels from open water toward the quay as the player reels.
       const progress = Math.max(0, Math.min(1,
         1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
-      const target = { x: 310 - 125 * progress, y: 235 + 270 * progress }
+      const compact = this._compactRetrieveActive
+      // Keep the ripple in open water above the relocated controls throughout
+      // retrieval; the gameplay distance remains the source of progress.
+      const bottom = DOCK_TOP + this._compactDockOffset - 20
+      const startY = compact ? Math.min(235, bottom) : 235
+      const endY = compact ? Math.max(startY, Math.min(505, bottom)) : 505
+      const target = { x: 310 - (compact ? 25 : 125) * progress,
+        y: startY + (endY - startY) * progress }
       this.nodes.retrieveLure.setPosition(target.x, target.y)
       this.nodes.characterMotion?.setRetrieveTarget(target)
       const focus = view.retrieve.focusFish

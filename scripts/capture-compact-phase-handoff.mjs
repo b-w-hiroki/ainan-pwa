@@ -68,6 +68,36 @@ async function assertCompactQuay(page, appearance) {
     `${appearance}: compact quay covers the lure or exposes fish over land: ${JSON.stringify(state)}`)
 }
 
+async function assertRetrieveLurePath(page, appearance) {
+  const states = await page.evaluate(pxPerMeter => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const host = scene._castPresentationHost
+    const meters = Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter
+    const original = host._retrievePresentation.startMeters
+    const states = []
+    for (const progress of [0, 0.5, 0.95]) {
+      host._retrievePresentation.startMeters = meters / (1 - progress)
+      host.sync()
+      const lure = host.nodes.retrieveLure
+      const quay = host.nodes.retrieveQuay
+      const sampleX = Math.floor(lure.x - 24 - quay.x)
+      const sampleY = Math.floor(lure.y + 9 - quay.y)
+      states.push({ progress, x: lure.x, y: lure.y, dockTop: 620 + host._compactDockOffset,
+        quayAlpha: scene.textures.getPixelAlpha(sampleX, sampleY, quay.texture.key),
+        target: host.nodes.characterMotion.root.getData('rodLineTargetWorld') })
+    }
+    host._retrievePresentation.startMeters = original
+    host.sync()
+    return states
+  }, FISHING_WORLD.pxPerMeter)
+  for (const state of states) {
+    assert.ok(state.y + 12 < state.dockTop, `${appearance}: lure is hidden by controls: ${JSON.stringify(state)}`)
+    assert.ok(!state.quayAlpha, `${appearance}: lure overlaps the quay: ${JSON.stringify(state)}`)
+    assert.ok(Math.hypot(state.target.x - state.x, state.target.y - state.y) < 1,
+      `${appearance}: line misses the lure: ${JSON.stringify(state)}`)
+  }
+}
+
 async function assertBattleFishClearsActor(page) {
   const state = await page.evaluate(() => {
     const scene = window.__game.scene.getScene('GameScene')
@@ -103,7 +133,7 @@ async function assertBattleFishClearsActor(page) {
 }
 
 try {
-  for (const [width, height, safeArea, appearance] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01']]) {
+  for (const [width, height, safeArea, appearance] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01']]) {
   const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}`
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
@@ -147,6 +177,7 @@ try {
     })
     assert.equal(retrieve.compact, true)
     if (appearance) await assertCompactQuay(page, appearance)
+    if (appearance) await assertRetrieveLurePath(page, appearance)
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
@@ -217,10 +248,10 @@ try {
           && !scene._castPresentationHost?.nodes.retrieveQuay?.visible
       })
       await page.setViewportSize({ width, height })
-      await page.waitForFunction(() => {
+      await page.waitForFunction(expectedWidth => {
         const scene = window.__game.scene.getScene('GameScene')
-        return scene.phase === 'wait' && scene.scale.width === 320 && scene._castPresentationHost?._compactWaitActive
-      })
+        return scene.phase === 'wait' && scene.scale.width === expectedWidth && scene._castPresentationHost?._compactWaitActive
+      }, width)
       await assertWaitLineOnLure(page, appearance)
       await assertCompactQuay(page, appearance)
     }
