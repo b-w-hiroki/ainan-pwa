@@ -158,6 +158,58 @@ async function assertBattleFishClearsActor(page) {
     `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
 }
 
+async function captureRenderedViewport(page, path) {
+  const snapshot = await page.evaluate(async () => {
+    const scene = window.__game.scene.getScene('GameScene')
+    const canvas = scene.game.canvas.getBoundingClientRect()
+    const takeSnapshot = () => new Promise((resolve, reject) => {
+      scene.game.renderer.snapshot(image => {
+        if (!image?.src) return reject(new Error('Phaser renderer snapshot did not return an image'))
+        const probe = document.createElement('canvas')
+        probe.width = image.naturalWidth || image.width
+        probe.height = image.naturalHeight || image.height
+        const context = probe.getContext('2d', { willReadFrequently: true })
+        context.drawImage(image, 0, 0)
+        const scaleY = probe.height / scene.scale.height
+        const headerRows = [20, 30, 40].map(y => {
+          const row = context.getImageData(0, Math.round(y * scaleY), probe.width, 1).data
+          let lightPixels = 0
+          let samples = 0
+          for (let x = Math.round(probe.width * 0.04); x < probe.width * 0.96; x += 4) {
+            const index = x * 4
+            const channels = [row[index], row[index + 1], row[index + 2]]
+            if (Math.min(...channels) > 210 && Math.max(...channels) - Math.min(...channels) < 35) lightPixels += 1
+            samples += 1
+          }
+          return lightPixels / samples
+        })
+        resolve({ src: image.src, headerReady: headerRows.every(fraction => fraction > 0.5) })
+      })
+    })
+    for (let frame = 0; frame < 120; frame += 1) {
+      const captured = await takeSnapshot()
+      if (captured.headerReady) return { src: captured.src,
+        canvas: { left: canvas.left, top: canvas.top, width: canvas.width, height: canvas.height } }
+      await new Promise(resolve => requestAnimationFrame(resolve))
+    }
+    throw new Error('Compact WAIT header did not render within 120 frames after resize')
+  })
+  await page.evaluate(async ({ src, canvas }) => {
+    const image = document.createElement('img')
+    image.id = 'qa-renderer-snapshot'
+    Object.assign(image.style, { position: 'fixed', pointerEvents: 'none', zIndex: '2147483647',
+      left: `${canvas.left}px`, top: `${canvas.top}px`, width: `${canvas.width}px`, height: `${canvas.height}px` })
+    image.src = src
+    document.body.append(image)
+    await image.decode()
+  }, snapshot)
+  try {
+    await page.screenshot({ path })
+  } finally {
+    await page.evaluate(() => document.querySelector('#qa-renderer-snapshot')?.remove())
+  }
+}
+
 try {
   for (const [width, height, safeArea, appearance, locationId] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01'], [320, 568, false, null, 'pointB'], [320, 568, false, null, 'pointC']]) {
   const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}${locationId ? `-${locationId}` : ''}`
@@ -293,10 +345,18 @@ try {
           && !scene._castPresentationHost?.nodes.retrieveQuay?.visible
       })
       await page.setViewportSize({ width, height })
-      await page.waitForFunction(expectedWidth => {
+      await page.waitForFunction(({ expectedWidth, expectedHeight }) => {
         const scene = window.__game.scene.getScene('GameScene')
-        return scene.phase === 'wait' && scene.scale.width === expectedWidth && scene._castPresentationHost?._compactWaitActive
-      }, width)
+        const container = document.querySelector('#game-container')?.getBoundingClientRect()
+        const canvas = scene.game.canvas.getBoundingClientRect()
+        return scene.phase === 'wait'
+          && scene.scale.width === expectedWidth
+          && scene.scale.height === expectedHeight
+          && scene._castPresentationHost?._compactWaitActive
+          && Math.abs(canvas.width - container.width) < 1
+          && Math.abs(canvas.height - container.height) < 1
+      }, { expectedWidth: width, expectedHeight: height - (safeArea ? 54 : 0) })
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
       await assertWaitLineOnLure(page, appearance)
       await assertCompactQuay(page, appearance)
     }
@@ -312,7 +372,10 @@ try {
         `${locationId}: Wait must show the selected fishing ground instead of the baked Harbor header`)
     }
     if (safeArea && height === 480) await assertActorClearsLocation(page, 'Wait')
-    await page.screenshot({ path: `${output}/02-wait-${sizeKey}.png`, animations: 'disabled' })
+    // Browser screenshots can expose a stale WebGL compositor surface after
+    // a live resize. Preserve Phaser's completed renderer snapshot at the
+    // canvas position so the full safe-area viewport remains reviewable.
+    await captureRenderedViewport(page, `${output}/02-wait-${sizeKey}.png`)
     const hitOpened = await page.evaluate(() => {
       const scene = window.__game.scene.getScene('GameScene')
       scene._openHitWindow(5000)
