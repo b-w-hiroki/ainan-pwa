@@ -1092,22 +1092,32 @@ export class CastPresentationHost {
       this.nodes.characterMotion?.setRetrieveTarget(target)
       const focus = view.retrieve.focusFish
       const leadShadow = this.nodes.retrieveFishShadows[0]
+      const shadowBottom = shadow => compact
+        ? DOCK_TOP + this._compactDockOffset - shadow.displayHeight / 2 - 4
+        : Infinity
+      if (compact) {
+        this.nodes.retrieveFishShadows.slice(1).forEach((shadow, index) => {
+          shadow.setY(Math.min([410, 401][index], shadowBottom(shadow) - (index + 1) * 20))
+        })
+      } else {
+        this.nodes.retrieveFishShadows.slice(1).forEach((shadow, index) => shadow.setY([410, 401][index]))
+      }
       this.nodes.retrieveStatusText?.setText(view.retrieve.spooked
         ? '警戒中' : RETRIEVE_FISH_LABELS[focus?.state] ?? '魚影を探す')
       if (leadShadow && focus && focus.state !== 'noticed') {
         const fishX = Math.max(48, Math.min(350, target.x + focus.dx * 0.36))
-        const fishY = Math.max(130, Math.min(DOCK_TOP - 100, target.y + focus.dy * 0.36))
+        const fishY = Math.max(130, Math.min(DOCK_TOP - 100, shadowBottom(leadShadow), target.y + focus.dy * 0.36))
         const now = this.scene.time.now
         const elapsed = Math.max(16, Math.min(50, now - (this._retrieveFishUpdatedAt ?? now)))
         const blend = isReducedMotion() ? 1 : 1 - Math.exp(-elapsed / 110)
         leadShadow.setPosition(
           leadShadow.x + (fishX - leadShadow.x) * blend,
-          leadShadow.y + (fishY - leadShadow.y) * blend,
+          Math.min(shadowBottom(leadShadow), leadShadow.y + (fishY - leadShadow.y) * blend),
         ).setAlpha(focus.spooked ? 0.35 : focus.state === 'biteReady' ? 0.78 : 0.62)
         leadShadow.setFlipX?.(focus.facing < 0)
         this._retrieveFishUpdatedAt = now
       } else if (leadShadow) {
-        leadShadow.setPosition(236, 331).setAlpha(0.55)
+        leadShadow.setPosition(236, Math.min(331, shadowBottom(leadShadow))).setAlpha(0.55)
         this._retrieveFishUpdatedAt = null
       }
     } else {

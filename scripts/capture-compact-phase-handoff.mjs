@@ -98,6 +98,31 @@ async function assertRetrieveLurePath(page, appearance) {
   }
 }
 
+async function assertRetrieveFishVisibility(page, appearance) {
+  const states = await page.evaluate(() => {
+    const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+    const saved = scene.bg._fishRuntime
+    const fish = { state: 'follow', interest: 99, gfx: { active: true, scaleX: 1,
+      x: scene.bobber.x, y: scene.bobber.y + 180 } }
+    const sample = () => host.nodes.retrieveFishShadows.map(shadow => ({
+      y: shadow.y, halfHeight: shadow.displayHeight / 2, dockTop: 620 + host._compactDockOffset,
+    }))
+    scene.bg._fishRuntime = []
+    host.sync()
+    const idle = sample()
+    scene.bg._fishRuntime = [fish]
+    for (let i = 0; i < 30; i++) { host._retrieveFishUpdatedAt = -100000; host.sync() }
+    const following = sample()
+    scene.bg._fishRuntime = saved
+    host.sync()
+    return { idle, following }
+  })
+  for (const [mode, shadows] of Object.entries(states)) for (const shadow of shadows) {
+    assert.ok(shadow.y + shadow.halfHeight < shadow.dockTop,
+      `${appearance}: ${mode} fish shadow is behind controls: ${JSON.stringify(shadow)}`)
+  }
+}
+
 async function assertBattleFishClearsActor(page) {
   const state = await page.evaluate(() => {
     const scene = window.__game.scene.getScene('GameScene')
@@ -178,6 +203,7 @@ try {
     assert.equal(retrieve.compact, true)
     if (appearance) await assertCompactQuay(page, appearance)
     if (appearance) await assertRetrieveLurePath(page, appearance)
+    if (appearance) await assertRetrieveFishVisibility(page, appearance)
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
