@@ -3,6 +3,7 @@ import { delimiter, join } from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
+import { getFishingGroundName } from '../fishing-game/js/game/fishingGroundNames.js'
 
 const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
 assert.ok(bin, 'Run via npm exec --package=playwright')
@@ -158,8 +159,8 @@ async function assertBattleFishClearsActor(page) {
 }
 
 try {
-  for (const [width, height, safeArea, appearance] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01']]) {
-  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}`
+  for (const [width, height, safeArea, appearance, locationId] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01'], [320, 568, false, null, 'pointB'], [320, 568, false, null, 'pointC']]) {
+  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}${locationId ? `-${locationId}` : ''}`
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
   if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
   const errors = []
@@ -174,7 +175,7 @@ try {
         await route.fulfill({ response, body })
       })
     }
-    await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1`)
+    await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1${locationId ? `&qaLocation=${locationId}` : ''}`)
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
     if (appearance) await page.waitForFunction(expected => {
       const actor = window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion
@@ -301,6 +302,15 @@ try {
     }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
+    if (locationId) {
+      const hud = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), nodes = scene._castPresentationHost.nodes
+        return { point: scene.env.point, label: nodes.location.text, visible: nodes.chrome.visible,
+          cover: nodes.retrieveHudCover.visible }
+      })
+      assert.deepEqual(hud, { point: locationId, label: getFishingGroundName(locationId), visible: true, cover: true },
+        `${locationId}: Wait must show the selected fishing ground instead of the baked Harbor header`)
+    }
     if (safeArea && height === 480) await assertActorClearsLocation(page, 'Wait')
     await page.screenshot({ path: `${output}/02-wait-${sizeKey}.png`, animations: 'disabled' })
     const hitOpened = await page.evaluate(() => {
@@ -333,6 +343,14 @@ try {
       `compact HIT cue or dock is outside the screen: ${JSON.stringify(wait)}`)
     assert.ok(wait.textHeight >= 25,
       `compact HIT cue is too small: ${JSON.stringify(wait)}`)
+    if (locationId) {
+      const hud = await page.evaluate(() => {
+        const nodes = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+        return { label: nodes.location.text, visible: nodes.chrome.visible, cover: nodes.retrieveHudCover.visible }
+      })
+      assert.deepEqual(hud, { label: getFishingGroundName(locationId), visible: true, cover: true },
+        `${locationId}: HIT must retain the selected fishing ground`)
+    }
     if (appearance) await assertWaitLineOnLure(page, appearance)
     if (safeArea) {
       assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= height - 33,

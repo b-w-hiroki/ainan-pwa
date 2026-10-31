@@ -1148,10 +1148,10 @@ export class CastPresentationHost {
     this.nodes.retrieveDock.setVisible(retrieveVisible)
     this.nodes.castInteraction.setVisible(castVisible)
     this.nodes.retrieveInteraction.setVisible(retrieveVisible)
-    // Bay/Cape Retrieve needs a native location label above its Harbor-based
-    // approved bitmap. Shield the baked lettering with an opaque backing.
+    // Bay/Cape Retrieve and compact Wait need a native location label above
+    // the Harbor-based bitmap. Shield the baked lettering with a backing.
     // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
-    const nonHarborRetrieveHud = retrieveVisible
+    const nonHarborRetrieveHud = (retrieveVisible || waitVisible)
       && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
     this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && this._useCuteHarbor))
     this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
