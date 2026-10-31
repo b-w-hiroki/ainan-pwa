@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
 import { getFishingGroundName } from '../fishing-game/js/game/fishingGroundNames.js'
+import { FISH_LIST } from '../fishing-game/js/game/fish.js'
 
 const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
 assert.ok(bin, 'Run via npm exec --package=playwright')
@@ -11,6 +12,8 @@ const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'i
 const output = process.env.COMPACT_HANDOFF_OUTPUT ?? 'artifacts/compact-fishing-loop/handoff'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
+const representativeFish = new Set(['aji', 'buri', 'kue'])
+const allFishIds = FISH_LIST.map(fish => fish.id)
 
 async function assertActorClearsLocation(page, phase) {
   const overlap = await page.evaluate(() => {
@@ -589,7 +592,7 @@ try {
     }
   }
 
-  for (const fish of ['aji', 'buri', 'kue']) {
+  for (const fish of representativeFish) {
     const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
     try {
       await page.route('**/fishing-game/**', async route => {
@@ -620,7 +623,7 @@ try {
     } finally { await page.close() }
   }
 
-  for (const fish of ['aji', 'buri', 'kue']) {
+  for (const fish of allFishIds) {
     const page = await browser.newPage({ viewport: { width: 320, height: 480 }, deviceScaleFactor: 2 })
     try {
       await page.route('**/fishing-game/**', async route => {
@@ -637,6 +640,14 @@ try {
         return scene?.phase === 'battle' && host?._compactBattleActive && host.nodes.characterMotion?.ready
           && host.nodes.battleFish.texture.key === `fish_jump_${fish}`
       }, fish)
+      // Some species can inherit a short Battle-entry camera flash. Pausing the
+      // scene while that effect is active freezes a full-screen wash into every
+      // review frame, hiding the pose we intend to inspect. Require the real
+      // transient effect to finish before freezing controlled rage offsets.
+      await page.waitForFunction(() => {
+        const camera = window.__game.scene.getScene('GameScene').cameras.main
+        return !camera.flashEffect?.isRunning
+      }, null, { timeout: 2000 })
       await page.evaluate(() => window.__game.scene.getScene('GameScene').scene.pause())
       for (const elapsed of [0, 250, 500, 700]) {
         await page.evaluate(({ fish, elapsed }) => {
@@ -648,16 +659,18 @@ try {
           host.sync()
         }, { fish, elapsed })
         await assertBattleFishClearsActor(page)
-        if (elapsed === 250) {
+        if (elapsed === 250 && representativeFish.has(fish)) {
           await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
           const airborne = `${output}/rage-airborne-${fish}-320x480-safe-area.png`
           await page.screenshot({ path: airborne, animations: 'disabled' })
           assert.ok(statSync(airborne).size > 15000, `${fish}: blank safe-area airborne frame`)
         }
       }
-      const path = `${output}/rage-${fish}-320x480-safe-area.png`
-      await page.screenshot({ path, animations: 'disabled' })
-      assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area rage frame`)
+      if (representativeFish.has(fish)) {
+        const path = `${output}/rage-${fish}-320x480-safe-area.png`
+        await page.screenshot({ path, animations: 'disabled' })
+        assert.ok(statSync(path).size > 15000, `${fish}: blank safe-area rage frame`)
+      }
       console.log(`320x480 simulated safe area rage ${fish}: four motion offsets passed`)
     } finally { await page.close() }
   }
