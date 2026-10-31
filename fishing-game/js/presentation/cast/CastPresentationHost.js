@@ -1086,6 +1086,12 @@ export class CastPresentationHost {
     if (((retrieveVisible && this._compactRetrieveActive) || waitVisible) && this.nodes.characterMotion?.ready) {
       this.nodes.characterMotion.root.setVisible(true)
     }
+    // Record the start even when QA begins at the ordinary size, so entering
+    // compact mode during the same Retrieve preserves the actual progress.
+    if (compactPortraitPrototype && retrieveVisible && view.retrieve.distanceMeters !== null
+      && this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
+      this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
+    }
     if (retrieveVisible && this.nodes.retrieveLure && (this._useCuteHarbor || cleanRetrieve) && view.retrieve.distanceMeters !== null) {
       if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
         this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }

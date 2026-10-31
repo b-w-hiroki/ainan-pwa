@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import { delimiter, join } from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
 
 const bin = process.env.PATH.split(delimiter).find(dir =>
   existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
 assert.ok(bin, 'Run via npm exec --package=playwright')
 const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'index.mjs')).href)
 const base = process.env.QA_URL ?? 'http://127.0.0.1:4173'
-const output = 'artifacts/compact-live-resize'
+const output = process.env.COMPACT_RESIZE_OUTPUT ?? 'artifacts/compact-live-resize'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
@@ -116,6 +117,61 @@ try {
       }
       assert.deepEqual(errors, [], `${phase}: browser errors after resize`)
       console.log(`${phase}: 390→320→390→320 layout, screenshot, and real input passed`)
+    } finally { await page.close() }
+  }
+
+  for (const appearance of [null, 'cute-a-01', 'cute-b-01']) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+    if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
+    try {
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve&compactPortrait=1`)
+      await page.waitForFunction(expected => {
+        const scene = window.__game?.scene?.getScene('GameScene'), host = scene?._castPresentationHost
+        return scene?.phase === 'retrieve' && host?.root?.active && !host._compactRetrieveActive
+          && host.nodes.characterMotion?.ready && (!expected || host.nodes.characterMotion.appearance === expected)
+      }, appearance)
+      const initial = await page.evaluate(pxPerMeter => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        scene._tickFishInterest = () => {}
+        host.sync()
+        const dx = scene.bobber.x - scene.anchorX, dy = scene.bobber.y - scene.anchorY
+        const meters = Math.hypot(dx, dy) / pxPerMeter
+        const stored = host._retrievePresentation?.startMeters ?? null
+        // Control only the world distance; subsequent rendering and input use
+        // the actual Retrieve scene and its normal resize handler.
+        scene.bobber.setPosition(scene.anchorX + dx * 0.5, scene.anchorY + dy * 0.5)
+        host.sync()
+        return { meters, stored }
+      }, FISHING_WORLD.pxPerMeter)
+      await page.setViewportSize({ width: 320, height: 568 })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.phase === 'retrieve' && scene.scale.width === 320 && scene._castPresentationHost._compactRetrieveActive
+      })
+      const after = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        host.sync()
+        const canvas = scene.game.canvas.getBoundingClientRect(), scale = host.root.scaleX
+        const target = host.nodes.characterMotion.root.getData('rodLineTargetWorld')
+        return { baseline: host._retrievePresentation?.startMeters, lureX: host.nodes.retrieveLure.x,
+          lineError: target ? Math.hypot(target.x - host.nodes.retrieveLure.x, target.y - host.nodes.retrieveLure.y) : null,
+          point: { x: canvas.x + 318 * scale, y: canvas.y + (746 + host.nodes.retrieveDock.y) * scale } }
+      })
+      assert.ok(initial.stored !== null && Math.abs(initial.stored - initial.meters) < 0.01
+        && Math.abs(after.baseline - initial.meters) < 0.2 && Math.abs(after.lureX - 297.5) < 1
+        && after.lineError !== null && after.lineError < 1,
+        `${appearance ?? 'classic'}: progress was lost on entering compact Retrieve: ${JSON.stringify({ initial, after })}`)
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.time.now >= (scene._retrieveReadyAt ?? 0)
+      })
+      await page.mouse.move(after.point.x, after.point.y)
+      await page.mouse.down()
+      await page.waitForFunction(() => window.__game.scene.getScene('GameScene').retrieveState?.slowHeld)
+      await page.mouse.up()
+      assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene').retrieveState?.slowHeld), false)
+      await page.screenshot({ path: `${output}/retrieve-enter-compact-${appearance ?? 'classic'}.png`, animations: 'disabled' })
+      console.log(`${appearance ?? 'classic'}: 390→320 controlled Retrieve progress, line, and real input passed`)
     } finally { await page.close() }
   }
 
