@@ -266,6 +266,14 @@ try {
       assert.deepEqual(composition, { clean: true, baked: false, lure: true, status: true },
         'classic compact Retrieve must use the live lure and fish feedback without the baked line')
       if (safeArea && height === 480) {
+        const beforeResize = await page.evaluate(pxPerMeter => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          const meters = Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter
+          const original = host._retrievePresentation.startMeters
+          host._retrievePresentation.startMeters = meters * 2
+          host.sync()
+          return { original, baseline: host._retrievePresentation.startMeters, lureX: host.nodes.retrieveLure.x }
+        }, FISHING_WORLD.pxPerMeter)
         await page.setViewportSize({ width: 390, height: 844 })
         await page.waitForFunction(() => {
           const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
@@ -279,6 +287,18 @@ try {
           return scene.phase === 'retrieve' && scene.scale.width === 320 && host._compactRetrieveActive
             && host.nodes.cleanRetrieveBase.visible && host.nodes.retrieveQuay.visible && host.nodes.retrieveLure.visible
         })
+        const afterResize = await page.evaluate(() => {
+          const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+          return { baseline: host._retrievePresentation?.startMeters, lureX: host.nodes.retrieveLure.x }
+        })
+        assert.ok(Math.abs(afterResize.baseline - beforeResize.baseline) < 0.01
+          && Math.abs(afterResize.lureX - beforeResize.lureX) < 1,
+          `classic Retrieve progress reset after resize: ${JSON.stringify({ beforeResize, afterResize })}`)
+        await page.evaluate(original => {
+          const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+          host._retrievePresentation.startMeters = original
+          host.sync()
+        }, beforeResize.original)
         await assertCompactQuay(page, 'classic after resize')
         await assertRetrieveLurePath(page, 'classic after resize')
         await assertRetrieveFishVisibility(page, 'classic after resize')
@@ -346,6 +366,7 @@ try {
     await page.waitForFunction(() => {
       const host = window.__game.scene.getScene('GameScene')._castPresentationHost
       return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
+        && host._retrievePresentation === null
     })
     if (appearance || (safeArea && height === 480 && !locationId)) {
       const actorLabel = appearance ?? 'classic'

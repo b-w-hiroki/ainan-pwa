@@ -1135,7 +1135,10 @@ export class CastPresentationHost {
         this._retrieveFishUpdatedAt = null
       }
     } else {
-      this._retrievePresentation = null
+      // A classic compact Retrieve can temporarily use the ordinary layout
+      // after a resize. Keep its starting distance until Retrieve ends so the
+      // lure does not jump back to the start when compact mode returns.
+      if (!(compactPortraitPrototype && view.phase === 'retrieve')) this._retrievePresentation = null
       this._retrieveFishUpdatedAt = null
       // Keep the last lure target while a QA Wait screen is temporarily
       // resized out of compact mode; the host becomes visible again on return.
