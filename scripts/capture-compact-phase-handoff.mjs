@@ -2,11 +2,12 @@ import assert from 'node:assert/strict'
 import { delimiter, join } from 'node:path'
 import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
+import { FISHING_WORLD } from '../fishing-game/js/scenes/components/FishingCameraController.js'
 
 const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
 assert.ok(bin, 'Run via npm exec --package=playwright')
 const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'index.mjs')).href)
-const output = 'artifacts/compact-fishing-loop/handoff'
+const output = process.env.COMPACT_HANDOFF_OUTPUT ?? 'artifacts/compact-fishing-loop/handoff'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
@@ -175,6 +176,14 @@ try {
       return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
     })
     if (appearance) {
+      const distance = await page.evaluate(pxPerMeter => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return { label: scene._castPresentationHost.nodes.distance.text,
+          meters: Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter }
+      }, FISHING_WORLD.pxPerMeter)
+      assert.match(distance.label, /^\d+\.\dm$/, `${appearance}: Wait distance is missing`)
+      assert.ok(Math.abs(Number.parseFloat(distance.label) - distance.meters) < 0.2,
+        `${appearance}: Wait distance does not match the lure: ${JSON.stringify(distance)}`)
       const actorState = await page.evaluate(() => {
         const host = window.__game.scene.getScene('GameScene')._castPresentationHost
         const actor = host.nodes.characterMotion.poseFront
