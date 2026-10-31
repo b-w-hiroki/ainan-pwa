@@ -347,24 +347,25 @@ try {
       const host = window.__game.scene.getScene('GameScene')._castPresentationHost
       return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
     })
-    if (appearance) {
-      await assertCompactQuay(page, appearance)
+    if (appearance || (safeArea && height === 480 && !locationId)) {
+      const actorLabel = appearance ?? 'classic'
+      await assertCompactQuay(page, actorLabel)
       const distance = await page.evaluate(pxPerMeter => {
         const scene = window.__game.scene.getScene('GameScene')
         return { label: scene._castPresentationHost.nodes.distance.text,
           meters: Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / pxPerMeter }
       }, FISHING_WORLD.pxPerMeter)
-      assert.match(distance.label, /^\d+\.\dm$/, `${appearance}: Wait distance is missing`)
+      assert.match(distance.label, /^\d+\.\dm$/, `${actorLabel}: Wait distance is missing`)
       assert.ok(Math.abs(Number.parseFloat(distance.label) - distance.meters) < 0.2,
-        `${appearance}: Wait distance does not match the lure: ${JSON.stringify(distance)}`)
+        `${actorLabel}: Wait distance does not match the lure: ${JSON.stringify(distance)}`)
       const actorState = await page.evaluate(() => {
         const host = window.__game.scene.getScene('GameScene')._castPresentationHost
         const actor = host.nodes.characterMotion.poseFront
         return { width: actor.displayWidth, height: actor.displayHeight }
       })
       assert.ok(Math.abs(actorState.width - retrieve.actorWidth) < 0.01 && Math.abs(actorState.height - retrieve.actorHeight) < 0.01,
-        `${appearance}: actor size changed between Retrieve and Wait`)
-      await assertWaitLineOnLure(page, appearance)
+        `${actorLabel}: actor size changed between Retrieve and Wait`)
+      await assertWaitLineOnLure(page, actorLabel)
       await page.setViewportSize({ width: 390, height: 844 })
       await page.waitForFunction(() => {
         const scene = window.__game.scene.getScene('GameScene')
@@ -384,8 +385,8 @@ try {
           && Math.abs(canvas.height - container.height) < 1
       }, { expectedWidth: width, expectedHeight: height - (safeArea ? 54 : 0) })
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
-      await assertWaitLineOnLure(page, appearance)
-      await assertCompactQuay(page, appearance)
+      await assertWaitLineOnLure(page, actorLabel)
+      await assertCompactQuay(page, actorLabel)
     }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
