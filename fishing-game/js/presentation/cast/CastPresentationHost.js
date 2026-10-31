@@ -292,6 +292,10 @@ export class CastPresentationHost {
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
       .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT)
+    const cleanRetrieveBase = compactPortraitPrototype && !useCuteHarbor
+      ? scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
+        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+      : null
     if (useCuteHarbor) {
       // The legacy Retrieve panel has its fisher baked into the water. Keep
       // the selected actor, rod and line independent throughout the loop.
@@ -307,7 +311,7 @@ export class CastPresentationHost {
     const retrieveFishShadows = []
     let retrieveStatusText = null
     let retrieveStatus = null
-    if (useCuteHarbor) {
+    if (useCuteHarbor || compactPortraitPrototype) {
       const shadow = ASSETS.fishingField.fishShadowMediumIdle
       for (const [x, y, width, alpha] of [[236, 331, 80, 0.55], [304, 410, 52, 0.36], [165, 401, 42, 0.30]]) {
         const fish = shadow?.key && scene.textures.exists(shadow.key)
@@ -330,7 +334,7 @@ export class CastPresentationHost {
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
     let retrieveQuay = null
-    if (useCuteHarbor && compactPortraitPrototype) {
+    if (compactPortraitPrototype && scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
       // Clip the near-quay stones from the existing harbor image; the sloped
       // edge meets the water while the lower area remains behind the dock.
       const key = 'compact_retrieve_quay'
@@ -345,10 +349,10 @@ export class CastPresentationHost {
       }
       retrieveQuay = scene.add.image(0, 0, key).setOrigin(0).setVisible(false)
     }
-    retrieveField.add([retrieveBase, retrieveWater, ...(retrieveQuay ? [retrieveQuay] : []),
+    retrieveField.add([retrieveBase, ...(cleanRetrieveBase ? [cleanRetrieveBase] : []), retrieveWater, ...(retrieveQuay ? [retrieveQuay] : []),
       ...(retrieveLure && compactPortraitPrototype ? [retrieveLure] : []), ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
-    if (useCuteHarbor) {
+    if (useCuteHarbor || compactPortraitPrototype) {
       // The approved dock skin has "following" painted into it. Cover only
       // that status slot, then report the actual fish-interest state.
       const status = scene.add.container(309, DOCK_TOP + 32)
@@ -730,6 +734,9 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      retrieveBase,
+      cleanRetrieveBase,
+      retrieveWater,
       retrieveQuay,
       waitTitle,
       waitPrompt,
@@ -737,6 +744,7 @@ export class CastPresentationHost {
       retrieveLure,
       retrieveFishShadows,
       retrieveStatusText,
+      retrieveStatus,
       retrieveCompactBacking,
       retrieveCompactPanel,
       battleField,
@@ -1009,7 +1017,7 @@ export class CastPresentationHost {
     }
     if (this.nodes.retrieveQuay) {
       const actor = this.nodes.characterMotion
-      const visible = (compactRetrieve || compactWait) && actor?.ready && actor.cute
+      const visible = (compactRetrieve || compactWait) && actor?.ready
       this.nodes.retrieveQuay.setVisible(Boolean(visible))
       if (visible) {
         const y = actor.root.y + actor.poseFront.y - 40
@@ -1069,10 +1077,16 @@ export class CastPresentationHost {
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
     const waitVisible = view.phase === 'wait' && this._compactWaitActive
+    const cleanRetrieve = Boolean(this.nodes.cleanRetrieveBase && (this._compactRetrieveActive || waitVisible))
+    this.nodes.cleanRetrieveBase?.setVisible(cleanRetrieve)
+    this.nodes.retrieveBase.setVisible(!cleanRetrieve)
+    this.nodes.retrieveWater.setVisible(this._useCuteHarbor || cleanRetrieve)
+    if (!this._useCuteHarbor) this.nodes.retrieveLure?.setVisible(cleanRetrieve)
+    this.nodes.retrieveStatus?.setVisible(this._useCuteHarbor || this._compactRetrieveActive)
     if (((retrieveVisible && this._compactRetrieveActive) || waitVisible) && this.nodes.characterMotion?.ready) {
       this.nodes.characterMotion.root.setVisible(true)
     }
-    if (retrieveVisible && this.nodes.retrieveLure && view.retrieve.distanceMeters !== null) {
+    if (retrieveVisible && this.nodes.retrieveLure && (this._useCuteHarbor || cleanRetrieve) && view.retrieve.distanceMeters !== null) {
       if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
         this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
       }
@@ -1153,7 +1167,7 @@ export class CastPresentationHost {
     // Leave Cast and Harbor Retrieve untouched, including their pixel QA.
     const nonHarborRetrieveHud = (retrieveVisible || waitVisible)
       && (this.scene.env?.point === 'pointB' || this.scene.env?.point === 'pointC')
-    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && this._useCuteHarbor))
+    this.nodes.chrome.setVisible(castVisible || nonHarborRetrieveHud || ((retrieveVisible || waitVisible) && (this._useCuteHarbor || cleanRetrieve)))
     this.nodes.retrieveHudCover.setVisible(nonHarborRetrieveHud)
     this.nodes.instruction.setVisible(castVisible)
     this.nodes.location.setText(view.locationLabel)

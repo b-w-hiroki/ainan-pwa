@@ -254,9 +254,36 @@ try {
         actorWidth: actor.poseFront.displayWidth, actorHeight: actor.poseFront.displayHeight }
     })
     assert.equal(retrieve.compact, true)
-    if (appearance) await assertCompactQuay(page, appearance)
-    if (appearance) await assertRetrieveLurePath(page, appearance)
-    if (appearance) await assertRetrieveFishVisibility(page, appearance)
+    await assertCompactQuay(page, appearance ?? 'classic')
+    await assertRetrieveLurePath(page, appearance ?? 'classic')
+    await assertRetrieveFishVisibility(page, appearance ?? 'classic')
+    if (!appearance) {
+      const composition = await page.evaluate(() => {
+        const nodes = window.__game.scene.getScene('GameScene')._castPresentationHost.nodes
+        return { clean: nodes.cleanRetrieveBase?.visible, baked: nodes.retrieveBase.visible,
+          lure: nodes.retrieveLure?.visible, status: nodes.retrieveStatus?.visible }
+      })
+      assert.deepEqual(composition, { clean: true, baked: false, lure: true, status: true },
+        'classic compact Retrieve must use the live lure and fish feedback without the baked line')
+      if (safeArea && height === 480) {
+        await page.setViewportSize({ width: 390, height: 844 })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          return scene.phase === 'retrieve' && scene.scale.width === 390 && !host._compactRetrieveActive
+            && host.nodes.retrieveBase.visible && !host.nodes.cleanRetrieveBase.visible
+            && !host.nodes.retrieveQuay.visible && !host.nodes.retrieveLure.visible && !host.nodes.retrieveStatus.visible
+        })
+        await page.setViewportSize({ width, height })
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          return scene.phase === 'retrieve' && scene.scale.width === 320 && host._compactRetrieveActive
+            && host.nodes.cleanRetrieveBase.visible && host.nodes.retrieveQuay.visible && host.nodes.retrieveLure.visible
+        })
+        await assertCompactQuay(page, 'classic after resize')
+        await assertRetrieveLurePath(page, 'classic after resize')
+        await assertRetrieveFishVisibility(page, 'classic after resize')
+      }
+    }
     if (appearance && safeArea && height === 480) {
       await page.setViewportSize({ width: 390, height: 844 })
       await page.waitForFunction(() => {
@@ -362,6 +389,7 @@ try {
     }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
+    if (!appearance) await assertWaitLineOnLure(page, 'classic')
     if (locationId) {
       const hud = await page.evaluate(() => {
         const scene = window.__game.scene.getScene('GameScene'), nodes = scene._castPresentationHost.nodes
@@ -414,7 +442,7 @@ try {
       assert.deepEqual(hud, { label: getFishingGroundName(locationId), visible: true, cover: true },
         `${locationId}: HIT must retain the selected fishing ground`)
     }
-    if (appearance) await assertWaitLineOnLure(page, appearance)
+    await assertWaitLineOnLure(page, appearance ?? 'classic')
     if (safeArea) {
       assert.ok(wait.canvasTop >= 19 && wait.canvasBottom <= height - 33,
         `HIT canvas ignores simulated safe area: ${JSON.stringify(wait)}`)

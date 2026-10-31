@@ -79,7 +79,9 @@ const isRodArtPreview = (search = globalThis.window?.location?.search ?? '') => 
   return params.get('qa') === '1' && params.get('qaRodArt') === '1'
 }
 export function preloadCharacterAppearance(scene) {
-  if ((isCharacterAppearancePreview() || isCute()) && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+  const params = new URLSearchParams(globalThis.window?.location?.search ?? '')
+  const compactQa = params.get('qa') === '1' && params.get('compactPortrait') === '1'
+  if ((isCharacterAppearancePreview() || isCute() || compactQa) && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
     scene.load.image(CHARACTER_PREVIEW_BACKGROUND.key, CHARACTER_PREVIEW_BACKGROUND.path)
   }
   if (!isCute()) return
