@@ -647,7 +647,7 @@ try {
       await page.waitForFunction(() => {
         const camera = window.__game.scene.getScene('GameScene').cameras.main
         return !camera.flashEffect?.isRunning
-      }, null, { timeout: 2000 })
+      }, null, { timeout: 5000 })
       await page.evaluate(() => window.__game.scene.getScene('GameScene').scene.pause())
       for (const elapsed of [0, 250, 500, 700]) {
         await page.evaluate(({ fish, elapsed }) => {
