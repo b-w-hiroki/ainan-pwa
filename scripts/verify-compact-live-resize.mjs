@@ -175,6 +175,62 @@ try {
     } finally { await page.close() }
   }
 
+  for (const appearance of [null, 'cute-a-01', 'cute-b-01']) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
+    if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
+    try {
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=retrieve&compactPortrait=1`)
+      await page.waitForFunction(expected => {
+        const scene = window.__game?.scene?.getScene('GameScene'), host = scene?._castPresentationHost
+        return scene?.phase === 'retrieve' && host?._retrievePresentation && host.nodes.characterMotion?.ready
+          && (!expected || host.nodes.characterMotion.appearance === expected)
+          && scene.bg?._fishRuntime?.some(item => item?.fishDef && item.gfx?.active)
+      }, appearance)
+      const entered = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        const runtime = scene.bg._fishRuntime.find(item => item?.fishDef && item.gfx?.active)
+        scene.retrieveState.decisionCount = 2
+        scene._biteReadableReadyAt = scene.time.now - 1
+        scene._tickFishInterest = () => {}
+        const dx = scene.bobber.x - scene.anchorX, dy = scene.bobber.y - scene.anchorY
+        scene.bobber.setPosition(scene.anchorX + dx * 0.5, scene.anchorY + dy * 0.5)
+        host.sync()
+        scene._beginRetrieveBite(runtime)
+        if (scene.phase !== 'wait') return false
+        scene.fish = { ...scene.fish, biteRate: 1 }
+        scene._killWaitTimers()
+        return true
+      })
+      assert.ok(entered, `${appearance ?? 'classic'}: controlled bite did not enter Wait`)
+      for (const height of [568, 480]) {
+        await page.setViewportSize({ width: 320, height })
+        await page.waitForFunction(expectedHeight => {
+          const scene = window.__game.scene.getScene('GameScene')
+          return scene.phase === 'wait' && scene.scale.width === 320 && scene.scale.height === expectedHeight
+            && scene._castPresentationHost?._compactWaitActive
+        }, height)
+        const state = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+          host.sync()
+          const lure = host.nodes.retrieveLure, motion = host.nodes.characterMotion
+          const target = motion.root.getData('rodLineTargetWorld'), commands = motion.line.commandBuffer
+          return { x: lure.x, y: lure.y, dockTop: 620 + host._compactDockOffset,
+            targetError: target ? Math.hypot(target.x - lure.x, target.y - lure.y) : null,
+            lineError: commands.length >= 3
+              ? Math.hypot(commands.at(-3) + motion.root.x - lure.x, commands.at(-2) + motion.root.y - lure.y) : null }
+        })
+        assert.ok(Math.abs(state.x - 297.5) < 1 && state.y + 12 < state.dockTop
+          && state.targetError !== null && state.targetError < 1 && state.lineError !== null && state.lineError < 1,
+          `${appearance ?? 'classic'}: Wait lost lure progress or line after resize: ${JSON.stringify(state)}`)
+      }
+      await page.screenshot({ path: `${output}/wait-enter-compact-${appearance ?? 'classic'}.png`, animations: 'disabled' })
+      await page.evaluate(() => window.__game.scene.getScene('GameScene')._openHitWindow(30000))
+      await page.mouse.click(160, 240)
+      await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'battle')
+      console.log(`${appearance ?? 'classic'}: normal Retrieve → Wait → 320x568 → 320x480 preserves lure and real HIT`)
+    } finally { await page.close() }
+  }
+
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })

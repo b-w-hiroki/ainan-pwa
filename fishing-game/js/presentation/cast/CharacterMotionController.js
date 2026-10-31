@@ -324,7 +324,8 @@ export class CharacterMotionController {
     if (previous === null && target === null) return
     if (previous && target && Math.hypot(previous.x - target.x, previous.y - target.y) < 0.4) return
     this.retrieveTarget = target
-    if (this.scene.phase === 'retrieve') {
+    if (this.scene.phase === 'retrieve'
+      || (this.scene.phase === 'wait' && this.scene._castPresentationHost?._compactWaitActive)) {
       const pose = this.poses[this.currentPose]
       if (pose) this._applyRod(pose)
     }

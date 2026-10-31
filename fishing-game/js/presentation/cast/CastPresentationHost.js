@@ -25,6 +25,12 @@ const RETRIEVE_FISH_LABELS = Object.freeze({
 const RESULT_FISH_BOUNDS = Object.freeze({ width: 350, height: 205 })
 // Preserve the location header when safe-area insets further shorten the water.
 const COMPACT_RETRIEVE_ACTOR_MIN_Y = -365
+function compactRetrieveTarget(progress, dockOffset) {
+  const bottom = DOCK_TOP + dockOffset - 20
+  const startY = Math.min(235, bottom)
+  const endY = Math.max(startY, Math.min(505, bottom))
+  return { x: 310 - 25 * progress, y: startY + (endY - startY) * progress }
+}
 // Reserve horizontal breathing room for the angled tail inside 390px.
 const BATTLE_FISH_BOUNDS = Object.freeze({ width: 310, height: 194 })
 const BATTLE_LOCATION_ART = Object.freeze({
@@ -125,6 +131,7 @@ export class CastPresentationHost {
     this._jumpRageStartedAt = null
     this._jumpRageFishId = null
     this._retrievePresentation = null
+    this._lastRetrieveProgress = null
     this._retrieveFishUpdatedAt = null
     this._cancelHeldRetrieve = () => {
       if (!this._slowPointerHeld) return
@@ -1092,6 +1099,12 @@ export class CastPresentationHost {
       && this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
       this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
     }
+    if (compactPortraitPrototype && retrieveVisible && view.retrieve.distanceMeters !== null && this._retrievePresentation) {
+      this._lastRetrieveProgress = Math.max(0, Math.min(1,
+        1 - view.retrieve.distanceMeters / Math.max(1, this._retrievePresentation.startMeters)))
+    } else if (compactPortraitPrototype && !retrieveVisible && view.phase !== 'wait') {
+      this._lastRetrieveProgress = null
+    }
     if (retrieveVisible && this.nodes.retrieveLure && (this._useCuteHarbor || cleanRetrieve) && view.retrieve.distanceMeters !== null) {
       if (this._retrievePresentation?.startedAt !== view.retrieve.startedAt) {
         this._retrievePresentation = { startedAt: view.retrieve.startedAt, startMeters: view.retrieve.distanceMeters }
@@ -1103,11 +1116,8 @@ export class CastPresentationHost {
       const compact = this._compactRetrieveActive
       // Keep the ripple in open water above the relocated controls throughout
       // retrieval; the gameplay distance remains the source of progress.
-      const bottom = DOCK_TOP + this._compactDockOffset - 20
-      const startY = compact ? Math.min(235, bottom) : 235
-      const endY = compact ? Math.max(startY, Math.min(505, bottom)) : 505
-      const target = { x: 310 - (compact ? 25 : 125) * progress,
-        y: startY + (endY - startY) * progress }
+      const target = compact ? compactRetrieveTarget(progress, this._compactDockOffset)
+        : { x: 310 - 125 * progress, y: 235 + 270 * progress }
       this.nodes.retrieveLure.setPosition(target.x, target.y)
       this.nodes.characterMotion?.setRetrieveTarget(target)
       const focus = view.retrieve.focusFish
@@ -1149,6 +1159,11 @@ export class CastPresentationHost {
       // Keep the last lure target while a QA Wait screen is temporarily
       // resized out of compact mode; the host becomes visible again on return.
       if (!(compactPortraitPrototype && view.phase === 'wait')) this.nodes.characterMotion?.setRetrieveTarget(null)
+    }
+    if (waitVisible && this.nodes.retrieveLure && this._lastRetrieveProgress !== null) {
+      const target = compactRetrieveTarget(this._lastRetrieveProgress, this._compactDockOffset)
+      this.nodes.retrieveLure.setPosition(target.x, target.y)
+      this.nodes.characterMotion?.setRetrieveTarget(target)
     }
     const battleVisible = view.phase === 'battle'
     const resultVisible = view.phase === 'result'
