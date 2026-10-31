@@ -324,12 +324,29 @@ export class CastPresentationHost {
       if (scene.textures.exists(ASSETS.fishingField.lureIdle.key)) {
         retrieveLure.add(scene.add.image(0, -2, ASSETS.fishingField.lureIdle.key).setDisplaySize(27, 13).setAngle(-22))
       }
-      retrieveWater.add(retrieveLure)
+      if (!compactPortraitPrototype) retrieveWater.add(retrieveLure)
     }
     const retrieveLocationOverlay = scene.add.image(
       DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, BATTLE_LOCATION_ART.pointA.key,
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
-    retrieveField.add([retrieveBase, retrieveWater, ...retrieveSkins])
+    let retrieveQuay = null
+    if (useCuteHarbor && compactPortraitPrototype) {
+      // Clip the near-quay stones from the existing harbor image; the sloped
+      // edge meets the water while the lower area remains behind the dock.
+      const key = 'compact_retrieve_quay'
+      if (!scene.textures.exists(key)) {
+        const texture = scene.textures.createCanvas(key, 260, 124)
+        const ctx = texture.getContext()
+        ctx.beginPath()
+        ctx.moveTo(0, 0); ctx.lineTo(0, 124); ctx.lineTo(260, 124)
+        ctx.lineTo(170, 40); ctx.closePath(); ctx.clip()
+        ctx.drawImage(scene.textures.get(CHARACTER_PREVIEW_BACKGROUND.key).getSourceImage(), 0, -900)
+        texture.refresh()
+      }
+      retrieveQuay = scene.add.image(0, 0, key).setOrigin(0).setVisible(false)
+    }
+    retrieveField.add([retrieveBase, retrieveWater, ...(retrieveQuay ? [retrieveQuay] : []),
+      ...(retrieveLure && compactPortraitPrototype ? [retrieveLure] : []), ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
     if (useCuteHarbor) {
       // The approved dock skin has "following" painted into it. Cover only
@@ -713,6 +730,7 @@ export class CastPresentationHost {
       backHit,
       castField,
       retrieveField,
+      retrieveQuay,
       waitTitle,
       waitPrompt,
       waitDock,
@@ -988,6 +1006,15 @@ export class CastPresentationHost {
         : (compactRetrieve || compactWait) ? Math.max(dockOffset * 1.35, COMPACT_RETRIEVE_ACTOR_MIN_Y)
           : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
           : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
+    }
+    if (this.nodes.retrieveQuay) {
+      const actor = this.nodes.characterMotion
+      const visible = (compactRetrieve || compactWait) && actor?.ready && actor.cute
+      this.nodes.retrieveQuay.setVisible(Boolean(visible))
+      if (visible) {
+        const y = actor.root.y + actor.poseFront.y - 40
+        this.nodes.retrieveQuay.setPosition(0, y)
+      }
     }
     if (compactPhase) {
       this.root.setScale(compactScale)

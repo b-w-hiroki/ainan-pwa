@@ -52,6 +52,22 @@ async function assertWaitLineOnLure(page, appearance) {
     `${appearance}: Wait line missed the visible lure: ${JSON.stringify(state)}`)
 }
 
+async function assertCompactQuay(page, appearance) {
+  const state = await page.evaluate(() => {
+    const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+    const actor = host.nodes.characterMotion, quay = host.nodes.retrieveQuay
+    const children = host.nodes.retrieveField.list
+    return { visible: quay?.visible, footY: actor.root.y + actor.poseFront.y,
+      quayY: quay?.y, quayOrder: children.indexOf(quay),
+      waterOrder: children.indexOf(host.nodes.retrieveFishShadows[0]?.parentContainer),
+      lureOrder: children.indexOf(host.nodes.retrieveLure) }
+  })
+  assert.ok(state.visible && Math.abs(state.footY - state.quayY - 40) < 0.01,
+    `${appearance}: compact quay is not aligned to the fisher: ${JSON.stringify(state)}`)
+  assert.ok(state.waterOrder < state.quayOrder && state.quayOrder < state.lureOrder,
+    `${appearance}: compact quay covers the lure or exposes fish over land: ${JSON.stringify(state)}`)
+}
+
 async function assertBattleFishClearsActor(page) {
   const state = await page.evaluate(() => {
     const scene = window.__game.scene.getScene('GameScene')
@@ -130,6 +146,7 @@ try {
         actorWidth: actor.poseFront.displayWidth, actorHeight: actor.poseFront.displayHeight }
     })
     assert.equal(retrieve.compact, true)
+    if (appearance) await assertCompactQuay(page, appearance)
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
@@ -176,6 +193,7 @@ try {
       return host?._compactWaitActive && host.nodes.characterMotion?.layoutPhase === 'wait'
     })
     if (appearance) {
+      await assertCompactQuay(page, appearance)
       const distance = await page.evaluate(pxPerMeter => {
         const scene = window.__game.scene.getScene('GameScene')
         return { label: scene._castPresentationHost.nodes.distance.text,
@@ -196,6 +214,7 @@ try {
       await page.waitForFunction(() => {
         const scene = window.__game.scene.getScene('GameScene')
         return scene.phase === 'wait' && scene.scale.width === 390 && !scene._castPresentationHost?._compactWaitActive
+          && !scene._castPresentationHost?.nodes.retrieveQuay?.visible
       })
       await page.setViewportSize({ width, height })
       await page.waitForFunction(() => {
@@ -203,6 +222,7 @@ try {
         return scene.phase === 'wait' && scene.scale.width === 320 && scene._castPresentationHost?._compactWaitActive
       })
       await assertWaitLineOnLure(page, appearance)
+      await assertCompactQuay(page, appearance)
     }
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._castPresentationHost.nodes.waitPrompt.text),
       '合図を待とう')
