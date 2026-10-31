@@ -204,6 +204,24 @@ try {
     if (appearance) await assertCompactQuay(page, appearance)
     if (appearance) await assertRetrieveLurePath(page, appearance)
     if (appearance) await assertRetrieveFishVisibility(page, appearance)
+    if (appearance && safeArea && height === 480) {
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return scene.phase === 'retrieve' && scene.scale.width === 390 && !host._compactRetrieveActive
+          && !host.nodes.retrieveQuay.visible && host.nodes.retrieveFishShadows[1].y === 410
+          && host.nodes.retrieveFishShadows[2].y === 401
+      })
+      await page.setViewportSize({ width, height })
+      await page.waitForFunction(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return scene.phase === 'retrieve' && scene.scale.width === 320 && host._compactRetrieveActive
+          && host.nodes.retrieveQuay.visible
+      })
+      await assertCompactQuay(page, appearance)
+      await assertRetrieveLurePath(page, appearance)
+      await assertRetrieveFishVisibility(page, appearance)
+    }
     assert.ok(retrieve.dock < 0)
     assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene')._conditionPresentation.badge.depth), 6001,
       'Retrieve conditions should remain above the compact presentation')
