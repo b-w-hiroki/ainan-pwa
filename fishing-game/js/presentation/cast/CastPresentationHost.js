@@ -1297,6 +1297,10 @@ export class CastPresentationHost {
         }
       }
       this.nodes.battleRage.setVisible(rageMode !== 'calm')
+        // The compact Jump arc crosses the centered rage notice on extreme-
+        // short screens. The short active-rage copy fits in the open water to
+        // the left; keep longer telegraph/opening messages centered.
+        .setX(this._compactBattleActive && rageMode === 'rage' ? 68 : DESIGN_WIDTH / 2)
         .setAlpha(battle.rageTelegraph ? 0.72 + (Math.sin(this.scene.time.now * 0.018) + 1) * 0.14 : 1)
       const instructionMode = battle.isRaging ? 'rage'
         : battle.openingSwipeHit ? 'opening-hit'

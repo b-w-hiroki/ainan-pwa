@@ -145,18 +145,37 @@ async function assertBattleFishClearsActor(page) {
     }
     const actorPixels = paint([actor.poseFront, actor.hair])
     const fishPixels = paint([host.nodes.battleFish])
+    const paintTextOnly = node => {
+      if (!node?.visible || node.alpha <= 0) return new Uint8ClampedArray(fishPixels.length)
+      const background = node.style?.backgroundColor ?? null
+      if (background) node.setBackgroundColor(null)
+      const pixels = paint([node])
+      if (background) node.setBackgroundColor(background)
+      return pixels
+    }
+    const uiPixels = Object.fromEntries(Object.entries({
+      reel: host.nodes.battleReel,
+      rage: host.nodes.battleRage,
+      instruction: host.nodes.battleInstruction,
+    }).map(([name, node]) => [name, paintTextOnly(node)]))
+    const uiOverlap = { reel: 0, rage: 0, instruction: 0 }
     let overlap = 0, actorCount = 0, fishCount = 0
     for (let i = 3; i < actorPixels.length; i += 4) {
       if (actorPixels[i] > 32) actorCount++
       if (fishPixels[i] > 32) fishCount++
       if (actorPixels[i] > 32 && fishPixels[i] > 32) overlap++
+      if (fishPixels[i] > 128) for (const [name, pixels] of Object.entries(uiPixels)) {
+        if (pixels[i] > 128) uiOverlap[name]++
+      }
     }
     const bounds = host.nodes.battleFish.getBounds()
-    return { overlap, actorCount, fishCount, left: bounds.left, right: bounds.right,
+    return { overlap, uiOverlap, actorCount, fishCount, left: bounds.left, right: bounds.right,
       top: bounds.top, bottom: bounds.bottom, width: scene.scale.width, height: scene.scale.height }
   })
   assert.ok(state.actorCount > 100 && state.fishCount > 100, `Battle actor or fish is missing: ${JSON.stringify(state)}`)
   assert.ok(state.overlap <= 3, `Battle fish covers the actor: ${JSON.stringify(state)}`)
+  assert.ok(Object.values(state.uiOverlap).every(count => count <= 3),
+    `Battle fish covers live Battle copy: ${JSON.stringify(state)}`)
   assert.ok(state.left >= 0 && state.right <= state.width && state.top >= 0 && state.bottom <= state.height,
     `Battle fish crosses the viewport: ${JSON.stringify(state)}`)
 }
