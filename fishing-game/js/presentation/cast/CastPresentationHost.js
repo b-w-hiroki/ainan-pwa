@@ -1080,10 +1080,13 @@ export class CastPresentationHost {
     const conditionBadge = this.scene._conditionPresentation?.badge
     if (compactPortraitPrototype && conditionBadge) {
       const showCompactBadge = this._compactCastActive || this._compactRetrieveActive
-      const layoutKey = `${showCompactBadge}:${this.scene.scale.width}`
+      const compactPhaseActive = showCompactBadge || this._compactWaitActive
+        || this._compactBattleActive || this._compactResultActive
+      const layoutKey = `${showCompactBadge}:${compactPhaseActive}:${this.scene.scale.width}`
       if (this._conditionBadgeLayoutKey !== layoutKey) {
         this._conditionBadgeLayoutKey = layoutKey
-        conditionBadge.setDepth(showCompactBadge ? 6001 : 96)
+        conditionBadge.setVisible(!compactPhaseActive || showCompactBadge)
+          .setDepth(showCompactBadge ? 6001 : 96)
           .setPosition(this.scene.scale.width - (showCompactBadge ? 10 : 14), showCompactBadge ? 96 : 18)
           .setFontSize(showCompactBadge ? '13px' : '9px')
       }

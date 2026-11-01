@@ -41,12 +41,14 @@ try {
           const motion = nodes.characterMotion
           const commands = motion?.line?.commandBuffer ?? []
           const target = motion?.root?.getData('rodLineTargetWorld')
+          const conditionBadge = scene._conditionPresentation?.badge
           const localY = expected === 'cast' ? 748 + nodes.castDock.y
             : expected === 'retrieve' ? 746 + nodes.retrieveDock.y
               : expected === 'battle' ? 746 + host._compactDockOffset
                 : nodes.resultPrimarySkin.y
           return { canvasWidth: canvas.width, scale,
             battleLabelVisible: nodes.battlePhase.visible,
+            conditionBadgeVisible: conditionBadge?.visible,
             lineTargetError: target && commands.length >= 3
               ? Math.hypot(commands.at(-3) + motion.root.x - target.x,
                 commands.at(-2) + motion.root.y - target.y)
@@ -58,6 +60,8 @@ try {
           `${phase}: wrong scale after resize`)
         if (phase === 'battle') assert.equal(state.battleLabelVisible, !compact,
           'decorative BATTLE label did not follow compact resize')
+        assert.equal(state.conditionBadgeVisible, !compact || ['cast', 'retrieve'].includes(phase),
+          `${phase}: environmental badge visibility did not follow compact resize`)
         if (phase !== 'result') assert.ok(state.lineTargetError !== null && state.lineTargetError < 1,
           `${phase}: rendered rod line missed its target after resize (${state.lineTargetError})`)
         if (compact) assert.ok(state.point.y > 380 && state.point.y < height - 40,
