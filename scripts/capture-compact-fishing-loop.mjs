@@ -7,7 +7,7 @@ const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, '
 assert.ok(bin, 'Run via npm exec --package=playwright')
 const { chromium } = await import(pathToFileURL(join(bin, '..', 'playwright', 'index.mjs')).href)
 const base = process.env.QA_URL ?? 'http://127.0.0.1:4173'
-const output = 'artifacts/compact-fishing-loop'
+const output = process.env.COMPACT_FISHING_LOOP_OUTPUT ?? 'artifacts/compact-fishing-loop'
 mkdirSync(output, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 
@@ -259,6 +259,30 @@ try {
           assert.ok(statSync(path).size > 15000, 'escaped Result browser frame blank')
         }
         if (action !== 'capture') {
+          if (width === 320 && height === 568 && action === 'port') {
+            await page.mouse.move(escaped.button.x, escaped.button.y)
+            await page.mouse.down()
+            await page.waitForFunction(() => window.__game.scene.getScene('GameScene')._castPresentationHost._resultPointerAction === 'port')
+            await page.setViewportSize({ width: 390, height: 844 })
+            await page.waitForFunction(() => {
+              const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+              return scene.scale.width === 390 && !host._resultPointerAction
+            })
+            await page.mouse.up()
+            await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+            const state = await page.evaluate(() => {
+              const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+              return { phase: scene.phase, outcome: scene._castPresentationOutcome,
+                pending: host._resultPointerAction, alpha: host.nodes.resultFailureRightSkin.alpha }
+            })
+            assert.deepEqual(state, { phase: 'result', outcome: 'escaped', pending: null, alpha: 1 },
+              'escaped Result port press must be cancelled and restored on resize')
+            await page.setViewportSize({ width, height })
+            await page.waitForFunction(() => {
+              const scene = window.__game.scene.getScene('GameScene')
+              return scene.scale.width === 320 && scene._castPresentationHost._compactResultActive
+            })
+          }
           await page.mouse.click(escaped.button.x, escaped.button.y)
           const expected = action === 'retry' ? 'cast' : action === 'prepare' ? 'UpgradeScene' : 'HomeScene'
           await page.waitForFunction(target => {

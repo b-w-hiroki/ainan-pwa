@@ -143,6 +143,11 @@ export class CastPresentationHost {
       this._compactChargeHeld = false
       this.adapter.cancelCharge()
     }
+    this._cancelResultForResize = () => {
+      if (!compactPortraitPrototype || !this._resultPointerAction) return
+      this._resultPointerAction = null
+      this._restoreResultButtonVisuals()
+    }
     this._cancelHiddenRetrieve = () => {
       if (document.hidden) this._cancelHeldRetrieve()
     }
@@ -818,6 +823,7 @@ export class CastPresentationHost {
     scene.input.on('gameout', this._cancelCompactCast)
     scene.scale.on('resize', this._cancelHeldRetrieve)
     scene.scale.on('resize', this._cancelCompactCast)
+    scene.scale.on('resize', this._cancelResultForResize)
     scene.game.canvas.addEventListener('pointercancel', this._cancelHeldRetrieve)
     scene.game.canvas.addEventListener('pointercancel', this._cancelCompactCast)
     window.addEventListener('blur', this._cancelHeldRetrieve)
@@ -900,16 +906,20 @@ export class CastPresentationHost {
     if (this._resultPointerAction) {
       const action = this._resultPointerAction
       this._resultPointerAction = null
-      this.nodes.resultTownMask?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
-      this.nodes.resultFailureOptions?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
-      this.nodes.resultPrimarySkin?.setAlpha?.(1)
-      this.nodes.resultSecondarySkin?.setAlpha?.(1)
-      this.nodes.resultFailureLeftSkin?.setAlpha?.(1)
-      this.nodes.resultFailureRightSkin?.setAlpha?.(1)
+      this._restoreResultButtonVisuals()
       this._activateResultAction(action)
       return
     }
     this._cancelHeldRetrieve()
+  }
+
+  _restoreResultButtonVisuals() {
+    this.nodes.resultTownMask?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
+    this.nodes.resultFailureOptions?.setAlpha?.(this.nodes.resultPrimarySkin ? 0 : 1)
+    this.nodes.resultPrimarySkin?.setAlpha?.(1)
+    this.nodes.resultSecondarySkin?.setAlpha?.(1)
+    this.nodes.resultFailureLeftSkin?.setAlpha?.(1)
+    this.nodes.resultFailureRightSkin?.setAlpha?.(1)
   }
 
   _activateResultAction(action) {
@@ -1429,6 +1439,7 @@ export class CastPresentationHost {
     this.scene.scale?.off?.('resize', this.layout, this)
     this.scene.scale?.off?.('resize', this._cancelHeldRetrieve)
     this.scene.scale?.off?.('resize', this._cancelCompactCast)
+    this.scene.scale?.off?.('resize', this._cancelResultForResize)
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
     this.scene.input?.off?.('pointerupoutside', this._cancelHeldRetrieve)
