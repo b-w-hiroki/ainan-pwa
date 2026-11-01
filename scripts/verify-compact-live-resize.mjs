@@ -208,6 +208,46 @@ try {
     } finally { await page.close() }
   }
 
+  for (const interruption of ['blur', 'pointercancel', 'hidden']) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+    try {
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=result&compactPortrait=1`)
+      await page.waitForFunction(() => {
+        const scene = window.__game?.scene?.getScene('GameScene'), host = scene?._castPresentationHost
+        return scene?.phase === 'result' && host?._compactResultActive && host.nodes.resultPrimarySkin?.visible
+      })
+      const point = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        const canvas = scene.game.canvas.getBoundingClientRect(), scale = host.root.scaleX
+        return { x: canvas.x + 195 * scale, y: canvas.y + host.nodes.resultPrimarySkin.y * scale }
+      })
+      await page.mouse.move(point.x, point.y)
+      await page.mouse.down()
+      await page.waitForFunction(() => Boolean(window.__game.scene.getScene('GameScene')._castPresentationHost._resultPointerAction))
+      await page.evaluate(kind => {
+        if (kind === 'blur') window.dispatchEvent(new Event('blur'))
+        else if (kind === 'hidden') {
+          Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+          document.dispatchEvent(new Event('visibilitychange'))
+          delete document.hidden
+        }
+        else window.__game.canvas.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 1 }))
+      }, interruption)
+      const pending = await page.evaluate(() => {
+        const host = window.__game.scene.getScene('GameScene')._castPresentationHost
+        return { action: host._resultPointerAction, alpha: host.nodes.resultPrimarySkin.alpha }
+      })
+      assert.deepEqual(pending, { action: null, alpha: 1 }, `${interruption}: result press was not cancelled`)
+      await page.mouse.up()
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene').scene.isActive()), true,
+        `${interruption}: release triggered navigation`)
+      await page.mouse.click(point.x, point.y)
+      await page.waitForFunction(() => window.__game.scene.getScenes(true).some(scene => scene.scene.key === 'TownScene'))
+      console.log(`result: ${interruption} cancelled held input; subsequent real input passed`)
+    } finally { await page.close() }
+  }
+
   for (const appearance of [null, 'cute-a-01', 'cute-b-01']) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
     if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)

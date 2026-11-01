@@ -143,13 +143,16 @@ export class CastPresentationHost {
       this._compactChargeHeld = false
       this.adapter.cancelCharge()
     }
-    this._cancelResultForResize = () => {
+    this._cancelCompactResult = () => {
       if (!compactPortraitPrototype || !this._resultPointerAction) return
       this._resultPointerAction = null
       this._restoreResultButtonVisuals()
     }
     this._cancelHiddenRetrieve = () => {
-      if (document.hidden) this._cancelHeldRetrieve()
+      if (document.hidden) {
+        this._cancelHeldRetrieve()
+        this._cancelCompactResult()
+      }
     }
   }
 
@@ -823,11 +826,13 @@ export class CastPresentationHost {
     scene.input.on('gameout', this._cancelCompactCast)
     scene.scale.on('resize', this._cancelHeldRetrieve)
     scene.scale.on('resize', this._cancelCompactCast)
-    scene.scale.on('resize', this._cancelResultForResize)
+    scene.scale.on('resize', this._cancelCompactResult)
     scene.game.canvas.addEventListener('pointercancel', this._cancelHeldRetrieve)
     scene.game.canvas.addEventListener('pointercancel', this._cancelCompactCast)
+    scene.game.canvas.addEventListener('pointercancel', this._cancelCompactResult)
     window.addEventListener('blur', this._cancelHeldRetrieve)
     window.addEventListener('blur', this._cancelCompactCast)
+    window.addEventListener('blur', this._cancelCompactResult)
     document.addEventListener('visibilitychange', this._cancelHiddenRetrieve)
     scene.input.keyboard?.on('keydown-ENTER', this._onResultKeyboard, this)
     return this
@@ -1442,7 +1447,7 @@ export class CastPresentationHost {
     this.scene.scale?.off?.('resize', this.layout, this)
     this.scene.scale?.off?.('resize', this._cancelHeldRetrieve)
     this.scene.scale?.off?.('resize', this._cancelCompactCast)
-    this.scene.scale?.off?.('resize', this._cancelResultForResize)
+    this.scene.scale?.off?.('resize', this._cancelCompactResult)
     this.scene.input?.off?.('pointerdown', this._onHostPointerDown, this)
     this.scene.input?.off?.('pointerup', this._onHostPointerUp, this)
     this.scene.input?.off?.('pointerupoutside', this._cancelHeldRetrieve)
@@ -1451,8 +1456,10 @@ export class CastPresentationHost {
     this.scene.input?.off?.('gameout', this._cancelCompactCast)
     this.scene.game.canvas.removeEventListener('pointercancel', this._cancelHeldRetrieve)
     this.scene.game.canvas.removeEventListener('pointercancel', this._cancelCompactCast)
+    this.scene.game.canvas.removeEventListener('pointercancel', this._cancelCompactResult)
     window.removeEventListener('blur', this._cancelHeldRetrieve)
     window.removeEventListener('blur', this._cancelCompactCast)
+    window.removeEventListener('blur', this._cancelCompactResult)
     document.removeEventListener('visibilitychange', this._cancelHiddenRetrieve)
     this.scene.input.keyboard?.off('keydown-ENTER', this._onResultKeyboard, this)
     this.nodes?.characterMotion?.destroy?.()
