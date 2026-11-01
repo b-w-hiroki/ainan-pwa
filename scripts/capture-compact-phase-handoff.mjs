@@ -214,9 +214,10 @@ async function captureRenderedViewport(page, path) {
 }
 
 try {
-  for (const [width, height, safeArea, appearance, locationId] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01'], [320, 568, false, null, 'pointB'], [320, 568, false, null, 'pointC']]) {
-  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}${locationId ? `-${locationId}` : ''}`
+  for (const [width, height, safeArea, appearance, locationId, reducedMotion] of [[320, 480, false], [320, 568, false], [375, 667, false], [320, 568, true], [320, 480, true], [320, 480, true, 'cute-a-01'], [320, 480, true, 'cute-b-01'], [320, 568, true, 'cute-b-01'], [375, 667, false, 'cute-a-01'], [320, 568, false, null, 'pointB'], [320, 568, false, null, 'pointC'], [320, 480, true, null, null, true], [320, 480, true, 'cute-b-01', null, true]]) {
+  const sizeKey = `${safeArea ? `${width}x${height}-safe-area` : height === 480 ? '320x480' : width}${appearance ? `-${appearance}` : ''}${locationId ? `-${locationId}` : ''}${reducedMotion ? '-reduced-motion' : ''}`
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 })
+  if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' })
   if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
   const errors = []
   page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
@@ -231,6 +232,9 @@ try {
       })
     }
     await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=cast&compactPortrait=1${locationId ? `&qaLocation=${locationId}` : ''}`)
+    if (reducedMotion) assert.equal(await page.evaluate(() =>
+      matchMedia('(prefers-reduced-motion: reduce)').matches && localStorage.getItem('ainan_reduced_motion') !== '0'), true,
+    'reduced-motion preference was not active')
     await page.waitForFunction(() => window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.root?.active)
     if (appearance) await page.waitForFunction(expected => {
       const actor = window.__game?.scene?.getScene('GameScene')?._castPresentationHost?.nodes?.characterMotion
@@ -534,7 +538,7 @@ try {
       assert.ok(statSync(`${output}/${file}`).size > 15000, `${file}: blank browser frame`)
     }
     assert.deepEqual(errors, [])
-    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''}${appearance ? ` ${appearance}` : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
+    console.log(`Compact ${width}x${height}${safeArea ? ' simulated safe area' : ''}${appearance ? ` ${appearance}` : ''}${reducedMotion ? ' reduced motion' : ''} Cast → Retrieve controls → controlled bite → real HIT → Battle reel → controlled Result → Town passed`)
   } finally { await page.close() }
   }
 
