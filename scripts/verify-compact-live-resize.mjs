@@ -120,6 +120,78 @@ try {
     } finally { await page.close() }
   }
 
+  for (const phase of ['cast', 'retrieve']) {
+    const page = await browser.newPage({ viewport: { width: 320, height: 568 }, deviceScaleFactor: 2 })
+    const errors = []
+    page.on('pageerror', error => { if (error.message !== 'service worker disabled in QA') errors.push(error.message) })
+    try {
+      await page.route('**/fishing-game/**', async route => {
+        if (route.request().resourceType() !== 'document') return route.continue()
+        const response = await route.fetch()
+        const body = (await response.text()).replace('</head>',
+          '<style>:root { --safe-top: 20px !important; --safe-bottom: 34px !important; }</style></head>')
+        await route.fulfill({ response, body })
+      })
+      await page.goto(`${base}/fishing-game/?qa=1&scene=GameScene&qaMockPhase=${phase}&compactPortrait=1`)
+      await page.waitForFunction(expected => {
+        const scene = window.__game?.scene?.getScene('GameScene'), host = scene?._castPresentationHost
+        return scene?.phase === expected && host?.root?.active
+          && scene.time.now >= (scene._retrieveReadyAt ?? 0)
+          && (expected === 'cast' ? host._compactCastActive : host._compactRetrieveActive)
+      }, phase)
+      const actionPoint = () => page.evaluate(expected => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        const canvas = scene.game.canvas.getBoundingClientRect(), scale = host.root.scaleX
+        return { x: canvas.x + (expected === 'cast' ? 195 : 318) * scale,
+          y: canvas.y + (expected === 'cast' ? 748 + host.nodes.castDock.y : 746 + host.nodes.retrieveDock.y) * scale }
+      }, phase)
+      let point = await actionPoint()
+      await page.mouse.move(point.x, point.y)
+      await page.mouse.down()
+      await page.waitForFunction(expected => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return expected === 'cast' ? scene.isCharging : scene.retrieveState?.slowHeld
+      }, phase)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.waitForFunction(expected => {
+        const scene = window.__game.scene.getScene('GameScene')
+        return scene.scale.width === 390 && (expected === 'cast' ? !scene.isCharging : !scene.retrieveState?.slowHeld)
+      }, phase)
+      await page.mouse.up()
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+      const state = await page.evaluate(() => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return { phase: scene.phase, charging: Boolean(scene.isCharging), slow: Boolean(scene.retrieveState?.slowHeld),
+          hostCharge: Boolean(host._compactChargeHeld), hostSlow: Boolean(host._slowPointerHeld) }
+      })
+      assert.deepEqual(state, { phase, charging: false, slow: false, hostCharge: false, hostSlow: false },
+        `${phase}: resize left held input or triggered an action`)
+      await page.setViewportSize({ width: 320, height: 568 })
+      await page.waitForFunction(expected => {
+        const scene = window.__game.scene.getScene('GameScene'), host = scene._castPresentationHost
+        return scene.scale.width === 320 && (expected === 'cast' ? host._compactCastActive : host._compactRetrieveActive)
+      }, phase)
+      const screenshot = `${output}/held-resize-${phase}-safe-area.png`
+      await page.screenshot({ path: screenshot, animations: 'disabled' })
+      assert.ok(statSync(screenshot).size > 15000, `${phase}: blank frame after cancelling held input`)
+      point = await actionPoint()
+      await page.mouse.move(point.x, point.y)
+      await page.mouse.down()
+      if (phase === 'cast') {
+        await page.waitForFunction(() => window.__game.scene.getScene('GameScene').isCharging)
+        await page.waitForTimeout(260)
+        await page.mouse.up()
+        await page.waitForFunction(() => window.__game.scene.getScene('GameScene').phase === 'retrieve')
+      } else {
+        await page.waitForFunction(() => window.__game.scene.getScene('GameScene').retrieveState?.slowHeld)
+        await page.mouse.up()
+        assert.equal(await page.evaluate(() => window.__game.scene.getScene('GameScene').retrieveState?.slowHeld), false)
+      }
+      assert.deepEqual(errors, [], `${phase}: browser errors after cancelling held input`)
+      console.log(`${phase}: resize cancelled held input without an action; subsequent real input passed`)
+    } finally { await page.close() }
+  }
+
   for (const appearance of [null, 'cute-a-01', 'cute-b-01']) {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 })
     if (appearance) await page.addInitScript(id => localStorage.setItem('ainan_character_appearance', id), appearance)
