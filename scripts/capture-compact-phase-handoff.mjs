@@ -145,28 +145,43 @@ async function assertBattleFishClearsActor(page) {
     }
     const actorPixels = paint([actor.poseFront, actor.hair])
     const fishPixels = paint([host.nodes.battleFish])
-    const paintTextOnly = node => {
-      if (!node?.visible || node.alpha <= 0) return new Uint8ClampedArray(fishPixels.length)
+    const countTextOverlap = node => {
+      if (!node?.visible || node.alpha <= 0) return 0
+      const fishBounds = host.nodes.battleFish.getBounds()
+      const textBounds = node.getBounds()
+      const left = Math.max(0, Math.floor(Math.max(fishBounds.left, textBounds.left)))
+      const top = Math.max(0, Math.floor(Math.max(fishBounds.top, textBounds.top)))
+      const right = Math.min(scene.scale.width, Math.ceil(Math.min(fishBounds.right, textBounds.right)))
+      const bottom = Math.min(scene.scale.height, Math.ceil(Math.min(fishBounds.bottom, textBounds.bottom)))
+      if (right <= left || bottom <= top) return 0
       const background = node.style?.backgroundColor ?? null
       if (background) node.setBackgroundColor(null)
-      const pixels = paint([node])
+      const canvas = document.createElement('canvas')
+      canvas.width = scene.scale.width; canvas.height = scene.scale.height
+      const context = canvas.getContext('2d', { willReadFrequently: true })
+      const matrix = node.getWorldTransformMatrix()
+      context.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f)
+      context.drawImage(node.texture.getSourceImage(), -node.displayOriginX, -node.displayOriginY)
+      const textPixels = context.getImageData(left, top, right - left, bottom - top).data
       if (background) node.setBackgroundColor(background)
-      return pixels
+      let count = 0
+      for (let y = top; y < bottom; y += 1) for (let x = left; x < right; x += 1) {
+        const fishAlpha = fishPixels[(y * scene.scale.width + x) * 4 + 3]
+        const textAlpha = textPixels[((y - top) * (right - left) + x - left) * 4 + 3]
+        if (fishAlpha > 128 && textAlpha > 128) count++
+      }
+      return count
     }
-    const uiPixels = Object.fromEntries(Object.entries({
+    const uiOverlap = Object.fromEntries(Object.entries({
       reel: host.nodes.battleReel,
       rage: host.nodes.battleRage,
       instruction: host.nodes.battleInstruction,
-    }).map(([name, node]) => [name, paintTextOnly(node)]))
-    const uiOverlap = { reel: 0, rage: 0, instruction: 0 }
+    }).map(([name, node]) => [name, countTextOverlap(node)]))
     let overlap = 0, actorCount = 0, fishCount = 0
     for (let i = 3; i < actorPixels.length; i += 4) {
       if (actorPixels[i] > 32) actorCount++
       if (fishPixels[i] > 32) fishCount++
       if (actorPixels[i] > 32 && fishPixels[i] > 32) overlap++
-      if (fishPixels[i] > 128) for (const [name, pixels] of Object.entries(uiPixels)) {
-        if (pixels[i] > 128) uiOverlap[name]++
-      }
     }
     const bounds = host.nodes.battleFish.getBounds()
     return { overlap, uiOverlap, actorCount, fishCount, left: bounds.left, right: bounds.right,
