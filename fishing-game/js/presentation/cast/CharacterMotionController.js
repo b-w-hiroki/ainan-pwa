@@ -46,7 +46,7 @@ export const CHARACTER_MOTION_POSES = Object.freeze({
 
 const CUTE_CAST_LAYOUT = Object.freeze({ x: 76, y: 612, displayWidth: 140, displayHeight: 183.75 })
 const CUTE_LAYOUTS = Object.freeze({
-  cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT,
+  cast: CUTE_CAST_LAYOUT, retrieve: CUTE_CAST_LAYOUT, wait: CUTE_CAST_LAYOUT,
   battle: Object.freeze({ x: 78, y: 600, displayWidth: 110, displayHeight: 144.375 }),
   result: Object.freeze({ x: 82, y: 430, displayWidth: 120, displayHeight: 157.5 }),
 })
@@ -79,7 +79,9 @@ const isRodArtPreview = (search = globalThis.window?.location?.search ?? '') => 
   return params.get('qa') === '1' && params.get('qaRodArt') === '1'
 }
 export function preloadCharacterAppearance(scene) {
-  if ((isCharacterAppearancePreview() || isCute()) && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
+  const params = new URLSearchParams(globalThis.window?.location?.search ?? '')
+  const compactQa = params.get('qa') === '1' && params.get('compactPortrait') === '1'
+  if ((isCharacterAppearancePreview() || isCute() || compactQa) && !scene.textures.exists(CHARACTER_PREVIEW_BACKGROUND.key)) {
     scene.load.image(CHARACTER_PREVIEW_BACKGROUND.key, CHARACTER_PREVIEW_BACKGROUND.path)
   }
   if (!isCute()) return
@@ -285,7 +287,7 @@ export class CharacterMotionController {
       ? { x: 228, y: 330 }
       : phase === 'result'
         ? { x: tip.x + 14 + this.root.x, y: tip.y + 24 + this.root.y }
-        : phase === 'retrieve' && this.retrieveTarget
+        : (phase === 'retrieve' || (phase === 'wait' && this.scene._castPresentationHost?._compactWaitActive)) && this.retrieveTarget
           ? this.retrieveTarget
           : { x: 310, y: 235 }
     // Keep the lure/line target in stage coordinates as the entire character
@@ -322,7 +324,8 @@ export class CharacterMotionController {
     if (previous === null && target === null) return
     if (previous && target && Math.hypot(previous.x - target.x, previous.y - target.y) < 0.4) return
     this.retrieveTarget = target
-    if (this.scene.phase === 'retrieve') {
+    if (this.scene.phase === 'retrieve'
+      || (this.scene.phase === 'wait' && this.scene._castPresentationHost?._compactWaitActive)) {
       const pose = this.poses[this.currentPose]
       if (pose) this._applyRod(pose)
     }

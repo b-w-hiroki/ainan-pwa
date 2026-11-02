@@ -43,7 +43,7 @@ export function readCastViewModel(scene) {
     && openingSwipeAgeMs >= 0 && openingSwipeAgeMs <= 1400)
   // The presentation guard hides the world bobber beneath the approved art;
   // its coordinates remain the authoritative gameplay position.
-  const retrieveDistanceMeters = scene.phase === 'retrieve' && scene.bobber
+  const retrieveDistanceMeters = (scene.phase === 'retrieve' || (scene.phase === 'wait' && scene._retrieveInBite)) && scene.bobber
     && [scene.anchorX, scene.anchorY, scene.bobber.x, scene.bobber.y].every(Number.isFinite)
     ? Math.hypot(scene.bobber.x - scene.anchorX, scene.bobber.y - scene.anchorY) / FISHING_WORLD.pxPerMeter
     : null

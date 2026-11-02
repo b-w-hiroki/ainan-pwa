@@ -131,6 +131,7 @@ function applyPersonality(scene) {
 }
 
 function clearResultBadge(scene) {
+  scene._layoutBossRecordBadge = null
   scene._bossRecordBadge?.destroy?.(true)
   scene._bossRecordBadge = null
 }
@@ -139,25 +140,13 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
   clearResultBadge(scene)
   const isNew = afterBest > beforeBest
   const first = beforeBest <= 0
-  const { width: W, height: H } = scene.scale
   // The approved Result host is at depth 6000: a scene-level badge at 146
-  // was invisible underneath the entire Result UI. Keep the compact notice
-  // in open water to the left of the hero fish, away from the action buttons.
+  // was invisible underneath the entire Result UI.
   const resultHost = scene._castPresentationHost?.root
   const hostActive = Boolean(resultHost?.active)
-  const compactResult = hostActive && scene._castPresentationHost?._compactResultActive
-  const squeeze = compactResult ? scene._castPresentationHost._compactVerticalSqueeze ?? 0 : 0
-  const x = compactResult ? 85 : W / 2
-  const y = compactResult ? 215 - 65 * squeeze : hostActive ? H / 2 + 173 : H / 2 + 78
-  const halfWidth = compactResult ? 76 : 120
-  const halfHeight = 22 - 3 * squeeze
-  const c = scene.add.container(x, y).setDepth(146).setScrollFactor(0).setAlpha(0)
+  const c = scene.add.container(0, 0).setDepth(146).setScrollFactor(0).setAlpha(0)
   const bg = scene.add.graphics()
   const reward = first ? rewardToken('trophy') : isNew ? rewardToken('record') : { label: 'BOSS CLEARED', color: 0x173248, text: '#ffffff' }
-  bg.fillStyle(reward.color, 0.96)
-  bg.lineStyle(2, 0xffffff, 0.68)
-  bg.fillRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
-  bg.strokeRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
   const label = scene.add.text(0, -5, reward.label, {
     fontFamily: 'M PLUS Rounded 1c, sans-serif', fontSize: '12px', fontStyle: 'bold',
     color: reward.text, letterSpacing: 1,
@@ -169,7 +158,37 @@ function showResultBadge(scene, meta, beforeBest, afterBest) {
   c.add([bg, label, best])
   if (hostActive) resultHost.add(c)
   scene._bossRecordBadge = c
-  scene.tweens.add({ targets: c, alpha: 1, y: y - 4, duration: 260, ease: 'Back.easeOut' })
+  const layoutBadge = () => {
+    if (!c.active) return
+    const { width: W, height: H } = scene.scale
+    const compactResult = hostActive && scene._castPresentationHost?._compactResultActive
+    const squeeze = compactResult ? scene._castPresentationHost._compactVerticalSqueeze ?? 0 : 0
+    const extreme = compactResult && (scene._castPresentationHost._compactExtremeSqueeze ?? 0) > 0
+    const designHeight = extreme ? H / (W / 390) : 0
+    const x = extreme ? 195 : compactResult ? 85 : W / 2
+    const anchorY = compactResult ? 215 - 65 * squeeze : hostActive ? H / 2 + 173 : H / 2 + 78
+    const y = extreme ? designHeight - 10 : anchorY - 4
+    const halfWidth = extreme ? 155 : compactResult ? 76 : 120
+    const halfHeight = extreme ? 9 : 22 - 3 * squeeze
+    bg.clear().fillStyle(reward.color, 0.96).lineStyle(2, 0xffffff, 0.68)
+      .fillRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
+      .strokeRoundedRect(-halfWidth, -halfHeight, halfWidth * 2, halfHeight * 2, 15)
+    label.setScale(1).setPosition(0, extreme ? 0 : -5).setFontSize(extreme ? '14px' : '12px')
+      .setText(extreme ? `${reward.label}  •  BEST ${afterBest}cm` : reward.label)
+    if (extreme) label.setScale(Math.min(1, (halfWidth * 2 - 16) / Math.max(1, label.width)))
+    best.setVisible(!extreme)
+    c.setPosition(x, y)
+    return extreme
+  }
+  const extreme = layoutBadge()
+  const finalY = c.y
+  if (!extreme) c.y += 4
+  scene._layoutBossRecordBadge = () => {
+    scene.tweens.killTweensOf(c)
+    c.setAlpha(1)
+    layoutBadge()
+  }
+  scene.tweens.add({ targets: c, alpha: 1, y: finalY, duration: 260, ease: 'Back.easeOut' })
   if (first || isNew) {
     playSfx(first ? 'legend' : 'catch')
     haptic(first ? [35, 30, 70, 30, 90] : [25, 20, 45])

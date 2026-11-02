@@ -15,6 +15,7 @@ export function installVerticalSliceHookInput(GameScene) {
 
   const originalOnDown = GameScene.prototype._onDown
   GameScene.prototype._onDown = function (pointer) {
+    if (this._castPresentationHost?.isCompactWaitBack?.(pointer)) return
     if (this.phase === 'wait' && this.waitTapActive) {
       this._killWaitTimers?.()
       this._enterBattle?.()
