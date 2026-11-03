@@ -1,0 +1,50 @@
+name: Compact input migration
+on:
+  pull_request:
+    paths:
+      - 'fishing-game/js/presentation/cast/**'
+      - 'scripts/verify-result-input-migration.mjs'
+      - 'scripts/compare-compact-layouts.mjs'
+      - '.github/workflows/compact-input-migration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx --yes playwright@1.55.0 install --with-deps ${{ matrix.browser }}
+      - name: Verify ordinary URL and compact QA independently
+        env:
+          QA_BROWSER: ${{ matrix.browser }}
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/ainan-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/fishing-game/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npm exec --yes --package=playwright@1.55.0 -- node scripts/verify-result-input-migration.mjs
+      - name: Compare five phases and rotation without promoting art
+        if: matrix.browser == 'chromium'
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/compare-compact-layouts.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compact-input-migration-${{ matrix.browser }}
+          path: |
+            artifacts/result-input-migration/
+            artifacts/compact-migration-comparison/
+          retention-days: 14
+          if-no-files-found: error
