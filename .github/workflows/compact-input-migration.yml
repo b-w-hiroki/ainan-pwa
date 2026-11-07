@@ -5,6 +5,8 @@ on:
       - 'fishing-game/js/presentation/cast/**'
       - 'scripts/verify-result-input-migration.mjs'
       - 'scripts/compare-compact-layouts.mjs'
+      - 'scripts/compact-review-sheet.mjs'
+      - 'scripts/compact-review-sheet.test.mjs'
       - '.github/workflows/compact-input-migration.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +26,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node scripts/compact-review-sheet.test.mjs
       - run: npm run build
       - run: npx --yes playwright@1.55.0 install --with-deps ${{ matrix.browser }}
       - name: Verify ordinary URL and compact QA independently
@@ -39,6 +42,9 @@ jobs:
       - name: Compare five phases and rotation without promoting art
         if: matrix.browser == 'chromium'
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/compare-compact-layouts.mjs
+      - name: Assemble same-condition review sheet
+        if: matrix.browser == 'chromium'
+        run: node scripts/compact-review-sheet.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
