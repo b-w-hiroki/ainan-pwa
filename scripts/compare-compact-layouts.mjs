@@ -36,9 +36,17 @@ try {
               resultActionCssHeight: 86 * h.root.scaleY * css,
               battleInstructionCssPx: parseFloat(n.battleInstruction.style.fontSize) * h.root.scaleY * css,
               quayVisible: Boolean(n.retrieveQuay?.visible), cleanRetrieve: Boolean(n.cleanRetrieveBase?.visible),
+              castGrounded: Boolean(n.compactCastBase?.visible && n.compactCastQuay?.visible),
+              castPaintedRodVisible: n.paintedCastRod.visible,
+              castQuayY: n.compactCastQuay?.y ?? null,
+              actorFeetY: n.characterMotion?.root.y + n.characterMotion?.poseFront.y,
               catches: localStorage.getItem('ainan_catches'), equipment: localStorage.getItem('ainan_equipment') }
           })
           const before = await read()
+          const grounded = compact && width < 390 && phase === 'cast'
+          assert.equal(before.castGrounded, grounded, 'QA classic Cast must use a clean grounded stage only in compact Cast')
+          assert.equal(before.castPaintedRodVisible, !grounded, 'Painted rod must not duplicate the moving compact actor rod')
+          if (grounded) assert.ok(Math.abs(before.castQuayY + 40 - before.actorFeetY) < 1, 'Quay must follow the actual actor feet')
           await page.screenshot({ path: `${out}/${compact ? 'qa' : 'ordinary-layout'}-${width}x${height}-${phase}.png` })
           await page.setViewportSize({ width: height, height: width })
           await page.evaluate(() => new Promise(r => setTimeout(r, 150)))
@@ -50,6 +58,8 @@ try {
           assert.equal(after.catches, before.catches)
           assert.equal(after.equipment, before.equipment)
           assert.deepEqual(after.compact, before.compact)
+          assert.equal(after.castGrounded, before.castGrounded)
+          assert.equal(after.castPaintedRodVisible, before.castPaintedRodVisible)
           assert.ok(Math.abs(after.rootScale-before.rootScale)<0.01)
           records.push({ width,height,mode: compact?'compact-qa':'ordinary-layout-with-qa-fixture',phase,before,landscape,after })
           console.log(`${width}x${height} ${compact?'qa':'ordinary-layout'} ${phase}: geometry, rotation round trip, no extra save writes`)
