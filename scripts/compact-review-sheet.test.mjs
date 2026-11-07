@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {buildSheet} from './compact-review-sheet.mjs';
+const records=[];
+for(const [width,height] of [[320,480],[320,568],[375,667],[390,844]])for(const phase of ['cast','retrieve','wait','battle','result'])for(const mode of ['ordinary-layout-with-qa-fixture','compact-qa'])records.push({width,height,phase,mode,before:{resultActionCssHeight:44}});
+assert.equal(buildSheet(records,()=>true).missing,0);
+assert.equal(buildSheet([],()=>true).missing,40);
+assert.equal(buildSheet(records,()=>false).missing,40);
+assert.equal(buildSheet([...records,records[0]],()=>true).missing,1);
+records[0].before.resultActionCssHeight='<script>';
+assert.ok(!buildSheet(records,()=>true).html.includes('<script>'));
+assert.match(buildSheet(records,()=>true).html,/人の評価・実機確認/);
+console.log('Comparison sheet validates 40 captures, missing/duplicate evidence and safe rendering');
