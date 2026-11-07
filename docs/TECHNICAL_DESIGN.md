@@ -88,3 +88,11 @@ UIアートv1/v2の実使用PNG 23点は、`python scripts/art/clean-ui-subspeck
 - 自動QAと実ブラウザで同じ結果が再現するか。
 
 この文書を更新する判断とPRでの確認方法は [文書更新ワークフロー](DOCUMENTATION_WORKFLOW.md) に定める。
+
+### 短画面Castの足場（QA専用）
+
+classicの短い縦画面Castは、人物や竿が描き込まれた通常背景ではなく既存のclean harbor背景を使う。Retrieveと同じ岸壁テクスチャを人物の足元へ追従させ、固定竿の描画を隠す。独立したCharacterMotionControllerだけが竿を所有する。390×844や通常URL、layered/cute素材の経路は変更しない。回転・フェーズ遷移では背景と固定竿の表示を復元する。`compare-compact-layouts.mjs`で足元との距離、竿の単一owner、回転復帰を検査する。素材の新規生成や通常版への昇格ではない。
+
+### 全量mobile E2Eの時間枠
+
+全量mobile-e2eは75分のジョブ上限を持つ。run 42390377861では既存50分枠を実行中に消費し、Townまで成功した後のJump撮影で打ち切られたため、全検査とartifactを維持して枠だけを拡張した。個別Playwright assertionのtimeout、検査条件、失敗扱いは緩めない。CI成功には残りのキャラ・ロケーション・画像guardまで完走が必要。
