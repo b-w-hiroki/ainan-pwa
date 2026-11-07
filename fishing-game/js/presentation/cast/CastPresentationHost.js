@@ -239,6 +239,15 @@ export class CastPresentationHost {
     ).setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
     if (castLocationPreviewEnabled() && !useLayeredScene) castField.add(castLocationOverlay)
 
+    // The compact classic actor moves independently. The ordinary composite
+    // contains painted player/rod pixels, so it cannot be its movable stage.
+    // Reuse the existing clean harbor only in QA; ordinary and layered art stay intact.
+    const compactCastBase = compactPortraitPrototype && !useLayeredScene
+      ? scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedCleanHarbor.key)
+        .setDisplaySize(DESIGN_WIDTH, DESIGN_HEIGHT).setVisible(false)
+      : null
+    if (compactCastBase) castField.add(compactCastBase)
+
     const fishLayout = useApprovedComposite || useLayeredScene
       ? CAST_LAYER_CONFIG.fish
       : L.cast.fish
@@ -272,18 +281,19 @@ export class CastPresentationHost {
       target.fillCircle(x, y, Math.max(2, 4 - i * 0.35))
     }
 
+    const paintedCastRod = scene.add.graphics()
     if (useApprovedComposite && !useLayeredScene) {
       const rod = CAST_LAYER_CONFIG.rod
-      target.lineStyle(rod.shaftWidth, rod.shaftColor, 0.98)
-      target.beginPath()
-      target.moveTo(rod.joints[0].x, rod.joints[0].y)
-      rod.joints.slice(1).forEach(point => target.lineTo(point.x, point.y))
-      target.strokePath()
-      target.lineStyle(rod.accentWidth, rod.accentColor, 1)
-      target.beginPath()
-      target.moveTo(rod.joints[0].x, rod.joints[0].y)
-      rod.joints.slice(1).forEach(point => target.lineTo(point.x, point.y))
-      target.strokePath()
+      paintedCastRod.lineStyle(rod.shaftWidth, rod.shaftColor, 0.98)
+      paintedCastRod.beginPath()
+      paintedCastRod.moveTo(rod.joints[0].x, rod.joints[0].y)
+      rod.joints.slice(1).forEach(point => paintedCastRod.lineTo(point.x, point.y))
+      paintedCastRod.strokePath()
+      paintedCastRod.lineStyle(rod.accentWidth, rod.accentColor, 1)
+      paintedCastRod.beginPath()
+      paintedCastRod.moveTo(rod.joints[0].x, rod.joints[0].y)
+      rod.joints.slice(1).forEach(point => paintedCastRod.lineTo(point.x, point.y))
+      paintedCastRod.strokePath()
     }
 
     const useApprovedPlayerCutout = !useLayeredScene && (useApprovedComposite || castPlayerCutoutPrototypeEnabled())
@@ -302,7 +312,7 @@ export class CastPresentationHost {
       layeredScene.nodes.fish.add(fishShadows)
       layeredScene.nodes.target.add(target)
     } else {
-      castField.add([...fishShadows, target, ...(player ? [player] : [])])
+      castField.add([...fishShadows, target, paintedCastRod, ...(player ? [player] : [])])
     }
 
     const retrieveBase = scene.add.image(DESIGN_WIDTH / 2, DESIGN_HEIGHT / 2, ASSETS.ui.fishingApprovedRetrievePanel.key)
@@ -364,6 +374,10 @@ export class CastPresentationHost {
       }
       retrieveQuay = scene.add.image(0, 0, key).setOrigin(0).setVisible(false)
     }
+    const compactCastQuay = compactCastBase && retrieveQuay
+      ? scene.add.image(0, 0, 'compact_retrieve_quay').setOrigin(0).setVisible(false)
+      : null
+    if (compactCastQuay) castField.add(compactCastQuay)
     retrieveField.add([retrieveBase, ...(cleanRetrieveBase ? [cleanRetrieveBase] : []), retrieveWater, ...(retrieveQuay ? [retrieveQuay] : []),
       ...(retrieveLure && compactPortraitPrototype ? [retrieveLure] : []), ...retrieveSkins])
     if (castLocationPreviewEnabled()) retrieveField.add(retrieveLocationOverlay)
@@ -748,6 +762,9 @@ export class CastPresentationHost {
       castHit,
       backHit,
       castField,
+      compactCastBase,
+      compactCastQuay,
+      paintedCastRod,
       retrieveField,
       retrieveBase,
       cleanRetrieveBase,
@@ -1037,6 +1054,15 @@ export class CastPresentationHost {
           : compactBattle ? dockOffset * (0.45 + 0.3 * verticalSqueeze)
           : compactResult ? resultFishOffset - 25 * verticalSqueeze : 0)
     }
+    const groundedCast = Boolean(compactCast && this.nodes.characterMotion?.ready
+      && this.nodes.compactCastBase && this.nodes.compactCastQuay)
+    this.nodes.compactCastBase?.setVisible(groundedCast)
+    this.nodes.paintedCastRod.setVisible(!groundedCast)
+    this.nodes.compactCastQuay?.setVisible(groundedCast)
+    if (groundedCast) {
+      const actor = this.nodes.characterMotion
+      this.nodes.compactCastQuay.setPosition(0, actor.root.y + actor.poseFront.y - 40)
+    }
     if (this.nodes.retrieveQuay) {
       const actor = this.nodes.characterMotion
       const visible = (compactRetrieve || compactWait) && actor?.ready
@@ -1099,6 +1125,12 @@ export class CastPresentationHost {
     if (this.scene.phase !== 'retrieve') this._cancelHeldRetrieve()
     const view = readCastViewModel(this.scene)
     this.nodes.characterMotion?.sync(view)
+    // Phase changes update the actor pose after resize; follow the new feet,
+    // not the previous Battle/Result pose. Live viewport resize is covered above.
+    if (this.nodes.compactCastQuay?.visible) {
+      const actor = this.nodes.characterMotion
+      this.nodes.compactCastQuay.setY(actor.root.y + actor.poseFront.y - 40)
+    }
     const castVisible = view.phase === 'cast'
     const retrieveVisible = view.phase === 'retrieve'
     const waitVisible = view.phase === 'wait' && this._compactWaitActive
