@@ -44,7 +44,7 @@ export default class HelpScene extends Phaser.Scene {
   _enableContentScroll(W, H, children) {
     const top = 106
     const bottom = H - 88
-    const contentBottom = 950
+    const contentBottom = 1022
     const maxScroll = Math.max(0, contentBottom - bottom)
     this._helpContent = this.add.container(0, 0, children).setDepth(6)
     const maskShape = this.make.graphics({ x: 0, y: 0, add: false })
@@ -164,12 +164,12 @@ export default class HelpScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
     this.add.text(x + 18, y + 57, step.desc, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '12px' : '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
     }).setOrigin(0, 0.5).setDepth(5)
   }
 
   _controls(W) {
-    const x = 18, y = this._narrowHelp ? 558 : 390, w = W - 36, h = this._narrowHelp ? 392 : 284
+    const x = 18, y = this._narrowHelp ? 558 : 390, w = W - 36, h = this._narrowHelp ? 464 : 284
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
@@ -182,8 +182,8 @@ export default class HelpScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: UI_COLORS.oceanDeep,
     }).setOrigin(1, 0.5).setDepth(5)
 
-    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * (this._narrowHelp ? 72 : 50),
-      w - 32, this._narrowHelp ? 66 : 44, item))
+    CONTROL_STEPS.forEach((item, i) => this._controlRow(x + 16, y + 48 + i * (this._narrowHelp ? 90 : 50),
+      w - 32, this._narrowHelp ? 84 : 44, item))
 
     this.add.text(W / 2, y + h - 20, this._narrowHelp ? '季節・時間・天候を見て大物を狙おう' : '季節・時間帯・日替わり天候で魚の出やすさも変化。大物ほど沖を狙おう。', {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '9px', fontWeight: '900', color: UI_COLORS.success,
@@ -202,10 +202,10 @@ export default class HelpScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '900', color: '#ffffff',
     }).setOrigin(0.5).setDepth(5)
     this.add.text(x + 116, y + 13, item.title, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '11px', fontWeight: '900', color: UI_COLORS.ink,
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '13px' : '11px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(this._narrowHelp ? x + 12 : x + 116, this._narrowHelp ? y + 46 : y + 29, item.desc, {
-      fontFamily: FONT, resolution: TEXT_RES, fontSize: '8px', fontWeight: '800', color: UI_COLORS.inkSoft,
+    this.add.text(this._narrowHelp ? x + 12 : x + 116, this._narrowHelp ? y + 56 : y + 29, item.desc, {
+      fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '12px' : '8px', fontWeight: '800', color: UI_COLORS.inkSoft,
       wordWrap: { width: this._narrowHelp ? w - 24 : w - 128 },
     }).setOrigin(0, 0.5).setDepth(5)
   }
