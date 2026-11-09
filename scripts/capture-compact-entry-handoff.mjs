@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { delimiter, join } from 'node:path'
-import { existsSync, mkdirSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 const bin = process.env.PATH.split(delimiter).find(dir => existsSync(join(dir, 'playwright')) || existsSync(join(dir, 'playwright.cmd')))
@@ -64,7 +64,7 @@ try {
         })
         assert.ok(buttons.startBottom < buttons.helpTop, `short Title actions overlap: ${JSON.stringify(buttons)}`)
       }
-      if (width < 390 && height <= 667 && !safeArea) {
+      { // Capture Help through the actual Title button at every tested viewport.
         const help = await page.evaluate(() => {
           const scene = window.__game.scene.getScene('TitleScene')
           return window.__compactScreenPoint(scene, scene._helpButton.container.x, scene._helpButton.container.y)
@@ -80,50 +80,65 @@ try {
             '落ち着いている時に下へスワイプ。暴れている時は待つ。',
           ]
           return descriptions.map((text, index) => {
-            const node = scene._helpContent.list.find(child => child.type === 'Text' && child.text === text)
+            const nodes = scene._helpContent?.list ?? scene.children.list
+            const node = nodes.find(child => child.type === 'Text' && child.text === text)
             if (!node) return { missing: text }
             const bounds = node.getBounds()
             return { text, left: bounds.left, right: bounds.right,
               top: node.y - node.displayHeight / 2, bottom: node.y + node.displayHeight / 2,
-              rowTop: 606 + index * 90, width: scene.scale.width,
+              rowTop: (scene._narrowHelp ? 606 : 438) + index * (scene._narrowHelp ? 90 : 50),
+              narrow: scene._narrowHelp, width: scene.scale.width,
               lines: node.getWrappedText(node.text).length }
           })
         })
+        // Save the pixels and metrics even if a subsequent layout assertion fails.
+        await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
+        writeFileSync(`${output}/help-bounds-${label}.json`, JSON.stringify(helpCopy, null, 2))
         for (const copy of helpCopy) {
           assert.equal(copy.missing, undefined, `Help description missing: ${JSON.stringify(copy)}`)
-          assert.ok(copy.lines > 1, `Japanese Help description did not wrap: ${JSON.stringify(copy)}`)
-          assert.ok(copy.left >= 45 && copy.right <= copy.width - 45,
+          assert.ok(copy.lines >= (copy.narrow ? 2 : 1), `Japanese Help description did not wrap: ${JSON.stringify(copy)}`)
+          assert.ok(copy.left >= (copy.narrow ? 45 : 149) && copy.right <= copy.width - 45,
             `Help description escapes its card: ${JSON.stringify(copy)}`)
-          assert.ok(copy.top >= copy.rowTop + 36 && copy.bottom <= copy.rowTop + 78,
+          assert.ok(copy.top >= copy.rowTop + (copy.narrow ? 36 : 20) && copy.bottom <= copy.rowTop + (copy.narrow ? 78 : 42),
             `Help description overlaps its control or next row: ${JSON.stringify(copy)}`)
         }
-        await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
-        await page.mouse.move(width / 2, height - 115)
-        await page.mouse.down()
-        await page.mouse.move(width / 2, 135, { steps: 12 })
-        await page.mouse.up()
-        const dragged = await page.evaluate(() => window.__game.scene.getScene('HelpScene')._helpScroll)
-        assert.ok(dragged > 100, `short Help did not respond to drag: ${dragged}`)
-        await page.mouse.wheel(0, 800)
-        await page.waitForFunction(() => {
-          const scene = window.__game.scene.getScene('HelpScene')
-          return scene._helpScroll >= 1022 - (scene.scale.height - 88) - 1
-        })
-        const helpEnd = await page.evaluate(() => {
-          const scene = window.__game.scene.getScene('HelpScene')
-          const note = scene._helpContent.list.find(node => node.type === 'Text'
-            && node.text === '季節・時間・天候を見て大物を狙おう')
-          const bounds = note?.getBounds()
-          return { top: bounds?.top, bottom: bounds?.bottom, contentBottom: scene.scale.height - 88 }
-        })
-        assert.ok(helpEnd.top >= 106 && helpEnd.bottom <= helpEnd.contentBottom,
-          `Help final note is not readable above the footer: ${JSON.stringify(helpEnd)}`)
-        await page.screenshot({ path: `${output}/help-bottom-${label}.png`, animations: 'disabled' })
-        for (const position of ['top', 'bottom']) {
-          assert.ok(statSync(`${output}/help-${position}-${label}.png`).size > 15000,
-            `Help ${position} browser frame blank`)
+        if (width < 390) {
+          const dragPoints = await page.evaluate(() => {
+            const scene = window.__game.scene.getScene('HelpScene')
+            return { from: window.__compactScreenPoint(scene, scene.scale.width / 2, scene.scale.height - 115),
+              to: window.__compactScreenPoint(scene, scene.scale.width / 2, 135) }
+          })
+          await page.mouse.move(dragPoints.from.x, dragPoints.from.y)
+          await page.mouse.down()
+          await page.mouse.move(dragPoints.to.x, dragPoints.to.y, { steps: 12 })
+          await page.mouse.up()
+          const dragged = await page.evaluate(() => window.__game.scene.getScene('HelpScene')._helpScroll)
+          assert.ok(dragged > 100, `short Help did not respond to drag: ${dragged}`)
+          await page.mouse.wheel(0, 800)
+          await page.waitForFunction(() => {
+            const scene = window.__game.scene.getScene('HelpScene')
+            return scene._helpScroll >= 1022 - (scene.scale.height - 88) - 1
+          })
+          const helpEnd = await page.evaluate(() => {
+            const scene = window.__game.scene.getScene('HelpScene')
+            const note = scene._helpContent.list.find(node => node.type === 'Text'
+              && node.text === '季節・時間・天候を見て大物を狙おう')
+            const bounds = note?.getBounds()
+            return { top: bounds?.top, bottom: bounds?.bottom, contentBottom: scene.scale.height - 88 }
+          })
+          assert.ok(helpEnd.top >= 106 && helpEnd.bottom <= helpEnd.contentBottom,
+            `Help final note is not readable above the footer: ${JSON.stringify(helpEnd)}`)
+          await page.screenshot({ path: `${output}/help-bottom-${label}.png`, animations: 'disabled' })
+          for (const position of ['top', 'bottom']) {
+            assert.ok(statSync(`${output}/help-${position}-${label}.png`).size > 15000,
+              `Help ${position} browser frame blank`)
+          }
         }
-        await page.mouse.click(width * 0.1, height - 40)
+        const helpHome = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('HelpScene')
+          return window.__compactScreenPoint(scene, scene.scale.width * 0.1, scene.scale.height - 40)
+        })
+        await page.mouse.click(helpHome.x, helpHome.y)
         await page.waitForFunction(() => window.__game?.scene?.getScene('HomeScene')?.sys?.isActive?.())
         await page.goto(`${process.env.QA_URL ?? 'http://127.0.0.1:4173'}/fishing-game/?qa=1&compactPortrait=1`)
         await page.waitForFunction(() => window.__game?.scene?.getScene('TitleScene')?.sys?.isActive?.())

@@ -96,3 +96,7 @@ classicの短い縦画面Castは、人物や竿が描き込まれた通常背景
 ### 全量mobile E2Eの時間枠
 
 全量mobile-e2eは75分のジョブ上限を持つ。run 42390377861では既存50分枠を実行中に消費し、Townまで成功した後のJump撮影で打ち切られたため、全検査とartifactを維持して枠だけを拡張した。個別Playwright assertionのtimeout、検査条件、失敗扱いは緩めない。CI成功には残りのキャラ・ロケーション・画像guardまで完走が必要。
+
+### Helpの画面別検証
+
+`capture-compact-entry-handoff.mjs` は320×480・320×568・375×667・390×844・430×932と模擬safe-areaでTitleの実ボタンからHelpへ入り、本文の描画範囲・画像とフッターからのHome復帰を確認する。短画面ではドラッグ・末尾までのスクロールも検査する。`ainan-help-evidence` は全量mobile E2Eの途中でも同じheadのHelp画像と寸法を確認するためのartifactであり、単独では全量CI・物理iPhone・人の可読性評価の合格を意味しない。
