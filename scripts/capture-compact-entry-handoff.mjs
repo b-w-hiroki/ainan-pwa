@@ -86,14 +86,42 @@ try {
             const bounds = node.getBounds()
             return { text, left: bounds.left, right: bounds.right,
               top: node.y - node.displayHeight / 2, bottom: node.y + node.displayHeight / 2,
-              rowTop: (scene._narrowHelp ? 606 : 438) + index * (scene._narrowHelp ? 90 : 50),
+              rowTop: scene._helpControlsTop + 48 + index * (scene._narrowHelp ? 90 : 50),
               narrow: scene._narrowHelp, width: scene.scale.width,
               lines: node.getWrappedText(node.text).length }
           })
         })
+        const loopLayout = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('HelpScene')
+          const nodes = scene._helpContent?.list ?? scene.children.list
+          return {
+            ...scene._helpLoopBounds,
+            controlsTop: scene._helpControlsTop,
+            descriptions: scene._helpLoopBounds.cards.map(card => {
+              const node = nodes.find(child => child.type === 'Text' && child.text === card.description)
+              const bounds = node?.getBounds()
+              return { left: bounds?.left, right: bounds?.right, top: bounds?.top, bottom: bounds?.bottom }
+            }),
+          }
+        })
         // Save the pixels and metrics even if a subsequent layout assertion fails.
         await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
-        writeFileSync(`${output}/help-bounds-${label}.json`, JSON.stringify(helpCopy, null, 2))
+        writeFileSync(`${output}/help-bounds-${label}.json`, JSON.stringify({ helpCopy, loopLayout }, null, 2))
+        const { panel, cards, note, descriptions } = loopLayout
+        for (const [index, card] of cards.entries()) {
+          assert.ok(card.x >= panel.x + 16 && card.x + card.width <= panel.x + panel.width - 16,
+            `Help loop card touches the outer frame: ${JSON.stringify({ panel, card })}`)
+          assert.ok(card.y + card.height + 12 <= note.y,
+            `Help yellow note overlaps a loop card: ${JSON.stringify({ note, card })}`)
+          const copy = descriptions[index]
+          assert.ok(copy.left >= card.x + 10 && copy.right <= card.x + card.width - 10
+            && copy.top >= card.y + 48 && copy.bottom <= card.y + card.height - 6,
+            `Help loop description escapes its card: ${JSON.stringify({ card, copy })}`)
+        }
+        assert.ok(note.y + note.height <= panel.y + panel.height - 12,
+          `Help yellow note touches the outer frame: ${JSON.stringify(loopLayout)}`)
+        assert.ok(loopLayout.controlsTop >= panel.y + panel.height + 16,
+          `Help panels overlap: ${JSON.stringify(loopLayout)}`)
         for (const copy of helpCopy) {
           assert.equal(copy.missing, undefined, `Help description missing: ${JSON.stringify(copy)}`)
           assert.ok(copy.lines >= (copy.narrow ? 2 : 1), `Japanese Help description did not wrap: ${JSON.stringify(copy)}`)
