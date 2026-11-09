@@ -170,7 +170,7 @@ export default class HelpScene extends Phaser.Scene {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
     const copyInset = this._narrowHelp ? 18 : 12
-    this.add.text(x + copyInset, y + (this._narrowHelp ? 57 : 60), description, {
+    this.add.text(x + copyInset, y + (this._narrowHelp ? 57 : 62), description, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '12px' : '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
       wordWrap: { width: w - copyInset * 2, useAdvancedWrap: true },
     }).setOrigin(0, 0.5).setDepth(5)
