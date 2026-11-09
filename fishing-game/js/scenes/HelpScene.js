@@ -204,10 +204,10 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(x + 116, y + 13, item.title, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '13px' : '11px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(this._narrowHelp ? x + 12 : x + 116, this._narrowHelp ? y + 56 : y + 29, item.desc, {
+    this.add.text(this._narrowHelp ? x + 12 : x + 116, this._narrowHelp ? y + 56 : y + 31, item.desc, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '12px' : '8px', fontWeight: '800', color: UI_COLORS.inkSoft,
-      // Japanese copy has no spaces, so the narrow layout must also wrap long words.
-      wordWrap: { width: this._narrowHelp ? w - 24 : w - 128, useAdvancedWrap: this._narrowHelp },
+      // Japanese copy has no spaces; wrap long words at every supported width.
+      wordWrap: { width: this._narrowHelp ? w - 24 : w - 128, useAdvancedWrap: true },
     }).setOrigin(0, 0.5).setDepth(5)
   }
 }
