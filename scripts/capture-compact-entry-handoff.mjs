@@ -71,6 +71,32 @@ try {
         })
         await page.mouse.click(help.x, help.y)
         await page.waitForFunction(() => window.__game?.scene?.getScene('HelpScene')?.sys?.isActive?.())
+        const helpCopy = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('HelpScene')
+          const descriptions = [
+            '長押しで距離を狙って投げる。遠投ほど沖の魚影に届く。',
+            'ちょい巻き・ゆっくり巻き・待つを使い分け、魚影をルアーへ寄せる。',
+            '魚が追ってきたら巻きすぎない。ぐんっと食った瞬間にタップ。',
+            '落ち着いている時に下へスワイプ。暴れている時は待つ。',
+          ]
+          return descriptions.map((text, index) => {
+            const node = scene._helpContent.list.find(child => child.type === 'Text' && child.text === text)
+            if (!node) return { missing: text }
+            const bounds = node.getBounds()
+            return { text, left: bounds.left, right: bounds.right,
+              top: node.y - node.displayHeight / 2, bottom: node.y + node.displayHeight / 2,
+              rowTop: 606 + index * 90, width: scene.scale.width,
+              lines: node.getWrappedText(node.text).length }
+          })
+        })
+        for (const copy of helpCopy) {
+          assert.equal(copy.missing, undefined, `Help description missing: ${JSON.stringify(copy)}`)
+          assert.ok(copy.lines > 1, `Japanese Help description did not wrap: ${JSON.stringify(copy)}`)
+          assert.ok(copy.left >= 45 && copy.right <= copy.width - 45,
+            `Help description escapes its card: ${JSON.stringify(copy)}`)
+          assert.ok(copy.top >= copy.rowTop + 36 && copy.bottom <= copy.rowTop + 78,
+            `Help description overlaps its control or next row: ${JSON.stringify(copy)}`)
+        }
         await page.screenshot({ path: `${output}/help-top-${label}.png`, animations: 'disabled' })
         await page.mouse.move(width / 2, height - 115)
         await page.mouse.down()
@@ -79,7 +105,19 @@ try {
         const dragged = await page.evaluate(() => window.__game.scene.getScene('HelpScene')._helpScroll)
         assert.ok(dragged > 100, `short Help did not respond to drag: ${dragged}`)
         await page.mouse.wheel(0, 800)
-        await page.waitForFunction(() => window.__game.scene.getScene('HelpScene')._helpScroll > 300)
+        await page.waitForFunction(() => {
+          const scene = window.__game.scene.getScene('HelpScene')
+          return scene._helpScroll >= 1022 - (scene.scale.height - 88) - 1
+        })
+        const helpEnd = await page.evaluate(() => {
+          const scene = window.__game.scene.getScene('HelpScene')
+          const note = scene._helpContent.list.find(node => node.type === 'Text'
+            && node.text === '季節・時間・天候を見て大物を狙おう')
+          const bounds = note?.getBounds()
+          return { top: bounds?.top, bottom: bounds?.bottom, contentBottom: scene.scale.height - 88 }
+        })
+        assert.ok(helpEnd.top >= 106 && helpEnd.bottom <= helpEnd.contentBottom,
+          `Help final note is not readable above the footer: ${JSON.stringify(helpEnd)}`)
         await page.screenshot({ path: `${output}/help-bottom-${label}.png`, animations: 'disabled' })
         for (const position of ['top', 'bottom']) {
           assert.ok(statSync(`${output}/help-${position}-${label}.png`).size > 15000,
