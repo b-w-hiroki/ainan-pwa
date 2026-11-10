@@ -9,8 +9,8 @@ const TEXT_RES = window.devicePixelRatio ?? 1
 
 const LOOP_STEPS = [
   { no: '1', title: '釣る', desc: '天候と時間を見て魚を狙う', accent: 0x5bb5d8 },
-  { no: '2', title: '活かす', desc: '魚を売る・料理・素材に使う', accent: 0x71d6a2 },
-  { no: '3', title: '育てる', desc: '工房で竿・帽子・バッグを強化', accent: 0xffb45d },
+  { no: '2', title: '活かす', desc: '魚を売る・料理・素材に使う', wideDesc: '魚を売る・料理・\n素材に使う', accent: 0x71d6a2 },
+  { no: '3', title: '育てる', desc: '工房で竿・帽子・バッグを強化', wideDesc: '工房で竿・帽子・\nバッグを強化', accent: 0xffb45d },
   { no: '4', title: '挑む', desc: '町を育て新しい海とボスへ', accent: 0x8f80e8 },
 ]
 
@@ -118,7 +118,9 @@ export default class HelpScene extends Phaser.Scene {
   }
 
   _loopPanel(W) {
-    const x = 18, y = 112, w = W - 36, h = this._narrowHelp ? 430 : 260
+    const x = 18, y = 112, w = W - 36, h = this._narrowHelp ? 430 : 282
+    this._loopPanelBottom = y + h
+    this._helpLoopBounds = { panel: { x, y, width: w, height: h }, cards: [] }
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
@@ -134,11 +136,13 @@ export default class HelpScene extends Phaser.Scene {
     LOOP_STEPS.forEach((step, i) => {
       const col = this._narrowHelp ? 0 : i % 2
       const row = this._narrowHelp ? i : Math.floor(i / 2)
-      const cx = x + 18 + col * 174
+      const cardWidth = this._narrowHelp ? w - 36 : (w - 48) / 2
+      const cx = x + 18 + col * (cardWidth + 12)
       const cy = y + 50 + row * (this._narrowHelp ? 78 : 94)
-      this._loopCard(cx, cy, this._narrowHelp ? w - 36 : 162, this._narrowHelp ? 72 : 82, step)
+      this._loopCard(cx, cy, cardWidth, this._narrowHelp ? 72 : 82, step)
     })
 
+    this._helpLoopBounds.note = { x: x + 18, y: y + h - 42, width: w - 36, height: 28 }
     const foot = this.add.graphics().setDepth(4)
     foot.fillStyle(0xfff3d7, 1)
     foot.lineStyle(1.5, 0xffb45d, 0.72)
@@ -150,6 +154,8 @@ export default class HelpScene extends Phaser.Scene {
   }
 
   _loopCard(x, y, w, h, step) {
+    const description = this._narrowHelp ? step.desc : (step.wideDesc ?? step.desc)
+    this._helpLoopBounds.cards.push({ x, y, width: w, height: h, description })
     const g = this.add.graphics().setDepth(4)
     g.fillStyle(step.accent, 0.10)
     g.lineStyle(1.6, step.accent, 0.62)
@@ -163,13 +169,16 @@ export default class HelpScene extends Phaser.Scene {
     this.add.text(x + 53, y + 23, step.title, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: '14px', fontWeight: '900', color: UI_COLORS.ink,
     }).setOrigin(0, 0.5).setDepth(5)
-    this.add.text(x + 18, y + 57, step.desc, {
+    const copyInset = this._narrowHelp ? 18 : 12
+    this.add.text(x + copyInset, y + (this._narrowHelp ? 57 : 62), description, {
       fontFamily: FONT, resolution: TEXT_RES, fontSize: this._narrowHelp ? '12px' : '10px', fontWeight: '800', color: UI_COLORS.inkSoft,
+      wordWrap: { width: w - copyInset * 2, useAdvancedWrap: true },
     }).setOrigin(0, 0.5).setDepth(5)
   }
 
   _controls(W) {
-    const x = 18, y = this._narrowHelp ? 558 : 390, w = W - 36, h = this._narrowHelp ? 464 : 284
+    const x = 18, y = this._loopPanelBottom + (this._narrowHelp ? 16 : 18), w = W - 36, h = this._narrowHelp ? 464 : 284
+    this._helpControlsTop = y
     const panel = this.add.graphics().setDepth(3)
     panel.fillStyle(0xffffff, 0.96)
     panel.lineStyle(2, 0x9bcfe5, 0.82)
