@@ -46,7 +46,7 @@ try {
       const title = await page.evaluate(() => {
         const scene = window.__game.scene.getScene('TitleScene')
         const button = scene.children.list.find(node => node.getData?.('uiRole') === 'button' && node.list.some(child => child.text === '遊び方'))
-        const copy = scene.children.list.find(node => node.text === '愛南の海から、物語をはじめよう')
+        const copy = scene.children.list.find(node => node.text === '釣って、育てて、港町を元気に。')
         return { x: button.x, y: button.y, hitHeight: button.list.find(child => child.type === 'Rectangle' && child.input).height,
           copyFont: Number.parseFloat(copy.style.fontSize), copyWidth: copy.width }
       })
