@@ -93,6 +93,9 @@ jobs:
           grep -q "precache" /tmp/ainan-sw.js
           echo "PWA endpoints OK"
 
+      - name: Verify title hierarchy and ordinary entry actions
+        run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-title-hierarchy.mjs
+
       - name: Verify compact Title and Map touch navigation
         run: npm exec --yes --package=playwright@1.55.0 -- node scripts/capture-compact-entry-map.mjs
 
@@ -288,6 +291,7 @@ jobs:
           path: |
             artifacts/e2e
             artifacts/town-compact
+            artifacts/title-hierarchy
             artifacts/compact-entry-map
             artifacts/compact-cast-prototype
             artifacts/compact-fishing-loop

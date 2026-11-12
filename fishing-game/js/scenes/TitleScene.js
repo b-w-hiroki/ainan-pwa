@@ -1,4 +1,4 @@
-﻿import Phaser from 'phaser'
+import Phaser from 'phaser'
 import { FONT, SHADOW } from '../config/fontStyles.js'
 import { ICONS } from '../config/icons.js'
 import { ASSETS } from '../config/assetManifest.js'
@@ -110,36 +110,14 @@ export default class TitleScene extends Phaser.Scene {
       duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.inOut',
     })
 
+    // One promise below the logo; leave the harbor unobstructed between it and the actions.
     const subBg = this.add.graphics().setDepth(4)
     subBg.fillStyle(0x123a54, 0.78)
-    subBg.lineStyle(1.5, 0xffd95a, 0.92)
-    subBg.fillRoundedRect(W / 2 - 112, H * 0.27 - 16, 224, 32, 16)
-    subBg.strokeRoundedRect(W / 2 - 112, H * 0.27 - 16, 224, 32, 16)
-    this.add.text(W / 2, H * 0.27, '釣りと町づくりの海辺の暮らし', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '17px' : '14px', fontWeight: '900',
-      color: '#ffffff',
-      shadow: SHADOW.medium,
-    }).setOrigin(0.5).setDepth(5)
-
-    // ─── 世界観と遊びの紹介 ──────────────────────────
-    const copyY = H * (shortPortrait ? 0.52 : 0.615)
-    const copyBg = this.add.graphics().setDepth(4)
-    copyBg.fillStyle(0x123a54, 0.76)
-    copyBg.lineStyle(1.5, 0xffffff, 0.56)
-    copyBg.fillRoundedRect(W / 2 - 156, copyY - 37, 312, 74, 20)
-    copyBg.strokeRoundedRect(W / 2 - 156, copyY - 37, 312, 74, 20)
-    this.add.text(W / 2, copyY - 12, '釣って、育てて、港町を元気に。', {
+    subBg.fillRoundedRect(W / 2 - 156, H * 0.29 - 22, 312, 44, 16)
+    this.add.text(W / 2, H * 0.29, '釣って、育てて、港町を元気に。', {
       fontFamily: FONT, resolution: TEXT_RES,
       fontSize: compact ? '18px' : '16px', fontWeight: '900',
-      color: '#fff5d9',
-      shadow: SHADOW.medium,
-    }).setOrigin(0.5).setDepth(5)
-    this.add.text(W / 2, copyY + 15, '愛南の海から、物語をはじめよう', {
-      fontFamily: FONT, resolution: TEXT_RES,
-      fontSize: compact ? '15px' : '12px', fontWeight: '800',
-      color: '#e5f7ff',
-      shadow: SHADOW.medium,
+      color: '#fff5d9', shadow: SHADOW.medium,
     }).setOrigin(0.5).setDepth(5)
 
     // ─── スタートボタン ──────────────────────────────
@@ -147,12 +125,9 @@ export default class TitleScene extends Phaser.Scene {
       x: W / 2, y: H * (shortPortrait ? 0.70 : 0.735),
       w: 282, h: 70,
       label: 'ゲームをはじめる',
-      subLabel: '釣って、育てて、町を元気に',
       icon:  ICONS.PLAY,
       variant: 'primary',
       fontSize: compactTitleAction ? 18 : 22,
-      titleOffsetY: compactTitleAction ? -18 : undefined,
-      subLabelOffsetY: compactTitleAction ? 19 : undefined,
       depth: 10,
       keyboard: true,
       pulse: true,
@@ -170,19 +145,6 @@ export default class TitleScene extends Phaser.Scene {
       depth: 10,
       onClick: () => this.scene.start('HelpScene'),
     })
-
-    // ボタン誘導パルス
-    // ─── フッター ─────────────────────────────────
-    if (!shortPortrait) {
-      const footerBg = this.add.graphics().setDepth(4)
-      footerBg.fillStyle(0xffffff, 0.70)
-      footerBg.fillRoundedRect(W / 2 - 122, H * 0.95 - 12, 244, 24, 12)
-      this.add.text(W / 2, H * 0.95, '釣り × 町おこし  AINAN', {
-        fontFamily: FONT, resolution: TEXT_RES,
-        fontSize: compact ? '15px' : '12px', fontWeight: '700',
-        color: '#1a3a5a',
-      }).setOrigin(0.5).setDepth(5).setAlpha(0.9)
-    }
 
     this.add.text(W - 8, H - 7, `build ${BUILD_ID}`, {
       fontFamily: FONT, resolution: TEXT_RES,
