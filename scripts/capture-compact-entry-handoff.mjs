@@ -49,12 +49,13 @@ try {
           return {
             titleLines: title?.getWrappedText(title.text).length,
             titleBottom: title ? title.y + title.displayHeight / 2 : null,
-            subTop: sub ? sub.y - sub.displayHeight / 2 : null,
+            hasRepeatedCopy: Boolean(sub),
+            centered: title?.y === 0,
           }
         })
         assert.equal(startCopy.titleLines, 1, `compact Title CTA wraps: ${JSON.stringify(startCopy)}`)
-        assert.ok(startCopy.titleBottom < startCopy.subTop,
-          `compact Title CTA copy overlaps: ${JSON.stringify(startCopy)}`)
+        assert.equal(startCopy.hasRepeatedCopy, false, 'CTA must not repeat the title promise')
+        assert.ok(startCopy.centered, 'single-line CTA is vertically centered')
       }
       if (height === 480) {
         const buttons = await page.evaluate(() => {
