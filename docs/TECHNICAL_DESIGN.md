@@ -102,3 +102,5 @@ classicの短い縦画面Castは、人物や竿が描き込まれた通常背景
 `capture-compact-entry-handoff.mjs` は320×480・320×568・375×667・390×844・430×932と模擬safe-areaでTitleの実ボタンからHelpへ入り、本文の描画範囲・画像とフッターからのHome復帰を確認する。短画面ではドラッグ・末尾までのスクロールも検査する。`ainan-help-evidence` は全量mobile E2Eの途中でも同じheadのHelp画像と寸法を確認するためのartifactであり、単独では全量CI・物理iPhone・人の可読性評価の合格を意味しない。
 
 Helpの基本ループはパネル内幅から2列のカード幅を求め、黄色い注記の前に12px以上の間隔を置く。釣り操作パネルの開始位置は基本ループの下端から計算する。`capture-compact-entry-handoff.mjs` はカードと外枠・注記の間隔、基本ループ本文の描画範囲、パネル間隔も検査し、既存の短画面・模擬safe-area条件で画像と寸法を保存する。
+
+ホームの案内は `HomeScene` が目的バナー・短いキャラクター発話・進捗付きCTAに役割分担する。`capture-home-hierarchy.mjs` は通常URLのTitle→Home→Mapを320×568 / 390×844 / 1180×757で操作し、目的と進捗の重複がないことを検査して画像を保存する。CIのmobile-e2eで実行する。

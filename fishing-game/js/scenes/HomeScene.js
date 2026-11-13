@@ -227,7 +227,7 @@ export default class HomeScene extends Phaser.Scene {
     if (this._journey.id === 'first-catch' || this._journey.id === 'review-catch') {
       label = this._journey.id === 'first-catch' ? 'FIRST CATCH' : 'CATCH SAVED'
       title = this._journey.title
-      lead = this._journey.body
+      lead = this._journey.id === 'first-catch' ? '汐風港で最初の釣果を' : '釣った魚で港を元気に'
       accent = this._journey.id === 'first-catch' ? 0x5bb5d8 : 0x71d6a2
       action = () => this.scene.start(this._journey.scene)
     } else if (this._hasKue) {
@@ -335,15 +335,15 @@ export default class HomeScene extends Phaser.Scene {
 
   _buildGuideBubble(W, H) {
     const x = 16, y = H * 0.36, w = 154, h = 66
-    let title = this._journey.title
-    let body = this._journey.progress
-    let color = this._journey.mode === 'first' ? UI_COLORS.warning : UI_COLORS.success
-
-    if (this._hasKue) {
-      title = '港中がクエの話でもちきり！'
-      body = '記念祭の町を見に行こう'
-      color = '#a97700'
-    }
+    // The banner owns the goal and the CTA owns progress. Let the guide speak,
+    // rather than repeating the same instructions in a third place.
+    const title = this._hasKue ? '港がにぎやかになったね！' : ({
+      'first-catch': 'どんな魚に会えるかな？',
+      'review-catch': 'おかえり！いい釣果だね',
+      'grow-town': '港の変化が楽しみだね',
+      prepare: '準備を整えていこう',
+      challenge: '今日も海が待ってるよ',
+    }[this._journey.id] ?? '今日も海が待ってるよ')
 
     const g = this.add.graphics().setDepth(14)
     g.fillStyle(0x173248, 0.12)
@@ -354,8 +354,7 @@ export default class HomeScene extends Phaser.Scene {
     g.strokeRoundedRect(x, y, w, h, 18)
     g.fillStyle(this._hasKue ? 0xfffbec : 0xffffff, 0.97)
     g.fillTriangle(x + w - 4, y + 42, x + w + 16, y + 52, x + w - 4, y + 60)
-    this.add.text(x + 14, y + 15, title, uiText('cardTitle', { fontSize: this._hasKue ? '10px' : '12px' })).setDepth(15)
-    this.add.text(x + 14, y + 41, body, uiText('micro', { fontSize: '11px', color })).setDepth(15)
+    this.add.text(x + w / 2, y + h / 2, title, uiText('cardTitle', { fontSize: '11px' })).setOrigin(0.5).setDepth(15)
     this.add.rectangle(x + w / 2, y + h / 2, w, h, 0x000000, 0).setDepth(16).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.scene.start(this._journey.scene))
   }
 
