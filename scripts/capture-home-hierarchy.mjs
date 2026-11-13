@@ -26,6 +26,8 @@ try {
     await clickButton('TitleScene','_startButton')
     await page.waitForFunction(() => window.__game.scene.isActive('HomeScene'))
     await page.evaluate(() => window.__game.scene.getScene('HomeScene')._dismissDailyBonus())
+    await page.waitForFunction(() => !window.__game.scene.getScene('HomeScene').cameras.main.fadeEffect.isRunning)
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
     const info = await page.evaluate(() => {
       const s = window.__game.scene.getScene('HomeScene')
       const texts = []
